@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_css %}
+   <link href='{% static "css/shift_Cagette.css" %}?v=' rel='stylesheet' />
+ {% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript">
+    // Données du Membre
+    dataPartner = {
+      "partner_id":"{{partnerData.id}}",
+      "date_alert_stop":"{{partnerData.date_alert_stop}}",
+      "cooperative_state":"{{partnerData.cooperative_state}}",
+      "verif_token":"{{partnerData.verif_token}}"
+    }
+  </script>
+  <script defer src='{% static "fontawesome/js/fontawesome-all.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+  {% if with_website_menu %}
+    {% include "website/menu.html" %}
+  {% endif %}
+
+  <div>
+    <div id="suspended" hidden>
+      <h2>Bonjour. Il semblerait que vous soyez « suspendu.e ».</h2>
+      <div id="delay" hidden>
+        <p>Ça veut dire que soit :</p>
+        <ul>
+          <li>vous avez raté deux services. Lorsque votre compteur passe à -2, vous êtes immédiatement suspendus,</li>
+          <li>vous avez raté un service et vous ne l'avez pas rattrapé dans les 4 semaines qui ont suivis.</li>
+        </ul>
+        <p>Heureusement, vous pouvez demander une extension !</p>
+        <p>Une extension vous donne un délais de quatre semaines supplémentaires pour rattraper le service manqué (ou les deux services manqués).Vous pouvez demander jusqu'à 6 extensions d'affilé.</p>
+        <p>En pratique, ça signifie que vous avez jusqu'à 24 semaines pour rattraper un service raté !</p>
+        <p>Si vous ratez un troisième service, vous serez désinscrit.e, vous n'aurez plus accès au magasin et votre place sera libérée pour un.e autre membre.</p>
+        <br/>
+        <p>
+        {% if partnerData.is_leave %}
+           <strong>
+           Mais, vous êtes actuellement en période de congé. <br/>
+           Merci de passer au magasin pour régulariser la situation.
+           </strong>
+        {% else %}
+            Vous pouvez demander une extension en cliquant ici : <a class='btn--primary' onclick="request_delay()">Demander une extension</a>
+        {% endif %}
+        </p>
+      </div>
+      <div id="no_delay" hidden>
+        <p>Vous ne pouvez plus demander d'extensions, merci de passer au magasin pour vous régulariser.</p>
+      </div>
+      <p>
+    </div>
+    <div id="unsubscribed" hidden>
+      {% if UNSUBSCRIBED_MSG %}
+        <p>{{UNSUBSCRIBED_MSG|safe}}</p>
+      {% else %}
+        <h2>Vous êtes désinscrit.e, merci de passer au magasin pour vous ré-incrire.</h2>
+      {% endif %}
+    </div>
+    <div id="unpayed" hidden>
+      <h2>Vous avez un impayé, merci de passer au magasin pour vous régulariser.</h2>
+    </div>
+  </div>
+  <div id="exempted">
+    Bonjour.<br/>
+    Vous êtes exempté(e) de service et n'avez donc pas de service à choisir ou échanger.
+  </div>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/shift_states_not_allowed.js" %}?v="></script>
+{% endblock %}

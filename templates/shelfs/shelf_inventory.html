@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/shelfs.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/download.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="FAQ_modal_content" style="display: none"></div>
+
+<div class="page_body">
+  <header class="flex-container">
+    <button class="right btn--danger" onclick="back()">Retour</button>
+    <div class="w33 arrow-block txtcenter" id="header_step_one">
+      <h4 id="header_step_one_content">Produits à compter en rayon </h4>
+    </div>
+    <div class="w33 arrow-block txtcenter" id="header_step_two">
+      <h4>Produits à compter en réserve</h4>
+    </div>
+    <div class="item-fluid arrow-block txtcenter" id="header_step_three">
+      <h4>Inventaire terminé</h4>
+    </div>
+  </header>
+  <section class="grid-2 has-gutter">
+    <div>
+      <section id="container_shelf_name" class="page_element grid-2 has-gutter">
+        <div class="txtright">
+          <h3 id="page_title">Inventaire du rayon</h3>
+        </div>
+        <div class="txtleft">
+          <h3><b><span id="shelf_name"></span></b></h3>
+        </div>
+      </section>
+
+      <div id="container_search_edition">
+        <div id="container_search">
+          <div class="txtcenter">
+            <input autocomplete="off" type="text" placeholder="Rechercher un produit par son nom ou son code barre" class="searchMultipleTables" id="search_input" autofocus>
+          </div>
+        </div>
+
+        <div id="container_edition">
+          <form action="javascript:;" name="edition" onsubmit="validateEdition(this)">
+            <div>
+              <h4 id="edition_header"></h4>
+            </div>
+            <div class="grid-9 has-gutter">
+              <div class="col-4">
+                <p id="product_name"></p>
+              </div>
+              <div class="col-3 center">
+                <label for="edition_input" id="edition_input_label">Qté : </label>
+                <input type="text" class="number input_small" id="edition_input" autocomplete="off" required>
+                <span id="product_uom"></span>
+              </div>
+              <div class="col-1 center">
+                <a class="btn" id='edition_cancel'>
+                  <i class="far fa-window-close fa-lg"></i>
+                </a>
+              </div>
+              <div class="col-1 center">
+                <button type="submit" class="btn" id='edition_valid'>
+                  <i class='far fa-check-square fa-lg'></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="page_element txtcenter">
+        <button class="btn btn_light full_width_button" id="open_issues_report">Renseigner un problème d'inventaire</button>
+      </div>
+      <div class="page_element txtcenter">
+        <button class="btn--warning full_width_button" name="faq" id="open_faq">FAQ - En cas de soucis avec la marche à suivre...</button>
+      </div>
+      <div class="page_element txtcenter">
+        <button class='btn--danger full_width_button' id='process_all_items'>Il n'y a plus de produits à compter</button>
+      </div>
+    </div>
+
+    <div class="container_products" id="container_left">
+      <h4 id="header_container_left">Produits à compter</h4>
+      <table id="table_to_process" class="display" cellspacing="0"></table>
+    </div>
+    <div class="container_products" id="container_right">
+      <h4 id="header_container_right">Produits déjà comptés</h4>
+      <table id="table_processed" class="display" cellspacing="0"></table>
+    </div>
+    <div class="txtcenter">
+      <button class='full_width_button' id='add_product_to_shelf'>Ajouter un produit au rayon</button>
+    </div>
+    <div class="txtcenter">
+      <button class='full_width_button' id='validate_inventory'>J'ai fini de compter</button>
+    </div>
+  </section>
+  <div id="templates" style="display:none;">
+    <div id="main-waiting-zone">
+      <p class="msg">
+      </p>
+      <p class="loader">
+          <img src="/static/img/Pedro_luis_romani_ruiz.gif" id="rotating_loader"/>
+      </p>
+    </div>
+    <div id="validation_msg">
+      <h3>Attention !</h3>
+      <p>Vous vous apprêtez valider le comptage des produits<span class="validation_msg_step2" style="display:none;"> en réserve</span> de ce rayon.</p>
+      <p class="validation_msg_step2" style="display:none;"><i>Cette opération pourra pendre un peu de temps. (ex: 5min pour 120 produits)</i><br/><br/></p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="inventory_validated">
+      <div class="txtcenter">
+        <h3>Bravo, l'inventaire de ce rayon est terminé !</h3>
+        <div id="products_missed_container" style="display:none;">
+          <br />
+          <h4>Attention, les produits suivants n'ont pas pu être inventoriés : </h4>
+          <ul id="products_missed_list">
+
+          </ul>
+          <p>Merci d'en avertir un salarié avant d'aller plus loin !</p>
+        </div>
+        <div id="step1_validated" style="display:none;">
+          <br/>
+          <p>Vous pouvez continuer l'inventaire en allant comptabiliser les produits en réserve, si ce n'est pas déjà fait.</p>
+        </div>
+      </div>
+      <hr />
+    </div>
+    <div id="process_all_items_msg">
+      <h3>Attention !</h3>
+      <br/>
+      <p>
+        Vous vous apprêtez à indiquer qu'il n'y a plus de produits à compter dans ce rayon.<br/>
+        Cela aura pour effet de passer toutes les quantités des produits non traités à 0.
+      </p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="issues_reporting">
+      <h3>Renseigner un problème d'inventaire</h3>
+      <hr />
+
+      <p class="txtleft">
+        Ici, vous pouvez signaler toute anomalie lors d'un inventaire de rayon.
+        Merci d'indiquer un maximum d'informations.
+      </p>
+      <br />
+      <textarea id="issues_report"></textarea>
+      <hr />
+    </div>
+    <div id="add_product_form">
+      <h3>Ajouter un produit au rayon</h3>
+      <hr />
+      <p>Scannez le produit à ajouter au rayon, ou entrez son code barre dans le champ ci-dessous.</p>
+      <input autocomplete="off" type="text" placeholder="Code barre du produit" class="add_product_input">
+      <hr />
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var products = {{products|safe}}
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/common.js" %}?v="></script>
+<script type="text/javascript" src="{% static 'js/shelf_inventory.js' %}"></script>
+{% endblock %}

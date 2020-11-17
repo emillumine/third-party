@@ -1,0 +1,61 @@
+body {background-color: #f4fff0;}
+
+/* adaptation de https://www.w3schools.com/css/css_dropdowns.asp */
+/** TODO put it in common.css **/
+/* Style The Dropdown Button */
+.dropbtn {
+  background-color: #0275D8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+  height: 35px;
+  margin-bottom: 0;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  list-style-type: none;
+  width: 100%;
+  padding-left: 0 !important;
+}
+
+/* Links inside the dropdown */
+.dropdown-content li span{
+  color: black;
+  width: 100%;
+  padding: 12px 5px;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content li span:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+}
+
+
+.main.nav.dropdown  {max-width: 250px}

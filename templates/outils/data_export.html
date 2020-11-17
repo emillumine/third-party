@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<form enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <em>Si aucun mois n'est donné, c'est le mois courant qui est pris en compte.</em>
+    <p id="wait" style="display:none">
+        <img class="loading item-center" src="/static/img/loading-gear-8.gif" alt="Chargement des données..." />
+    </p>
+    <p id="submit">
+        <input type="submit" value="OK">
+    </p>
+</form>
+<script type="text/javascript">
+  $('form').submit(function() {
+    $('#submit').html($('#wait').html())
+  })
+</script>
+{% endblock %}

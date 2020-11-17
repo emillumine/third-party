@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+
+</head>
+<body>
+    <form enctype="multipart/form-data" action="/export_pos" method="post">
+    {% csrf_token %}
+    Mois
+    <input name="month" placeholder="yyyy-mm" />
+    <br />
+    <em>Si aucun mois n'est donné, c'est le mois courant qui est pris.</em>
+    <p>
+        <input type="submit" value="OK">
+    </p>
+    </form>
+</body>
+</html>

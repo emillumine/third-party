@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/reception_style.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugin.moment_sorting.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v="></script>
+{% endblock %}
+
+{% block content %}
+<div class="header txtcenter">
+  <h1>Sélectionner une commande</h1>
+</div>
+
+<br>
+<div id="container_search">
+  <div class="txtcenter">
+    <input type="text" placeholder="Rechercher une commande par son fournisseur" class="midWidthInput" id="search_input" autofocus>
+  </div>
+</div>
+
+<div id="container_groups" hidden>
+  <h4><b>Commandes groupées :</b></h4>
+  <div id="groups_items"></div>
+</div>
+
+<br>
+<div id="grouped_action">
+  <button type="button" class='btn--primary' id='group_action' onclick="group_action()" hidden>Compter les produits des commandes sélectionnées</button>
+</div>
+
+
+<div class="main">
+  <table id="orders" class="display" width="90%" cellspacing="0" ></table>
+</div>
+
+<div id="templates" style="display:none;">
+  <div id="modal_no_prices">
+    <h2>Attention !</h2>
+    <p>Vous vous apprêtez à indiquer qu'il n'y a pas de prix à vérifier pour cette commande.</p>
+    <p>Êtez-vous sûr ?</p>
+    <hr />
+  </div>
+</div>
+<br/>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script type="text/javascript">
+        var merge_orders_pswd = '{{merge_orders_pswd}}';
+</script>
+<script src="{% static "js/common.js" %}?v="></script>
+{% endblock %}

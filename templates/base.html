@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static "css/knacss.min.css" %}">
+    <link rel="stylesheet" href="{% static "css/common.css" %}?v=">
+    <link rel="stylesheet" href="{% static "fontawesome/css/fa-svg-with-js.css" %}?v=">
+    {% if custom_css.all %}
+      {% for fpath in custom_css.all %}
+        <link rel="stylesheet" href="{% static ''|add:fpath %}?v=">
+      {% endfor %}
+    {% endif %}
+
+    <link rel="shortcut icon" type="image/png" href="{% static "favicon.ico" %}"/>
+    {% block additionnal_css %}{% endblock %}
+    <script type="text/javascript">
+      // Prevent back page
+      // Add actual page to history
+      history.pushState(null, null, location.pathname)
+
+      // Register back button click
+      window.onpopstate = function (e) {
+          // Prevent default action on back button click
+          e.preventDefault()
+          // Add actual page to history again
+          history.pushState(null, null, location.pathname)
+      }
+      const False = false // prevent error if api return python False as a value
+    </script>
+    <script src="{% static "js/fp.js" %}"></script>
+    <script src="{% static "js/jquery-3.3.1.min.js" %}"></script>
+    <script src="{% static "fontawesome/js/fontawesome-all.min.js" %}"></script>
+    <script src="{% static "js/modernizr-custom.min.js" %}"></script>
+    {% block additionnal_scripts %}{% endblock %}
+    </head>
+  <body>
+    {% block menu %}{% endblock %}
+    <!-- The overlay -->
+    <div id="modal" class="overlay">
+      <!-- Button to close the overlay navigation -->
+      <a href="javascript:void(0)" class="closebtn" id="modal_closebtn_top" onclick="closeModal()">&times;</a>
+      <!-- Overlay content -->
+      <div class="overlay-content">
+        Chargement en cours...
+      </div>
+      <div id="box_load">
+         <img id="loading_img" src='{% static "load.gif" %}' />
+      </div>
+    </div>
+
+    <div id="msg_box">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeMsgBox()">&times;</a>
+    </div>
+    <div style="display:none" id="connect_form_template">
+        <h2>Identifiation Odoo</h2>
+
+        <form style="margin-bottom: 15px;">
+            <input type="text" name="login" placeholder="Identifiant Odoo" />
+            <input type="password" name="password" placeholder="Mot de passe" />
+        </form>
+        <em>Saisissez le mail d'un compte utilisateur Odoo et son mot de passe associé.</em>
+    </div>
+    {% block content %}{% endblock %}
+    {% csrf_token %}
+    <br class="mtop25" />
+    <footer>
+        Lit et écrit sur : {{odoo}}
+    </footer>
+
+  </body>
+</html>

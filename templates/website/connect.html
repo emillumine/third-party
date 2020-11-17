@@ -1,0 +1,38 @@
+{% extends "website/w_base.html" %}
+
+{% block content %}
+{% if with_shop_header %}
+    {% include "shop/connect_header.html" %}
+{% endif %}
+<div id="connect_form_template" style="text-align:center;">
+        <form method="POST">
+            <p><input type="text" name="login" placeholder="Email" /></p>
+            <p>
+                <input type="password" name="password" placeholder="{{password_placeholder}}" />
+                {% if password_notice %}
+                 <br/>
+                 <span style="font-size: small;font-style: italic;">{{password_notice}}</span>
+                {% endif %}
+                
+            </p>
+            {% csrf_token %}
+            <input type="hidden" name="fp" value="" />
+            <p><button type="submit">Connexion</button></p>
+        </form>
+        <p style="color:red;">{{msg}}</p>
+        <!--<p><a href="oubli_pass">Mot de passe oublié</a></p>-->
+        <script>
+            try {
+                window.addEventListener("DOMContentLoaded", (event) => {
+                    var fp = document.getElementsByName('fp')
+                    if (fp.length == 1)
+                        fp[0].value = new Fingerprint({canvas: true}).get()
+                })
+            } catch (e) {
+                var msg = 'Ce navigateur ne permet pas de vous identifier. Merci de signaler l\'erreur suivante:\n'
+                msg += JSON.stringify(e)
+                alert(msg)
+            }
+        </script>
+</div>
+{% endblock %}

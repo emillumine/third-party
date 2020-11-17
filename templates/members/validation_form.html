@@ -1,0 +1,71 @@
+<form id="coop_validation_form" lang="fr" autocomplete="off">
+        <div class="data">
+            {% if ask_for_sex %}
+                <p>
+                    {% include "members/sex_input.html" %}
+                </p>
+            {% endif %}
+            <p>
+                <input name="lastname" required class="b_yellow" placeholder="Nom" autocomplete="address-level4"/> <!--different autocomplete value to disable chrome-->
+                <input name="firstname" required class="b_yellow" placeholder="Prénom" autocomplete="address-level4" />
+                <input name="birthdate" placeholder="jj/mm/aaaa (naissance)" class="b_green" autocomplete="address-level4"/>
+            </p>
+            <p>
+                <input name="address" placeholder="Adresse" class="b_green" type="text" autocomplete="address-level4" />
+                {% if ask_for_street2 %}
+                    <input name="street2" placeholder="Complément d'adresse" class="b_green" type="text" autocomplete="address-level4" />
+                {% endif %}
+            </p>
+            <p>
+                <input name="zip" placeholder="Code postal" class="b_green" autocomplete="address-level4"/>
+                <input name="city" placeholder="Ville" class="b_green" autocomplete="address-level4"/>
+                <input name="country" placeholder="Pays" class="b_yellow" autocomplete="address-level4"/>
+                <span class="phone-wrapper{% if ask_for_second_phone %}-2{% endif %}">
+                <input type="tel" name="mobile" placeholder="Tél. mobile" class="b_green" pattern="^(\+\d{1,3}(-| ))?\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{0,2}?$" autocomplete="address-level4"/>
+                {% if ask_for_second_phone %}
+                     <input type="tel" name="phone" placeholder="Tél. autre" class="b_green" pattern="^(\+\d{1,3}(-| ))?\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{0,2}?$" autocomplete="address-level4"/>
+                {% endif %}
+                </span>
+            </p>
+            <p>
+                <input name="email" size="49" required class="b_yellow" pattern="(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*)@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])" placeholder="email" autocomplete="address-level4"/>
+                <span id="choosen_shift"> Créneau : <input  name="week" disabled="disabled" autocomplete="address-level4"/> <input name="day" disabled="disabled" autocomplete="address-level4"/> <input name="hour" disabled="disabled" autocomplete="address-level4"/> <input name="place" disabled="disabled" autocomplete="address-level4"/> <input name="ftop" disabled="disabled" value="Volant" autocomplete="address-level4"/>
+                <a id="change_shift_template" class="btn--primary">Changer</a>
+                </span>
+            </p>
+            <p>
+                <input type="number" step="1" min="1" placeholder="Nombre de parts" name="shares_nb" id="shares_nb" class="b_yellow" required disabled/>
+                <label for="shares_nb">Parts sociales</label>
+                <input type="number" step="10" min="10" placeholder="Montant souscription" name="shares_euros" id="shares_euros" class="b_yellow" required disabled/>
+                <label for="shares_euros">Euros</label>
+            </p>
+            <p>
+                <label for="payment_meaning">Payé en </label>
+                <select name="payment_meaning" id="payment_meaning" required disabled>
+                  <option value="">Moyen de paiement</option>
+                  {% for pm in payment_meanings %}
+                  <option value="{{pm.code}}">{{pm.title}}</option>
+                  {% endfor %}
+                </select>
+                <label for="checks_nb" id="checks_nb_label" style="display:none;">Nombre de chèque(s)</label>
+                <input type="number" min="0" name="checks_nb" id="checks_nb" class="b_yellow" style="display:none;" disabled/>
+            </p>
+            <div id="checks" class="main" style="display:none;">
+                <p>Saisie des chèques</p>
+                <div class="check_details">
+                </div>
+            </div>
+            {% if input_barcode %}
+              <p>
+                <input type="text" name="m_barcode" id="m_barcode" disabled/>
+              </p>
+            {% endif %}
+        </div>
+        <p class="buttons">
+              <button class="btn--success" name="valider">Tout est bon</button>
+               -- OU --
+            <a class="btn--danger" name="signaler">Signaler un problème</a>
+        </p>
+
+
+</form>

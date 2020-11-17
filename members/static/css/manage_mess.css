@@ -1,0 +1,27 @@
+label {display:block;}
+.sres, #list .content .item {
+    border: 1px solid black; 
+    border-radius: 5px; 
+    padding:5px; 
+    cursor: pointer; 
+    margin-top: 3px;}
+.sres {max-width: 50%;}
+#list, #working_area {
+    border: 3px solid blue;
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+#working_area {
+    border: 3px solid red;
+
+}
+
+#working_area button {
+    display: block;
+    margin:auto;
+    margin-bottom: 10px;
+}
+.mconfirm .content_details {text-align:left;}
+[name="checks[]"] {max-width: 100px;}

@@ -1,0 +1,22 @@
+{% extends "stock/stock_menu.html" %}
+{% load static %}
+
+{% block additionnal_scripts %}
+
+{% endblock %}
+
+
+{% block modal %}
+
+<canvas id="mixed-chart" width="800" height="450"></canvas>
+
+
+  <script type="text/javascript" src="{% static 'js/stock_graphSale.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+{% endblock %}
+
+
+
+
+

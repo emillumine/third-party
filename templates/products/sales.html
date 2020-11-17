@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/pos_products_sales.css' %}">
+{% endblock %}
+<style type="text/css">
+  .open_details {cursor: pointer; text-decoration: underline;}
+</style>
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/accent_neutral.search.plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.customized_cellEdit.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.responsive.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'jstree/jstree.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="header txtcenter">
+      <h1>Ventes du mois {{res.month}}</h1>
+    </div>
+    <div id="sum_up">
+    </div>
+    <div id="main_content" class="center">
+      <div class="grid-1">
+        <div class="search item-center" style="display:none;">
+          <div>
+            <label><input type="search" /><- Rechercher </label>
+            <div id="search_result"></div>
+          </div>
+        </div>
+        <table id="sales_list" cellspacing="0"></table>
+      </div>
+    </div>
+    <input type="checkbox" id="filter_pareto" /> <input type="numeric" value="50" id="pareto_num" />%
+    <div id="barcode_scanner" style="display:none;"></div>
+    <script type="text/javascript">
+      try {
+          window.sales_data = {{res|safe}}
+      } catch(e) {
+          console.log('erreur init')
+          console.log(e)
+      }
+    </script>
+    <script src="{% static "js/all_common.js" %}?v="></script>
+    <script src="{% static "js/pos_product_sales.js" %}?v="></script>
+{% endblock %}

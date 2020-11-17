@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/export_compta.js' %}"></script>
+{% endblock %}
+{% block content %}
+   <form enctype="multipart/form-data" action="/export_compta" method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+    {% if final_format %}
+      <p>
+        Format :
+
+        <select name="final_format">
+            <option selected="selected" value="{{final_format}}">{{final_format}}</option>
+            <option value="csv">CSV</option>
+        </select>
+
+      </p>
+    {%else%}
+        <input type="hidden" name="final_format" value="xlsx" />
+    {% endif %}
+    <p>
+
+        <input type="submit" value="OK">
+    </p>
+    </form>
+<script src="{% static "js/all_common.js" %}?v="></script>
+{% endblock %}

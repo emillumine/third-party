@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/responsive.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/shelfs.css' %}">
+<link rel="stylesheet" href="{% static 'jstree/themes/default/style.min.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/accent_neutral.search.plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.customized_cellEdit.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.responsive.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+  <script type="text/javascript" src="{% static 'jstree/jstree.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="header txtcenter">
+      <h1>Rayons</h1>
+    </div>
+
+    <br/>
+    <div id="container_search">
+      <div class="txtcenter">
+        <input type="text" placeholder="Rechercher un rayon" class="midWidthInput" id="search_input" autofocus>
+      </div>
+    </div>
+
+    <br/>
+    <div id="content_wrapper">
+      <div id="main_content">
+        <table id="shelfs" class="display" width="100%" cellspacing="0" ></table>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      shelfs = {{shelfs|safe}}
+    </script>
+    <script src="{% static "js/all_common.js" %}?v="></script>
+    <script src="{% static "js/common.js" %}?v="></script>
+    {% if SHELFS_SCRIPT %}
+      <script src="{% static 'js/'|add:SHELFS_SCRIPT|add:'.js' %}?v="></script>
+    {% else %}
+      <script src="{% static 'js/shelfs_index.js' %}?v="></script>
+    {% endif %}
+    
+{% endblock %}

@@ -1,0 +1,12 @@
+.main, .barcode_search_area {
+  margin-top: 20px;
+}
+
+#barcode_selector {
+  border: 1px solid #555;
+  border-radius:15px;
+}
+
+.stock_edit_input {
+  max-width: 50px;
+}

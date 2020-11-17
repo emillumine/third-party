@@ -1,0 +1,11 @@
+{% extends "website/w_base.html" %}
+
+{% block content %}
+<div id="email_for_pwd_form_template" style="text-align:center;">
+        <form method="POST">
+            <p><input type="email" name="email" placeholder="{{email_placeholder}}" /></p>
+            {% csrf_token %}
+            <p><button type="submit">Envoyer</button></p>
+        </form>
+</div>
+{% endblock %}

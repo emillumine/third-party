@@ -1,0 +1,7 @@
+body {margin: 5px; background-color:  #e4eefd;}
+#deconnect {float: right;}
+.menu a {text-decoration: none; color: #FFF;}
+#cooperative_data, form {background-color:  #fff; border: 1px solid #ccc; ;border-radius: 15px; padding: 15px;}
+#cooperative_data {margin-top:15px;}
+#sex {padding: 0;}
+#action button {cursor: default;}

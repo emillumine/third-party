@@ -1,0 +1,56 @@
+Bonjour,<br/>
+<p>
+Votre commande du {{order_date}} a bien été prise en compte
+</p>
+<p>
+Merci de venir à l’heure que vous avez indiquée.
+</p>
+<p>
+Au-delà d’une heure de retard, votre commande sera annulée.
+</p>
+<p>
+Nous vous rappelons que les prix et les quantités disponibles sont affichées à titre indicatif. Si vous avez accepté des substitutions de produits, il seront remplacés, en cas de rupture, en essayant de coller au mieux à votre commande. Le prix de votre panier dépendra du prix réel et des quantités réellement disponibles.
+</p>
+<p>
+La seule modification possible sur le panier commandé sera d’enlever un ou plusieurs articles.
+</p>
+<p>
+Merci de vous munir de votre chéquier et/ou CB.
+</p>
+<p>
+NB: en ce qui concerne le frais, nous mettons dans votre panier les dates les plus proches de la péremption.
+</p>
+{%if survey_link %}
+<p>
+ Si vous avez des suggestions d'améliorations à faire, vous pouvez compléter <a href="{{survey_link}}">le formulaire de retours d'utilisation de la boutique en ligne</a>.
+</p>
+{% endif %}
+<p>
+Commande reçue :
+<table border="1">
+    <tr><th>Articles</th><th>Quantités</th><th>Prix</th><th>Total</th></tr>
+    {% for p in cart.products %}
+    <tr><td>{{p.name}}</td><td>{{p.qty}}</td><td>{{p.price}}</td><td>{{p.total}}</td></tr>
+    {% endfor %}
+</table>
+<br/>
+Total TTC : {{cart.total}} €
+<br/>
+{%if cart.accept_substitution %}
+Vous acceptez les substitutions de produits.
+{% endif %}
+</p>
+{%if cart.comment %}
+<p>
+Vous avez laissé le commentaire suivant: <br/>
+{{cart.comment}}
+</p>
+{% endif %}
+<p>
+Vous avez indiqué venir chercher la commande à cette date : "{{cart.best_date}}"
+</p>
+<p>
+Pour des raisons d'hygiène les commandes seront préparées dans des sacs en papier kraft qui vous seront facturées, 0,24€ pour les petits et 0,77€ pour les grands. <br/>
+Merci de votre compréhension
+</p>
+L'équipe de {{mag}}

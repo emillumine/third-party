@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_css %}
+  <link href='{% static "css/fullcalendar.min.css" %}' rel='stylesheet' />
+  <link href='{% static "css/shift_Cagette.css" %}?v=' rel='stylesheet' />
+  <link href='{% static "css/fullcalendar.print.min.css" %}' rel='stylesheet' media='print' />
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script src='{% static "js/lib/moment.min.js" %}'></script>
+  <script src='{% static "js/fullcalendar.min.js" %}'></script>
+  <script src='{% static "js/locale-all.js" %}'></script>
+  <script type="text/javascript">
+      // document.domain = "{{domain}}";
+      // Données du Membre
+      dataPartner = {
+          "partner_id":"{{partnerData.id}}",
+          "name":"{{partnerData.display_name}}",
+          "in_ftop_team":"{{partnerData.in_ftop_team}}",
+          "final_standard_point":"{{partnerData.final_standard_point}}",
+          "final_ftop_point":"{{partnerData.final_ftop_point}}",
+          "dateProlonge":"{{partnerData.date_delay_stop}}",
+          "date_alert_stop":"{{partnerData.date_alert_stop}}",
+          "cooperative_state":"{{partnerData.cooperative_state}}",
+          "is_leave": "{{partnerData.is_leave}}",
+          "leave_start_date": "{{partnerData.leave_start_date}}",
+          "leave_stop_date": "{{partnerData.leave_stop_date}}",
+          "next_regular_shift_date": "{{partnerData.next_regular_shift_date}}",
+          "regular_shift_name": "{{partnerData.regular_shift_name}}",
+          "verif_token" : "{{partnerData.verif_token}}"
+          }
+      daysToHide = [{{daysToHide}}]
+      {% if calendarEventNoMoreLinks %}
+        showMoreLinks = false
+      {% else %}
+        showMoreLinks = true
+      {% endif %}
+      {% if calInitialView %}
+        calInitialView = '{{calInitialView}}'
+      {% else %}
+        calInitialView = 'dayGridMonth'
+      {% endif %}
+
+  </script>
+  <script defer src='{% static "fontawesome/js/fontawesome-all.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <a id="page_top_anchor"></a>
+    {% if with_website_menu %}
+      {% include "website/menu.html" %}
+    {% endif %}
+    <div class="intro">
+        <div  style="font-size:100%;">
+            <h2>Bienvenue dans le système de gestion de services.</h2>
+            <div class="mac-msg" style="display:none;">
+              Nous sommes désolés mais ce site ne marche pas bien sur iPhone, iPad et sur Safari. Veuillez utiliser Firefox ou Chrome. Merci de votre compréhension
+            </div>
+            Ici, je peux échanger mes prochains services <i class="fas fa-info-circle" title="Je clique pour avoir plus de détails."></i><span class="additionnal_intro_data"></span>.
+            <div class="infocircle">
+              <div class="close" onclick="closeInfo(this)"><i class="far fa-times-circle"></i></div>
+              {{SHIFT_INFO|safe}}
+            </div>
+            <br/>Les services indiqués en vert sont ceux où il y a un besoin urgent : 1/12 signifie 1 inscrit·e sur 12 personnes nécessaires pour ce service.
+            <br />
+            {{PB_INSTRUCTIONS|safe}}
+            <div id = "partnerData"></div>
+        </div>
+    </div>
+    <div id="exchange_instructions">
+        <div>
+          Voilà comment procéder pour échanger un service :<br>
+          <span class="step">1</span>
+          Je choisis, en cochant, le service auquel je ne peux pas assister dans la liste de mes prochains services (ci-dessous)
+        </div>
+        <div  id="shift_list_wrapper">
+          <h3>Liste de mes services: </h3>
+          <div  style="display:table" id = "shifts"></div>
+        </div>
+        <div style="clear:both;">
+          <span class="step">2</span>
+          Je choisis, en cliquant sur le service de remplacement dans le calendrier ci-dessous.
+        </div>
+    </div>
+</div>
+
+<div style="clear:both;"><h3>Liste des services dans lesquels il y a des places disponibles : </h3></div>
+
+<div style="clear:both;" id="Calendar">
+  <div id="dp"></div>
+</div>
+<div id="templates" style="display:none;">
+
+</div>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/shift_exchange.js" %}?v="></script>
+{% endblock %}

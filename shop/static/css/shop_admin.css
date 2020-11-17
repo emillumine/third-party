@@ -1,0 +1,67 @@
+.orders tr[role="row"].odd:hover, .orders tr[role="row"].even:hover {background-color: #efefef;}
+.orders tr[role="row"].selected:hover {
+  background-color: #B0BED9;
+  opacity: 0.8;
+}
+
+.take_it, .ready, .paid, .internal-ref, .order_selector {text-align: center;}
+
+.fa-print, .fa-eye, .fa-trash {cursor: pointer;}
+
+table.cart {border: 1px solid black;}
+.member {font-weight: bold;}
+
+#main-msg-area {background: yellow; display: none;}
+
+@media print {
+    /* les styles d'impression commencent ici */
+    body {
+        font-size: 18px;
+    }
+    div, footer {display: none;}
+
+}
+
+.destroy-multiple-carts-item hr {margin: 1em 0 1em;}
+#multiple_actions_container {margin: 1em 0 1em;}
+#batch_action {margin-left: 1em;}
+
+.tabs {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  overflow: hidden;
+}
+
+.tabs .tab {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  /* border: none; */
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+.tabs .tab:hover {
+  background-color: #ccc;
+}
+
+.tabs .active {
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-width: 1px 0 0 0;
+}
+
+.tab_content {
+  animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+/* Go from zero to full opacity */
+@keyframes fadeEffect {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+.closing_date_item {margin-bottom:5px;}
+.closing_date_item .fa-trash {margin-left:1em;}
+#shop_closed_selector {margin-top:1.5em;}

@@ -1,0 +1,11 @@
+#sales_list th.details {min-width:300px;}
+#sales_list td.details li {font-size: 12px;}
+#sales_list tr.pr_0 td.details div > a,
+#sales_list tr.pr_0 td.details div > ul li.pr_0 {border: 1px solid black;padding:3px;}
+#sales_list tr.pr_0 td.details div > a,
+#sales_list tr.pr_0 td.details div > ul li.pr_1 {border: 1px dashed black;padding:3px;}
+.pdl_10, .pdl_9 {background-color: red !important;}
+.pdl_8, .pdl_7  {background-color: #ffaf03 !important;}
+.pdl_6, .pdl_5 {background-color: #ffd16e !important;}
+.pdl_4, .pdl_3 {background-color: #ffe5ad !important;}
+.pdl_2, .pdl_1 {background-color: #fbc7ff !important;}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/reception_style.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/reception_index.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <h1>Article en rupture</h1>
+    <br>
+
+    <div class="main">
+      <table id="orders" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+    <br/>
+{% endblock %}

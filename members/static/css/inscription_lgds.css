@@ -1,0 +1,11 @@
+#shift_choice td {padding: 0.6em;}
+#shift_choice .firstcol {width: 60px;}
+.main_content .shift.full {display: block; background: #FF0000;cursor: not-allowed;}
+.shift {margin:2px; padding:2px; cursor: cell; background: #FF0000 !important; color:#FFF;min-width:40px; font-size: 13px; border: 0;}
+.shift.alert,span.alert {background: #00FF00 !important;  border: 0;color:#000;}
+
+
+.b_more_than_50pc {background:#FF0000;}
+.b_less_than_50pc {background:#00FF00 !important; color: #000;}
+.b_less_than_25pc {color:#000;}
+

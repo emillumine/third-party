@@ -1,0 +1,271 @@
+h1 {text-align: center;}
+h1 span {font-size: 18px; color: red;display: block; margin-top: -10px;}
+
+header {overflow: visible; }
+footer {display: none;}
+
+.back-to-home {margin-top: 8px;}
+#header_step_zero {
+  background-color: yellow;
+  z-index: 4;
+}
+#header_step_zero:after{
+  bottom:0;
+  background: linear-gradient(to right bottom, yellow 50%, transparent 0%);
+}
+#header_step_zero:before{
+  top:0;
+  background: linear-gradient(to right top, yellow 50%, transparent 0%);
+}
+
+#header_step_zero, #header_step_one, #header_step_two, #header_step_three, nav.dropdown, .dropbtn {max-height: 35px;}
+#header_step_one { background-color: #acb0b5;}
+#header_step_one.step_one_active {color: white;}
+#header_step_one:after{
+  bottom:0;
+  background: linear-gradient(to right bottom, #acb0b5 50%, transparent 50%);
+}
+#header_step_one:before{
+  top:0;
+  background: linear-gradient(to right top, #acb0b5 50%, transparent 50%);
+}
+#header_step_two { background-color: #d3d8de;}
+#header_step_two:after{
+  bottom:0;
+  background: linear-gradient(to right bottom, #d3d8de 50%, transparent 50%);
+}
+#header_step_two:before{
+  top:0;
+  background: linear-gradient(to right top, #d3d8de 50%, transparent 50%);
+}
+
+
+
+.step_two_active {background-color: yellow !important;}
+.step_two_active::before {
+   background: linear-gradient(to right top, yellow 50%, transparent 50%) !important;
+}
+.step_two_active::after {
+   background: linear-gradient(to right bottom, yellow 50%, transparent 50%) !important;
+}
+.step_three_active {background-color: #5CB85C !important;}
+
+input[type=number]::-webkit-inner-spin-button {
+    opacity: 1
+}
+#right-column {position:fixed; width: 20%; top:104px;}
+
+
+#main-waiting-zone {text-align: center;}
+
+button.new-order, button.my-orders, button.visit {margin-top: 5px;}
+/* adaptation de https://www.w3schools.com/css/css_dropdowns.asp */
+/* Style The Dropdown Button */
+.dropbtn {
+  background-color: #0275D8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+  height: 35px;
+  margin-bottom: 0;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  list-style-type: none;
+  width: 100%;
+  padding-left: 0 !important;
+}
+
+/* Links inside the dropdown */
+.dropdown-content li span{
+  color: black;
+  width: 100%;
+  padding: 12px 5px;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content li span:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+}
+
+
+
+/* Adaptation de https://codepen.io/dhs/pen/diasg */
+
+.tabs{
+    width: 100%;
+    display: block;
+    margin: 40px auto;
+    position: relative;
+}
+
+.tabs .tab{
+    float: left;
+    display: block;
+}
+
+.tabs .tab>input[type="radio"] {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+}
+
+.tabs .tab>label {
+    display: block;
+    padding: 6px 21px;
+    font-size: 12px;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    color: #FFF;
+    background: #4A83FD;
+}
+
+.tabs .content {
+    z-index: 0;/* or display: none; */
+    overflow: hidden;
+    width: 100%;
+    padding: 25px;
+    position: absolute;
+    top: 29px;
+    left: 0;
+
+    border: 1px solid black;
+
+    opacity:0;
+    transition: opacity 400ms ease-out;
+}
+
+.tabs>.tab>[id^="tab"]:checked + label {
+    top: 0;
+    background: green;
+    color: #F5F5F5;
+}
+
+.tabs>.tab>[id^="tab"]:checked ~ [id^="tab-content"] {
+    z-index: 1;/* or display: block; */
+
+    opacity: 1;
+    transition: opacity 400ms ease-out;
+}
+
+li.tab { border-right: 1px solid white; }
+#tab-content2, #tab-content3 {overflow: visible;}
+#tab-content2 section, #tab-content3 section , .content .msg {margin-top: 15px;}
+#tab-content2 li span, #tab-content3 li span {padding: 0 5px;}
+#tab-content2 li span:hover, #tab-content3 li span:hover , span.category {background-color: yellow}
+#tab-content4 section {clear:both; padding-top:15px;}
+
+.tabs .tab.promote, .tabs .tab.discount {display:none;}
+
+#search-input {
+  float: left;
+  border: none;
+  font-size: 17px;
+  height: 36px;
+}
+.search-bar button {
+  float: left;
+  background: #ddd;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+  height:36px;
+  color: black;
+}
+.search-bar button:hover {background: #ccc;}
+.tabs .dropbtn {background: #cf3a58; color: white; font-weight: normal; font-size: medium; height: 24px;}
+
+#alim_categ > div, #non_alim_categ > div {background: #d4b44a; text-align: center; cursor:pointer;}
+
+.product {margin-bottom: 10px; border-radius: 25px; border: 2px solid blue; padding: 10px;}
+
+.product .choice input {max-width: 50px;}
+.product h6 {max-height: 45px; min-height: 45px; overflow: hidden;}
+.av_qty {background-color: #efefef;}
+.in_qty {background-color: #efeeef;}
+#cart-wrapper {width: 97%; margin-left: 3px; margin-top: 33px;border-radius: 10px; border: 2px solid blue; right: 5px; overflow-y: auto;}
+#cart-header h3 {float:left; display: inline-block; margin-left: 40%;}
+#cart {width:100%;margin-top: 5px; padding: 5px;}
+#cart .msg {text-align:center;}
+.cart-elt {clear: both;}
+.cart-elt img {height: 25px;}
+.cart-elt .price-row {float:right;}
+.cart-elt .price-row .total {font-weight: bold;}
+.cart-total {clear: both;font-weight: bold;padding-right: 5px;}
+.cart-total span {display: block; float:right;}
+#current_order_bdate, #countdown_wrapper {text-align: center;}
+#countdown {color: red;}
+#valid-wrapper {float: right; display: none; margin-bottom: 5px; }
+.to_top_wrapper {text-align:center; margin-top: 5px;}
+.fl.tip {margin-left: 5px;}
+
+.accept_substitution label {
+  display: block;
+  padding-left: 15px;
+  text-indent: -15px;
+}
+.accept_substitution input {
+  padding: 0;
+  height: 15px;
+  margin: auto 5px;
+  vertical-align: bottom;
+  position: relative;
+  *overflow: hidden;
+}
+.mconfirm .pickup_date span {font-weight: bold;}
+.forbidden-slots {border: 1px solid red; background-color: #fcbbf4;}
+.forbidden-slots .fs-close {margin: 5px;}
+.delay24h {color: red;}
+#my-orders-sumup {text-align: center;}
+#my-orders-sumup table {max-width: 750px; margin: 0 auto; border: 2px solid blue;}
+#my-orders-sumup table td {border: 1px solid blue; border-right: 2px solid blue;;}
+#my-orders-sumup table th {border: 2px solid blue; }
+#my-orders-sumup .actions {text-align: center; max-width: 100px; width: 100px;padding: 0 4px;}
+
+#my-orders-sumup .date {text-align: left;padding: 0 4px;}
+#my-orders-sumup tbody tr:hover {background-color: #b3b7c4;}
+td.actions .fa-trash, td.actions .fa-paper-plane, td.date .fa-edit {cursor: pointer;}
+
+.no-action-available-msg {margin-top: 15px;}
+#survey_link {text-decoration: none;}
+@media screen and (max-width: 800px) {
+  .product h6 {max-height: 75px; min-height: 75px; overflow: hidden;}
+
+}
+
+@media screen and (max-width: 1188px) {
+  #tab-content-1, #tab-content0, #tab-content1, #tab-content4 {
+    top:80px;
+  }
+  #header_step_zero h4, #header_step_one h4, #header_step_two h4, #header_step_three h4 {font-size: 12px;}
+}
+.psc_align_top {margin-top: 15px;}
+.psc_align_bottom {margin-bottom: 15px;}

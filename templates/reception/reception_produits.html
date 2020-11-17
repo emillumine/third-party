@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/reception_style.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/download.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+{% if add_admin_mode %}
+  {% include "common/conn_admin.html" %}
+{% endif %}
+<div class="page_body">
+  <header class="flex-container">
+    <button class="right btn--danger" onclick="back()">Retour</button>
+    <div class="w33 arrow-block txtcenter" id="header_step_one">
+      <h4 id="header_step_one_content">Produits à compter </h4>
+    </div>
+    <div class="w33 arrow-block txtcenter" id="header_step_two">
+      <h4>Prix à mettre à jour</h4>
+    </div>
+    <div class="item-fluid arrow-block txtcenter" id="header_step_three">
+      <h4>Réception terminée</h4>
+    </div>
+  </header>
+  <section class="grid-2 has-gutter" id="main_content">
+    <div>
+      <section id="container_partner_name" class="page_element grid-2 has-gutter">
+        <div class="txtright">
+          <h3><b>Livraison de :</b></h3>
+        </div>
+        <div class="txtleft">
+          <h3><b><span id="partner_name"></span></b></h3>
+        </div>
+      </section>
+
+      <div id="container_multiple_partners" class="txtcenter">
+      </div>
+
+      <div id="container_search_edition">
+        <div id="container_search">
+          <div class="txtcenter">
+            <input autocomplete="off" type="text" placeholder="Rechercher un produit par son nom ou son code barre" class="searchMultipleTables" id="search_input" autofocus>
+          </div>
+        </div>
+
+        <div id="container_edition">
+          <form action="javascript:;" name="edition" onsubmit="validateEdition(this)">
+            <div>
+              <h4 id="edition_header"></h4>
+            </div>
+            <div class="grid-9 has-gutter">
+              <div class="col-4">
+                <p id="product_name"></p>
+              </div>
+              <div class="col-3 center">
+                <label for="edition_input" id="edition_input_label"></label>
+                <input type="text" class="number input_small" id="edition_input" autocomplete="off" required>
+                <span id="product_uom"></span>
+              </div>
+              <div class="col-1 center">
+                <a class="btn" id='edition_cancel'>
+                  <i class="far fa-window-close fa-lg"></i>
+                </a>
+              </div>
+              <div class="col-1 center">
+                <button type="submit" class="btn" id='edition_valid'>
+                  <i class='far fa-check-square fa-lg'></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="page_element txtcenter">
+        <button class="btn btn_light full_width_button" onclick="openErrorReport()">Renseigner un problème de livraison</button>
+      </div>
+      <div class="page_element txtcenter">
+        <button class="btn--warning full_width_button" name="faq" onclick="openFAQ()">FAQ - En cas de soucis avec la marche à suivre...</button>
+      </div>
+      <div class="page_element txtcenter">
+        {% if add_all_left_is_good %}
+          <div id="connected_actions">
+            <span id="valid_all"></span>
+            <span id="all_left_is_good">
+              <button class='btn--danger half_width_button'  onclick="openModal($('#templates #modal_all_left_is_good').html(), confirm_all_left_is_good, 'Confirmer', false);">Tout le reste est bon</button>
+              
+            </span>
+          </div>
+        {% else %}
+          <span id="valid_all"></span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row-2 container_products" id="container_left">
+      <h4 id="header_container_left"></h4>
+      <table id="table_to_process" class="display" cellspacing="0" ></table>
+    </div>
+    <div class="container_products" id="container_right">
+      <h4 id="header_container_right"></h4>
+      <table id="table_processed" class="display" cellspacing="0" ></table>
+    </div>
+    <div class="txtcenter">
+      <span id="validation_button"></span>
+    </div>
+  </section>
+
+  <div id="templates" style="display:none;">
+    <div id="modal_error_report">
+      <h2>Renseigner un problème de livraison</h2>
+      <hr />
+
+      <p class="txtleft">
+        Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris.
+        Merci d'indiquer un maximum d'informations, le nom du produit et son code barre.
+        Dans le cas de produits déteriorés, merci d'envoyer une photo avec votre téléphone à <strong>{{RECEPTION_PB_EMAIL}}</strong>
+      </p>
+      <br>
+      <textarea id="error_report"></textarea>
+      <hr />
+    </div>
+    <div id="modal_no_prices">
+      <h2>Attention !</h2>
+      <p>Vous vous apprêtez à indiquer qu'il n'y a pas de prix à vérifier pour cette commande.</p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="modal_no_qties">
+      <h2>Attention !</h2>
+      <p>Vous vous apprêtez à indiquer qu'il n'y a plus de produits à compter.</p>
+      <p>Cela aura pour effet de passer toutes les quantités restantes à 0.</p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="modal_qties_validation">
+      <h3>Attention !</h3>
+      <p>Vous vous apprêtez valider le comptage des produits et passer à l'étape suivante.</p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="modal_prices_validation">
+      <h3>Attention !</h3>
+      <p>Vous vous apprêtez valider la mise à jour des prix et passer à l'étape suivante.</p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="modal_unprocessable_porducts">
+      <h3>Traitement impossible</h3>
+      <p>
+        La réception ne peut être validée car certains produits sont archivés.
+        Merci de transmettre à un.e salarié.e la liste des produits à désarchiver :
+      </p>
+      <ul id="list_unprocessable_porducts"></ul>
+      <hr/>
+    </div>
+    <div id="modal_all_left_is_good">
+      <h2>Attention !</h2>
+      <p>Vous vous apprêtez à indiquer que toutes les informations des produits restant dans la colonne de gauche sont bonnes.</p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
+    <div id="modal_FAQ_content"></div>
+    <div id="modal_qtiesValidated"></div>
+    <div id="modal_pricesValidated"></div>
+  </div>
+  <br/>
+</div>
+<script type="text/javascript">
+  var tools_server = '{{TOOLS_SERVER}}'
+  var fixed_barcode_prefix = '{{FIXED_BARCODE_PREFIX}}'
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/common.js" %}?v="></script>
+<script type="text/javascript" src="{% static 'js/reception_produits.js' %}?v="></script>
+{% endblock %}

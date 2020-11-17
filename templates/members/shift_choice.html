@@ -1,0 +1,123 @@
+<section class="grid-6 has-gutter" id="shift_choice">
+   <div class="col-6 menu txtcenter">
+    CHOIX DU CRÉNEAU
+   </div>
+   <div class="col-1 lat_menu">
+     <button class="flex-container--column highlighted" data-select="{{mag_place_string}}">Magasin</button>
+     ou ...
+     <br />
+     <button class="flex-container--column" data-select="Volant">Volant</button>
+     <div class="info"></div>
+   </div>
+   <div class="col-5 main_content">
+   <table id="shift_templates" class="table" summary="">
+      <caption>Calendrier fixe</caption>
+      <thead>
+      <tr>
+        <th scope="col"></th>
+        <th scope="col">Lundi</th>
+        <th scope="col">Mardi</th>
+        <th scope="col">Mercredi</th>
+        <th scope="col">Jeudi</th>
+        <th scope="col">Vendredi</th>
+        <th scope="col">Samedi</th>
+      </tr>
+      </thead>
+      <tbody>
+        <tr data-targ="magasin" data-begin="06:00">
+          <td>06:00</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        <tr data-targ="magasin" data-begin="08:00">
+          <td>08:00</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        <!--
+        <tr data-targ="bureau" data-begin="10:00">
+          <td>10:00</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        -->
+        <tr data-targ="magasin" data-begin="10:45">
+          <td>10:45</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        <tr data-targ="both" data-begin="13:30">
+          <td>13:30</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        <!--
+        <tr data-targ="bureau" data-begin="14:15">
+          <td>14:15</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        -->
+        <tr data-targ="both" data-begin="16:15">
+          <td>16:15</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+        <tr data-targ="magasin" data-begin="19:00">
+          <td>19:00</td>
+          <td class="Lun"></td>
+          <td class="Mar"></td>
+          <td class="Mer"></td>
+          <td class="Jeu"></td>
+          <td class="Ven"></td>
+          <td class="Sam"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="week_types" class="clearfix">
+      <div class="oddeven_selector fl">
+        <input type="checkbox" class="switch" id="even_weeks" value='0' checked><label for="even_weeks">Paires</label>
+         <input type="checkbox" class="switch" id="odd_weeks" value='1' checked><label for="odd_weeks">Impaires</label>
+      
+      </div>
+      <div class="selected_weeks fl">
+        <input type="checkbox" class="switch" id="dw1" value='1' checked><label for="c1">A</label>
+        <input type="checkbox" class="switch" id="dw2" value='2' checked><label for="c2">B</label>
+        <input type="checkbox" class="switch" id="dw3" value='3' checked><label for="c3">C</label>
+        <input type="checkbox" class="switch" id="dw4" value='4' checked><label for="c4">D</label>
+      </div>
+    </div>
+    {% if type and type == 1 %}
+    <div class="clearfix mtop25">Le trait <span class="alert">rouge</span> signale que le créneau est rempli à moins de 75%</div>
+    {% endif %}    
+   </div>
+
+</section> 

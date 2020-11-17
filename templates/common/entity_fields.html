@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static "css/knacss.min.css" %}">
+  <script src="{% static "js/jquery-3.3.1.min.js" %}"></script>
+</head>
+<body>
+   <h1>{{entity}}</h1>
+   <button>exemple</button> <input name="id" type="number" /><br />
+   <section id="details">
+   {% for key,value in fields.items %}
+     <input name="{{key}}" type="hidden" />{{key}} <br />
+     {{ value }}
+
+    <hr />
+
+   {% endfor %}
+   </section>
+<script type="text/javascript">
+ function load_exemple(){
+    var entity = $('h1').text();
+    var fields = [];
+    $('input[type="hidden"]').each(function(){
+        var key = $(this).attr('name');
+        fields.push(key);
+    });
+
+    $.ajax({
+            url:'/entity/example',
+            data:{'entity':entity,'fields':fields.join('|'), 'id':$('input[name="id"]').val()}
+            })
+    .done(function(rData){
+      console.log(rData)
+    });
+ }
+ $('button').click(load_exemple);
+</script>
+</body>
+</html>

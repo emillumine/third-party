@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/responsive.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/shop_admin.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/download.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.customized_cellEdit.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.responsive.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/dom_sort.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+
+{% endblock %}
+
+{% block content %}
+  {% include "common/conn_admin.html" %}
+  <div id="main-msg-area"  style="float:left;">
+    <div class="grid-4 has-gutter" style="max-width: 500px; width: 500px;">
+      <div class="new">
+        <span style="padding-left:2px;"></span>
+      </div>
+      <div class="update">
+        <span style="padding-left:2px;"></span>
+      </div>
+      <div class="delete">
+        <span style="padding-left:2px;"></span>
+      </div>
+      <div>
+        <button id="download-arrivals" type="button" class="btn--primary fr"><i class="fa fa-download" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+  </div>
+  <div class="header txtcenter">
+    <h1>Gestion des commandes en ligne</h1>
+     <span class="max-carts-per-slot"><span class="nb">{{max_per_slot}}</span> commande(s) max. par créneau de <span class="slot-size">{{slot_size}}</span> minutes</span>
+  </div>
+
+  <section class="tabs autogrid">
+    <div class="button tab active" id="tab_orders"><h5>Commandes</h5></div>
+    <div class="button tab" id="tab_settings"><h5>Réglages</h5></div>
+  </section>
+
+  <div id="tab_orders_content" class="tab_content">
+    <div id="multiple_actions_container" style="display:none;">
+      <p>Action groupée :
+        <select class="" id="batch_action_select">
+          <option value="none" selected="selected"></option>
+          <option value="delete">Supprimer</option>
+        </select>
+        <button id="batch_action" class="btn--primary">C'est parti !</button>
+      </p>
+    </div>
+    <div id="main-content">
+      <table class="orders" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+  </div>
+
+  <div id="tab_settings_content" class="tab_content" style="display:none;">
+    <div id="shop_settings_content">
+      <div id="settings_shop_closed">
+        <h4>Dates auxquelles le magasin sera fermé :</h4>
+        <div class="no_dates">
+          <p> - Aucune date enregistrée - </p>
+        </div>
+        <div class="dates" style="display:none;">
+          <p><i>(Format de la date : année-mois-jour)</i></p>
+          <ul class="dates_list">
+          </ul>
+        </div>
+        <div id="shop_closed_selector">
+          <label for="closing_date_picker">Nouvelle date : </label>
+          <input type="text" name="closing_date_picker" id="closing_date_picker">
+          <button type="button" class="btn--primary" id="add_closing_date">Ajouter</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <div id="templates" style="display:none;">
+    <img src="/static/img/Pedro_luis_romani_ruiz.gif" id="rotating_loader"/>
+
+    <div class="cart-details">
+      <h2>Commande de <span class="member"></span></h2>
+      <table class="cart" border=1>
+        <tr>
+          <th>Articles</th>
+          <th>Quantités</th>
+          <th>Prix</th>
+        </tr>
+      </table>
+
+    </div>
+    <div class="get-cart-ref">
+      <h2>Commande de <span class="member"></span></h2>
+      <i>Passée le <span class="date" style="font-weight: bold;"></span> <span class="bdate"></span></i><br/>
+      <input type="text" placeholder="Réfence panier en attente" name="internal-ref" />
+    </div>
+    <div class="destroy-cart-msg">
+      <h2>Commande de <span class="member"></span></h2>
+      <i>Passée le <span class="date" style="font-weight: bold;"></span> <span class="bdate"></span></i><br/>
+      Vous avez demandé de détruire l'enregistrement de la commande.<br/>
+      Si vous le confirmez, l'action sera irreversible.
+    </div>
+    <div class="destroy-multiple-carts-msg">
+      <div class="items">
+      </div>
+      Vous avez demandé de détruire l'enregistrement de ces commandes.<br/>
+      Si vous le confirmez, l'action sera irreversible.
+    </div>
+    <div class="destroy-multiple-carts-item">
+      <h5>Commande de <span class="member"></span></h5>
+      <i>Passée le <span class="date" style="font-weight: bold;"></span> <span class="bdate"></span></i>
+      <hr/>
+    </div>
+    <div class="remove-closing-date-msg">
+      <p>Vous vous apprêtez à supprimer cette date des jours de fermeture du magasin :
+      <b><span class="confirm_closing_date"></span></b>.</p>
+      <p>Êtes-vous sûr ?</p>
+    </div>
+  </div>
+  <script src='{% static "js/pouchdb.min.js" %}'></script>
+  <script type="text/javascript">
+    var couchdb_dbname = '{{db}}';
+    var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+    var dbc = new PouchDB(couchdb_dbname);
+    var sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+      live: true,
+      retry: true,
+      auto_compaction: false
+    });
+  </script>
+  <script src='{% static "js/all_common.js" %}?v='></script>
+  <script src='{% static "js/shop_drafts.js" %}?v='></script>
+
+
+{% endblock %}
+

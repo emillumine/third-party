@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_css %}
+    {% if custom_css.members %}
+          {% for fpath in custom_css.members %}
+            <link rel="stylesheet" href="{% static ''|add:fpath %}?v=">
+          {% endfor %}
+    {% endif %}
+<!-- members/base.html -->
+{% endblock %}

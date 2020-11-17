@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/shelfs.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/download.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="FAQ_modal_content" style="display: none"></div>
+
+<div class="page_body">
+  <header>
+    <div class="flex-container">
+      <div class="w40">
+        <button class="right btn--danger" onclick="back()">Retour</button>
+      </div>
+      <span class="item-fluid">
+        <h2>Produits du rayon <b><span id="shelf_name"></span></b></h2>
+      </span>
+    </div>
+  </header>
+
+  <br/>
+  <div id="container_search">
+    <div class="txtcenter">
+      <input type="text" placeholder="Rechercher un produit dans le rayon" class="midWidthInput" id="search_input" autofocus>
+      <button class="btn cancel_search"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <br/>
+  <div id="content_wrapper">
+    <div id="main_content">
+      <table id="table_shelf_products" class="display" width="99%" cellspacing="0" ></table>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var shelf_products = {{shelf_products|safe}}
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/common.js" %}?v="></script>
+<script type="text/javascript" src="{% static 'js/shelf_view.js' %}"></script>
+{% endblock %}

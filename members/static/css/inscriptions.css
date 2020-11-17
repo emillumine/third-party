@@ -1,0 +1,28 @@
+.nav .fr {margin-left:10px;}
+
+#shift_choice > div, #new_coop, #coop_list_view,#coop_registration_details {display:none;}
+
+#subs_cap {width: 200px;}
+.lat_menu button {margin-bottom:5px;}
+.oddeven_selector {margin-right:25px;}
+.main_content .shift {float:left;}
+.main_content .shift.full {display:none;}
+.shift {margin:2px; padding:2px; cursor: cell;}
+.shift.alert,span.alert {border-bottom: 3px #e52121 solid;}
+.highlighted {box-shadow: 10px 10px 5px grey;}
+.lat_menu.highlighted {border: 2px #fffc07 dotted;}
+#coop_list_view td.coop:hover,
+#coop_list_view td.c_shift:hover {background:#fffc07; cursor:pointer;}
+.b_red {color:#ffffff;}
+.shift[data-type="compact"] {border: 1px solid #000000;border-radius: 5px; padding:5px; cursor: pointer;}
+.shift_template, .next_shift {font-weight: bold;}
+/**  ff0000 **/
+[data-week="1"] {border: 2px #02ff1a solid;}
+[data-week="2"] {border: 2px #0088fb solid;}
+[data-week="3"] {border: 2px #000000 solid;}
+[data-week="4"] {border: 2px #eed000 solid;}
+
+#new_coop [name="email"] {width:25em;}
+#mail_generation {position:absolute; bottom:30px;}
+
+#sex {padding: 0;}

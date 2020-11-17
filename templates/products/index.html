@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/products.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/products_index.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
+{% endblock %}
+
+{% block content %}
+<div class="header txtcenter">
+  <h1>Informations sur les produits du magasin</h1>
+</div>
+
+<div class="barcode_search_area txtcenter">
+  <p><i>Passez un produit sous la douchette ! Si rien ne se passe, cliquez sur le champ ci-dessous puis ré-essayez.</i></p>
+  <input type="text" id="barcode_selector" name="barcode_selector" placeholder="Codebarre">
+  <button type="button" class="btn--primary" id="button_barcode_selector" name="button">Recherche</button>
+</div>
+
+<div class="main">
+  <table id="products_table" class="display" cellspacing="0" ></table>
+</div>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/common.js" %}?v="></script>
+{% endblock %}

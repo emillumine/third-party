@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_css %}
+  <link rel="stylesheet" href="{% static "css/member.css" %}?v=">
+{% endblock %}
+{% block additionnal_scripts %}
+ <script type="text/javascript">
+    // Prevent back page
+    // Add actual page to history
+    history.pushState(null, null, location.pathname)
+
+    // Register back button click
+    window.onpopstate = function (e) {
+        // Prevent default action on back button click
+        e.preventDefault()
+        // Add actual page to history again
+        history.pushState(null, null, location.pathname)
+    }
+  </script>
+  <script src="{% static "js/webcam.min.js" %}">
+  </script>
+  <script src="{% static "js/JsBarcode.all.min.js" %}">
+  </script>
+  <script defer src="{% static "fontawesome/js/fontawesome-all.js" %}"></script>
+
+{% endblock %}
+{% block content %}
+<section class="grid-6 has-gutter" id="first_page">
+    <h1 class="col-6 txtcenter">{{WELCOME_ENTRANCE_MSG}}</h1>
+    <div class="col-1"></div>
+    <a class="col-4 row-2 btn txtcenter b_yellow" data-next="shopping_entry">Je viens faire mes courses</a>
+    <div class="col-1 row-2"></div>
+    <div class="col-1 row-2"></div>
+    <a class="col-4 row-2 btn txtcenter b_green" data-next="service_entry">Je viens faire mon service</a>
+    <div class="col-1 row-2"></div>
+</section>
+<section class="grid-6 has-gutter" id="shopping_entry">
+    <div class="col-6 row-2">
+        <a class="btn btn--primary" data-next="first_page" >Retour accueil</a>
+    </div>
+    <div class="search_box_wrapper col-5 top">
+       <section>
+        <div class="row-1 grid-2">
+            <div class="col-1">
+              <div class="label">
+              Biper le badge, ou saisissez le n° de coop. ou le nom
+              </div>
+              Recherche :
+              <input type="text" name="search_string" autocomplete="off" />
+              <button class="btn--primary search">GO!
+              </button>
+              <span class="loading2"><img width="75" src="/static/img/Pedro_luis_romani_ruiz.gif" alt="Chargement en cours...." /></span>
+             <div class="row-1" id="multi_results_preview">
+
+            </div>
+            </div>
+            {% if ENTRANCE_COME_FOR_SHOPING_MSG %}
+            <div class="col-1 msg-big">
+              {{ENTRANCE_COME_FOR_SHOPING_MSG|safe}}
+            </div>
+            {% endif %}
+        </div>
+
+        </section>
+    </div>
+
+    <div id="photo_studio" class="row-2 grid-2">
+      <div id="webcam" class="center col-1">
+      </div>
+      <div name="slider-wrapper" style="display:block;clear:both;width:100px;" class="center">
+            <input id="crop_width" name="crop_width" type="range" min="250" max="480" value="380"/>
+      </div>
+       <div id="webcam_button" class="col-1 center">
+        <div id="pre_take_buttons" class="fr">
+         <input class="btn--primary" type="button" value="Capture" onclick="preview_snapshot()" />
+        </div>
+        <div id="post_take_buttons" style="display:none" class="center">
+            <!-- These buttons are shown after a snapshot has been taken -->
+            <input class="btn--inverse" type="button" value="Annul." onclick="cancel_preview()" />
+            <input class="btn--primary" type="button" value="Envoi" onclick="save_photo()" style="font-weight:bold;" />
+        </div>
+      </div>
+
+    </div>
+
+     <div class="col-5" id="member_slide">
+        <section>
+          <div class="row-1 grid-2" >
+            <div class="col-1" style="padding-right: 15px;">
+              <div class="coop-info">
+                <div id="image_medium">
+                </div>
+                <img id="barcode" />
+                <br class="clear" />
+                 <div id="barcode_base">
+                </div>
+                <div id="name">
+                </div>
+                <div id="cooperative_state">
+                </div>
+                 <div id="next_shifts">
+                </div>
+              </div>
+              <a class="btn" data-next="first_page">Coopérateur suivant</a>
+            </div>
+            <div class="col-1">
+              <section id="member_advice">
+                <div id="no-picture-msg" style="display:none;" class="msg-big">
+                  {% if no_picture_member_advice %}
+                    {{no_picture_member_advice|safe}}
+                  {% endif %}
+                </div>
+              </section>
+              
+            </div>
+          </div>
+        </section>
+
+     </div>
+   
+     <section id="photo_advice">
+        <div class="col-6 big"><i class="fas fa-arrow-circle-up fa-3x "></i>
+           Regardez la caméra, en haut, pendant la pose <i class="fas fa-arrow-circle-up fa-3x"></i>
+        </div>
+        <div class="col-6" id="real_capture">
+        </div>
+     </section>
+</section>
+<section class="grid-6 has-gutter" id="service_entry">
+    <div class="col-6 row-2">
+        <a class="btn btn--primary" data-next="first_page" >Retour accueil</a>
+    </div>
+    <div class="col-1"></div>
+    <div class="col-4">
+        <h1 class="col-4 txtcenter">Qui es-tu ?</h1>
+        <section class="outside_list">
+        <a class="btn b_orange" data-next="rattrapage_1" data-type="rattrapage">Je viens faire un rattrapage</a>
+        {% if ftop_btn_display %}
+          <a class="btn b_yellow" data-next="rattrapage_1" data-type="volant">Je suis volant</a>
+        {% endif %}
+        </section>
+    </div>
+    <div class="col-1"></div>
+    <div class="col-1"></div>
+    <section id="service_en_cours" class="col-4">
+        <div class="info txtcenter"></div>
+        <div class="txtcenter" id="current_shift_title">
+        </div>
+        <div id="current_shift_members">
+        </div>
+
+    </section>
+
+</section>
+<section class="grid-6 has-gutter" id="service_entry_validation">
+    <h1 class="col-6 txtcenter">Bonjour <span class="member_name"></span> !</h1>
+    <div class="validation_wrapper col-6">
+        <section id="service_validation" class="col-6 grid-6 has-gutter">
+            <div class="col-2"></div>
+            <a class="col-2 btn present">Présent.e</a>
+            <span class="loading2"><img width="75" src="/static/img/Pedro_luis_romani_ruiz.gif" alt="Chargement en cours...." /></span>
+            <div class="col-2"></div>
+        </section>
+    </div>
+    <div class="col-2"></div>
+    <a class="btn col-2 return" data-next="service_entry">Retour</a>
+    <div class="col-2"></div>
+</section>
+<section class="grid-6 has-gutter" id="service_entry_success">
+    <h1 class="col-6 txtcenter">Bon service !</h1>
+    <section class="col-6 txtcenter">
+        <span class="member_name"></span><br />
+        Votre présence est bien enregistrée ! <br />
+        <div class="compteur">
+            Votre compteur est dorénavant à <span class="points"></span> point(s).<br />
+
+            <div class="explanations">
+                Pour pouvoir faire vos courses, votre compteur doit être au moins à -1 point. <br />
+                Dans le cas où vous n’avez pas le temps de faire votre rattrapage, vous pouvez demander une extension.
+                <br />
+                Une extension vous donne 4 semaines de plus pour faire votre rattrapage.
+            </div>
+        </div>
+        Votre prochain service <span class="service_verb">est prévu</span> le <span class="next_shift"></span>
+    </section>
+    <div class="col-2"></div>
+    <a class="btn col-2" data-next="first_page">Coopérateur suivant</a>
+    <div class="col-2"></div>
+</section>
+<section class="grid-6 has-gutter" id="rattrapage_1">
+    <div class="col-6 row-2">
+      <a class="btn btn--primary" data-next="first_page" >Retour accueil</a>
+    </div>
+    <h1 class="col-6 txtcenter">Vous faites un rattrapage</h1>
+    <section class="col-6 search_box_wrapper">
+
+
+    </section>
+
+
+</section>
+<section class="grid-6 has-gutter" id="rattrapage_2">
+    <div class="col-6 row-2">
+        <a class="btn btn--primary" data-next="first_page" >Retour accueil</a>
+    </div>
+    <h1 class="col-6 txtcenter">Bonjour <span class="member_name"></span> !</h1>
+    <section class="col-6 txtcenter">
+        <h2>Bienvenue pour votre rattrapage !</h2>
+        <div class="validation_wrapper col-6">
+        </div>
+
+    </section>
+    <div class="col-2"></div>
+    <a class="btn col-2" data-next="rattrapage_1">Attention, ce n'est pas mon nom ...</a>
+    <div class="col-2"></div>
+</section>
+<section style="display:none;">
+  <input type="text" placeholder="width" id="img_width" /><br />
+  <input type="text" placeholder="height" id="img_height" /><br />
+  <input type="text" placeholder="dest_width" id="img_dest_width" /><br />
+  <input type="text" placeholder="dest_height" id="img_dest_height" /><br />
+  <input type="text" placeholder="crop_width" id="img_crop_width" /><br />
+  <input type="text" placeholder="crop_height" id="img_crop_height" /><br />
+  <button type="button" id="init_webcam">Cam</button>
+</section>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/members.js" %}?v="></script>
+{% endblock %}

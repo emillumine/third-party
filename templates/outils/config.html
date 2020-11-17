@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/module_config.css' %}">
+{% endblock %}
+
+
+{% block content %}
+  {% include "common/conn_admin.html" %}
+ 
+  <div class="header txtcenter">
+    <h1>Configuration module {{module}}</h1>
+  </div>
+  <div>
+    <form id="main_content"></form>
+  </div>
+  <div id="templates" style="display:none;">
+    <img src="/static/img/Pedro_luis_romani_ruiz.gif" id="rotating_loader"/>
+    <div id="param">
+      <div class="param">
+        <label for="iname"></label>
+        <input type="text" name="iname" value="" />
+        <textarea name="iname" value="" cols="255" rows="10"></textarea>
+      </div>
+    </div>
+    <div id="submit_button">
+      <div>
+        <button type="button" class="btn--primary">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    var module_name = '{{module}}'
+  </script>
+  <script src='{% static "js/all_common.js" %}?v='></script>
+  <script src='{% static "js/module_config.js" %}?v='></script>
+
+{% endblock %}

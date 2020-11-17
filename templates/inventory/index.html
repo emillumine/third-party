@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/responsive.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/inventory.css' %}">
+<link rel="stylesheet" href="{% static 'jstree/themes/default/style.min.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/accent_neutral.search.plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.customized_cellEdit.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.responsive.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'jstree/jstree.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    {% include "common/conn_admin.html" %}
+    <div class="header txtcenter">
+      <h1>Inventaire</h1>
+    </div>
+    <br>
+
+    <div id="main_content">
+
+    </div>
+    <div style="display:none" id="inventory_filling">
+        <section class="autogrid">
+            <div class="local-data-info fl" style="display:none"></div>
+            <div class="global-data-info fr" style="display:none"></div>
+        </section>
+        <table class="inventory" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+
+    <div style="display:none" id="admin_list_template">
+        <table class="inventories" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+    <div style="display:none" id="admin_create_template">
+        <section class="autogrid">
+        <div>
+            <h2>Sélection des catégories</h2>
+            Cocher les catégories concernées par l'inventaire
+            <div class="jstree">
+               Chargement en cours.....
+            </div>
+            <div class="actions">
+                <button type="button" class="create_from_cat_selection">Récupérer la liste des produits</button>
+            </div>
+        </div>
+        <div>
+            <h2>Liste des produits</h2>
+            <div class="loading" style="display:none"><img src="/static/img/loading-gear-8.gif" /></div>
+            <table class="display pdt_liste_for_creation" cellspacing="0" ></table>
+        </div>
+        </section>
+
+    </div>
+    <div style="display:none" id="new_inventory_form_template">
+        <p>Pour mieux retrouver l'inventaire dans la liste</p>
+        <input type="text" name="inventory_name" placeholder="Nom" />
+        <p>(si laissé vide, un nom automatique, avec la date, l'heure et le créateur sera utilisé)</p>
+    </div>
+    <div style="display:none" id="admin_elts">
+      <li>
+          <button type="button" id="list_inventories">Voir liste</button>
+      </li>
+      <li>
+          <button type="button"  id="create_inventory">Créer</button>
+      </li>
+      <li>
+          <hr />
+      </li>
+      <li>
+          <button type="button"  id="raz_archived">R.A.Z A</button>
+      </li>
+       <li>
+          <button type="button"  id="raz_not_saleable">R.A.Z NV</button>
+      </li>
+    </div>
+    <script src="{% static "js/pouchdb.min.js" %}"></script>
+    <script type="text/javascript">
+        var tools_server = '{{TOOLS_SERVER}}'
+        var couchdb_dbname = '{{db}}';
+        var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+        var dbc = new PouchDB(couchdb_dbname);
+        var sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+          live: true,
+          retry: true,
+          auto_compaction: false
+        });
+    </script>
+    <script src="{% static "js/all_common.js" %}?v="></script>
+    <script src="{% static "js/products_common.js" %}?v="></script>
+    <script src="{% static "js/inventory.js" %}?v="></script>
+
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "stock/stock_menu.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/stock_rupture.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/stock_rupture.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+<h1>Mettre les articles en Rupture sur Odoo</h1>
+    <br>
+
+    <div class="main">
+      
+    <div class="search">
+      <div class="searchLabel" >Recherche Articles : </div>
+      <div class="searchInput">
+        <input type="text" id="searchInput" onKeyPress="if (event.keyCode == 13) search_table_article();">
+        <button class='btn_Search' id='dp_Search' href='#'>
+          <img src="{% static 'image/Search-icon.png' %}">
+        </button>
+      </div>
+    </div>
+      <table id="tableArticle" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+    <br/>
+  <br/>
+  
+  <script src="{% static "js/all_common.js" %}?v="></script>
+  <script src="{% static "js/common.js" %}?v="></script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "members/base.html" %}
+{% load static %}
+{% block additionnal_css %}
+  <link rel="stylesheet" href="{% static "css/inscriptions.css" %}?v=">
+  <style>
+    .shift[data-place="{{mag_place_string}}"], [data-select="{{mag_place_string}}"] {background: #c8deff;}
+    .shift[data-place="{{office_place_string}}"], [data-select="{{office_place_string}}"]  {background: #f9b2ff;}
+  </style>
+  {{ block.super }}
+{% endblock %}
+
+
+
+{% block additionnal_scripts %}
+ <script type="text/javascript">
+    var type = {{type}},
+        context = 'inscription',
+        force_fn_hyphen = {% if force_firstname_hyphen %}true{% else %}false{% endif%};
+    {% if open_on_sunday %}
+    let open_on_sunday = true
+    {% endif %}
+  </script>
+{% endblock %}
+{% block content %}
+ <nav class="col-6 clearfix nav">
+ <div id="process_state" class="fl"></div>
+
+ <button id="create_new_coop" class="btn--primary fr">Nouvelle inscription</button>
+ <button id="coop_list_btn" class="btn--info fr" style="display:none;">Liste</button>
+ <button id="shift_calendar" class="btn--inverse fr">Vue créneaux</button>
+
+
+</nav>
+
+<section class="center" id="new_coop">
+   <div class="grid-1">
+     <div class="item-center">
+      <h2 class="title">
+      NOUVEAU MEMBRE
+      </h2>
+     <form id="coop_create" lang="fr">
+      {% if ask_for_sex %}
+        <p>
+          {% include "members/sex_input.html" %}
+        </p>
+      {% endif %}
+      <p>
+      <input type="text" placeholder="Nom" name="lastname" autocomplete="off"  required />
+      <input type="text" placeholder="Prénom" name="firstname" autocomplete="off" required />
+      <input type="text"  placeholder="email" name="email" value="" pattern="(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*)@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])" required autocomplete="off" />
+      (*)
+      </p>
+      <p>
+        <input type="number" step="10" min="10" placeholder="Montant souscription" name="subs_cap" id="subs_cap" required/>
+        <select name="payment_meaning" id="payment_meaning" autocomplete="off" required >
+          <!-- autocomplete="off" is here to fix firefox bug for selected="selected" -->
+          <option value="" selected>Moyen de paiement</option>
+          {% for pm in payment_meanings %}
+          <option value="{{pm.code}}">{{pm.title}}</option>
+          {% endfor %}
+        </select>
+        <input type="number" min="1" placeholder="Nb de chèques" name="ch_qty" id="ch_qty" style="display:none;"/>
+
+      </p>
+      {% if input_barcode %}
+      <p>
+        <input type="text" name="m_barcode" id="m_barcode" maxlength="13" size="13" placeholder="Code barre" autocomplete="off" required/>
+      </p>
+      {% endif %}
+      <button class="btn--primary">Valider</button>
+     </form>
+     </div>
+     <div id="mail_generation">
+     (*) L'adresse mail étant obligatoire, si le nouveau membre n'en a pas, veuillez en créer une en cliquant sur le bouton suivant : <a class="btn--info" id="generate_email">+</a>
+     </div>
+  </div>
+</section>
+{% include "members/shift_template_choice.html" %}
+<section class="grid-6 has-gutter" id="coop_registration_details">
+   <div class="col-6 menu txtcenter">
+    RÉSUMÉ DE L'ENREGISTREMENT
+   </div>
+
+   <div class="col-6 main_content txtcenter">
+    <h3>Félicitation ! Informations enregistrées.</h3>
+    <!--
+    <div class="numbox badge"></div>
+    <p>Pensez à inscrire ce numéro temporaire de coopérateur au crayon de papier sur les deux formulaires papier.</p>
+    -->
+    <p>Créneau choisi : <span class="shift_template"></span></p>
+    <p>Prochain service : <span class="next_shift"></span></p>
+    <button class="btn--primary" id="next_coop">Coopérateur.rice suivant.e !</button>
+   </div>
+
+</section>
+<section class="grid-6 has-gutter" id="coop_list_view">
+   <div class="col-6 menu txtcenter">
+    LISTE DES ENREGISTREMENTS
+   </div>
+
+   <div class="col-6 main_content txtcenter">
+    <table class="table--zebra" summary="">
+      <thead>
+      <tr>
+        <th scope="col">Coop.</th>
+        <th scope="col">Créneaux</th>
+      </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+   </div>
+</section>
+<script src="{% static 'js/pouchdb.min'|add:POUCHDB_VERSION|add:'.js' %}"></script>
+<script type="text/javascript">
+        var couchdb_dbname = '{{db}}';
+        var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+        var dbc = new PouchDB(couchdb_dbname);
+        var sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+          live: true,
+          retry: true,
+          auto_compaction: false
+        });
+        var mag_place_string = '{{mag_place_string}}';
+        var office_place_string = '{{office_place_string}}'
+        var max_begin_hour = '{{max_begin_hour}}'
+        var email_domain = '{{email_domain}}'
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/common.js" %}?v="></script>
+<script src="{% static "js/inscriptions.js" %}?v="></script>
+
+{% endblock %}

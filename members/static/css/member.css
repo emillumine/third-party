@@ -1,0 +1,69 @@
+body {background: #c8deff; margin:5px;}
+
+#webcam{
+ width: 280px;
+ height: 360px;
+ border: 1px solid black;
+}
+
+video {max-width:none;}
+.search_box_wrapper .label {margin-bottom:10px;}
+#shopping_entry ,
+#service_entry,
+#service_entry_validation,
+#service_entry_success,
+#rattrapage_1, #rattrapage_2,
+#current_shift_title,
+#photo_advice, #photo_studio,
+#service_entry_success .compteur
+{display:none;}
+#first_page .btn {height:50px; font-size: xx-large; margin-top:150px;}
+#post_take_buttons .btn--primary,#post_take_buttons .btn--inverse {margin-bottom:15px;}
+
+#shopping_entry .btn--primary,  #service_entry .btn--primary,
+#rattrapage_1 .btn--primary,
+#rattrapage_2 .btn--primary {color:#fff !important;}
+#rattrapage_2 .txtcenter [data-next] {margin-top: 25px;}
+#post_take_buttons input {display: block; float:right;width: 100px;}
+#photo_studio {font-size:125%; min-width:250px; max-width:250px;margin-right:25px;}
+#webcam_button {min-width:115px; max-width:115px;}
+#multi_results_preview button {margin:2px;}
+#member_slide {grid-gap:0;padding:5px;display:none;}
+#member_slide .coop-info {background: #fbfbd5;}
+#image_medium {width:128px;float:left;}
+#image_medium:hover {cursor: url(/static/img/ip-camera.png), url(/static/img/ip-camera.svg) 5 5, pointer;}
+#barcode {height:128px;}
+#barcode_base {width:50px;float:left;}
+.coop-info {min-width: 300px;padding:5px;}
+#lat_menu button {margin-bottom:5px;}
+.col-6.big {font-size:200%; border: 2px solid red; padding:10px; text-align:center; background: #ffffff;}
+#cooperative_state {font-size:150%; font-weight:bold;}
+h1 .member_name {font-weight: bold;}
+#current_shift_title, .members_list
+{border:1px solid #000; border-radius: 5px; padding:5px; margin-bottom:15px;background:#FFF;}
+.members_list {list-style: none;}
+.members_list li {display:block;margin-bottom:5px;}
+.members_list li.btn--inverse {background: #449d44 !important; cursor:not-allowed;}
+
+#service_entry_success {font-size: x-large;}
+#service_entry_success .explanations {margin: 25px 0; font-size: 18px;}
+#service_entry_success .points,
+#service_entry_success .next_shift
+{border: 1px solid #000;
+ border-radius: 5px;
+ padding: 5px;
+ background: #eed000;}
+
+ #service_entry_success .btn,
+ #member_slide .btn[data-next]
+  {margin-top: 35px; background: #449d44; color:#FFF;}
+ [data-next="rattrapage_1"] {float:right;color:#171A17 !important; margin-top: 25px;}
+ #service_en_cours .info a {line-height: 24px; font-size:18px; margin-top:15px;}
+ .outside_list a {margin-left:15px;}
+ #rattrapage_1 .advice {margin-top:15px;}
+ .btn.present {background:#50C878;}
+ .btn.return {background: #ff3333; color:#FFF !important; margin-top:25px;}
+
+.msg-big {font-size: xx-large; background: #fff; padding:25px; text-align: center;}
+
+#member_advice {background: #FFF; color: red;}

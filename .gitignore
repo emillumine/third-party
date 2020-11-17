@@ -1,0 +1,17 @@
+*/__pycache__/*
+*.pyc
+temp/*
+data/*
+dav/*
+log/*
+/static/
+outils/settings.py
+outils/settings_secret.py
+outils/config.py
+outils/texts/*
+outils/js_errors.log
+db.sqlite3
+*/max_timeslot_carts.txt
+.gitlab-ci.yml
+shop/shop_admin_settings.json
+shop/errors.log

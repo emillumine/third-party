@@ -1,0 +1,9 @@
+<div class="header" style="text-align: center;">
+    <img src="{{header_img}}" alt="{{COMPANY_NAME}}" />
+    <h1>Boutique en ligne</h1>
+    {% if capital_message and capital_message|length > 0 %}
+    <p style="font-size: xx-large; text-align:center;">
+      {{capital_message|safe}}
+    </p>
+    {%endif%}
+</div>

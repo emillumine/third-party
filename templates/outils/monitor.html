@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/responsive.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/monitor.css' %}">
+
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.customized_cellEdit.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.responsive.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/dom_sort.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+
+{% endblock %}
+
+{% block content %}
+  {% include "common/conn_admin.html" %}
+  <header class="flex-container" style="display:none;">
+    <nav role="navigation" class="main nav dropdown item-fluid">
+        <h4 class="dropbtn">Menu</h4>
+        <ul class="nav-list dropdown-content">
+            <li class="nav-item">
+              <span class="js_errors">Erreurs js</span>
+            </li>
+        </ul>
+    </nav>
+
+
+  </header>
+  <div id="main-content">
+      <table id="results" class="display" width="95%" cellspacing="0" ></table>
+  </div>
+
+  <div id="templates" style="display:none;">
+    <img src="/static/img/Pedro_luis_romani_ruiz.gif" id="rotating_loader"/>
+
+
+  </div>
+
+  <script src='{% static "js/all_common.js" %}?v='></script>
+  <script src='{% static "js/monitor.js" %}?v='></script>
+
+
+{% endblock %}

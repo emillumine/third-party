@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/destocking.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/accent_neutral.search.plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+   <script type="text/javascript" src="{% static 'js/datatables/datatables.init.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="header txtcenter">
+      <h1>Saisie auto-consommation ou pertes</h1>
+    </div>
+    
+
+    <div id="main_content" class="center">
+      <div class="grid-1">
+        <div class="search item-center" style="display:none;">
+          <div>
+            <label><input type="search" /><- Rechercher </label>
+            <div id="search_result"></div>
+          </div>
+        </div>
+        <img class="loading item-center" src="/static/img/loading-gear-8.gif" alt="Chargement de la base articles en cours..." />
+        <table class="pdt_liste_to_transfert" cellspacing="0"></table>
+      </div>
+    </div>
+    <div id="barcode_scanner" style="display:none;"></div> 
+    <script src="{% static "js/all_common.js" %}?v="></script>
+    <script src="{% static "js/destocking.js" %}?v="></script>
+
+
+{% endblock %}

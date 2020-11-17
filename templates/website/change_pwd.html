@@ -1,0 +1,26 @@
+{% extends "website/w_base.html" %}
+
+{% block content %}
+<div id="change_pwd_form_template" style="text-align:center;">
+        <form method="POST">
+            <p><input type="password" name="password" placeholder="{{password_placeholder}}" /></p>
+            {% csrf_token %}
+            <input type="hidden" name="fp" value="" />
+            <p><button type="submit">Envoyer</button></p>
+        </form>
+      
+        <script>
+            try {
+                window.addEventListener("DOMContentLoaded", (event) => {
+                    var fp = document.getElementsByName('fp')
+                    if (fp.length == 1)
+                        fp[0].value = new Fingerprint({canvas: true}).get()
+                })
+            } catch (e) {
+                var msg = 'Ce navigateur ne permet pas de vous identifier. Merci de signaler l\'erreur suivante:\n'
+                msg += JSON.stringify(e)
+                alert(msg)
+            }
+        </script>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+<div class="content">
+  <div class="txtcenter">
+    <h3>Bravo, le comptage de cette commande est terminé !</h3>
+  </div>
+
+  <br/>
+
+  <div class="txtcenter" id="success_order_name_container">
+    <h3><b>Référence de la commande : </b><span class="order_ref_reminder" id="order_ref"></span></h3>
+    <h3 class="order_ref_reminder">
+      N'oubliez pas d'indiquer cette référence sur le bon de livraison, ainsi que la date d'aujourd'hui et le coup de tampon "Produits comptés".
+    </h3>
+  </div>
+  <div class="txtcenter" id="success_orders_name_container" hidden>
+    <h3 id="orders_ref"><b>Références des commandes :</b></h3>
+    <h3 class="order_ref_reminder">
+      N'oubliez pas d'indiquer ces références sur le ou les bons de livraison correspondant, ainsi que la date d'aujourd'hui et le coup de tampon "Produits comptés".
+    </h3>
+  </div>
+
+  <hr>
+
+  <div class="txtcenter" id="nothingToDo">
+    <p>Il n'y a rien d'autre à faire pour cette étape.</p>
+  </div>
+  <div id="barcodesToPrint" hidden>
+    <h4>{{PRINT_LABELS_TXT}}</h4>
+    <button class="btn--primary full_width_button" onclick="{{GET_PRODUCT_LABELS_FN}}">{{PRINT_BUTTON_TEXT}}</button>
+  </div>
+  <div id="barcodesEmpty" hidden>
+    <h4>Voici la liste des produits qui n'ont pas de code barre, merci de transmettre cette liste aux salariés :</h4>
+    <ul id="barcodesEmpty_list"></ul>
+  </div>
+
+  <hr>
+
+</div>

@@ -1,0 +1,32 @@
+{% extends "stock/stock_menu.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/stock_listArticleBreaking.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h1>Liste des Articles en Rupture</h1>
+    <br>
+
+    <div class="main">
+    
+          <table id="tableArticle" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+    <br/>
+  <br/>
+  
+  <script src="{% static "js/all_common.js" %}?v="></script>
+  <script src="{% static "js/common.js" %}?v="></script>
+{% endblock %}
+
+
+{% block modal %}
+
+{% endblock %}

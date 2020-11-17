@@ -1,0 +1,8 @@
+.actions {margin-top:10px;}
+/**.dataTables_wrapper {position:fixed !important; margin-top:50px; z-index:1; background: red;}**/
+.dataTables_wrapper button {margin-right:5px;}
+.dataTables_wrapper tr.even {background-color:#efefef;}
+#search_result {z-index:1000;}
+#search_result ul {list-style: none;padding-left:0;z-index:1000;}
+#search_result li {cursor: pointer; border: 1px solid #000;z-index:1000;}
+#search_result li:hover {background: #efefef;}

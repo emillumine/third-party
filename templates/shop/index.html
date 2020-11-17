@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/reception_style.css' %}">
+<link rel="stylesheet" href="{% static 'css/shop.css' %}">
+<style type="text/css">
+    #password_change {display:none;}
+</style>
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script src="{% static "js/fp.js" %}"></script>
+
+{% endblock %}
+
+{% block content %}
+ <header class="flex-container">
+    <div class="w20 arrow-block txtcenter step_zero_active" id="header_step_zero">
+      <h4 id="header_step_zero_content">Initialisation</h4>
+    </div>
+    <div class="w20 arrow-block txtcenter" id="header_step_one">
+      <h4 id="header_step_one_content">Sélection des produits</h4>
+    </div>
+    <div class="w20 arrow-block txtcenter" id="header_step_two">
+      <h4>Validation du panier</h4>
+    </div>
+    <div class="item-fluid arrow-block txtcenter" id="header_step_three">
+      <h4>Enregistré</h4>
+    </div>
+
+    <nav role="navigation" class="nav dropdown item-fluid">
+        <h4 class="dropbtn">Menu</h4>
+        <ul class="nav-list dropdown-content">
+            {% if SHOP_CAN_BUY != False %}
+            <li class="nav-item">
+              <span class="new-order">Nouvelle commande</span>
+            </li>
+            {%endif%}
+            <li class="nav-item">
+              <span class="my-orders">Commande(s) envoyée(s)</span>
+            </li>
+            <li class="nav-item">
+                 <span class="visit">Parcourir le "magasin"</span>
+            </li>
+            {%if extra_menus %}
+              {% for exm in extra_menus %}
+                {% include exm %}
+              {% endfor %}
+            {%endif%}
+
+            <li class="nav-item">
+              <span id="deconnect">Déconnecter</span>
+            </li>
+        </ul>
+    </nav>
+
+
+</header>
+{% if capital_message and capital_message|length > 0 %}
+<p style="font-size: xx-large; text-align:center;">
+  {{capital_message|safe}}
+</p>
+{%endif%}
+<section class="content" id="main-content" style="display:none;">
+    <h1>{{COMPANY_NAME}} : Commande en ligne
+          <span>Attention ! Pour les produits au kg, <strong>1 = 1kg , 200 = 200 kg, 0.2 = 200g</strong></span>
+    </h1>
+    <section class="shop">
+         <div class="grid-5">
+            <div class="col-4">
+                 <ul class="tabs">
+                    <li class="tab promote">
+                        <input type="radio" name="tabs" id="tab0" />
+                        <label for="tab0">Propositions</label>
+                        <div id="tab-content0" class="content">
+                          <strong>Voici une sélection de produits que nos salariés veulent mettre en avant !</strong>
+                          <div class="products_sort_container psc_align_bottom" style="display:none;">
+                            <span>Trier les produits par : </span>
+                            <select class="products_sort">
+                              <option value="name_asc" selected="selected">Nom croissant</option>
+                              <option value="name_desc">Nom décroissant</option>
+                              <option value="price_unit_asc">Prix unitaire croissant</option>
+                              <option value="price_unit_desc">Prix unitaire décroissant</option>
+                              <option value="price_uom_asc">Prix au kg/L croissant</option>
+                              <option value="price_uom_desc">Prix au kg/L décroissant</option>
+                            </select>
+                          </div>
+                          <section class="grid-3 has-gutter"></section>
+                        </div>
+                    </li>
+                    <li class="tab discount">
+                        <input type="radio" name="tabs" id="tab-1" />
+                        <label for="tab-1">Promo -20%</label>
+                        <div id="tab-content-1" class="content">
+                          <strong>Voici une sélection de produits qui doivent partir au plus vite !</strong><br/>
+                          Les prix affichés ne tiennent pas compte de la réduction de -20%
+                          <div class="products_sort_container psc_align_bottom" style="display:none;">
+                            <span>Trier les produits par : </span>
+                            <select class="products_sort">
+                              <option value="name_asc" selected="selected">Nom croissant</option>
+                              <option value="name_desc">Nom décroissant</option>
+                              <option value="price_unit_asc">Prix unitaire croissant</option>
+                              <option value="price_unit_desc">Prix unitaire décroissant</option>
+                              <option value="price_uom_asc">Prix au kg/L croissant</option>
+                              <option value="price_uom_desc">Prix au kg/L décroissant</option>
+                            </select>
+                          </div>
+                          <section class="grid-3 has-gutter"></section>
+                        </div>
+                    </li>
+                    <li class="tab">
+                        <input type="radio" name="tabs" checked="checked" id="tab1" />
+                        <label for="tab1">Les produits que j'ai déjà achetés</label>
+                        <div id="tab-content1" class="content">
+                          <p id="content1_msg">
+                            Vous pouvez récupérer la liste des produits que vous avez déjà achetés en cliquant sur le bouton ci-dessous.<br />
+                            <button id="get_my_bought_products" type="button" class="btn--primary">
+                             Récupérer la liste
+                            </button>
+                          </p>
+                          <div class="products_sort_container psc_align_bottom" style="display:none;">
+                            <span>Trier les produits par : </span>
+                            <select class="products_sort">
+                              <option value="name_asc" selected="selected">Nom croissant</option>
+                              <option value="name_desc">Nom décroissant</option>
+                              <option value="price_unit_asc">Prix unitaire croissant</option>
+                              <option value="price_unit_desc">Prix unitaire décroissant</option>
+                              <option value="price_uom_asc">Prix au kg/L croissant</option>
+                              <option value="price_uom_desc">Prix au kg/L décroissant</option>
+                            </select>
+                          </div>
+                          <section class="grid-3 has-gutter"></section>
+                        </div>
+                    </li>
+
+                    <li class="tab alim">
+                        <input type="radio" name="tabs" id="tab2" />
+                        <label for="tab2">Alimentaire</label>
+                        <div id="tab-content2" class="content">
+                            <div class="grid has-gutter" id="alim_categ"></div>
+                            <div class="products_sort_container psc_align_top" style="display:none;">
+                              <span>Trier les produits par : </span>
+                              <select class="products_sort">
+                                <option value="name_asc" selected="selected">Nom croissant</option>
+                                <option value="name_desc">Nom décroissant</option>
+                                <option value="price_unit_asc">Prix unitaire croissant</option>
+                                <option value="price_unit_desc">Prix unitaire décroissant</option>
+                                <option value="price_uom_asc">Prix au kg/L croissant</option>
+                                <option value="price_uom_desc">Prix au kg/L décroissant</option>
+                              </select>
+                            </div>
+                            <p class="msg"></p>
+                            <section class="grid-3 has-gutter"></section>
+                        </div>
+                    </li>
+
+                    <li class="tab nonalim">
+                        <input type="radio" name="tabs" id="tab3" />
+                        <label for="tab3">Non alimentaire</label>
+                        <div id="tab-content3" class="content">
+                          <div class="grid has-gutter" id="non_alim_categ"></div>
+                          <div class="products_sort_container psc_align_top" style="display:none;">
+                            <span>Trier les produits par : </span>
+                            <select class="products_sort">
+                              <option value="name_asc" selected="selected">Nom croissant</option>
+                              <option value="name_desc">Nom décroissant</option>
+                              <option value="price_unit_asc">Prix unitaire croissant</option>
+                              <option value="price_unit_desc">Prix unitaire décroissant</option>
+                              <option value="price_uom_asc">Prix au kg/L croissant</option>
+                              <option value="price_uom_desc">Prix au kg/L décroissant</option>
+                            </select>
+                          </div>
+                          <p class="msg"></p>
+                          <section class="grid-3 has-gutter"></section>
+                        </div>
+                    </li>
+                     <li class="tab">
+                        <input type="radio" name="tabs" id="tab4" />
+                        <label for="tab4">Recherche libre</label>
+                        <div id="tab-content4" class="content">
+                          <div>
+                            <div class="fl search-bar">
+                              <form onsubmit="return search_product();">
+                                <input type="text" placeholder="Recherche" id="search-input">
+                                <button type="submit"><i class="fa fa-search"></i></button>
+                              </form>
+                            </div>
+                            <div class="fr products_sort_container" style="display:none;">
+                              <span>Trier les produits par : </span>
+                              <select class="products_sort">
+                                <option value="name_asc" selected="selected">Nom croissant</option>
+                                <option value="name_desc">Nom décroissant</option>
+                                <option value="price_unit_asc">Prix unitaire croissant</option>
+                                <option value="price_unit_desc">Prix unitaire décroissant</option>
+                                <option value="price_uom_asc">Prix au kg/L croissant</option>
+                                <option value="price_uom_desc">Prix au kg/L décroissant</option>
+                              </select>
+                            </div>
+                          </div>
+                          <p class="msg" style="clear:both;"></p>
+                          <section class="grid-3 has-gutter"></section>
+                        </div>
+                    </li>
+
+                </ul>
+                <!--<div class="fl tip">Astuce : Utilisez <strong>Ctrl + F</strong> pour rechercher dans la liste</div>-->
+            </div>
+            <div class="col-1" >
+                <div id="right-column">
+                    <div id="cart-header">
+                        <h3>Panier</h3>
+                        <div id="valid-wrapper">
+                            <button id="valid-cart" type="button" class="btn--primary">Valider</button>
+                        </div>
+                        <div class="cart-total"><span></span></div>
+                    </div>
+
+                    <div id="cart-wrapper">
+
+                        <div id="cart">
+                            <div class="msg">vide</div>
+                        </div>
+                        <div class="cart-total"><span></span></div>
+
+                    </div>
+                    <div id="current_order_bdate"></div>
+                    {%if HOURS_FOR_VALIDATION > 0 %}
+                    <div id="countdown_wrapper">
+                      <em>Temps restant pour valider</em>
+                      <div id="countdown"></div>
+                    </div>
+                    {% endif %}
+                    <div class="to_top_wrapper">
+                        <button id="go_to_top" type="button">Retourner en haut</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section> <!-- end of shop -->
+    <section class="orders" style="display:none;">
+        <div class="waiting_msg">
+
+        </div>
+        <div id="my-orders-sumup" style="display:none;">
+        <h3>Mes commandes enregistrées</h3>
+            <table border=1>
+                <thead>
+                <tr>
+                    <th class="date">Date création</th><th class="date">Date récupération</th><th>Nb articles</th><th>Montant</th><th class="actions">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <p class="no-action-available-msg" style="display:none;">
+            Si les icônes <i class="fas fa-edit"></i> (Modifier) et <i class="fas fa-trash"></i> (Poubelle) n'apparaissent pas dans une ligne du tableau, <br />cela signifie que la commande a déjà été imprimée en magasin pour être préparée. <br/>Dans ce cas, merci de remplir le formulaire <a href="https://docs.google.com/forms/d/e/1FAIpQLSd_wH-p3Uz0-a5hR4_j8RlNWx13CHhS9BJbZP4Wi8-fMy7VJw/viewform">Aide à la pré-commande</a>.
+            </p>
+            <p>Pour fusionner deux commandes, cliquez sur la commande qui doit être "déplacée" et glissez-là sur la commande "principale"</p>
+            <p>Note : <strong>La fusion de commandes ne fonctionne pas en utilisant Chrome avec un Mac</strong></p>
+            <p>
+                <button type="button" class="btn--primary back-to-home">Retour</button>
+            </p>
+        </div>
+
+    </section>
+</section>
+<section id="main-waiting-zone">
+    <p class="msg">
+    </p>
+    <p class="loader">
+        <img src="/static/img/Pedro_luis_romani_ruiz.gif" id="rotating_loader"/>
+    </p>
+</section>
+<div id="templates" style="display:none;">
+
+    <div class="product">
+        <h6 class="name"></h6>
+        <img src="" alt="Image" />
+        <div class="price">
+            Prix : <span class="price"></span> € / <span class="unit"></span>
+        </div>
+        <div class="uom_price" style="display:none;">
+            Prix au kg/L : <span class="uom_price"></span>
+        </div>
+        <div class="availability">
+            <div class="fl mrm av_qty">Disponible <i>(indicatif)</i> : <span class="available_qty"></span></div>
+            <div class="fl in_qty">A venir <i>(indicatif)</i> : <span class="incoming_qty"></span></div>
+        </div>
+        <div class="choice clear">
+            <input type="number" name="qty" />
+            <button type="button" class="btn--primary">Ajouter</button>
+        </div>
+    </div>
+    <div class="cart-elt">
+        <img src="/static/img/Delete-Button.svg" alt="Suppr." />
+        <h7 class="name"></h7>
+        <br />
+        <div class="price-row">
+            <span class="qty"></span> x <span class="price"></span> = <span class="total"></span>
+        </div>
+    </div>
+    <div role="navigation" class="dropdown category-menu">
+        <h4 class="dropbtn"></h4>
+        <ul class="dropdown-content">
+
+        </ul>
+    </div>
+    <p id="loading_bought_products_msg">
+        Nous récupérons la liste des produits que vous avez déjà achetés depuis que vous faites vos courses à la coopérative.<br />
+        Cela prend un peu de temps.<br/>
+        Pensez à utiliser <strong>Ctrl + F</strong> pour rechercher un article dans la liste affichée.
+    </p>
+    <p id="loading_categ_products_msg">
+        Nous récupérons la liste des produits disponibles de la catégorie <span class="category"></span>.
+    </p>
+    <div id="cart_creation_form">
+        <p>
+            <h2>Initialisation de la commande</h2>
+            <span class="ask-day">Merci d'indiquer ci-dessous quand vous viendrez récupérer la commande au magasin</span><br/>
+            <select name="bday">
+
+            </select>
+            <select name="bhour">
+                <option value="">---> Heure</option>
+                <option value="10:00">10:00</option>
+                <option value="10:30">10:30</option>
+                <option value="11:00">11:00</option>
+                <option value="11:30">11:30</option>
+                <option value="12:00">12:00</option>
+                <option value="12:30">12:30</option>
+                <option value="13:00">13:00</option>
+                <option value="13:30">13:30</option>
+                <option value="14:00">14:00</option>
+                <option value="14:30">14:30</option>
+                <option value="15:00">15:00</option>
+                <option value="15:30">15:30</option>
+                <option value="16:00">16:00</option>
+                <option value="16:30">16:30</option>
+                <option value="17:00">17:00</option>
+                <option value="17:30">17:30</option>
+            </select>
+            <div class="slots-constraints" style="display: none;">
+                <span class="delay24h"><strong>avec un délai de {{MIN_DELAY_FOR_SLOT}}h minimum</strong></span>
+                <!--<input type="text" placeholder="Exemple: mardi 24 mars à 10h30" name="best_date" style="width: 350px;"/>--><br/>
+                <!--Horaires : <strong>10h - 17h30 du mardi au samedi</strong>-->
+                <div class="forbidden-slots" style="display: none;">
+                    Listes des créneaux <strong>déjà remplis</strong>, en choisir <strong>un autre</strong> <i class="far fa-window-close fs-close fr"></i>
+                    <ul style="list-style: none; margin-top: 2px;"></ul>
+                    <span style="font-size: smaller; font-style: italic;">format date : AAAA-MM-JJ hh:mm</span>
+                </div>
+            </div>
+            {%if HOURS_FOR_VALIDATION > 0 %}
+            <div class="tv-msg" style="display: none;">
+              <strong>
+              Vous aurez <span class="time-given-for-validation">{{HOURS_FOR_VALIDATION}} heure(s)</span>  pour valider votre commande.<br/> Passé ce temps, la réservation du créneau horaire sera annulée.<br/>Vous devrez rechoisir un horaire (le panier sera mémorisé).
+              </strong>
+            </div>
+            {%endif%}
+        </p>
+
+        <p class="no-accept-reason" style="display: none; font-weight: bold; color: red;">
+            Si votre commande n'est pas validée , c'est que vous n'avez pas choisi un horaire possible
+        <p>
+    </div>
+    <div id="cart_validation_form">
+        <h2>Validation de la commande</h2>
+        <p class="pickup_date">
+            Récupération au magasin : <span></span>
+        </p>
+        {%if SHOW_SUBSTITUTION_OPTION %}
+        <p class="accept_substitution">
+            <i class="fas fa-arrow-right"></i> <label style="display:inline-flex;background:#efeeaa;">Pour accepter les substitutions pour les produits manquants, cocher ici : <input name="accept_substitution" type="checkbox" /></label>
+        </p>
+        {%endif%}
+        <p class="comment">
+            <textarea name="cart_comment" cols="50"></textarea><br/>
+            <em>Laissez ci-dessus votre commentaire.</em>
+            {%if SHOW_SUBSTITUTION_OPTION %}
+              <em> Par exemple :<br/>"je suis végétarienne, je suis allergique au gluten, s'il n'y a pas de mouton, je veux bien du boeuf..."</em>
+            {%endif%}
+        </p>
+        <p>
+            <strong><i>Si vous arrivez avec un retard de plus d'une heure, la commande pourrait ne plus être disponible.</i></strong>
+        </p>
+        <p>
+          {{CART_VALIDATION_BOTTOM_MSG}}
+        </p>
+    </div>
+    <div class="destroy-cart-msg">
+      <h2>Commande du <span class="date"></span></h2>
+      (Récupération le <span class="bdate" style="font-weight: bold;"></span>)<br/>
+      Vous avez demandé de détruire l'enregistrement de la commande.<br/>
+      Si vous le confirmez, l'action sera irreversible.
+    </div>
+    <div class="modify-best-date-msg">
+        <p class="ask-day">Remplacer la date de récupération (actuellement <span class="current-bdate"></span>)</p>
+        <select name="bday-change"></select>
+        <select name="bhour-change"></select>
+        <div class="slots-constraints"></div>
+    </div>
+    <div class="after-login-msg">
+        <h2>Bienvenue sur le site de commande en ligne !</h2>
+        <p style="text-align: center;">
+
+            <div style="width:640px;margin:auto;text-align: left;">
+                Vous voulez :
+                <ul style="list-style-type: none;padding:0;">
+                    {%if survey_link %}
+                    <li class="survey" style="display: none;"><a id="survey_link" href="{{survey_link}}" class="btn--success" target="_blank">Répondre au questionnaire d'amélioration</a></li>
+                    {%endif%}
+                    {% if SHOP_CAN_BUY != False %}
+                    <li><button type="button" class="new-order btn--primary">Passer une nouvelle commande</button></li>
+                    {%endif%}
+                    <li><button type="button" class="my-orders btn--primary">Gérer mes commandes (*)</button></li>
+                    <li><button type="button" class="visit btn--primary">Parcourir le "magasin"</button></li>
+
+                </ul>
+                <p>
+                    Vous pouvez également lancer ces actions en utilisant le menu (en haut à droite).
+                </p>
+                <p>
+                    (*) Supprimer, modifier la date, fusionner
+                </p>
+            </div>
+        </p>
+    </div>
+</div>
+<script type="text/javascript">
+    var categories = {{SHOP_CATEGORIES|safe}}
+    var min_delay = {{MIN_DELAY_FOR_SLOT}}
+    var hours_for_validation = {{HOURS_FOR_VALIDATION}}
+    var excluded_cat = {{EXCLUDE_SHOP_CATEGORIES|safe}}
+    var promoted_pdts = {{promoted_pdts|safe}}
+    var discounted_pdts = {{discounted_pdts|safe}}
+    {%if SHOP_OPENING%}
+    const slot_size = {{SHOP_SLOT_SIZE}}
+    const opening = {{SHOP_OPENING|safe}}
+    {%endif%}
+    {%if SHOP_OPENING_START_DATE%}
+    const opening_start_date = new Date('{{SHOP_OPENING_START_DATE}}')
+    {%endif%}
+</script>
+<script src="{% static 'js/all_common.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'js/shop.js' %}?v="></script>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+  <link rel="stylesheet" href="{% static "css/envelops.css" %}?v=">
+{% endblock %}
+
+{% block additionnal_scripts %}
+{% endblock %}
+
+{% block content %}
+{%if must_identify %}
+  {% include "common/conn_admin.html" %}
+{%endif%}
+<div id="envelop_cashing_error" class="alert--danger clearfix custom_alert" onClick="toggle_error_alert()">
+    <div style="width: 90%" class="fl txtleft" id="error_alert_txt"></div>
+    <div style="width: 10%" class="fr txtright"><i class="fas fa-times"></i></div>
+</div>
+<div id="envelop_cashing_success" class="alert--success clearfix custom_alert" onClick="toggle_success_alert()">
+  <div style="width: 90%" class="fl txtleft">Enveloppe encaissée !</div>
+  <div style="width: 10%" class="fr txtright"><i class="fas fa-times"></i></div>
+</div>
+
+<section class="grid-2 has-gutter">
+  <section id="cash">
+    <h2 class="txtcenter">Enveloppes de liquide</h2>
+    <div id="cash_envelops">
+
+    </div>
+  </section>
+
+  <section id="ch">
+    <h2 class="txtcenter">Enveloppes de chèques</h2>
+    <div id="ch_envelops">
+
+    </div>
+  </section>
+</section>
+
+<script src="{% static "js/pouchdb.min.js" %}"></script>
+<script type="text/javascript">
+        {%if must_identify %}
+        var must_identify = true
+        {%endif%}
+        var couchdb_dbname = '{{db}}';
+        var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+        var dbc = new PouchDB(couchdb_dbname);
+        var sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+          live: true,
+          retry: true,
+          auto_compaction: false
+        });
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/envelops.js" %}?v="></script>
+{% endblock %}

@@ -1,0 +1,234 @@
+/* Remove spinners for number input */
+/* Webkit browsers like Safari and Chrome */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* For Firefox*/
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* INDEX */
+#orders tbody tr {
+  cursor: pointer;
+}
+
+.btn_list_bc {
+  border: 1px solid black;
+}
+
+.btn_light:hover {
+  background-color: #acb3c2;
+}
+
+.midWidthInput {
+  height:70px;
+  width:50%;
+  border: 2px solid #555;
+  border-radius:15px;
+  margin-bottom: 1em;
+}
+
+/* PRODUITS */
+.page_body {
+  height: 100%;
+}
+
+header {
+  position: relative;
+  overflow: hidden;
+}
+
+.arrow-block {
+  line-height: 30px;
+  position: relative;
+}
+.arrow-block:after, .arrow-block:before{
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 50%;
+  left: 100%;
+}
+
+#header_step_one {
+  background-color: #ced4da;
+  z-index: 3;
+}
+#header_step_one:after{
+  bottom:0;
+  background: linear-gradient(to right bottom, #ced4da 50%, transparent 50%);
+}
+#header_step_one:before{
+  top:0;
+  background: linear-gradient(to right top, #ced4da 50%, transparent 50%);
+}
+
+#header_step_two {
+  background-color: #ced4da;
+  z-index: 2;
+}
+#header_step_two:after{
+  bottom:0;
+  background: linear-gradient(to right bottom, #ced4da 50%, transparent 50%);
+}
+#header_step_two:before{
+  top:0;
+  background: linear-gradient(to right top, #ced4da 50%, transparent 50%);
+}
+
+#header_step_three{
+  background-color: #e7e9ed;
+  z-index: 1;
+}
+
+.step_one_active {
+  background-color: #0275D8 !important;
+}
+.step_one_active:after{
+  background: linear-gradient(to right bottom, #0275D8 50%, transparent 50%) !important;
+}
+.step_one_active:before{
+  background: linear-gradient(to right top, #0275D8 50%, transparent 50%) !important;
+}
+
+.step_two_active {
+  background-color: #5CB85C !important;
+}
+.step_two_active:after{
+  background: linear-gradient(to right bottom, #5CB85C 50%, transparent 50%) !important;
+}
+.step_two_active:before{
+  background: linear-gradient(to right top, #5CB85C 50%, transparent 50%) !important;
+}
+
+table.dataTable {
+  width: 99% !important;
+}
+
+.searchMultipleTables {
+  height:70px;
+  width:80%;
+  border: 2px solid #555;
+  border-radius:15px;
+  margin-bottom: 1em;
+}
+
+.input_small {
+  width:50%;
+}
+
+.page_element {
+  padding: 15px;
+}
+
+.page_title {
+  padding-top: 10px;
+}
+
+.full_width_button {
+  height: 45px;
+  width: 80%;
+  border-radius: 3px;
+}
+
+#connected_actions  .full_width_button, .half_width_button {
+  height: 45px;
+  width: 40%;
+  border-radius: 3px;
+}
+
+.container_products {
+  border-radius:5px;
+}
+
+div#container_edition {
+  background-color: #e7e9ed;
+}
+
+.blink_me {
+  animation: blinker 1s ease-in-out;
+}
+
+@keyframes blinker {
+  15% { background-color: #218D9B ; } /*  F0AD4E*/
+}
+
+.big_button {
+  height: 45px;
+  width: 20%;
+  border-radius: 3px;
+}
+
+.order_ref_reminder {
+  font-weight: bold;
+  color: #D9534F;
+}
+
+#container_partner_name {
+  padding-bottom: 0px;
+}
+
+#container_multiple_partners {
+  padding-bottom: 15px;
+}
+
+/* Accordion style */
+
+/* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  background-color: #dee2e6;
+  color: #212529;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+hr {
+  margin-top: 32px;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+ background-color: #acb3c2;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: 0 30px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+
+.accordion:after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 13px;
+  color: #777;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+}
+
+.panel.active:after {
+  margin-bottom: 30px;
+}
+
+#error_report {
+  width: 100%;
+  height: 200px;
+  border: 2px solid #555;
+  border-radius: 10px;
+  white-space: pre-wrap;
+}
+
+#main_content {width: 100%;}

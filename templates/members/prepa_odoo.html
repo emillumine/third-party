@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_css %}
+  <link rel="stylesheet" href="{% static "css/inscriptions.css" %}?v=">
+  <link rel="stylesheet" href="{% static "css/prepa_odoo.css" %}?v=">
+  <style>
+    .shift[data-place="{{mag_place_string}}"], [data-select="{{mag_place_string}}"] {background: #c8deff;}
+    .shift[data-place="{{office_place_string}}"], [data-select="{{office_place_string}}"]  {background: #f9b2ff;}
+  </style>
+{% endblock %}
+{% block additionnal_scripts %}
+ <script type="text/javascript">
+    var type = 2;
+    var context = 'validation';
+
+  </script>
+{% endblock %}
+{% block content %}
+{% include "common/conn_admin.html" %}
+ <section class="grid-6 has-gutter" id="dashboard">
+    <div class="col-6 menu txtcenter title">
+    <h1>INSCRIPTION DES NOUVEAUX COOPS AU BDM</h1>
+   </div>
+   <div class="col-6 grid-6 has-gutter txtcenter">
+    <div class="col-3 validate_container">
+        <h2>Saisir le bulletin d'informations du membre</h2>
+        <div id="to_fill" class="main">
+        </div>
+        <div id="waiting_validation_employee" class="main" >
+            <h2>En attente de validation par un salarié</h2>
+            <div class="elts">
+            </div>
+        </div>
+        <div id="waiting_validation_member" class="main" >
+            <h2>En attente de validation par le membre</h2>
+            <div class="elts">
+            </div>
+        </div>
+        <div id="done" class="main">
+            <h2>Bulletins à archiver</h2>
+            <div class="elts">
+            </div>
+        </div>
+    </div>
+    <div class="col-3 errors_container">
+        <h2>Nouveaux coops à problèmes</h2>
+        <div id="with_errors" class="main">
+        </div>
+    </div>
+   </div>
+ </section>
+
+ <section class="grid-6 has-gutter" id="coop_page">
+    <div class="col-6 menu txtcenter title">
+    <h1>Saisie du formulaire + Validation</h1>
+    <p>Saisir les champs <span class="green">verts</span> et vérifier et/ou modifier les champs <span class="yellow">jaunes</span></p>
+   </div>
+   <div class="col-6">
+    {% include "members/validation_form.html" %}
+
+     <div class="next_step fr">
+            <button class="btn--primary" data-action="dashboard">Retour à la liste</button>
+        </div>
+   </div>
+ </section>
+ <section class="grid-6 has-gutter" id="warning_slide">
+    <div class="col-6 menu txtcenter title">
+    <h1>Nouveau coop à problèmes</h1>
+   </div>
+   <div class="col-6 main-content">
+    <div class="sump_up">
+        <p>
+            <input disabled="disabled" name="lastname" />
+            <input disabled="disabled" name="firstname" />
+            <!--<input disabled="disabled" name="barcode_base" /> -->
+        </p>
+        <p class="coop_msg">
+        </p>
+        <p>
+            <input disabled="disabled" value="Quel est le problème ?" />
+        </p>
+    </div>
+     {% include "members/warning_form.html" %}
+    <div class="next_step">
+        <button class="btn--danger" id="form_delete" data-action="form_delete">Supprimer la fiche</button>
+        <button class="btn--danger" id="problem_delete" data-action="problem_delete">Enlever des coops à problème</button>
+        <button class="btn--primary" data-action="coop_form">Accéder à la fiche</button>
+        <button class="btn--primary" data-action="dashboard">Retour à la liste</button>
+    </div>
+   </div>
+ </section>
+ {% include "members/shift_choice.html" %}
+ <div style="display:none" id="admin_elts">
+
+ </div>
+ <script src="{% static "js/pouchdb.min.js" %}"></script>
+<script type="text/javascript">
+        var couchdb_dbname = '{{db}}';
+        var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+        var dbc = new PouchDB(couchdb_dbname);
+        var sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+          live: true,
+          retry: true,
+          auto_compaction: false
+        });
+        var mag_place_string = '{{mag_place_string}}';
+        var office_place_string = '{{office_place_string}}'
+        var max_begin_hour = '{{max_begin_hour}}'
+ </script>
+ <script src="{% static "js/all_common.js" %}"?v=></script>
+ <script src="{% static "js/common.js" %}"?v=></script>
+ <script src="{% static "js/subscription_common.js" %}"?v=></script>
+ <script src="{% static "js/prepa_odoo.js" %}?v="></script>
+{% endblock %}

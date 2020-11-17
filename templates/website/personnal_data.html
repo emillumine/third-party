@@ -1,0 +1,156 @@
+{% extends "website/w_base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+     <link rel="stylesheet" href="{% static "css/knacss.min.css" %}">
+     <link rel="stylesheet" href="{% static "css/info_perso.css" %}?v=">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script src="{% static "js/jquery-3.3.1.min.js" %}"></script>
+<script src="{% static "js/modernizr-custom.min.js" %}"></script>
+<script type="text/javascript">
+    var original = {
+                    sex : '{{data.sex}}',
+                    firstname : '{{data.firstname}}',
+                    lastname : '{{data.lastname}}',
+                    birthdate : '{{data.birthdate}}',
+                    street : '{{data.street}}',
+                    street2 : '{{data.street2}}',
+                    zip : '{{data.zip}}',
+                    city : '{{data.city}}',
+                    email: '{{data.email}}',
+                    mobile : '{{data.mobile}}',
+                    phone : '{{data.phone}}'
+                   },
+        name_sep = '{{data.name_sep}}'
+</script>
+{% endblock %}
+
+{% block content %}
+   {% if with_website_menu %}
+      {% include "website/menu.html" %}
+   {% endif %}
+   <div id="data" style="top:40px; position: relative;width: 540px; margin:auto; ">
+    <form style="position: relative;">
+
+        <div id="person">
+            <div>
+                <div class="fl" style="border: 1px solid #000;min-height:130px; min-width:130px;">
+                    <img src="{{data.img_src}}" alt="Photo" title="Pour changer votre photo, rendez-vous au magasin."  />
+                </div>
+                <div class="fl" style="padding-left: 10px;">
+                    <p>
+                        Coop. N°
+                        {{data.barcode_base}}
+                    </p>
+                    <p>
+                        {{data.barcode|default:''}}
+                    </p>
+                    <p>
+                        Enregistrement données : {{ data.create_date|date:"d F Y" }}
+                    </p>
+                    <p>
+                        Statut : {{data.cooperative_state}}
+                    </p>
+                </div>
+            </div>
+            <div style="clear:both; padding-top: 5px;">
+                <p>
+                    {% include "members/sex_input.html" %}
+
+                </p>
+                <p>
+                    <input type="text" name="firstname" value="{{data.firstname}}" placeholder="Prénom" size="15" maxlength="25" />
+                    <input type="text" name="lastname" value="{{data.lastname}}" placeholder="Nom" size="45" style="max-width: 282px;"/>
+                </p>
+                <p> Date de naissance
+                    <select name="jj"></select>
+                    <select name="mm"></select>
+                    <select name="yyyy"></select>
+                    <input type="hidden" name="birthdate" value="{{data.birthdate}}" />
+                </p>
+            </div>
+        </div>
+        <div id="address">
+            <p>
+                <input type="text" name="street" value="{{ data.street|default:'' }}" placeholder="Rue" size="80">
+            </p>
+            <p>
+                <input type="text" name="street2" value="{{ data.street2|default:'' }}" placeholder="Complément d'adresse" size="80">
+
+            </p>
+            <p>
+                <input type="text" name="zip" value="{{ data.zip|default:'' }}" placeholder="code postal" size="5">
+                <input type="text" name="city" value="{{ data.city|default:'' }}" placeholder="Ville" size="35" style="max-width: 382px;">
+            </p>
+          </div>
+          <div id="telcom">
+                <p>
+                    <input type="email" name="email" value="{{ data.email|default:'' }}" placeholder="Email" size="80" disabled>
+                </p>
+                <p>
+                    <input type="text" name="mobile" value="{{ data.mobile|default:'' }}" placeholder="Tel1" size="15">
+                </p>
+                <p>
+                    <input type="text" name="phone" value="{{ data.phone|default:'' }}" placeholder="Tel2" size="15">
+
+                </p>
+
+            </div>
+            <div id="action" style="position: absolute; bottom: 25px; right: 15px;">
+                <button type="button" id="save" class="btn">Enregistrer les modifications</button>
+            </div>
+    </form>
+    <!--
+    <p>
+        {{data.is_worker_member}}
+    </p>
+    -->
+    <div id="cooperative_data">
+         <p>
+            Nombre de parts détenues : {{data.total_partner_owned_share}}
+        </p>
+        <p>
+            Montant souscription : {{data.amount_subscription}} euros
+        </p>
+        {% if data.active_tmpl_reg_line_count %}
+            <hr />
+            {% if data.is_exempted %}
+            <p>
+                Exempté.e
+            </p>
+            {% else %}
+                {% if data.shift_type == 'standard' %}
+                    <p>
+                        Créneau : {{data.current_template_name}}
+                    </p>
+                    <p>
+                        {{data.final_standard_point}} point(s)
+                    </p>
+                {% else %}
+                    <p>
+                        Volant.e
+                    </p>
+                    <p>
+                        {{data.final_ftop_point}} point(s)
+                    </p>
+
+                {% endif %}
+                {% if data.date_alert_stop %}
+                    <p>
+                        En alerte jusqu'au {{ data.date_alert_stop|date:"d F Y" }}
+                    </p>
+                {% endif %}
+                {% if  data.date_delay_stop %}
+                    <p>
+                        Extension accordée jusqu'au {{ data.date_delay_stop|date:"d F Y" }}
+                    </p>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+   </div>
+<script src="{% static 'js/all_common.js' %}?v="></script>
+<script src="{% static 'js/info_perso.js' %}?v="></script>
+{% endblock %}

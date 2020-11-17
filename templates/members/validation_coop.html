@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+{% block additionnal_css %}
+  <link rel="stylesheet" href="{% static "css/prepa_odoo.css" %}?v=">
+{% endblock %}
+{% block additionnal_scripts %}
+ <script type="text/javascript">
+    // Prevent back page
+    // Add actual page to history
+    history.pushState(null, null, location.pathname)
+
+    // Register back button click
+    window.onpopstate = function (e) {
+        // Prevent default action on back button click
+        e.preventDefault()
+        // Add actual page to history again
+        history.pushState(null, null, location.pathname)
+    }
+    var coop = {{coop|safe}};
+  </script>
+{% endblock %}
+{% block content %}
+<div id="main_content">
+<h1 class="txtcenter">{{WELCOME_ENTRANCE_MSG}}</h1>
+
+{% if coop_msg %}
+ <div class="txtcenter">
+     Au cours de la validation, vous avez signalé un problème :
+     <p class="important">{{coop_msg}}</p>
+     Le bureau des membres le traite, et vous contactera si nécessaire.
+ </div>
+{% else %}
+
+<p class="txtcenter intro">
+Afin d'enregistrer définitivement vos données dans le système du magasin, merci de vérifier et éventuellement corriger les données suivantes :
+</p>
+<section class="grid-6 has-gutter">
+  
+ <div class="col-6">
+    {% include "members/validation_form.html" %}
+ </div>
+ <div class="col-6" id="coop_warning_form">
+    {% include "members/warning_form.html" %}
+    <a class="btn--primary fl" name="retour">Retour formulaire</a>
+ </div>
+ </section>
+<script type="text/javascript">
+        var mag_place_string = '{{mag_place_string}}';
+        var office_place_string = '{{office_place_string}}'
+        var max_begin_hour = '{{max_begin_hour}}'
+        var em_url = '{{em_url}}'
+</script>
+
+{% endif %}
+<script src="{% static "js/pouchdb.min.js" %}"></script>
+<script src="{% static "js/all_common.js" %}"?v=></script>
+<script src="{% static "js/common.js" %}?v="></script>
+<script src="{% static "js/subscription_common.js" %}?v="></script>
+<script src="{% static "js/subscription_validation.js" %}?v="></script>
+</div>
+{% endblock %}

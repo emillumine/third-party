@@ -1,0 +1,54 @@
+{% extends "stock/stock_menu.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/easy-autocomplete.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/stock_order.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.easy-autocomplete.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/stock_order.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+
+
+<h1>Commande La Cagette</h1>
+    <br>
+
+    <div class="main">
+        <div class="row">
+          <div class="col-lg-2" >Fournisseurs : </div>
+            <div class="col-lg-2">
+              <input type="text" id="template-custom" />
+            </div>
+            <div class="col-lg-1">
+              <button class='btn_Search' id='dp_Search' href='#'>
+                <img src="{% static 'image/Search-icon.png' %}">
+              </button>
+            </div>
+          </div>
+       </div>
+      <div class="row">
+        <div class="col-lag-8">
+          <table id="tableArticle" class="display" width="95%" cellspacing="0" ></table>
+        </div>
+      </div>
+    </div>
+    <br/>
+  <br/>
+  
+ 
+  
+  <script src="{% static "js/all_common.js" %}?v="></script>
+  <script src="{% static "js/common.js" %}?v="></script>
+{% endblock %}
+
+
+{% block modal %}
+
+{% endblock %}

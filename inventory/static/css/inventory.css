@@ -1,0 +1,31 @@
+.actions {margin-top:10px;}
+
+.dataTables_wrapper button {margin-right:5px;}
+.dataTables_wrapper tr.even {background-color:#efefef;}
+td.shelf_qty {background-color: rgba(232,231,178,0.3)}
+td.stock_qty {background-color: rgba(228,208,242,0.3)}
+tr.highlight .shelf_qty, tr.highlight .stock_qty, tr.highlight .name {
+    color:#0da0ad;
+}
+.hidden {display:none;}
+.editable-cell {background-color:#e8e7b2;}
+.local-data-info, .global-data-info {padding:5px; margin: 10px 0;}
+.local-data-info {background-color:#0da0ad ;}
+.global-data-info {background-color:#f2ee7d;}
+.global-data-info span {cursor: help; font-style: italic; color: red;}
+button[name="local_to_global_sync"], button[name="global_to_local_sync"]
+ {height: 10px; font-size:12px; padding-top: 5px; padding-bottom: 15px;margin-left:10px; margin-bottom:2px;}
+
+ tr.to_weight td.shelf_qty, tr.to_weight td.stock_qty 
+ {
+  background-image: url('/static/img/poids.png'); 
+  background-position: center;
+  background-repeat: no-repeat;
+ }
+
+
+.error_msg {color: #d9534f;}
+
+@media screen and (max-width: 767px) {
+   .barcode, .delta {display: none;}
+}

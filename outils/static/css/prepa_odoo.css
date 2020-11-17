@@ -1,0 +1,38 @@
+
+#dashboard h2 {margin:25px; padding:5px; border:1px solid #efefef; background:#ffffff;}
+.validate_container {background:#00b0f0;}
+.errors_container {background:#f000c0;}
+div.coop {margin:15px;}
+div.coop span
+{padding:5px;   border: 1px solid #000000;border-radius: 15px; background:#ffffff; cursor:pointer;}
+
+#coop_page, #warning_slide {display:none;}
+.title p {font-weight:bold;}
+#coop_validation_form {width:980px;margin:auto;}
+#coop_validation_form input , #warning_slide input{
+  text-indent: 5px;
+}
+
+#coop_validation_form [name="email"]
+{max-width:356px;}
+[name="barcode_base"],
+#coop_validation_form [name="shares_nb"],
+#coop_validation_form [name="shares_euros"],
+#coop_validation_form [name="checks_nb"]
+ {width:50px;}
+#coop_validation_form [name="ftop"] {width:70px;display: none;}
+#coop_validation_form [name="address"] {width:100%;}
+#coop_validation_form [name="zip"] {width:100px;}
+#choosen_shift input {width:50px;}
+#choosen_shift [name="week"] {width:25px;}
+#choosen_shift [name="place"] {width:75px;}
+
+[name="signaler"] {color:#ffffff !important;}
+
+#warning_slide h1,  #coop_page h1 {text-transform: uppercase;}
+#warning_slide .main-content {width:980px;margin:auto;}
+#new_warning_form textarea {width:100%;margin-bottom:15px;}
+
+
+#ready_for_odoo {display:none;margin-top:35px;}
+#ready_for_odoo div.coop span {background: #60B000;}

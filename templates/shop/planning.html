@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+
+<link rel="stylesheet" href="{% static 'css/shop.css' %}">
+<style type="text/css">
+    .content {width: 1024px; margin: 0 auto;}
+    .content .day {text-align: center; margin-right: 10px; }
+    .hours {text-align: left;}
+</style>
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script src="{% static "js/fp.js" %}"></script>
+
+{% endblock %}
+
+{% block content %}
+
+
+<section class="content">
+    <h1>{{COMPANY_NAME}} : Planning commandes</h1>
+    <div class="grid-18">
+    <div class="col-1"></div>
+    <div class="col-16">
+        {% for d, hours in slots.items|dictsort:"0.lower"%}
+            <div class="day fl">
+                <h4>{{d}}</h4>
+                <div class="hours">
+                    {% for h, nb in hours.items|dictsort:"0.lower" %}
+                        <div class="hour">
+                            {{h}} {{nb}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="col-1"></div>
+    </div>
+{% endblock %}
