@@ -1,7 +1,7 @@
 """Secret data for DB connexion ."""
 
 ODOO = {
-    'url': 'http://127.0.0.1:8069'
+    'url': 'http://127.0.0.1:8069',
     'user': 'api',
     'passwd': 'xxxxxxxxxxxx',
     'db': 'bd_test',
