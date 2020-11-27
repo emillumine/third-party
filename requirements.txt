@@ -1,0 +1,9 @@
+Django>=2.2,<3
+django-cors-headers
+couchdb
+python-dateutil
+requests
+pymysql
+openpyxl
+reportlab
+argon2-cffi

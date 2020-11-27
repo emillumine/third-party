@@ -56,19 +56,27 @@ Prérequis : une version de python3
 
 Avec `virtualenvwrapper` (`sudo pip install virtualenvwrapper`)
 
+Pour faire fonctionner `virtualenvwrapper`, il faut charger son environnement via :
+
+```
+source /usr/local/bin/virtualenvwrapper.sh
+```
+
+(vous pouvez par exemple mettre cette ligne dans votre profile de terminal préféré)
+
 Cloner le projet, se placer à la racine, puis :
 
 ```
-mkvirtualenv dj_lacagette --python=$(which python3)
+mkvirtualenv . --python=$(which python3)
 
-(il est possible de devoir faire 'source /usr/local/bin/virtualenvwrapper.sh' avant)
-
-pip install Django==2.1.3 django-cors-headers couchdb python-dateutil requests pymysql openpyxl reportlab argon2-cffi
+pip install -r requirements.txt
 ```
 
 Copier le fichier `outils/settings_example.py` en le renommant `outils/settings.py`
 
 Copier le fichier `outils/settings_secret_example.py` en le renommant `outils/settings_secret.py` et en adaptant les identifiants
+
+Copier le fichier `outils/config.example.py` en le renommant `outils/config.py`
 
 Lancer le serveur Web avec la commande `./launch.sh` (chmod u+x préalable si nécessaire)
 
