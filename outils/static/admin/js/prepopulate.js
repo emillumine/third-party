@@ -20,6 +20,7 @@
                 }
 
                 var values = [];
+
                 $.each(dependencies, function(i, field) {
                     field = $(field);
                     if (field.val().length > 0) {
@@ -35,7 +36,9 @@
             });
 
             if (!prepopulatedField.val()) {
-                $(dependencies.join(',')).keyup(populate).change(populate).focus(populate);
+                $(dependencies.join(',')).keyup(populate)
+                    .change(populate)
+                    .focus(populate);
             }
         });
     };

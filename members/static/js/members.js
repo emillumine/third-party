@@ -1,12 +1,18 @@
 //The magic code to add show/hide custom event triggers
 (function ($) {
-      $.each(['show', 'hide','css'], function (i, ev) {
+    $.each([
+        'show',
+        'hide',
+        'css'
+    ], function (i, ev) {
         var el = $.fn[ev];
+
         $.fn[ev] = function () {
-          this.trigger(ev);
-          return el.apply(this, arguments);
+            this.trigger(ev);
+
+            return el.apply(this, arguments);
         };
-      });
+    });
 })(jQuery);
 
 var current_displayed_member = null,
@@ -14,7 +20,7 @@ var current_displayed_member = null,
     loaded_services = null,
     selected_service = null,
     last_search_time = null,
-    rattrapage_ou_volant = null
+    rattrapage_ou_volant = null;
 var search_button = $('.btn--primary.search');
 var loading2 = $('.loading2');
 var search_field = $('input[name="search_string"]');
@@ -27,9 +33,9 @@ var rattrapage_validation = $('#rattrapage_validation');
 var webcam_is_attached = false;
 var photo_advice = $('#photo_advice');
 var photo_studio = $('#photo_studio');
-var coop_info = $('.coop-info')
+var coop_info = $('.coop-info');
 
-let no_pict_msg = $('#no-picture-msg')
+let no_pict_msg = $('#no-picture-msg');
 
 var pages = {
     'first_page' : $('#first_page'),
@@ -38,9 +44,9 @@ var pages = {
     'service_entry_validation': $('#service_entry_validation'),
     'service_entry_success': $('#service_entry_success'),
     'rattrapage_1' : $('#rattrapage_1'),
-    'rattrapage_2' : $('#rattrapage_2'),
+    'rattrapage_2' : $('#rattrapage_2')
 
-}
+};
 
 var html_elts = {
     member_slide : $('#member_slide'),
@@ -52,54 +58,60 @@ var html_elts = {
     multi_results : $('#multi_results_preview'),
     cooperative_state : $('#cooperative_state'),
     next_shifts : $('#next_shifts')
-}
+};
 
 
 function fill_member_slide(member) {
-    no_pict_msg.hide()
+    no_pict_msg.hide();
     current_displayed_member = member;
     html_elts.next_shifts.html('');
-    coop_info.removeClass('b_red')
-    coop_info.removeClass('b_orange')
+    coop_info.removeClass('b_red');
+    coop_info.removeClass('b_orange');
     if (member.barcode) {
         html_elts.barcode.JsBarcode()
-        .options({font: "OCR-B"}) // Will affect all barcodes
-        .EAN13(member.barcode, {fontSize: 14, textMargin: 0})
-        .render();
+            .options({font: "OCR-B"}) // Will affect all barcodes
+            .EAN13(member.barcode, {fontSize: 14, textMargin: 0})
+            .render();
     }
     html_elts.barcode_base.html(member.barcode_base);
     html_elts.name.html(member.name);
-    var img_src = ''
+    var img_src = '';
+
     if (typeof member.image_medium.length != "undefined") {
         img_src = 'data:image/'+member.image_extension+';base64,'+member.image_medium;
     } else {
-        no_pict_msg.show()
+        no_pict_msg.show();
     }
     html_elts.image_medium.html('<img src="'+img_src+'" width="128" />');
-    html_elts.cooperative_state.html(member.cooperative_state)
-    if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red')
-    else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé') coop_info.addClass('b_orange')
+    html_elts.cooperative_state.html(member.cooperative_state);
+    if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red');
+    else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé') coop_info.addClass('b_orange');
 
     if (member.shifts.length > 0) {
         html_elts.next_shifts.append('Prochains services : ');
         var slist = $('<ul>');
+
         for (i in member.shifts) {
             var s = $('<li>').text(member.shifts[i].start);
-            slist.append(s)
+
+            slist.append(s);
         }
         html_elts.next_shifts.append(slist);
     }
     html_elts.member_slide.show();
-    setTimeout(function(){
-        html_elts.member_slide.hide();},
-    180000);
+    setTimeout(
+        function() {
+            html_elts.member_slide.hide();
+        },
+        180000
+    );
 }
 
-function search_box_clear_html_elts(){
+function search_box_clear_html_elts() {
 
     for (elt in html_elts)
         if (elt != 'member_slide')
-            html_elts[elt].html('')
+            html_elts[elt].html('');
     html_elts.barcode.removeAttr('src');
 }
 
@@ -107,6 +119,7 @@ function preview_member_search_select() {
     var clicked = $(this);
     var context = clicked.closest('section[id]').attr('id');
     var selected_member = results[clicked.data('i')];
+
     if (context == "shopping_entry") {
         fill_member_slide(selected_member);
     } else if (context == "rattrapage_1") {
@@ -117,37 +130,41 @@ function preview_member_search_select() {
     }
 }
 
-function preview_results(){
+function preview_results() {
 
-  for (i in results) {
+    for (i in results) {
 
-    if (results[i].is_member != false || results[i].is_associated_people != false) {
-        var m = $('<button>').attr('data-i',i).text(results[i].name);
-        html_elts.multi_results.append(m);
+        if (results[i].is_member != false || results[i].is_associated_people != false) {
+            var m = $('<button>').attr('data-i', i)
+                .text(results[i].name);
+
+            html_elts.multi_results.append(m);
+        }
+
+
     }
-
-
-  }
 
 }
 
 function canSearch() {
     var answer = true;
+
     if (last_search_time != null) {
         if (new Date().getTime() - last_search_time < 5000)
             answer = false;
     }
+
     return answer;
 }
 
-function search_member(){
+function search_member() {
     if (canSearch() == true) {
 
         html_elts.member_slide.hide();
         search_box_clear_html_elts();
         current_displayed_member = null;
 
-        var search_seed = search_field.val() || ''
+        var search_seed = search_field.val() || '';
 
         if (search_seed.length > 0) {
             last_search_time = new Date().getTime();
@@ -157,31 +174,33 @@ function search_member(){
                 url: '/members/search/' + search_seed,
                 dataType : 'json'
             })
-            .done(function(rData){
-                var nb = rData.res.length || 0;
-                if (nb > 0) {
-                    if (nb == 1) {
-                        var context = search_field.closest('section[id]')
-                                      .attr('id');
-                        if (context == 'rattrapage_1') {
-                            current_displayed_member = rData.res[0];
-                            fill_rattrapage_2();
-                            goto_page(pages.rattrapage_2);
+                .done(function(rData) {
+                    var nb = rData.res.length || 0;
+
+                    if (nb > 0) {
+                        if (nb == 1) {
+                            var context = search_field.closest('section[id]')
+                                .attr('id');
+
+                            if (context == 'rattrapage_1') {
+                                current_displayed_member = rData.res[0];
+                                fill_rattrapage_2();
+                                goto_page(pages.rattrapage_2);
+                            } else {
+                                fill_member_slide(rData.res[0]);
+                            }
+
                         } else {
-                            fill_member_slide(rData.res[0]);
+
+                            results = rData.res;
+                            preview_results();
                         }
-
                     } else {
-
-                        results = rData.res;
-                        preview_results();
+                        alert('Aucun résultat');
                     }
-                } else {
-                    alert('Aucun résultat');
-                }
-                loading2.hide();
-                search_button.show();
-            });
+                    loading2.hide();
+                    search_button.show();
+                });
         }
 
     }
@@ -191,57 +210,64 @@ function search_member(){
 
 function get_simple_service_name(s) {
     var simple_name = s.name;
-    var reg = new RegExp('([a-z]+)\. - [0-9\:]+ ?-? ?([a-z]*)','i');
+    var reg = new RegExp('([a-z]+)\. - [0-9\:]+ ?-? ?([a-z]*)', 'i');
+
     if (reg.exec(s.name)) {
         var wd = RegExp.$1;
         var p = RegExp.$2;
+
         if (p == 'Balar') {
-            p = 'BDM'
+            p = 'BDM';
         } else if (p == 'Cleme') {
-            p = 'Magasin'
+            p = 'Magasin';
         } else {
-            p = 'Magasin'
+            p = 'Magasin';
         }
         var start = new Date(Date.parse(s.date_begin_tz));
         var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        var end_time = new Date(Date.parse(s.date_end_tz)).toTimeString().replace(/^(\d{2}:\d{2}).*/, "$1");
+        var end_time = new Date(Date.parse(s.date_end_tz)).toTimeString()
+            .replace(/^(\d{2}:\d{2}).*/, "$1");
         var start_time = start.toTimeString().replace(/^(\d{2}:\d{2}).*/, "$1");
+
         simple_name = 'Service au ' + p;
         simple_name += ' le '+ start.toLocaleDateString('fr-FR', options);
-        simple_name += ' de ' + start_time + ' à ' + end_time
+        simple_name += ' de ' + start_time + ' à ' + end_time;
         simple_name += ' (' + wd[0] + ') ';
     } else {
-        simple_name = '???'
+        simple_name = '???';
     }
+
     return simple_name;
 }
 
 function move_service_validation_to(page) {
-    service_validation.find('.btn').data('stid','0');
+    service_validation.find('.btn').data('stid', '0');
     page.find('.validation_wrapper')
-    .append(service_validation.detach())
+        .append(service_validation.detach());
 }
 
 function fill_service_entry(s) {
     selected_service = s;
     shift_title.text(get_simple_service_name(s));
-    shift_title.show()
+    shift_title.show();
     var m_list = 'Personne n\'est inscrit à ce service.';
-    if(s.members) {
-         m_list = '<ul class="members_list">';
-         $.each(s.members, function(i,e){
+
+    if (s.members) {
+        m_list = '<ul class="members_list">';
+        $.each(s.members, function(i, e) {
             var li_class = "btn";
             var li_data = "";
+
             if (e.state == "done") {
-                li_class += "--inverse"
+                li_class += "--inverse";
             } else {
                 li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
             }
             m_list += '<li class="'+li_class+'" '+li_data+'>';
             m_list += e.partner_id[1];
             m_list += '</li>';
-         });
-         m_list += '</ul>';
+        });
+        m_list += '</ul>';
 
     }
     rattrapage_ou_volant = null;
@@ -255,23 +281,26 @@ function clean_service_entry() {
     shift_members.html('');
 }
 
-function fill_service_validation(rid, coop_num_name, coop_id){
+function fill_service_validation(rid, coop_num_name, coop_id) {
     var coop_name_elts = coop_num_name.split(' - ');
+
     pages.service_entry_validation.find('span.member_name').text(coop_name_elts[1]);
     move_service_validation_to(pages.service_entry_validation);
     service_validation.find('.btn')
-                      .data('rid',rid)
-                      .data('sid', selected_service.id)
-                      .data('mid',coop_id);
+        .data('rid', rid)
+        .data('sid', selected_service.id)
+        .data('mid', coop_id);
 
 }
 
-function select_possible_service(){
-    var clicked = $(this)
-    var id = clicked.data('id')
+function select_possible_service() {
+    var clicked = $(this);
+    var id = clicked.data('id');
+
     if (loaded_services && !isNaN(id)) {
         var selected = null;
-        $.each(loaded_services, function(i,e){
+
+        $.each(loaded_services, function(i, e) {
             if (e.id == id) {
                 selected = e;
             }
@@ -285,78 +314,86 @@ function select_possible_service(){
     }
 
 }
-function get_service_entry_data(){
+function get_service_entry_data() {
     var info_place = pages.service_entry.find('.info');
+
     info_place.text('Chargement du service actuel...');
-    shift_title.hide()
+    shift_title.hide();
 
     var now = new Date();
     var time_param = now.toISOString();
     var offset = now.getTimezoneOffset();
+
     if (/([^\/]+)$/.exec(window.location)) {
-        time_param = RegExp.$1.replace('%20','T') + 'Z';
+        time_param = RegExp.$1.replace('%20', 'T') + 'Z';
         offset = 0;
     }
     //time_param = '2018-10-29T09:45:18.37'
     $.ajax({
-                url: '/members/services_at_time/'+time_param
+        url: '/members/services_at_time/'+time_param
                     +'/'+ offset,
-                dataType : 'json'
+        dataType : 'json'
     })
-    .done(function(rData){
+        .done(function(rData) {
         //console.log(rData);
-        info_place.text('');
-        var page_title = pages.service_entry.find('h1');
-        page_title.text('Qui es-tu ?');
-        try {
-            if (rData.res.length == 0) {
-                info_place.text('La période pendant laquelle il est possible de s\'enregistrer est close.');
-                page_title.text('');
+            info_place.text('');
+            var page_title = pages.service_entry.find('h1');
 
-            } else {
-                if (rData.res.length > 1) {
-                    loaded_services = rData.res;
-                    var message = rData.res.length + ' possibilités : <br />';
-                    for (i in rData.res){
-                        var s_name = get_simple_service_name(rData.res[i])
-                        message += '<a data-id="' + rData.res[i].id + '" class="btn">';
-                        message += s_name + ' </a><br/>';
-                    }
-                    info_place.html(message);
-                    page_title.text('Quel est ton service ?');
+            page_title.text('Qui es-tu ?');
+            try {
+                if (rData.res.length == 0) {
+                    info_place.text('La période pendant laquelle il est possible de s\'enregistrer est close.');
+                    page_title.text('');
 
                 } else {
-                    fill_service_entry(rData.res[0]);
+                    if (rData.res.length > 1) {
+                        loaded_services = rData.res;
+                        var message = rData.res.length + ' possibilités : <br />';
+
+                        for (i in rData.res) {
+                            var s_name = get_simple_service_name(rData.res[i]);
+
+                            message += '<a data-id="' + rData.res[i].id + '" class="btn">';
+                            message += s_name + ' </a><br/>';
+                        }
+                        info_place.html(message);
+                        page_title.text('Quel est ton service ?');
+
+                    } else {
+                        fill_service_entry(rData.res[0]);
+                    }
                 }
+            } catch (e) {
+                console.log(e);
             }
-        } catch(e) {
-            console.log(e)
-        }
-    });
+        });
 }
 
 function fill_service_entry_sucess(member) {
     pages.service_entry_success.find('span.member_name').text(member.name);
 
     var points = member.display_std_points;
+
     if (member.in_ftop_team == true) {
         points = member.display_ftop_points;
     }
     pages.service_entry_success.find('span.points').text(points);
     var compteur_div = pages.service_entry_success.find('.compteur');
+
     if (points < 0 || rattrapage_ou_volant) {
         compteur_div.show();
     } else {
         compteur_div.hide();
     }
 
-    var next_shift = '???'
+    var next_shift = '???';
     var service_verb = 'est prévu';
+
     if (member.next_shift) {
         if (member.in_ftop_team == true
-            && member.next_shift.shift_type == "ftop")
-        {
+            && member.next_shift.shift_type == "ftop") {
             var start_elts = member.next_shift.start.split(' à ');
+
             next_shift = start_elts[0];
             service_verb = 'est à faire avant';
         } else {
@@ -370,40 +407,45 @@ function fill_service_entry_sucess(member) {
 }
 
 function record_service_presence() {
-    var d = new Date()
-    var elapsed_since_last_call = d.getTime() - validation_last_call
+    var d = new Date();
+    var elapsed_since_last_call = d.getTime() - validation_last_call;
+
     if (elapsed_since_last_call > 10000) {
         loading2.show();
-        validation_last_call = d.getTime()
-        var clicked = service_validation.find('.btn')
+        validation_last_call = d.getTime();
+        var clicked = service_validation.find('.btn');
         var rid = clicked.data('rid');
         var mid = clicked.data('mid');
         var sid = clicked.data('sid');
         var stid = clicked.data('stid');
-        post_form( '/members/service_presence/',
-                   {'mid': mid, 'rid': rid, 'sid': sid, 'stid' : stid},
-                   function(err,rData){
-                     if (!err) {
-                        var res = rData.res;
-                        var next =  (res.update == 'ok')
-                                  ||(res.rattrapage && !isNaN(res.rattrapage))
-                        if (next) {
-                            fill_service_entry_sucess(rData.res.member);
-                            goto_page(pages.service_entry_success);
-                        } else if (rData.res.error) {
-                            alert(rData.res.error);
-                        }
-                     }
-                     loading2.hide();
-                   }
+
+        post_form(
+            '/members/service_presence/',
+            {'mid': mid, 'rid': rid, 'sid': sid, 'stid' : stid},
+            function(err, rData) {
+                if (!err) {
+                    var res = rData.res;
+                    var next = (res.update == 'ok')
+                                  ||(res.rattrapage && !isNaN(res.rattrapage));
+
+                    if (next) {
+                        fill_service_entry_sucess(rData.res.member);
+                        goto_page(pages.service_entry_success);
+                    } else if (rData.res.error) {
+                        alert(rData.res.error);
+                    }
+                }
+                loading2.hide();
+            }
         );
     }
 }
 
-function fill_rattrapage_2(){
-    pages.rattrapage_2.find('span.member_name').text(current_displayed_member.name)
+function fill_rattrapage_2() {
+    pages.rattrapage_2.find('span.member_name').text(current_displayed_member.name);
     var msg = "Bienvenue pour ton rattrapage !";
     var shift_ticket_id = selected_service.shift_ticket_ids[0];
+
     if (current_displayed_member.in_ftop_team == true) {
         msg ="Bienvenue dans ce service !";
         if (selected_service.shift_ticket_ids[1])
@@ -416,17 +458,17 @@ function fill_rattrapage_2(){
 
 
         service_validation.find('.btn')
-                          .data('rid',0)
-                          .data('sid', selected_service.id)
-                          .data('stid', shift_ticket_id)
-                          .data('mid', current_displayed_member.id );
+            .data('rid', 0)
+            .data('sid', selected_service.id)
+            .data('stid', shift_ticket_id)
+            .data('mid', current_displayed_member.id);
     }
     pages.rattrapage_2.find('h2').text(msg);
 
 
 }
 
-function init_webcam(){
+function init_webcam() {
     try {
 
         /*
@@ -453,10 +495,10 @@ function init_webcam(){
             jpeg_quality: 90
 
         });
-        Webcam.attach( '#webcam' );
+        Webcam.attach('#webcam');
 
 
-    } catch(e) {
+    } catch (e) {
         //console.log(e)
     }
 
@@ -484,28 +526,31 @@ function cancel_preview() {
 
 function save_photo() {
     // actually snap photo (from preview freeze) and store it
-    Webcam.snap( function(data_uri) {
+    Webcam.snap(function(data_uri) {
 
         if (/data\:image\/jpeg;base64,(.+)/.exec(data_uri)) {
             image_code = RegExp.$1;
             if (current_displayed_member != null) {
-               cancel_preview();
-               photo_studio.hide();
-               html_elts.image_medium.html('<img src="/static/img/Pedro_luis_romani_ruiz.gif" />');
-               $.post('/members/save_photo/'+current_displayed_member.id,
-               {'photo':image_code,
-                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
-               })
-               .done(function(rData){
-                 if(rData.res == true){
-                    $.get('/members/image/'+ current_displayed_member.id)
-                    .done(function(img_b64){
-                        var img_src = 'data:image/jpeg;base64,'+img_b64;
-                        html_elts.image_medium.html('<img src="'+img_src+'" />');
+                cancel_preview();
+                photo_studio.hide();
+                html_elts.image_medium.html('<img src="/static/img/Pedro_luis_romani_ruiz.gif" />');
+                $.post(
+                    '/members/save_photo/'+current_displayed_member.id,
+                    {'photo':image_code,
+                        'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+                    }
+                )
+                    .done(function(rData) {
+                        if (rData.res == true) {
+                            $.get('/members/image/'+ current_displayed_member.id)
+                                .done(function(img_b64) {
+                                    var img_src = 'data:image/jpeg;base64,'+img_b64;
 
+                                    html_elts.image_medium.html('<img src="'+img_src+'" />');
+
+                                });
+                        }
                     });
-                 }
-               });
             } else {
                 html_elts.real_capture.html('<img src="'+data_uri+'" />');
             }
@@ -515,10 +560,10 @@ function save_photo() {
         }
 
 
-    } );
+    });
 }
 
-function search_input_listing(e){
+function search_input_listing(e) {
     e = e || window.event;
     if (e.keyCode == '13') {
         // enter
@@ -527,53 +572,56 @@ function search_input_listing(e){
     }
 }
 
-function move_search_box(from,to) {
+function move_search_box(from, to) {
     search_box_clear_html_elts();
     search_field.val('');
     var search_box = from.find('.search_box_wrapper section').detach();
+
     if (search_box.length > 0)
         search_box.appendTo(to.find('.search_box_wrapper'));
 }
 
 function goto_page(jquery_page_selected) {
-    $.each(pages, function(i,e) {
-         e.hide();
+    $.each(pages, function(i, e) {
+        e.hide();
     });
-    jquery_page_selected.css('display','grid');
+    jquery_page_selected.css('display', 'grid');
 }
 
 $('button.search').click(search_member);
-search_field.keyup(search_input_listing)
+search_field.keyup(search_input_listing);
 
-$('.btn[data-next]').click(function(){
-    var clicked = $(this)
+$('.btn[data-next]').click(function() {
+    var clicked = $(this);
     var next_page = $('#' + clicked.data('next'));
 
     if (clicked.data('type')) {
         var type = clicked.data('type');
+
         if (type == "rattrapage" || type == "volant") {
             rattrapage_ou_volant = type;
         }
     }
 
-    if (next_page.length > 0){
-       goto_page(next_page);
+    if (next_page.length > 0) {
+        goto_page(next_page);
     }
 
 });
 
-service_validation.on("click",".btn",record_service_presence);
+service_validation.on("click", ".btn", record_service_presence);
 
-shift_members.on("click",'.btn[data-rid]',function(){
-    var clicked = $(this)
-    var rid = clicked.data('rid')
-    var mid = clicked.data('mid')
+shift_members.on("click", '.btn[data-rid]', function() {
+    var clicked = $(this);
+    var rid = clicked.data('rid');
+    var mid = clicked.data('mid');
+
     goto_page(pages.service_entry_validation);
     fill_service_validation(rid, clicked.text(), mid);
 
 });
 
-pages.shopping_entry.on('css',function(e){
+pages.shopping_entry.on('css', function(e) {
     photo_advice.hide();
     photo_studio.hide();
     search_box_clear_html_elts();
@@ -581,16 +629,17 @@ pages.shopping_entry.on('css',function(e){
     move_search_box(pages.rattrapage_1, pages.shopping_entry);
 });
 
-pages.service_entry.on('css',function(e){
+pages.service_entry.on('css', function(e) {
     photo_advice.hide();
     photo_studio.hide();
     clean_service_entry();
     get_service_entry_data();
 });
 
-pages.rattrapage_1.on('css',function(e){
+pages.rattrapage_1.on('css', function(e) {
     search_box_clear_html_elts();
     var msg = "Vous venez pour un rattrapage.";
+
     if (rattrapage_ou_volant == "volant") {
         msg = "Vous venez en tant que volant.";
     }
@@ -598,28 +647,30 @@ pages.rattrapage_1.on('css',function(e){
     move_search_box(pages.shopping_entry, pages.rattrapage_1);
 
 });
-pages.service_entry.on("click",'.info a[data-id]',select_possible_service);
-$( "#multi_results_preview" ).on( "click", 'button', preview_member_search_select);
+pages.service_entry.on("click", '.info a[data-id]', select_possible_service);
+$("#multi_results_preview").on("click", 'button', preview_member_search_select);
 html_elts.image_medium.on('click', function() {
     if (webcam_is_attached == true) {
         // photo_advice.show();
         photo_studio.show();
     }
-})
+});
 
 $(document).ready(function() {
     var pressed = false;
     var chars = [];
     //barcode-reader
+
     $(window).keypress(function(e) {
         if (e.which >= 48 && e.which <= 57) {
             chars.push(String.fromCharCode(e.which));
         }
 
         if (pressed == false) {
-            setTimeout(function(){
+            setTimeout(function() {
                 if (chars.length >= 13) {
                     var barcode = chars.join("");
+
                     if (!isNaN(barcode)) {
                         chars = [];
                         pressed = false;
@@ -628,18 +679,18 @@ $(document).ready(function() {
 
                 }
 
-            },300);
+            }, 300);
         }
         pressed = true;
     });
-    init_webcam()
-    $('#crop_width').change(function(){
-        Webcam.reset()
-        init_webcam()
-    })
+    init_webcam();
+    $('#crop_width').change(function() {
+        Webcam.reset();
+        init_webcam();
+    });
 
 });
 
-Webcam.on( 'live', function() {
-    webcam_is_attached = true
+Webcam.on('live', function() {
+    webcam_is_attached = true;
 });

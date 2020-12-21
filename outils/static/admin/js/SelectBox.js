@@ -5,10 +5,12 @@
         init: function(id) {
             var box = document.getElementById(id);
             var node;
+
             SelectBox.cache[id] = [];
             var cache = SelectBox.cache[id];
             var boxOptions = box.options;
             var boxOptionsLength = boxOptions.length;
+
             for (var i = 0, j = boxOptionsLength; i < j; i++) {
                 node = boxOptions[i];
                 cache.push({value: node.value, text: node.text, displayed: 1});
@@ -18,14 +20,17 @@
             // Repopulate HTML select box from cache
             var box = document.getElementById(id);
             var node;
+
             $(box).empty(); // clear all options
-            var new_options = box.outerHTML.slice(0, -9);  // grab just the opening tag
+            var new_options = box.outerHTML.slice(0, -9); // grab just the opening tag
             var cache = SelectBox.cache[id];
+
             for (var i = 0, j = cache.length; i < j; i++) {
                 node = cache[i];
                 if (node.displayed) {
                     var new_option = new Option(node.text, node.value, false, false);
                     // Shows a tooltip when hovering over the option
+
                     new_option.setAttribute("title", node.text);
                     new_options += new_option.outerHTML;
                 }
@@ -39,16 +44,18 @@
             var tokens = text.toLowerCase().split(/\s+/);
             var node, token;
             var cache = SelectBox.cache[id];
+
             for (var i = 0, j = cache.length; i < j; i++) {
                 node = cache[i];
                 node.displayed = 1;
                 var node_text = node.text.toLowerCase();
                 var numTokens = tokens.length;
+
                 for (var k = 0; k < numTokens; k++) {
                     token = tokens[k];
                     if (node_text.indexOf(token) === -1) {
                         node.displayed = 0;
-                        break;  // Once the first token isn't found we're done
+                        break; // Once the first token isn't found we're done
                     }
                 }
             }
@@ -57,6 +64,7 @@
         delete_from_cache: function(id, value) {
             var node, delete_index = null;
             var cache = SelectBox.cache[id];
+
             for (var i = 0, j = cache.length; i < j; i++) {
                 node = cache[i];
                 if (node.value === value) {
@@ -73,12 +81,14 @@
             // Check if an item is contained in the cache
             var node;
             var cache = SelectBox.cache[id];
+
             for (var i = 0, j = cache.length; i < j; i++) {
                 node = cache[i];
                 if (node.value === value) {
                     return true;
                 }
             }
+
             return false;
         },
         move: function(from, to) {
@@ -86,9 +96,11 @@
             var option;
             var boxOptions = from_box.options;
             var boxOptionsLength = boxOptions.length;
+
             for (var i = 0, j = boxOptionsLength; i < j; i++) {
                 option = boxOptions[i];
                 var option_value = option.value;
+
                 if (option.selected && SelectBox.cache_contains(from, option_value)) {
                     SelectBox.add_to_cache(to, {value: option_value, text: option.text, displayed: 1});
                     SelectBox.delete_from_cache(from, option_value);
@@ -102,9 +114,11 @@
             var option;
             var boxOptions = from_box.options;
             var boxOptionsLength = boxOptions.length;
+
             for (var i = 0, j = boxOptionsLength; i < j; i++) {
                 option = boxOptions[i];
                 var option_value = option.value;
+
                 if (SelectBox.cache_contains(from, option_value)) {
                     SelectBox.add_to_cache(to, {value: option_value, text: option.text, displayed: 1});
                     SelectBox.delete_from_cache(from, option_value);
@@ -124,21 +138,23 @@
                     if (a < b) {
                         return -1;
                     }
-                }
-                catch (e) {
+                } catch (e) {
                     // silently fail on IE 'unknown' exception
                 }
+
                 return 0;
-            } );
+            });
         },
         select_all: function(id) {
             var box = document.getElementById(id);
             var boxOptions = box.options;
             var boxOptionsLength = boxOptions.length;
+
             for (var i = 0; i < boxOptionsLength; i++) {
                 boxOptions[i].selected = 'selected';
             }
         }
     };
+
     window.SelectBox = SelectBox;
 })(django.jQuery);
