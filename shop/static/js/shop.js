@@ -36,6 +36,21 @@ var main_content = $('#main-content'),
 
 // Sort products div according to selected sort type
 function sort_product_divs(divs_to_sort, sort_type) {
+    let compare_price_uom = function (a, b) {
+        // For products by unit : get uom price
+        // For products by kg : get unit price (which is price of kg, we need to do this because some of them don't have a uom price)
+        let a_price_uom = $(a).find("span.uom_price")
+            .text() == 'Unité(s)' ? parseFloat($(a).find("span.uom_price")
+                .text()) : parseFloat($(a).find("span.price")
+                .text());
+        let b_price_uom = $(b).find("span.uom_price")
+            .text() == 'Unité(s)' ? parseFloat($(b).find("span.uom_price")
+                .text()) : parseFloat($(b).find("span.price")
+                .text());
+
+        return a_price_uom > b_price_uom ? 1 : -1;
+    };
+
     var sorted_products = divs_to_sort.sort(function (a, b) {
         switch (sort_type) {
         case 'name_asc':
@@ -55,29 +70,9 @@ function sort_product_divs(divs_to_sort, sort_type) {
                 .text()) < parseFloat($(b).find("span.price")
                 .text()) ? 1 : -1;
         case 'price_uom_asc':
-        // For products by unit : get uom price
-        // For products by kg : get unit price (which is price of kg, we need to do this because some of them don't have a uom price)
-            var a_price_uom = $(a).find("span.uom_price")
-                .text() == 'Unité(s)' ? parseFloat($(a).find("span.uom_price")
-                    .text()) : parseFloat($(a).find("span.price")
-                    .text());
-            var b_price_uom = $(b).find("span.uom_price")
-                .text() == 'Unité(s)' ? parseFloat($(b).find("span.uom_price")
-                    .text()) : parseFloat($(b).find("span.price")
-                    .text());
-
-            return a_price_uom > b_price_uom ? 1 : -1;
+            return compare_price_uom(a, b);
         case 'price_uom_desc':
-            var a_price_uom = $(a).find("span.uom_price")
-                .text() == 'Unité(s)' ? parseFloat($(a).find("span.uom_price")
-                    .text()) : parseFloat($(a).find("span.price")
-                    .text());
-            var b_price_uom = $(b).find("span.uom_price")
-                .text() == 'Unité(s)' ? parseFloat($(b).find("span.uom_price")
-                    .text()) : parseFloat($(b).find("span.price")
-                    .text());
-
-            return a_price_uom < b_price_uom ? 1 : -1;
+            return compare_price_uom(b, a);
         default:
             return $(a).find(".name")
                 .text() > $(b).find(".name")
@@ -92,7 +87,7 @@ function djLogError(e) {
     try {
         $.post('/shop/log_error', {error: JSON.stringify(e)});
     } catch (e) {
-
+        console.log(e);
     }
 }
 

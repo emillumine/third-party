@@ -471,7 +471,6 @@ $(document).ready(function() {
         maxTime: "22:00:00",
         hiddenDays: daysToHide,
         initialView: calInitialView,
-        navLinks: true,
         weekNumbers: true,
         events: function(start, end, timezone, callback) {
             // Load possible shifts

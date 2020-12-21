@@ -17,7 +17,7 @@ var validation_msg = $('#validation_msg'),
 
 var shelf,
     parent_location = '/shelfs',
-    origin = "shelf", // or custom_list (create from order view)
+    originView = "shelf", // or custom_list (create from order view)
     list_to_process = [],
     table_to_process,
     table_processed,
@@ -72,11 +72,11 @@ function select_product_from_bc(barcode) {
         if (found !== null) {
             setLineEdition(found);
             if (editing_origin === 'to_process') {
-                var row = table_to_process.row($('tr#'+found.id));
+                let row = table_to_process.row($('tr#'+found.id));
 
                 remove_from_toProcess(row);
             } else {
-                var row = table_processed.row($('tr#'+found.id));
+                let row = table_processed.row($('tr#'+found.id));
 
                 remove_from_processed(row);
             }
@@ -107,13 +107,13 @@ function handle_blinking_effect(element) {
 function edit_event(clicked) {
     // Remove from origin table
     if (editing_origin == 'to_process') {
-        var row = table_to_process.row(clicked.parents('tr'));
-        var row_data = row.data();
+        let row = table_to_process.row(clicked.parents('tr'));
+        let row_data = row.data();
 
         remove_from_toProcess(row);
     } else {
-        var row = table_processed.row(clicked.parents('tr'));
-        var row_data = row.data();
+        let row = table_processed.row(clicked.parents('tr'));
+        let row_data = row.data();
 
         remove_from_processed(row);
     }
@@ -185,7 +185,7 @@ function editProductInfo (productToEdit, value = null) {
     add_to_processed(productToEdit);
 
     // Update local storage
-    localStorage.setItem(origin + "_" + shelf.id, JSON.stringify(shelf));
+    localStorage.setItem(originView + "_" + shelf.id, JSON.stringify(shelf));
 
     return true;
 }
@@ -220,7 +220,7 @@ function initLists() {
         }
     ];
 
-    if (origin == 'custom_list') {
+    if (originView == 'custom_list') {
         columns_to_process.splice(1, 0, {data:"shelf_sortorder", title:"Rayon", className:"dt-body-center"});
     }
 
@@ -256,7 +256,7 @@ function initLists() {
         }
     ];
 
-    if (origin == 'custom_list') {
+    if (originView == 'custom_list') {
         columns_processed.splice(2, 0, {data:"shelf_sortorder", title:"Rayon", className:"dt-body-center"});
     }
 
@@ -420,7 +420,7 @@ function pre_send() {
 
 // Proceed with inventory: send the request to the server
 function send() {
-    if (is_time_to('submit_inv_qties'), 5000) {
+    if (is_time_to('submit_inv_qties')) {
     // Loading on
         var wz = $('#main-waiting-zone').clone();
 
@@ -430,7 +430,7 @@ function send() {
         // Add user comments to data sent to server
         shelf.user_comments = user_comments;
 
-        var url = "../do_" + origin + "_inventory";
+        var url = "../do_" + originView + "_inventory";
 
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
         $.ajax({
@@ -455,7 +455,7 @@ function send() {
                     }
                 }
 
-                var msg = (origin == 'shelf') ? 'Retour à la liste des rayons' : 'Retour';
+                var msg = (originView == 'shelf') ? 'Retour à la liste des rayons' : 'Retour';
 
                 openModal(inventory_validated_msg.html(), back, msg, true, false);
 
@@ -464,7 +464,7 @@ function send() {
                 $('#modal_closebtn_bottom').on('click', back);
 
                 // Clear local storage before leaving
-                localStorage.removeItem(origin + '_' + shelf.id);
+                localStorage.removeItem(originView + '_' + shelf.id);
             },
             error: function(data) { // 500 error has been thrown
                 if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
@@ -489,7 +489,7 @@ function exit_adding_product() {
 
 // Add a product that's not in the list
 function open_adding_product() {
-    if (origin == 'shelf') {
+    if (originView == 'shelf') {
         adding_product = true;
 
         openModal(add_product_form.html(), do_add_product, 'Valider', false, true, exit_adding_product);
@@ -560,7 +560,7 @@ function saveIssuesReport() {
 function get_shelf_data() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
-    var url = (origin == 'shelf') ? '../' + shelf.id : '../get_custom_list_data?id=' + shelf.id;
+    var url = (originView == 'shelf') ? '../' + shelf.id : '../get_custom_list_data?id=' + shelf.id;
 
     $.ajax({
         type: 'GET',
@@ -591,7 +591,7 @@ function init() {
     initLists();
 
     // Set DOM
-    if (origin == "shelf") {
+    if (originView == "shelf") {
         $('#shelf_name').text(shelf.name + ' (numéro ' + shelf.sort_order + ')');
     } else {
         $('#page_title').text("Inventaire du");
@@ -761,17 +761,17 @@ $(document).ready(function() {
 
     // Working on a shelf
     if (pathArray.includes('shelf_inventory')) {
-        origin = 'shelf';
+        originView = 'shelf';
         parent_location = '/shelfs';
     } else {
-        origin = 'custom_list';
+        originView = 'custom_list';
         parent_location = '/inventory/custom_lists';
     }
     //console.log(products)
 
     // Get shelf data from local storage
     if (Modernizr.localstorage) {
-        var stored_shelf = JSON.parse(localStorage.getItem(origin + '_' + shelf.id));
+        var stored_shelf = JSON.parse(localStorage.getItem(originView + '_' + shelf.id));
 
         if (stored_shelf != null) {
             shelf = stored_shelf;

@@ -158,6 +158,7 @@ function group_action() {
         // Go to products page of order with smallest id
         goto(min_id);
     } else if (pswd == null) {
+        return;
     } else {
         alert('Mauvais mot de passe !');
     }

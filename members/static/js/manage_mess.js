@@ -16,9 +16,6 @@ if (coop_is_connected()) {
             $.each(info.change.docs, function(i, e) {
                 console.log('changement');
                 console.log(e);
-                if (false) {
-                    need_reload = true;
-                }
             });
             if (need_reload == true) {
 

@@ -48,7 +48,7 @@ IFCBarcodes = {
                 //0493...{NNDDD} (pattern)
                 //0493213018809 (bc)
                 pattern_found = true;
-                pattern = pattern.replace(/[^0-9\.ND]/, '');
+                pattern = pattern.replace(/[^0-9.ND]/, '');
                 bc = bc.slice(0, -1); // remove original check figure
                 odoo_bc = '';
                 // Read pattern character by character

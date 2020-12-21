@@ -36,7 +36,7 @@ try {
         }
         for (var k=1; k<=12; k++) {
             let mth = k.pad(2);
-            var opt = $('<option>').val(mth)
+            let opt = $('<option>').val(mth)
                 .text(mth);
 
             if (m == mth) opt.prop('selected', true);
@@ -44,7 +44,7 @@ try {
         }
         for (var l=1; l<=31; l++) {
             let day = l.pad(2);
-            var opt = $('<option>').val(day)
+            let opt = $('<option>').val(day)
                 .text(day);
 
             if (d == day) opt.prop('selected', true);

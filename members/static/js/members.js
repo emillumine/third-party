@@ -210,7 +210,7 @@ function search_member() {
 
 function get_simple_service_name(s) {
     var simple_name = s.name;
-    var reg = new RegExp('([a-z]+)\. - [0-9\:]+ ?-? ?([a-z]*)', 'i');
+    var reg = new RegExp('([a-z]+). - [0-9:]+ ?-? ?([a-z]*)', 'i');
 
     if (reg.exec(s.name)) {
         var wd = RegExp.$1;
@@ -324,7 +324,7 @@ function get_service_entry_data() {
     var time_param = now.toISOString();
     var offset = now.getTimezoneOffset();
 
-    if (/([^\/]+)$/.exec(window.location)) {
+    if (/([^/]+)$/.exec(window.location)) {
         time_param = RegExp.$1.replace('%20', 'T') + 'Z';
         offset = 0;
     }
@@ -528,7 +528,7 @@ function save_photo() {
     // actually snap photo (from preview freeze) and store it
     Webcam.snap(function(data_uri) {
 
-        if (/data\:image\/jpeg;base64,(.+)/.exec(data_uri)) {
+        if (/data:image\/jpeg;base64,(.+)/.exec(data_uri)) {
             image_code = RegExp.$1;
             if (current_displayed_member != null) {
                 cancel_preview();

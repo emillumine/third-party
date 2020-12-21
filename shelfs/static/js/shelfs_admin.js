@@ -409,8 +409,10 @@ var recordProductsAddedShelf = function() {
                 '/shelfs/admin/add_products',
                 {bc: JSON.stringify(barcodes), shelf_id: id},
                 function(err, rData) {
+                    let msg = 'Echec';
+
                     if (typeof rData.res.added != "undefined") {
-                        var msg = "Ajout des produits réussi.";
+                        msg = "Ajout des produits réussi.";
 
                         if (typeof rData.res.missing != "undefined") {
                             msg += "\nSauf pour :";
@@ -421,8 +423,6 @@ var recordProductsAddedShelf = function() {
                         alert(msg);
                         backToMain();
                     } else {
-                        var msg = 'Echec';
-
                         if (typeof rData.res.error != "undefined")
                             msg = rData.res.error;
                         else if (typeof rData.res.msg != "undefined")

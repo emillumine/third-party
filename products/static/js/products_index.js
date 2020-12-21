@@ -34,10 +34,10 @@ function add_product(product) {
                         width: "50%",
                         render: function (data, type, full, meta) {
                             // Add tooltip with barcode over product name
+                            let display_barcode = "Aucun";
+
                             if ('barcode' in full) {
-                                var display_barcode = full.barcode;
-                            } else {
-                                var display_barcode = "Aucun";
+                                display_barcode = full.barcode;
                             }
 
                             return '<div class="tooltip">' + data
@@ -132,14 +132,14 @@ function add_product(product) {
             // Add row to table
             var rowNode = products_table.row.add(product).draw(false)
                 .node();
+            let onAnimationEnd = function() {
+                rowNode.classList.remove('blink_me');
+            };
 
             // Handle blinking effect for newly added row
             $(rowNode).addClass('blink_me');
             rowNode.addEventListener('animationend', onAnimationEnd);
             rowNode.addEventListener('webkitAnimationEnd', onAnimationEnd);
-            function onAnimationEnd(e) {
-                rowNode.classList.remove('blink_me');
-            }
         }
     } catch (e) {
         err = {msg: e.name + ' : ' + e.message, ctx: 'add_product'};

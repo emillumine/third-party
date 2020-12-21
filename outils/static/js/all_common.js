@@ -3,7 +3,7 @@ var actions_last_dates = {};
 function get_litteral_shift_template_name(name) {
     var l_name = '';
 
-    if (/([ABCD]{1})([A-Za-z\.]{4}) \- ([0-9\:]+)/.exec(name)) {
+    if (/([ABCD]{1})([A-Za-z.]{4}) - ([0-9:]+)/.exec(name)) {
         try {
             var week = RegExp.$1;
             var day = RegExp.$2;
@@ -31,10 +31,9 @@ function get_litteral_shift_template_name(name) {
 }
 
 
-function is_time_to(action, delay) {
+function is_time_to(action, delay = 5000) {
     var answer = false;
     var last_date = actions_last_dates[action] || 0;
-    var delay = delay || 5000;
     var d = new Date();
     var now = d.getTime();
 

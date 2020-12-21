@@ -74,8 +74,8 @@ function set_envelops(envelops) {
 
             let split_id = envelop._id.split('_');
             let envelop_date = split_id[3] + "/" + split_id[2] + "/" + split_id[1];
-            var envelop_name = 'Enveloppe du ' + envelop_date;
-            var envelop_content_id = 'content_cash_list_' + cash_index;
+            let envelop_name = 'Enveloppe du ' + envelop_date;
+            let envelop_content_id = 'content_cash_list_' + cash_index;
 
             set_envelop_dom(envelop, envelop_name, envelop_content_id, cash_index);
 
@@ -83,8 +83,8 @@ function set_envelops(envelops) {
         } else if (envelop.type == "ch") {
             ch_envelops.push(envelop);
 
-            var envelop_name = 'Enveloppe #' + envelop.display_id;
-            var envelop_content_id = 'content_ch_list_' + ch_index;
+            let envelop_name = 'Enveloppe #' + envelop.display_id;
+            let envelop_content_id = 'content_ch_list_' + ch_index;
 
             set_envelop_dom(envelop, envelop_name, envelop_content_id, ch_index);
 
@@ -100,8 +100,8 @@ function set_envelops(envelops) {
     // Set accordions
     var acc = document.getElementsByClassName("accordion");
 
-    for (var i = 0; i < acc.length; i++) {
-        acc[i].addEventListener("click", function() {
+    for (var j = 0; j < acc.length; j++) {
+        acc[j].addEventListener("click", function() {
             /* Toggle between adding and removing the "active" class,
       to highlight the button that controls the panel */
             this.classList.toggle("active");

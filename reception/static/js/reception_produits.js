@@ -83,11 +83,11 @@ function select_product_from_bc(barcode) {
             if (found.data !== null) {
                 setLineEdition(found.data);
                 if (found.place === 'to_process') {
-                    var row = table_to_process.row($('#'+found.data.product_id[0]));
+                    let row = table_to_process.row($('#'+found.data.product_id[0]));
 
                     remove_from_toProcess(row, found.data);
                 } else {
-                    var row = table_processed.row($('#'+found.data.product_id[0]));
+                    let row = table_processed.row($('#'+found.data.product_id[0]));
 
                     remove_from_processed(row, found.data);
                 }
@@ -188,22 +188,22 @@ function initLists() {
 
         // Set lists with local storage content
         for (var i = 0; i < updatedProducts.length; i++) {
-            var product = updatedProducts[i];
+            let product = updatedProducts[i];
 
             product['row_counter'] = -1;
             list_processed.push(product);
-            var toProcess_index = list_to_process.findIndex(x => x.id == updatedProducts[i]['id']);
+            let toProcess_index = list_to_process.findIndex(x => x.id == updatedProducts[i]['id']);
 
             if (toProcess_index > -1) {
                 list_to_process.splice(toProcess_index, 1);
             }
         }
 
-        for (var i = 0; i < validProducts.length; i++) {
-            var toProcess_index = list_to_process.findIndex(x => x.id == validProducts[i]);
+        for (var j = 0; j < validProducts.length; j++) {
+            let toProcess_index = list_to_process.findIndex(x => x.id == validProducts[j]);
 
             if (toProcess_index > -1) {
-                var product = list_to_process[toProcess_index];
+                let product = list_to_process[toProcess_index];
 
                 product['row_counter'] = -1;
                 list_processed.push(product);
@@ -223,10 +223,10 @@ function initLists() {
                     width: "50%",
                     render: function (data, type, full, meta) {
                         // Add tooltip with barcode over product name
+                        var display_barcode = "Aucun";
+
                         if ('barcode' in full) {
-                            var display_barcode = full.barcode;
-                        } else {
-                            var display_barcode = "Aucun";
+                            display_barcode = full.barcode;
                         }
 
                         return '<div class="tooltip">' + data
@@ -286,10 +286,10 @@ function initLists() {
                     width: "60%",
                     render: function (data, type, full, meta) {
                         // Add tooltip with barcode over product name
+                        var display_barcode = "Aucun";
+
                         if ('barcode' in full) {
-                            var display_barcode = full.barcode;
-                        } else {
-                            var display_barcode = "Aucun";
+                            display_barcode = full.barcode;
                         }
 
                         return '<div class="tooltip">' + data
@@ -464,14 +464,14 @@ function add_to_toProcess(product) {
         // Add to table (no data binding...)
         var rowNode = table_to_process.row.add(product).draw(false)
             .node();
+        var onAnimationEnd = function() {
+            rowNode.classList.remove('blink_me');
+        };
 
         // Handle blinking effect for newly added row
         $(rowNode).addClass('blink_me');
         rowNode.addEventListener('animationend', onAnimationEnd);
         rowNode.addEventListener('webkitAnimationEnd', onAnimationEnd);
-        function onAnimationEnd(e) {
-            rowNode.classList.remove('blink_me');
-        }
     } catch (e) {
         err = {msg: e.name + ' : ' + e.message, ctx: 'add_to_toProcess'};
         console.error(err);
@@ -494,14 +494,14 @@ function add_to_processed(product, withCounter = true) {
         // Add to table (no data binding...)
         var rowNode = table_processed.row.add(product).draw(false)
             .node();
+        var onAnimationEnd = function() {
+            rowNode.classList.remove('blink_me');
+        };
 
         // Handle blinking efect for newly added row
         $(rowNode).addClass('blink_me');
         rowNode.addEventListener('animationend', onAnimationEnd);
         rowNode.addEventListener('webkitAnimationEnd', onAnimationEnd);
-        function onAnimationEnd(e) {
-            rowNode.classList.remove('blink_me');
-        }
     } catch (e) {
         err = {msg: e.name + ' : ' + e.message, ctx: 'add_to_processed'};
         console.error(err);
@@ -604,12 +604,11 @@ function editProductInfo (productToEdit, value = null) {
     // Check if the product is already in the 'updated' list
         var index = searchUpdatedProduct();
         var firstUpdate = false;
+        let newValue = value;
 
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
-            var newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
-        } else {
-            var newValue = value;
+            newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
         }
 
         // If qty edition & Check if qty changed
@@ -796,13 +795,13 @@ function pre_send(type) {
     if (list_to_process.length > 0) {
         alert("Il reste des produits à traiter dans la commande.");
     } else {
-        updateType = type;
+        let modal_next_step = '#templates #modal_prices_validation';
 
+        updateType = type;
         if (type == 'qty_valid') {
-            var modal_next_step = '#templates #modal_qties_validation';
-        } else {
-            var modal_next_step = '#templates #modal_prices_validation';
+            modal_next_step = '#templates #modal_qties_validation';
         }
+
         openModal($(modal_next_step).html(), data_validation, 'Confirmer', false);
     }
 }
@@ -957,7 +956,7 @@ function send() {
                                 } else if (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "") {
                                     // Products with no barcode
                                     var node = document.createElement('li');
-                                    var textNode = document.createTextNode(list_processed[i]["product_id"][1]);
+                                    let textNode = document.createTextNode(list_processed[i]["product_id"][1]);
 
                                     node.appendChild(textNode);
                                     document.getElementById('barcodesEmpty_list').appendChild(node);
@@ -983,7 +982,7 @@ function send() {
                                 var span_node = document.createElement('span');
 
                                 span_node.className = 'order_ref_reminder';
-                                var textNode = document.createTextNode(orders[order_id].name);
+                                let textNode = document.createTextNode(orders[order_id].name);
 
                                 span_node.appendChild(textNode);
 
@@ -1043,10 +1042,10 @@ function send() {
                         // Remove all groups containing these orders
                         for (order_id in orders) {
                             search:
-                            for (var i = 0; i < grouped_orders.length; i++) {
-                                for (var j = 0; j < grouped_orders[i].length; j++) {
-                                    if (grouped_orders[i][j] == order_id) {
-                                        grouped_orders.splice(i);
+                            for (var h = 0; h < grouped_orders.length; h++) {
+                                for (var j = 0; j < grouped_orders[h].length; j++) {
+                                    if (grouped_orders[h][j] == order_id) {
+                                        grouped_orders.splice(h);
                                         break search;
                                     }
                                 }
@@ -1179,7 +1178,9 @@ $(document).ready(function() {
 
             err_msg += " - Order id: " + row_data.id_po;
             err_msg += " - Product: " + row_data.product_id[1];
-        } catch (e) {}
+        } catch (e) {
+            console.log(e);
+        }
 
         err = {msg: err_msg, ctx: 'datatable: table to_process'};
         console.error(err);
@@ -1205,7 +1206,9 @@ $(document).ready(function() {
 
             err_msg += " - Order id: " + row_data.id_po;
             err_msg += " - Product: " + row_data.product_id[1];
-        } catch (e) {}
+        } catch (e) {
+            console.log(e);
+        }
 
         err = {msg: err_msg, ctx: 'datatable: table processed'};
         console.error(err);
