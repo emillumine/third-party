@@ -151,6 +151,7 @@ class ExportPOS(View):
         return HttpResponse(template.render(context, request))
 
     def __ca_sessions_ng(self, mois):
+        import re
         debut = time.time()
         api = OdooAPI()
         res = api.execute('lacagette.pos_payments_export', 'get_pos_payments', {'month' : mois})
@@ -163,6 +164,13 @@ class ExportPOS(View):
         details_lines = []
         for s in res['sessions']:
             if 'min' in s['mm_dates']:
+                """
+                 s['mm_dates']['min'] and s['mm_dates']['max'] could be formatted with milliseconds
+                 i.e 2020-12-12 12:38:58.136 (rescue Session)
+                 Thus, .xxx has to be removed
+                """
+                s['mm_dates']['min'] = re.sub(r'\.[0-9]+', '', s['mm_dates']['min'])
+                s['mm_dates']['max'] = re.sub(r'\.[0-9]+', '', s['mm_dates']['max'])
                 min_date = time.strptime(s['mm_dates']['min'], tf_ym)
                 max_date = time.strptime(s['mm_dates']['max'], tf_ym)
 

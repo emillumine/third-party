@@ -105,7 +105,6 @@ function reset_sex_radios() {
     sex.find('input').each(function(i, e) {
         $(e).prop('checked', false);
     });
-    $('#o_sex').prop('checked', true);
 }
 
 function create_new_coop() {
@@ -116,7 +115,8 @@ function create_new_coop() {
         if (current_coop == null || typeof(current_coop.shift_template) != "undefined") {
             current_coop = null;
             ncoop_view.find('.title').text('NOUVEAU MEMBRE');
-            coop_create.find('input').val('');
+            coop_create.find('input').not('[type="radio"]')
+                .val('');
             coop_list_view.hide();
             schoice_view.hide();
             coop_registration_details.hide();
@@ -195,7 +195,7 @@ function store_new_coop(event) {
     event.preventDefault();
     var errors = [],
         bc = '', // barcode may not be present
-        msex = 'o'; // sex may not be present
+        msex = ''; // sex may not be present
     // 1- Un coop avec le meme mail ne doit pas exister dans odoo (dans base intermediaire, le cas est géré par l'erreur à l'enregistrement)
     let email = $('input[name="email"]').val()
             .trim(),
@@ -206,17 +206,10 @@ function store_new_coop(event) {
 
     if (m_barcode.length > 0) {
         bc = m_barcode.val();
+        if (!isValidEAN13(bc)) errors.push("Le code-barre ne semble pas être un EAN13 valide.");
     }
     if (sex.length > 0) {
-        msex = $("#sex input[name='sex']:checked").get(0).value; //.val() doesn't work here !!! (with chrome)
-        //cant understand why, but input radio value are sometimes emptied !!
-        //so, let's get value with a trick
-        if (typeof msex == "undefined" || msex.length == 0) {
-            var sex_id = $("#sex input[name='sex']:checked").attr('id');
-
-            msex = sex_id.replace('_sex', '');
-        }
-
+        msex = $('input[name="sex"]:checked').val();
     }
 
     if (payment_meaning.val() == 'ch' && ch_qty.val() <1) {

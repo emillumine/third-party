@@ -2,12 +2,12 @@
 {% load static %}
 
 {% block additionnal_css %}
-<link rel="stylesheet" href="{% static 'css/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
 <link rel="stylesheet" href="{% static 'css/stock_rupture.css' %}">
 {% endblock %}
 
 {% block additionnal_scripts %}
-  <script type="text/javascript" src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/stock_rupture.js' %}"></script>
 {% endblock %}
 
@@ -17,7 +17,7 @@
     <br>
 
     <div class="main">
-      
+
     <div class="search">
       <div class="searchLabel" >Recherche Articles : </div>
       <div class="searchInput">
@@ -31,7 +31,7 @@
     </div>
     <br/>
   <br/>
-  
+
   <script src="{% static "js/all_common.js" %}?v="></script>
   <script src="{% static "js/common.js" %}?v="></script>
 {% endblock %}

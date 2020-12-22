@@ -121,6 +121,10 @@
 
 - VRAC_CATEGS = [166, 167, 174]
 
+- SHELF_LABELS_ADD_FIELDS = ['category_print_id', 'categ_id', 'country_id', 'label_ids', 'uom_id']
+
+        Fields add to generated text file
+
 ### Shop module
 
 - SHOP_CAN_BUY = False
@@ -221,6 +225,10 @@
 
         By default, if this variable is not set, sunday is hidden
         To hide Sunday and Monday, set this to "0,1"
+- SHIFT_COLOR_TOGGLE_NUM = 7
+
+        If not set, shift class for rendering color is based on % (toggle limit = 50%)
+        If set with a number, this number is used (toggle limit = this number, including it)
 
 - SHIFT_INFO = """A la cagette, un service est une plage de trois heures un jour en particulier, par exemple : le mardi 25/09/2018 à 13h15.
 <br />A l'inverse, un créneau est une plage de trois heures régulière, par exemple, tous les mardi de semaine A à 13h15."""
@@ -257,6 +265,27 @@
 
         DB coeff id, needed to compute product shelf price
 
+### Stocks
+
+- STOCK_LOC_ID = 12
+
+        Only used in Inventory module, which is no more in use
+
+- LOSSES_LOC_ID = 33
+
+- LOSSES_PICKING_TYPE_ID = 10
+
+- AUTOCONSO_LOC_ID = 27
+
+- AUTOCONSO_PICKING_TYPE_ID = 7
+
+- MEALS_LOC_ID = 33
+
+- MEALS_PICKING_TYPE_ID = 10
+
+
+
+
 ### Miscellious
 
 - EXPORT_COMPTA_FORMAT = 'Quadratus'
@@ -264,9 +293,7 @@
         If not set, export format is the one used by La Cagette
         Quadratus has been introduced to fit with Supercafoutch need.
 
-- STOCK_LOC_ID = 12
 
-        Only used in Inventory module, which is no more in use
 
 - CUSTOM_CSS_FILES = {'all': ['common_lgds.css'],
                     'members': ['inscription_lgds.css']}

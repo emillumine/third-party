@@ -11,17 +11,7 @@ if (coop_is_connected()) {
         // PouchDB sync actions listeners
         sync.on('change', function (info) {
             // handle change
-            need_reload = false;
 
-            $.each(info.change.docs, function(i, e) {
-                console.log('changement');
-                console.log(e);
-            });
-            if (need_reload == true) {
-
-                //retrieve_and_draw_shift_tempates('without_modal');
-
-            }
 
 
         }).on('paused', function (err) {

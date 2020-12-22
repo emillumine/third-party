@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 from .settings_secret import *
+from .settings_constants import *
 from .texts.cagette import *
 from .config import *
 from .customized_errors_filter import *
@@ -28,8 +29,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'Mettre_plein_de_caracteres_aleatoires_iezezezeezezci'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
@@ -218,3 +217,9 @@ LOGGING = {
         }
     }
 }
+
+# To be removed in production environment
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+CORS_ORIGIN_ALLOW_ALL = True # Needed to make dev test with different IP and ports

@@ -138,6 +138,10 @@ footer { position: fixed;
  transition: opacity 0.3s;
 }
 
+.tooltip .tooltip-lg {
+  width: 230px !important;
+}
+
 .tooltip .tt_twolines {
   top: -15px !important;
 }

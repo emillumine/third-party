@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.home),
     url(r'^get_product_data$', views.get_product_data),
+    url(r'^get_products_stdprices$', views.get_products_stdprices),
     url(r'^update_product_stock$', views.update_product_stock),
     url(r'^labels_appli_csv(\/?[a-z]*)$', views.labels_appli_csv, name='labels_appli_csv'),
     url(r'^label_print/([0-9]+)/?([0-9\.]*)/?([a-z]*)/?([0-9]*)$', views.label_print),

@@ -2,9 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.template import loader
-from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from members.models import CagetteUser
 from .models import CagetteInventory
+from outils.common_imports import *
 import json
 
 def home(request):
@@ -27,6 +28,15 @@ def custom_lists(request):
     template = loader.get_template('inventory/custom_lists.html')
 
     return HttpResponse(template.render(context, request))
+
+def delete_custom_list(request):
+    """Custom list file will be removed."""
+    try:
+        res = CagetteInventory.remove_custom_inv_file(request.POST.get('id'))
+        return JsonResponse({'success': True})
+    except Exception as e:
+        coop_looger.error("delete_custom_list : %s", str(e))
+        return JsonResponse({'error': str(e)}, status=500)
 
 def custom_list_inventory(request, id):
     """Inventaire d'une liste de produits"""
@@ -80,7 +90,24 @@ def do_custom_list_inventory(request):
             CagetteInventory.remove_custom_inv_file(inventory_data['id'])
     except Exception as e:
         res['error'] = {'inventory' : str(e)}
+        coop_logger.error("Enregistrement inv. personnalisé : %s", str(e))
 
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+@csrf_exempt 
+def generate_inventory_list(request):
+    """Responding to Odoo ajax call (no csrf)."""
+    res = {}
+    try:
+        lines = json.loads(request.POST.get('lines'))
+        ltype = request.POST.get('type')
+        res = CagetteInventory.create_custom_inv_file(lines, ltype)
+    except Exception as e:
+        res['error'] = str(e)
+        coop_looger.error("generate_inventory_list : %s", str(e))
     if 'error' in res:
         return JsonResponse(res, status=500)
     else:

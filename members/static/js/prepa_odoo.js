@@ -156,16 +156,6 @@ function submit_full_coop_form() {
         sex = $('#sex'),
         has_empty_values = false;
 
-    if (sex.length > 0) {
-    //value attrribute is emptied when form is loaded !!
-    //so, we have to retrive sex value using unusual way
-        form_data.set(
-            'sex',
-            $('input[name="sex"]:checked').attr('id')
-                .replace('_sex', '')
-        );
-    }
-
     for (var pair of form_data.entries()) {
         let val = pair[1],
             key = pair[0];
@@ -202,6 +192,9 @@ function submit_full_coop_form() {
         form_data.set('payment_meaning', vform.find('input[name="payment_meaning"]').val());
         if (m_barcode.length > 0) {
             form_data.set('m_barcode', m_barcode.val());
+        }
+        if (sex.length > 0) {
+            form_data.set('sex', $('input[name="sex"]:checked').val());
         }
         post_form(
             '/members/coop_validated_data', form_data,
@@ -243,14 +236,16 @@ function save_current_coop(callback) {
     //_id obligatoire !
     let form = coop_validation_form,
         _id = form.find('[name="email"]').val(),
-        m_barcode = form.find('[name="m_barcode"]');
+        m_barcode = form.find('[name="m_barcode"]'),
+        sex = form.find('[name="sex"]');
 
     if (current_coop != null && _id.length > 0) {
     //Birthdate verification
         let birthdate = form.find('[name="birthdate"]').val()
             .trim();
         var birthdate_error = false,
-            m_barcode_error = false;
+            m_barcode_error = false,
+            sex_error = false;
 
         if (/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/.exec(birthdate)) {
             var jj = RegExp.$1,
@@ -278,6 +273,11 @@ function save_current_coop(callback) {
         current_coop._id = _id;
         current_coop.birthdate = birthdate;
         current_coop.address = form.find('[name="address"]').val();
+
+        if (sex.length > 0) {
+            current_coop.sex = $('input[name="sex"]:checked').val();
+            if (typeof current_coop.sex == "undefined") sex_error = true;
+        }
         if (street2_input.length > 0) {
             current_coop.street2 = street2_input.val();
         }
@@ -296,8 +296,7 @@ function save_current_coop(callback) {
             current_coop.m_barcode = m_barcode.val();
             if (!isValidEAN13(current_coop.m_barcode)) m_barcode_error = true;
         }
-
-        if ((birthdate_error == true || m_barcode_error == true) && callback) {
+        if ((birthdate_error == true || m_barcode_error == true || sex_error == true) && callback) {
             put_current_coop_in_buffer_db();
             closeModal();
             var msg = '';
@@ -306,6 +305,8 @@ function save_current_coop(callback) {
                 msg += "La date de naissance ne semble pas correcte (jj/mm/aaaa)\n";
             if (m_barcode_error == true)
                 msg += "Le code-barre n'est pas valide\n";
+            if (sex_error == true)
+                msg += "Une option concernant le sexe doit être cochée\n";
             alert(msg);
         } else {
             // Send coop to next step
@@ -436,8 +437,8 @@ function set_current_coop(clicked, callback) {
     var coops_set = null;
     //coop_form is always empty, in order to remove all previous data, which could be associated to another coop.
 
-    coop_validation_form.find('input').val('');
-
+    coop_validation_form.find(':input').not('[type="radio"]')
+        .val('');
     if (type == 'to_fill') {
         coops_set = coops.to_fill;
     } else if (type == 'with_errors') {

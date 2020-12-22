@@ -354,8 +354,7 @@ var addProductToList = async function(barcode) {
     //It could also be a wrong reading one
 
     odoo_product = barcodes.get_corresponding_odoo_product(barcode);
-    console.log("On vient d'avoir le resultat de l'analyse");
-    console.log(odoo_product);
+
     if (odoo_product === null) {
         alert(barcode + ' : Code-barre inconnu');
     } else {

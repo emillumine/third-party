@@ -223,7 +223,7 @@ function initLists() {
                     width: "50%",
                     render: function (data, type, full, meta) {
                         // Add tooltip with barcode over product name
-                        var display_barcode = "Aucun";
+                        let display_barcode = "Aucun";
 
                         if ('barcode' in full) {
                             display_barcode = full.barcode;
@@ -286,7 +286,7 @@ function initLists() {
                     width: "60%",
                     render: function (data, type, full, meta) {
                         // Add tooltip with barcode over product name
-                        var display_barcode = "Aucun";
+                        let display_barcode = "Aucun";
 
                         if ('barcode' in full) {
                             display_barcode = full.barcode;
@@ -464,11 +464,12 @@ function add_to_toProcess(product) {
         // Add to table (no data binding...)
         var rowNode = table_to_process.row.add(product).draw(false)
             .node();
+
+        // Handle blinking effect for newly added row
         var onAnimationEnd = function() {
             rowNode.classList.remove('blink_me');
         };
 
-        // Handle blinking effect for newly added row
         $(rowNode).addClass('blink_me');
         rowNode.addEventListener('animationend', onAnimationEnd);
         rowNode.addEventListener('webkitAnimationEnd', onAnimationEnd);
@@ -494,11 +495,12 @@ function add_to_processed(product, withCounter = true) {
         // Add to table (no data binding...)
         var rowNode = table_processed.row.add(product).draw(false)
             .node();
+
+        // Handle blinking efect for newly added row
         var onAnimationEnd = function() {
             rowNode.classList.remove('blink_me');
         };
 
-        // Handle blinking efect for newly added row
         $(rowNode).addClass('blink_me');
         rowNode.addEventListener('animationend', onAnimationEnd);
         rowNode.addEventListener('webkitAnimationEnd', onAnimationEnd);
@@ -569,14 +571,26 @@ function setLineEdition(product) {
     if (editing_product.product_uom[0] == 1) { // Unit
         if (reception_status == 'False') {
             document.getElementById('product_uom').innerHTML = ' unité(s)';
+            $('#edition_input').attr('type', 'number')
+                .attr('step', 1)
+                .attr('max', 9999);
         } else {
             document.getElementById('product_uom').innerHTML = ' / unité';
+            $('#edition_input').attr('type', 'number')
+                .attr('step', 0.01)
+                .attr('max', 9999);
         }
     } else if (editing_product.product_uom[0] == 21) { // kg
         if (reception_status == 'False') {
             document.getElementById('product_uom').innerHTML = ' kg';
+            $('#edition_input').attr('type', 'number')
+                .attr('step', 0.001)
+                .attr('max', 9999);
         } else {
             document.getElementById('product_uom').innerHTML = ' / kg';
+            $('#edition_input').attr('type', 'number')
+                .attr('step', 0.01)
+                .attr('max', 9999);
         }
     }
 
@@ -798,10 +812,10 @@ function pre_send(type) {
         let modal_next_step = '#templates #modal_prices_validation';
 
         updateType = type;
+
         if (type == 'qty_valid') {
             modal_next_step = '#templates #modal_qties_validation';
         }
-
         openModal($(modal_next_step).html(), data_validation, 'Confirmer', false);
     }
 }
@@ -1042,7 +1056,7 @@ function send() {
                         // Remove all groups containing these orders
                         for (order_id in orders) {
                             search:
-                            for (var h = 0; h < grouped_orders.length; h++) {
+                            for (var h = 0; i < grouped_orders.length; h++) {
                                 for (var j = 0; j < grouped_orders[h].length; j++) {
                                     if (grouped_orders[h][j] == order_id) {
                                         grouped_orders.splice(h);

@@ -39,11 +39,9 @@ function display_current_coop_form() {
     if (m_barcode.length > 0 && typeof current_coop.m_barcode != "undefined") {
         m_barcode.val(current_coop.m_barcode);
     }
-    //console.log(current_coop)
     if (sex.length > 0 && typeof current_coop.sex != "undefined") {
-        $("#" + current_coop.sex + "_sex").prop('checked', true);
+        $('input[name="sex"][value="' + current_coop.sex + '"]').prop('checked', true);
     }
-
     // form.find('[name="barcode_base"]').val(current_coop.barcode_base);
     form.find('[name="email"]').val(current_coop._id);
     if (current_coop.shift_template &&

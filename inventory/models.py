@@ -1,9 +1,10 @@
 from django.db import models
-from django.conf import settings
+
 from outils.common import OdooAPI
 from outils.common import CouchDB
+from outils.common_imports import *
 from decimal import *
-import os, json
+import os
 from datetime import datetime
 
 import logging
@@ -41,18 +42,19 @@ class CagetteInventory(models.Model):
         for r, d, f in os.walk(custom_list_file_path):
             for file in f:
                 # name of file is timestamp of creation
-                filename_array = file.split('.')
+                if file.endswith('.json'):
+                    filename = file[:-5]
 
                 # if id is set, only get this list
-                if id is None  or id is not None and id == filename_array[0]:
+                if id is None  or id is not None and id == filename:
                     file_data = {}
                     with open(os.path.join(r, file)) as json_file:
                         file_data = json.load(json_file)
 
-                    date_time = datetime.fromtimestamp(int(filename_array[0]))
+                    date_time = datetime.fromtimestamp(int(filename))
                     d = date_time.strftime("%m/%d/%Y, %H:%M")
 
-                    file_data['id'] = int(filename_array[0])
+                    file_data['id'] = int(filename)
                     file_data['datetime_created'] = d
                     file_data['p_nb'] = len(file_data['products'])
 
@@ -102,6 +104,67 @@ class CagetteInventory(models.Model):
 
         return res
 
+    @staticmethod
+    def create_custom_inv_file(line_ids, line_type):
+        res = {}
+
+        try:
+            # Create directory if doesn't exist
+            os.mkdir(custom_list_file_path)
+        except OSError:
+            pass
+
+        try:
+            # need to retrieve product_ids from order_line_ids
+            api = OdooAPI()
+            ids = []
+            order = ['', '']
+            user = partner = ''
+            fields = ['create_uid', 'product_id', 'partner_id']
+            cond = [['id', 'in', line_ids]]
+            if (line_type == 'cpo'):
+                model = 'computed.purchase.order.line'
+                fields += ['computed_purchase_order_id']
+            else:
+                model = 'purchase.order.line'
+                fields += ['order_id']
+            lines = api.search_read(model, cond, fields)
+            if len(lines) == len(line_ids):
+                for l in lines:
+                    ids.append(l['product_id'][0])
+                    user = l['create_uid'][1]
+                    if (line_type == 'cpo'):
+                        order = l['computed_purchase_order_id']
+                    else:
+                        order = l['order_id']
+                        partner = l['partner_id'][1]
+                if (line_type == 'cpo'):
+                    # partner_id isn't defined
+                    f = ['partner_id']
+                    c = [['id', '=', int(order[0])]]
+                    cpo = api.search_read('computed.purchase.order', c, f)
+                    if len(cpo) > 0:
+                        partner = cpo[0]['partner_id'][1]
+            file_data = {
+                'order': order[1],
+                'user': user,
+                'partner': partner,
+                'inventory_status': '',
+                'products': ids
+            }
+
+            # Crate inventory file, name is timestamp of creation
+            timestamp = int(time.time())
+            filename = custom_list_file_path + str(timestamp) + '.json'
+            with open(filename, 'w+') as outfile:
+                json.dump(file_data, outfile)
+
+            res['file_saved'] = True
+        except Exception as e:
+            res['error'] = str(e)
+            coop_logger.error("create_custon_inv_file : %s", str(e))
+        return res
+
     def update_custom_inv_file(inventory_data):
         res = {}
         try:
@@ -119,7 +182,7 @@ class CagetteInventory(models.Model):
             res['file_saved'] = True
         except Exception as e:
             res['error'] = str(e)
-        
+
         return res
 
     def remove_custom_inv_file(id):
@@ -144,7 +207,6 @@ class CagetteInventory(models.Model):
 
         if 'user_comments_s1' in file_data:
             inventory_data['user_comments_step1'] = file_data['user_comments_s1']
-
         return inventory_data
 
     @staticmethod
@@ -310,13 +372,13 @@ class CagetteInventory(models.Model):
 
                     if qty < 0:
                         qty = 0
-
                     try:
                         fields = {'product_id': p['id'],
                                   'inventory_id': inv,
                                   'product_qty': str(qty),
                                   'product_uom_id': p['uom_id'][0],
                                   'location_id': settings.STOCK_LOC_ID}
+                        #  coop_logger.info("Fields %s", fields)
                         li = api.create('stock.inventory.line', fields)
                         done.append({'id': li})
                     except Exception as e:
@@ -329,10 +391,10 @@ class CagetteInventory(models.Model):
             coop_logger.error(str(e))
             errors.append(str(e))
 
-        return {'errors': errors, 
-                'missed': missed, 
-                'unchanged': unchanged, 
-                'done': done, 
+        return {'errors': errors,
+                'missed': missed,
+                'unchanged': unchanged,
+                'done': done,
                 'inv_id': inv}
 
     @staticmethod

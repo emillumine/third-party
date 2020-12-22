@@ -12,6 +12,6 @@ outils/texts/*
 outils/js_errors.log
 db.sqlite3
 */max_timeslot_carts.txt
+.gitlab-ci.yml
 shop/shop_admin_settings.json
 shop/errors.log
-node_modules/

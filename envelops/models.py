@@ -1,5 +1,6 @@
 from django.db import models
-from django.conf import settings
+from outils.common_imports import *
+
 from outils.common import OdooAPI
 from outils.common import CouchDB
 
@@ -13,15 +14,7 @@ class CagetteEnvelops(models.Model):
         """Init with odoo id."""
         self.o_api = OdooAPI()
         self.c_db = CouchDB(arg_db='envelops')
-        for pm in settings.SUBSCRIPTION_PAYMENT_MEANINGS:
-            if pm['code'] == 'cash':
-                self.cash_code = pm['journal_id']
-            elif pm['code'] == 'ch':
-                self.check_code = pm['journal_id']
-            elif pm['code'] == 'cb':
-                self.cb_code = pm['journal_id']
-            elif pm['code'] == 'vir':
-                self.vir_code = pm['journal_id']
+
 
     def get_all(self):
         envelops = []
@@ -59,18 +52,13 @@ class CagetteEnvelops(models.Model):
                 invoice = invoice_res[0]
             else:
                 res['error'] = 'No invoice found for this partner, can\'t create payment.'
+                coop_logger.error(res['error'] + ' : %s', str(data))
                 return res
 
-            # Set payment type
-            if data['type'] == "cash":
-                payment_type_code = self.cash_code
-            elif data['type'] == "ch":
-                payment_type_code = self.check_code
-            elif data['type'] == "cb":
-                payment_type_code = self.cb_code
-            elif data['type'] == "vir":
-                payment_type_code = self.vir_code
-
+            payment_journal_id = None
+            for pm in settings.SUBSCRIPTION_PAYMENT_MEANINGS:
+                if pm['code'] == data['type']:
+                    payment_journal_id = pm['journal_id']
             args = {
                 "writeoff_account_id": False,
                 "payment_difference_handling": "open",
@@ -78,7 +66,7 @@ class CagetteEnvelops(models.Model):
                 "currency_id": 1,
                 "amount": data['amount'],
                 "payment_method_id": 1,
-                "journal_id": payment_type_code,
+                "journal_id": payment_journal_id,
                 "partner_id": data['partner_id'],
                 "partner_type": "customer",
                 "payment_type": "inbound",
@@ -86,8 +74,11 @@ class CagetteEnvelops(models.Model):
                 "invoice_ids": [(4, invoice['id'])]
             }
 
-            payment_id = self.o_api.create('account.payment', args)
-
+            try:
+                payment_id = self.o_api.create('account.payment', args)
+            except Exception as e:
+                res['error'] = repr(e)
+                coop_logger.error(res['error'] + ' : %s', str(args))
             # Exception rises when odoo method returns nothing
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'
             try:
@@ -96,7 +87,7 @@ class CagetteEnvelops(models.Model):
             except Exception as e:
                 if not (marshal_none_error in str(e)):
                     res['error'] = repr(e)
-
+                    coop_logger.error(res['error'] + ' : %s', str(payment_id))
             if not ('error' in res):
                 try:
                     if int(float(data['amount']) * 100) == int(float(invoice['residual_signed']) * 100):
@@ -104,9 +95,11 @@ class CagetteEnvelops(models.Model):
                         self.o_api.update('account.invoice', [invoice['id']], {'state': 'paid'})
                 except Exception as e:
                     res['error'] = repr(e)
+                    coop_logger.error(res['error'])
 
         except Exception as e:
             res['error'] = repr(e)
+            coop_logger.error(res['error'] + ' : %s', str(data))
 
         if not ('error' in res):
 

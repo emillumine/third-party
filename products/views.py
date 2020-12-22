@@ -41,8 +41,20 @@ def get_product_data(request):
             p['shelf_sortorder'] = shelfs_sortorder[0]['sort_order']
         except Exception as e:
             p['shelf_sortorder'] = 'X'
+    else:
+        p['shelf_sortorder'] = 'X'
 
     return JsonResponse({"product": p})
+
+def get_products_stdprices(request):
+    ids = json.loads(request.body.decode())
+    res = CagetteProduct.get_products_stdprices(ids)
+
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({"res": res})
+
 
 def update_product_stock(request):
     res = {}
@@ -152,10 +164,22 @@ def get_all_available_products(request):
 
 def get_all_barcodes(request):
     """Return all stored products barcodes."""
+    import time
+    start = int(round(time.time() * 1000))
     res = {}
     try:
-        res['bc'] = CagetteProducts.get_all_barcodes()
+        res['list'] = CagetteProducts.get_all_barcodes()
+        res['keys'] = {
+            'name': 0,
+            'sale_ok': 1,
+            'purchase_ok': 2,
+            'available_in_pos': 3,
+            'id': 4,
+            'standard_price': 5,
+            'uom_id': 6
+        }
         rules = CagetteProducts.get_barcode_rules()
+        res['time'] = int(round(time.time() * 1000)) - start
         res['patterns'] = []
         for r in rules:
             if '{' in r['pattern'] or '.' in r['pattern']:

@@ -18,14 +18,15 @@ var listStates = {
     unpayed: "Impayé"
 };
 
-let limitDate = null;
-let dp = null;
-let lastY = null;
-let loaded_events = [];
-let make_up_nb = 0;
-let non_regular_shifts = [];
-let can_make_exchange = false;
-let can_add_shift = false;
+var limitDate = null,
+    dp = null,
+    lastY = null,
+    loaded_events = [],
+    make_up_nb = 0,
+    non_regular_shifts = [],
+    can_make_exchange = false,
+    can_add_shift = false,
+    extra_info = $('#templates .extra_info').html();
 
 
 // Init Dom for member's shifts
@@ -409,6 +410,7 @@ $(document).ready(function() {
     if (dataPartner.in_ftop_team == "True") {
         $('div.intro div h2').text("Bienvenue dans le système de choix et d'échange de services");
         $('.additionnal_intro_data').text(' ou en choisir un nouveau');
+
         var partnerData = "Je suis en statut <span class=\"status\">" + listStates[dataPartner.cooperative_state]+ "</span>.<br>";
         /** TODO : Change code to use a parameter to know if following assertion has to be shown or not
     partnerData += "Je suis volant.e et j'ai <strong>"+ dataPartner.final_ftop_point +" point";
@@ -418,6 +420,9 @@ $(document).ready(function() {
     partnerData += "</strong>. "
     **/
 
+        if (typeof extra_info !== "undefined" && extra_info.length > 0) {
+            partnerData += '<br/>' + extra_info;
+        }
         $('#partnerData').html(partnerData);
     } else {
         $('.additionnal_intro_data').text(' ou choisir un rattrapage');
@@ -435,6 +440,9 @@ $(document).ready(function() {
             $('#partnerData').append("<br> Je suis à jour.");
         } else {
             $('#partnerData').append("<br> Je suis en statut <span class=\"status\">"+ listStates[dataPartner.cooperative_state] +"</span>.<br />");
+        }
+        if (typeof extra_info !== "undefined" && extra_info.length > 0) {
+            $('#partnerData').append("<br/>" + extra_info);
         }
     }
 

@@ -52,7 +52,7 @@ def home(request, partner_id, hashed_date):
 
             if partnerData['cooperative_state'] in state_shift_allowed:
                 # domain = "127.0.0.1"
-                domain = 'lacagette-coop.fr'
+                domain = getattr(settings, 'EMAIL_DOMAIN', 'lacagette-coop.fr')
                 days_to_hide = "0"
                 if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
                     days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
@@ -61,6 +61,7 @@ def home(request, partner_id, hashed_date):
                            'SHIFT_INFO': settings.SHIFT_INFO,
                            'PB_INSTRUCTIONS': settings.PB_INSTRUCTIONS,
                            'domain': domain}
+                context['ADDITIONAL_INFO_SHIFT_PAGE'] = getattr(settings, 'ADDITIONAL_INFO_SHIFT_PAGE', '')
                 if hasattr(settings, 'CALENDAR_NO_MORE_LINK'):
                     if settings.CALENDAR_NO_MORE_LINK is True:
                         context['calendarEventNoMoreLinks'] = True
@@ -81,6 +82,24 @@ def home(request, partner_id, hashed_date):
             return HttpResponseNotFound('<h1>Nothing to show !</h1>')
     else:
         return HttpResponseForbidden()
+
+
+def _is_middled_filled_considered(reserved, max):
+    """Added to fit with new LaCagette need. (based on num rather than %)."""
+    answer = False
+    toggle_num = 0
+    try:
+        toggle_num = int(getattr(settings, 'SHIFT_COLOR_TOGGLE_NUM', 0))
+    except:
+        coop_logger.warning("Wrong value for SHIFT_COLOR_TOGGLE_NUM : %s",
+                            str(getattr(settings, 'SHIFT_COLOR_TOGGLE_NUM', 0))
+                            )
+    if toggle_num == 0:
+        if int(reserved) / int(max) < 0.5:
+            answer = True
+    else:
+        answer = int(reserved) <= toggle_num
+    return answer
 
 
 def get_list_shift_calendar(request, partner_id):
@@ -122,7 +141,7 @@ def get_list_shift_calendar(request, partner_id):
                 elif int(value['seats_reserved']) == 0:
                     event["className"] = "shift_empty"
                     event["changed"] = True
-                elif int(value['seats_reserved']) / smax < 0.5:
+                elif _is_middled_filled_considered(value['seats_reserved'], smax) is True:
                     event["className"] = "shift_less_alf"
                     event["changed"] = True
                 else:

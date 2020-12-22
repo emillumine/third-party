@@ -13,7 +13,9 @@ IFCBarcodes = {
                 closeModal();
                 if (typeof bc_data.res.error == "undefined") {
                     this.patterns = bc_data.res.patterns;
-                    this.codes = bc_data.res.bc;
+                    this.codes = bc_data.res.list.pdts;
+                    this.uoms = bc_data.res.list.uoms;
+                    this.keys = bc_data.res.keys;
                 } else {
                     this.errors.push(bc_data.error);
                 }

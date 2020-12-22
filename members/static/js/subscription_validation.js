@@ -43,16 +43,11 @@ function process_form_submission(event) {
 
     if (fname == 'valider') {
         var form_data = new FormData(vform.get(0)),
-            has_empty_values = false;
+            empty_values = {},
+            value_missing = false;
 
         if (sex.length > 0) {
-        //value attrribute is emptied when form is loaded !!
-        //so, we have to retrive sex value using unusual way
-            form_data.set(
-                'sex',
-                $('input[name="sex"]:checked').attr('id')
-                    .replace('_sex', '')
-            );
+            form_data.set('sex', $('input[name="sex"]:checked').val());
         }
 
         for (var pair of form_data.entries()) {
@@ -61,12 +56,17 @@ function process_form_submission(event) {
 
             if ($('input[name="' + key +'"]').get(0)
                 .hasAttribute('required') && val.length == 0) {
-                has_empty_values = true;
+                empty_values[key] = val;
+            }
+        }
+        if (Object.keys(empty_values).length > 0) {
+            value_missing = true;
+            if (typeof empty_values['mobile'] !== "undefined" && typeof empty_values['phone'] === "undefined") {
+                value_missing = false;
             }
         }
 
-
-        if (has_empty_values == true) {
+        if (value_missing == true) {
             alert('Vous devez remplir tous les champs pour valider.');
         } else {
             form_data.set(

@@ -28,7 +28,7 @@ try {
         var end_year = new Date(now.setYear(now.getFullYear() - 15)).getFullYear();
 
         for (var i=100; i>0; i--) {
-            var opt = $('<option>').val(end_year-i)
+            let opt = $('<option>').val(end_year-i)
                 .text(end_year-i);
 
             if (end_year-i == y) opt.prop('selected', true);
@@ -36,6 +36,7 @@ try {
         }
         for (var k=1; k<=12; k++) {
             let mth = k.pad(2);
+
             let opt = $('<option>').val(mth)
                 .text(mth);
 
@@ -44,6 +45,7 @@ try {
         }
         for (var l=1; l<=31; l++) {
             let day = l.pad(2);
+
             let opt = $('<option>').val(day)
                 .text(day);
 
@@ -105,11 +107,11 @@ try {
     };
 
     if (typeof original.sex != "undefined") {
-        $("#" + original.sex + "_sex").prop('checked', true);
+        $('input[name="sex"][value="' + original.sex + '"]').prop('checked', true);
     }
 
     init_birthdate_selects();
-    $('input').keyup(make_save_button_active);
+    $('input').change(make_save_button_active);
 
     save_btn.click(function() {
         if ($(this).hasClass('btn--primary') && is_time_to('save_perso_data')) {

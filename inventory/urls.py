@@ -6,9 +6,11 @@ from . import views
 urlpatterns = [
     url(r'^$', views.home),
     url(r'^custom_lists$', views.custom_lists),
+    url(r'^delete_custom_list$', views.delete_custom_list),
     url(r'^custom_list_inventory/([0-9]+)$', views.custom_list_inventory),
     url(r'^get_custom_list_data$', views.get_custom_list_data),
     url(r'^do_custom_list_inventory$', views.do_custom_list_inventory),
+    url(r'^generate_inventory_list$', views.generate_inventory_list),
     url(r'^get_credentials$', views.get_credentials),
     url(r'^get_product_categories$', views.get_product_categories),
     url(r'^create_inventory$', views.create_inventory),

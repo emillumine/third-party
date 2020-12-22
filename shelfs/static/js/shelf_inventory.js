@@ -131,16 +131,25 @@ function edit_event(clicked) {
 
 // Set edition area
 function setLineEdition(item) {
+    var edition_input = $('#edition_input');
+
     editing_item = item;
     $('#product_name').text(editing_item.name);
     $('#product_uom').text(editing_item.uom_id[1]);
 
+    if (editing_item.uom_id[0] == 1) { // Unit
+        edition_input.attr('type', 'number').attr('step', 1)
+            .attr('max', 9999);
+    } else {
+        edition_input.attr('type', 'number').attr('step', 0.001)
+            .attr('max', 9999);
+    }
     // If item is reprocessed, set input with value
     if (editing_origin == 'processed') {
-        $('#edition_input').val(editing_item.qty);
+        edition_input.val(editing_item.qty);
     }
 
-    $('#edition_input').focus();
+    edition_input.focus();
 
     // Make edition area blink when edition button clicked
     container_edition.classList.add('blink_me');

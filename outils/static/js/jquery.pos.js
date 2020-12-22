@@ -64,9 +64,9 @@
 
             if ($this.options.swipe) {
                 if (event.which == 13) {
-		    if( !$this.options.submit_on_swipe ){
-                    	event.preventDefault();
-		    }
+                    if( !$this.options.submit_on_swipe ){
+                            	event.preventDefault();
+                    }
                     var swipexp = new RegExp('^' + $this.options.prefix.swipe.card + $this.options.regexp.swipe.card + '$');
                     if (data.swipe.match(swipexp)) {
                         var swipe_match = swipexp.exec(data.swipe);

@@ -389,7 +389,7 @@ def save_error_report(request):
                     ws.append( ['Montant total attendu (TTC) : ', str(round(order['amount_total'],2)) + ' €'] )
                     ws.append( [] )
 
-                    ws.append( ['Nom produit', 'Code Four.', 'Numéro de Code Barre', 'Qté commande', 'Qté réception', 'Prix unit. initial', 'Prix unit. MAJ', 'Prix total attendu', "Montant erreur livraison (basé sur les différences de quantités)"] )
+                    ws.append( ['Nom produit', 'Code Four.', 'Numéro de Code Barre', 'Qté commande', 'Qté réception', 'Prix unit. initial', 'Prix unit. MAJ', 'Prix total attendu', "Montant erreur livraison (basé sur les différences de prix: (nouveau_prix-ancien_prix)*nouvelle_qté)"] )
 
                     if len(data_full) == 0:
                         ws.append( ['- Aucune modification -'] )

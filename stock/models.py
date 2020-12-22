@@ -1,15 +1,111 @@
 from django.db import models
+from django.conf import settings
 from outils.common_imports import *
-
 from outils.common import OdooAPI
-
-
-
-# Mode access odoo for stock module
+from decimal import *
+from datetime import datetime
 
 class CagetteStock(models.Model):
 
+    @staticmethod
+    def do_stock_movement(stock_movement_data):
+        """Do a stock movement : """
 
+        TWOPLACES = Decimal(10) ** -2
+        api = OdooAPI()
+        errors = []
+        picking = False
+
+        # Set stock movement details according to destination
+        if stock_movement_data['movement_type'] == 'losses':
+            picking_name = 'Pertes - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            picking_type = settings.LOSSES_PICKING_TYPE_ID
+            destination = settings.LOSSES_LOC_ID
+        elif stock_movement_data['movement_type'] == 'meals':
+            picking_name = 'Repas Salarié - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            picking_type = settings.MEALS_PICKING_TYPE_ID
+            destination = settings.MEALS_LOC_ID
+        elif stock_movement_data['movement_type'] == 'autoconso':
+            picking_name = 'Autoconsommation - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            picking_type = settings.AUTOCONSO_PICKING_TYPE_ID
+            destination = settings.AUTOCONSO_LOC_ID
+        else:
+            errors.append('Type de mouvement incorrect')
+            return {'errors': errors, 'picking_id': picking}
+
+        fields = {
+            'company_id': 1,
+            'name': picking_name,
+            'picking_type_id' : picking_type,       # mouvement type
+            'location_id': settings.STOCK_LOC_ID,   # movement origin
+            'location_dest_id': destination,        # movement dest
+            "move_lines": [],
+            "pack_operation_ids": []
+        }
+
+        for p in stock_movement_data['products']:
+            qty = Decimal(p['qty']).quantize(TWOPLACES)
+            if qty < 0:
+                qty = 0
+
+            # Add stock.move to stock.picking
+            fields['move_lines'].append([
+                0,
+                False,
+                {
+                  "date_expected": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                  "product_id": p['id'],
+                  "name": p['name'],
+                  "product_uom": p['uom_id'],
+                  "product_uom_qty": str(qty),
+                  "picking_type_id": picking_type,
+                  "location_id": settings.STOCK_LOC_ID,
+                  "location_dest_id": destination,
+                  "state": "draft",
+                  "scrapped": False,
+                }
+            ])
+
+            # Add stock.pack.operation to stock.picking
+            fields['pack_operation_ids'].append([
+                0,
+                False,
+                {
+                  "product_qty": str(qty),
+                  "qty_done": str(qty),
+                  "location_id": settings.STOCK_LOC_ID,
+                  "location_dest_id": destination,
+                  "product_id": p['id'],
+                  "name": p['name'],
+                  "product_uom_id": p['uom_id'],
+                  "state": 'done',
+                  "fresh_record": False
+                }
+            ])
+
+        # Exception rises when odoo method returns nothing
+        marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+        try:
+            picking = api.create('stock.picking', fields)
+
+
+            if not (picking is None):
+                # Set stock.picking done
+                api.execute('stock.picking', 'action_done', [picking])
+
+                # Generate accounting writings for this picking
+                api.execute('stock.picking', 'generate_expense_entry', picking)
+
+        except Exception as e:
+            if not (marshal_none_error in str(e)):
+                coop_logger.error(str(e))
+                errors.append(str(e))
+
+        return {'errors': errors,
+                'picking_id': picking}
+
+
+    ### NOT IN USE ###
 
     def get_liste_supplyer():
 

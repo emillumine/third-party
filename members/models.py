@@ -327,17 +327,10 @@ class CagetteMember(models.Model):
 
                 except Exception as e:
                     res['error'] = 'Erreur maj membre dans Odoo'
-                    lf = open("/tmp/erreurs_django.log", "a")
-                    lf.write("Point A:" + "\n")
-                    lf.write(str(res) + "\n")
-                    lf.write(str(e) + "\n")
-                    lf.close()
+                    coop_logger.error("Pb avec couchDB (1): %s \n %s", str(received_data), str(e))
         else:
-            res['error'] = 'Pb avc couchDB'
-            lf = open("/tmp/erreurs_django.log", "a")
-            lf.write("Point B:" + "\n")
-            lf.write(str(r) + "\n" + str(received_data) + "\n")
-            lf.close()
+            res['error'] = 'Pb avec couchDB'
+            coop_logger.error("Pb avec couchDB (B): %s", str(received_data))
         return res
 
     @staticmethod
@@ -474,11 +467,8 @@ class CagetteMember(models.Model):
                                 c_db.updateDoc(update_data, '_id')
                             except Exception as e:
                                 res['error'] = 'Erreur après souscription du capital'
-                                lf = open("/tmp/erreurs_django.log", "a")
-                                lf.write("Point C:")
-                                lf.write(str(res) + "\n")
-                                lf.write(str(e) + "\n")
-                                lf.close()
+                                coop_logger.error("Erreur après souscription : %s \n %s", str(res), str(e))
+
 
                             # Create or update envelop(s) with coop payment data
                             payment_data = {
@@ -513,16 +503,10 @@ class CagetteMember(models.Model):
                     else:
                         res['error'] = 'Pb avec couchDB'
                         res['data'] = update_data
-                        lf = open("/tmp/erreurs_django.log", "a")
-                        lf.write("Point C:")
-                        lf.write(str(res) + "\n")
-                        lf.close()
+                        coop_logger.error("Pb couchDB (C) : %s", str(res))
                 else:
                     res['error'] = 'Erreur creation membre odoo'
-                    lf = open("/tmp/erreurs_django.log", "a")
-                    lf.write("Point C:")
-                    lf.write(str(res) + "\n")
-                    lf.close()
+                    coop_logger.error("Pb couchDB (D) : %s", str(res))
             # Update coop data
             else:
                 odoo_id = int(post_data['odoo_id'])
@@ -636,9 +620,9 @@ class CagetteMember(models.Model):
         cond = [['partner_id', 'in', ids],
                 ['date_begin', '>=', datetime.datetime.now().isoformat()],
                 ['state', '=', 'open']]
-        fields = ['shift_type', 'date_begin', 'partner_id', 'date_end','shift_ticket_id']
+        fields = ['shift_type', 'date_begin', 'partner_id', 'date_end', 'shift_ticket_id']
 
-        res = api.search_read('shift.registration', cond, fields, 2500,0, 'date_begin ASC')
+        res = api.search_read('shift.registration', cond, fields, 2500, 0, 'date_begin ASC')
         shifts = {}
         locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
@@ -758,7 +742,7 @@ class CagetteMember(models.Model):
     def remove_from_mess_list(request):
         res = {}
         try:
-            _id = request.POST.get("id","")
+            _id = request.POST.get("id", "")
             c_db = CouchDB(arg_db='member_mess')
             doc = c_db.getDocById(_id)
             res['action'] = c_db.delete(doc)

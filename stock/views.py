@@ -1,27 +1,55 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
 from datetime import date, time, datetime, timedelta
-
 from django.views.generic import View
 from django.conf import settings
-
-
-
 import timeit
-
-
 from .models import CagetteStock
-
-
+from inventory.models import CagetteInventory
 from django.shortcuts import render
 
 
+def movements_page(request):
+    """Page de selection de produits pour créer des mouvements de stock"""
+    context = {
+        'title': 'Mouvements de stock'
+    }
+    template = loader.get_template('stock/stock_movements.html')
 
+    return HttpResponse(template.render(context, request))
+
+def do_movement(request):
+    """Do the stock movement: losses, self conso or stock correction"""
+    res = {}
+    data = json.loads(request.body.decode())
+
+    if data['movement_type'] == 'stock_correction':
+        products = []
+        for p in data['products']:
+            products.append({
+                'id': p['id'],
+                'uom_id': [p['uom_id']],  # to be compatible with products['uom_id'][0]
+                'qty': p['qty']
+            })
+
+        inventory_data = {
+            'name': 'Correction de stocks - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            'products': products
+        }
+
+        res = CagetteInventory.update_stock_with_shelf_inventory_data(inventory_data)
+    else:
+        res = CagetteStock.do_stock_movement(data)
+
+    if 'errors' in res and res['errors']:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+### NOT IN USE ###
 
 # ??? a voir si on garde les heur d'ouverture de la cagette ici
-
 listWeekOpenHour = [[14,21],[8,21],[8,21],[8,21],[8,21],[8,21],[0,0]]
-
 
 # La Cagette Order -------------------------------------------------
 nbWeek = 4
@@ -29,10 +57,7 @@ now = datetime.combine(date.today(), datetime.min.time())
 startDate = now - timedelta(weeks=nbWeek) + timedelta(days=1)
 endDate = now
 
-
 # Order module with breaking of article
-
-
 def stockOrder(request):
 
     """

@@ -34,6 +34,18 @@ class CagetteProduct(models.Model):
 
         return api.search_read('product.product', cond, fields)
 
+    def get_products_stdprices(ids):
+        api = OdooAPI()
+        cond = [['id', 'in', ids]]
+        fields = ['id', 'standard_price']
+
+        try:
+            res = api.search_read('product.product', cond, fields)
+        except Exception as e:
+            res = {'error': str(e)}
+
+        return res
+
     @staticmethod
     def get_product_info_for_label_from_template_id(template_id):
         """Get product info for label."""
@@ -41,7 +53,8 @@ class CagetteProduct(models.Model):
         cond = [['product_tmpl_id.id', '=', template_id]]
         fields = ['barcode', 'product_tmpl_id', 'pricetag_rackinfos',
                   'price_weight_net', 'price_volume', 'list_price',
-                  'weight_net', 'volume','to_weight']
+                  'weight_net', 'volume', 'to_weight']
+        fields += getattr(settings, 'SHELF_LABELS_ADD_FIELDS', [])
         return api.search_read('product.product', cond, fields)
 
     @staticmethod
@@ -53,8 +66,8 @@ class CagetteProduct(models.Model):
                 product = p[0]
                 txt = ''
                 for k, v in product.items():
-                    if type(v) == list:
-                        v = v[1]
+                    if type(v) == list and len(v) > 0 :
+                        v = v[-1]
                     if k == 'product_tmpl_id':
                         k = 'name'
                     if k == 'list_price' and len(price) > 0 and float(price) > 0:
@@ -75,6 +88,7 @@ class CagetteProduct(models.Model):
                 file.close()
         except Exception as e:
             res['error'] = str(e)
+            coop_logger.error("Generate label : %s %s", templ_id, str(e))
         return res
 
 class CagetteProducts(models.Model):
@@ -170,18 +184,43 @@ class CagetteProducts(models.Model):
 
     @staticmethod
     def get_all_barcodes():
-        api = OdooAPI()
-        fields = ['barcode', 'display_name', 'sale_ok', 'purchase_ok', 'available_in_pos']
-        # cond = ['|', ('active', '=', True), ('active', '=', False)]
-        cond = []  # equivalent to [['active', '=', 'True']]
-        res = api.search_read('product.product', cond, fields, 10000)
+        """Needs lacagette_products Odoo module to be active."""
         result = {}
+        api = OdooAPI()
+        try:
+            res = api.execute('lacagette.products', 'get_barcodes', {})
 
-        for p in res:
-            # transcode result to compact format (for bandwith save and browser memory)
-            # real size / 4 (for 2750 products)
-            result[p['barcode']] = [p['display_name'], p['sale_ok'], p['purchase_ok'], p['available_in_pos']]
+            if 'list' in res:
+                result['pdts'] = {}
+                for p in res['list']:
+                    # transcode result to compact format (for bandwith save and browser memory)
+                    # real size / 4 (for 2750 products)
+                    result['pdts'][p['barcode']] = [
+                                                    p['display_name'],
+                                                    p['sale_ok'],
+                                                    p['purchase_ok'],
+                                                    p['available_in_pos'],
+                                                    p['id'],
+                                                    p['standard_price'],
+                                                    p['uom_id']]
+                if 'uoms' in res and 'list' in res['uoms']:
+                    result['uoms'] = res['uoms']['list']
+            elif 'error' in res:
+                result['error'] = res['error']
+        except Exception as e:
+                result['error'] = str(e)
+        return result
 
+    def get_uoms():
+        result = {}
+        api = OdooAPI()
+        try:
+            cond = [['active', '=', True]]
+            fields = ['display_name', 'uom_type']
+            res = api.search_read('product.uom', cond, fields)
+            result['list'] = res
+        except Exception as e:
+                result['error'] = str(e)
         return result
 
     @staticmethod

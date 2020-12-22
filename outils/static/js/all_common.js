@@ -31,7 +31,7 @@ function get_litteral_shift_template_name(name) {
 }
 
 
-function is_time_to(action, delay = 5000) {
+function is_time_to(action, delay=5000) {
     var answer = false;
     var last_date = actions_last_dates[action] || 0;
     var d = new Date();
@@ -207,13 +207,13 @@ function openModal() {
             btn_ok.on('click', arguments[1]); // Second argument is callback
             btn_ok.text(arguments[2] || 'Enregistrer'); // Third is button text
 
-            // 4th argument: if not set or set and not false, validate button closes the modal
+            // 4th argument: if set and false, validate button doesn't close the modal
             if (typeof (arguments[3]) == "undefined" || arguments[3] != false)
                 btn_ok.on('click', closeModal);
 
             btns.append(btn_ok);
 
-            // 5th argument: if not set or set and not false, add 'cancel' button
+            // 5th argument: if set and false, no 'cancel' button
             if (typeof (arguments[4]) == "undefined" || arguments[4] != false) {
                 btn_nok.text('Annuler');
                 btn_nok.on('click', closeModal);

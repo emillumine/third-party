@@ -91,6 +91,7 @@ def index(request):
             #  Following part is a copy of shifts/views.py (def home)
             context['partnerData'] = partnerData
             days_to_hide = "0"
+            context['ADDITIONAL_INFO_SHIFT_PAGE'] = getattr(settings, 'ADDITIONAL_INFO_SHIFT_PAGE', '')
             if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
                 days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
             context['daysToHide'] = days_to_hide
