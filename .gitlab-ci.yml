@@ -1,0 +1,8 @@
+lint:js:
+  image: node:14
+  cache:
+    key: node-modules
+    paths:
+      - node_modules/
+  script:
+    - make lint-js

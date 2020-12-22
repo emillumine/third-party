@@ -31,6 +31,7 @@
             re: /^(\d+)\s*([ap])(?:.?m.?)?$/i,
             handler: function(bits) {
                 var hour = parseInt(bits[1]);
+
                 if (hour === 12) {
                     hour = 0;
                 }
@@ -38,6 +39,7 @@
                     if (hour === 12) {
                         hour = 0;
                     }
+
                     return (hour + 12) + ':00';
                 } else {
                     if (hour < 10) {
@@ -54,6 +56,7 @@
             handler: function(bits) {
                 var hour = parseInt(bits[1]);
                 var mins = parseInt(bits[2]);
+
                 if (mins < 10) {
                     mins = '0' + mins;
                 }
@@ -64,6 +67,7 @@
                     if (hour === 12) {
                         hour = 0;
                     }
+
                     return (hour + 12) + ':' + mins;
                 } else {
                     if (hour < 10) {
@@ -95,10 +99,12 @@
             var re = timeParsePatterns[i].re;
             var handler = timeParsePatterns[i].handler;
             var bits = re.exec(s);
+
             if (bits) {
                 return handler(bits);
             }
         }
+
         return s;
     }
 

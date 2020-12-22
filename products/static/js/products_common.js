@@ -1,7 +1,7 @@
 function products_shelf_label_print (products, callback) {
-    console.log('Demande impression etiquettes rayon')
-    params = {products: JSON.stringify(products)}
-    post_form('/products/shelf_labels', params, callback)
+    console.log('Demande impression etiquettes rayon');
+    params = {products: JSON.stringify(products)};
+    post_form('/products/shelf_labels', params, callback);
 }
 /*
 $.ajax({

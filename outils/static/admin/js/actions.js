@@ -8,73 +8,82 @@
         var actionCheckboxes = $(this);
         var list_editable_changed = false;
         var showQuestion = function() {
-            $(options.acrossClears).hide();
-            $(options.acrossQuestions).show();
-            $(options.allContainer).hide();
-        },
-        showClear = function() {
-            $(options.acrossClears).show();
-            $(options.acrossQuestions).hide();
-            $(options.actionContainer).toggleClass(options.selectedClass);
-            $(options.allContainer).show();
-            $(options.counterContainer).hide();
-        },
-        reset = function() {
-            $(options.acrossClears).hide();
-            $(options.acrossQuestions).hide();
-            $(options.allContainer).hide();
-            $(options.counterContainer).show();
-        },
-        clearAcross = function() {
-            reset();
-            $(options.acrossInput).val(0);
-            $(options.actionContainer).removeClass(options.selectedClass);
-        },
-        checker = function(checked) {
-            if (checked) {
-                showQuestion();
-            } else {
+                $(options.acrossClears).hide();
+                $(options.acrossQuestions).show();
+                $(options.allContainer).hide();
+            },
+            showClear = function() {
+                $(options.acrossClears).show();
+                $(options.acrossQuestions).hide();
+                $(options.actionContainer).toggleClass(options.selectedClass);
+                $(options.allContainer).show();
+                $(options.counterContainer).hide();
+            },
+            reset = function() {
+                $(options.acrossClears).hide();
+                $(options.acrossQuestions).hide();
+                $(options.allContainer).hide();
+                $(options.counterContainer).show();
+            },
+            clearAcross = function() {
                 reset();
-            }
-            $(actionCheckboxes).prop("checked", checked)
-                .parent().parent().toggleClass(options.selectedClass, checked);
-        },
-        updateCounter = function() {
-            var sel = $(actionCheckboxes).filter(":checked").length;
-            // data-actions-icnt is defined in the generated HTML
-            // and contains the total amount of objects in the queryset
-            var actions_icnt = $('.action-counter').data('actionsIcnt');
-            $(options.counterContainer).html(interpolate(
-            ngettext('%(sel)s of %(cnt)s selected', '%(sel)s of %(cnt)s selected', sel), {
-                sel: sel,
-                cnt: actions_icnt
-            }, true));
-            $(options.allToggle).prop("checked", function() {
-                var value;
-                if (sel === actionCheckboxes.length) {
-                    value = true;
+                $(options.acrossInput).val(0);
+                $(options.actionContainer).removeClass(options.selectedClass);
+            },
+            checker = function(checked) {
+                if (checked) {
                     showQuestion();
                 } else {
-                    value = false;
-                    clearAcross();
+                    reset();
                 }
-                return value;
-            });
-        };
+                $(actionCheckboxes).prop("checked", checked)
+                    .parent()
+                    .parent()
+                    .toggleClass(options.selectedClass, checked);
+            },
+            updateCounter = function() {
+                var sel = $(actionCheckboxes).filter(":checked").length;
+                // data-actions-icnt is defined in the generated HTML
+                // and contains the total amount of objects in the queryset
+                var actions_icnt = $('.action-counter').data('actionsIcnt');
+
+                $(options.counterContainer).html(interpolate(ngettext('%(sel)s of %(cnt)s selected', '%(sel)s of %(cnt)s selected', sel), {
+                    sel: sel,
+                    cnt: actions_icnt
+                }, true));
+                $(options.allToggle).prop("checked", function() {
+                    var value;
+
+                    if (sel === actionCheckboxes.length) {
+                        value = true;
+                        showQuestion();
+                    } else {
+                        value = false;
+                        clearAcross();
+                    }
+
+                    return value;
+                });
+            };
         // Show counter by default
+
         $(options.counterContainer).show();
         // Check state of checkboxes and reinit state if needed
-        $(this).filter(":checked").each(function(i) {
-            $(this).parent().parent().toggleClass(options.selectedClass);
-            updateCounter();
-            if ($(options.acrossInput).val() === 1) {
-                showClear();
-            }
-        });
-        $(options.allToggle).show().click(function() {
-            checker($(this).prop("checked"));
-            updateCounter();
-        });
+        $(this).filter(":checked")
+            .each(function(i) {
+                $(this).parent()
+                    .parent()
+                    .toggleClass(options.selectedClass);
+                updateCounter();
+                if ($(options.acrossInput).val() === 1) {
+                    showClear();
+                }
+            });
+        $(options.allToggle).show()
+            .click(function() {
+                checker($(this).prop("checked"));
+                updateCounter();
+            });
         $("a", options.acrossQuestions).click(function(event) {
             event.preventDefault();
             $(options.acrossInput).val(1);
@@ -89,23 +98,33 @@
         });
         lastChecked = null;
         $(actionCheckboxes).click(function(event) {
-            if (!event) { event = window.event; }
+            if (!event) {
+                event = window.event;
+            }
             var target = event.target ? event.target : event.srcElement;
+
             if (lastChecked && $.data(lastChecked) !== $.data(target) && event.shiftKey === true) {
                 var inrange = false;
+
                 $(lastChecked).prop("checked", target.checked)
-                    .parent().parent().toggleClass(options.selectedClass, target.checked);
+                    .parent()
+                    .parent()
+                    .toggleClass(options.selectedClass, target.checked);
                 $(actionCheckboxes).each(function() {
                     if ($.data(this) === $.data(lastChecked) || $.data(this) === $.data(target)) {
                         inrange = (inrange) ? false : true;
                     }
                     if (inrange) {
                         $(this).prop("checked", target.checked)
-                            .parent().parent().toggleClass(options.selectedClass, target.checked);
+                            .parent()
+                            .parent()
+                            .toggleClass(options.selectedClass, target.checked);
                     }
                 });
             }
-            $(target).parent().parent().toggleClass(options.selectedClass, target.checked);
+            $(target).parent()
+                .parent()
+                .toggleClass(options.selectedClass, target.checked);
             lastChecked = target;
             updateCounter();
         });
@@ -119,6 +138,7 @@
         });
         $('form#changelist-form input[name="_save"]').click(function(event) {
             var action_changed = false;
+
             $('select option:selected', options.actionContainer).each(function() {
                 if ($(this).val()) {
                     action_changed = true;
@@ -146,6 +166,7 @@
     };
     $(document).ready(function() {
         var $actionsEls = $('tr input.action-select');
+
         if ($actionsEls.length > 0) {
             $actionsEls.actions();
         }

@@ -1,0 +1,20 @@
+{
+    "name": "third-party",
+    "version": "1.0.0",
+    "description": "Applis tierces pour simplifier l'utilisation de Odoo",
+    "main": "index.js",
+    "dependencies": {},
+    "devDependencies": {
+        "eslint": "^7.16.0"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "eslint . --max-warnings 362 '**/*.js'",
+        "lint-fix": "eslint . --fix --max-warnings 362 '**/*.js'"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://gl.cooperatic.fr/cooperatic-foodcoops/third-party"
+    },
+    "author": "Cooperatic"
+}

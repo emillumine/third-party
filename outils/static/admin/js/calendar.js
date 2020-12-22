@@ -33,22 +33,21 @@ depends on core.js for utility functions like removeChildren or quickElement
         ],
         firstDayOfWeek: parseInt(get_format('FIRST_DAY_OF_WEEK')),
         isLeapYear: function(year) {
-            return (((year % 4) === 0) && ((year % 100) !== 0 ) || ((year % 400) === 0));
+            return (((year % 4) === 0) && ((year % 100) !== 0) || ((year % 400) === 0));
         },
         getDaysInMonth: function(month, year) {
             var days;
+
             if (month === 1 || month === 3 || month === 5 || month === 7 || month === 8 || month === 10 || month === 12) {
                 days = 31;
-            }
-            else if (month === 4 || month === 6 || month === 9 || month === 11) {
+            } else if (month === 4 || month === 6 || month === 9 || month === 11) {
                 days = 30;
-            }
-            else if (month === 2 && CalendarNamespace.isLeapYear(year)) {
+            } else if (month === 2 && CalendarNamespace.isLeapYear(year)) {
                 days = 29;
-            }
-            else {
+            } else {
                 days = 28;
             }
+
             return days;
         },
         draw: function(month, year, div_id, callback, selected) { // month = 1-12, year = 1-9999
@@ -70,6 +69,7 @@ depends on core.js for utility functions like removeChildren or quickElement
             // The day variable above will be 1 instead of 2 in, say, US Pacific time
             // zone.
             var isSelectedMonth = false;
+
             if (typeof selected !== 'undefined') {
                 isSelectedMonth = (selected.getUTCFullYear() === year && (selected.getUTCMonth() + 1) === month);
             }
@@ -77,13 +77,16 @@ depends on core.js for utility functions like removeChildren or quickElement
             month = parseInt(month);
             year = parseInt(year);
             var calDiv = document.getElementById(div_id);
+
             removeChildren(calDiv);
             var calTable = document.createElement('table');
+
             quickElement('caption', calTable, CalendarNamespace.monthsOfYear[month - 1] + ' ' + year);
             var tableBody = quickElement('tbody', calTable);
 
             // Draw days-of-week header
             var tableRow = quickElement('tr', tableBody);
+
             for (var i = 0; i < 7; i++) {
                 quickElement('th', tableRow, CalendarNamespace.daysOfWeek[(i + CalendarNamespace.firstDayOfWeek) % 7]);
             }
@@ -105,11 +108,13 @@ depends on core.js for utility functions like removeChildren or quickElement
                     e.preventDefault();
                     callback(y, m, this.textContent);
                 }
+
                 return onClick;
             }
 
             // Draw days of month
             var currentDay = 1;
+
             for (i = startingPos; currentDay <= days; i++) {
                 if (i % 7 === 0 && currentDay !== 1) {
                     tableRow = quickElement('tr', tableBody);
@@ -130,6 +135,7 @@ depends on core.js for utility functions like removeChildren or quickElement
 
                 var cell = quickElement('td', tableRow, '', 'class', todayClass);
                 var link = quickElement('a', cell, currentDay, 'href', '#');
+
                 link.addEventListener('click', calendarMonth(year, month));
                 currentDay++;
             }
@@ -168,7 +174,7 @@ depends on core.js for utility functions like removeChildren or quickElement
             this.currentMonth = month;
             this.currentYear = year;
 
-            if(selected) {
+            if (selected) {
                 this.selected = selected;
             }
 
@@ -178,8 +184,7 @@ depends on core.js for utility functions like removeChildren or quickElement
             if (this.currentMonth === 1) {
                 this.currentMonth = 12;
                 this.currentYear--;
-            }
-            else {
+            } else {
                 this.currentMonth--;
             }
             this.drawCurrent();
@@ -188,8 +193,7 @@ depends on core.js for utility functions like removeChildren or quickElement
             if (this.currentMonth === 12) {
                 this.currentMonth = 1;
                 this.currentYear++;
-            }
-            else {
+            } else {
                 this.currentMonth++;
             }
             this.drawCurrent();

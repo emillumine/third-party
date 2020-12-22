@@ -8,15 +8,19 @@ var isIE = ((document.all) && (!isOpera)) && parseFloat(navigator.appVersion.spl
 function quickElement() {
     'use strict';
     var obj = document.createElement(arguments[0]);
+
     if (arguments[2]) {
         var textNode = document.createTextNode(arguments[2]);
+
         obj.appendChild(textNode);
     }
     var len = arguments.length;
+
     for (var i = 3; i < len; i += 2) {
         obj.setAttribute(arguments[i], arguments[i + 1]);
     }
     arguments[1].appendChild(obj);
+
     return obj;
 }
 
@@ -35,6 +39,7 @@ function removeChildren(a) {
 function findPosX(obj) {
     'use strict';
     var curleft = 0;
+
     if (obj.offsetParent) {
         while (obj.offsetParent) {
             curleft += obj.offsetLeft - ((isOpera) ? 0 : obj.scrollLeft);
@@ -47,12 +52,14 @@ function findPosX(obj) {
     } else if (obj.x) {
         curleft += obj.x;
     }
+
     return curleft;
 }
 
 function findPosY(obj) {
     'use strict';
     var curtop = 0;
+
     if (obj.offsetParent) {
         while (obj.offsetParent) {
             curtop += obj.offsetTop - ((isOpera) ? 0 : obj.scrollTop);
@@ -65,6 +72,7 @@ function findPosY(obj) {
     } else if (obj.y) {
         curtop += obj.y;
     }
+
     return curtop;
 }
 
@@ -75,10 +83,10 @@ function findPosY(obj) {
     'use strict';
     Date.prototype.getTwelveHours = function() {
         var hours = this.getHours();
+
         if (hours === 0) {
             return 12;
-        }
-        else {
+        } else {
             return hours <= 12 ? hours : hours - 12;
         }
     };
@@ -140,27 +148,30 @@ function findPosY(obj) {
             '%': '%'
         };
         var result = '', i = 0;
+
         while (i < format.length) {
             if (format.charAt(i) === '%') {
                 result = result + fields[format.charAt(i + 1)];
                 ++i;
-            }
-            else {
+            } else {
                 result = result + format.charAt(i);
             }
             ++i;
         }
+
         return result;
     };
 
-// ----------------------------------------------------------------------------
-// String object extensions
-// ----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
+    // String object extensions
+    // ----------------------------------------------------------------------------
     String.prototype.pad_left = function(pad_length, pad_string) {
         var new_string = this;
+
         for (var i = 0; new_string.length < pad_length; i++) {
             new_string = pad_string + new_string;
         }
+
         return new_string;
     };
 
@@ -169,20 +180,21 @@ function findPosY(obj) {
         var date = this.split(/[.\-/]/);
         var i = 0;
         var day, month, year;
+
         while (i < split_format.length) {
             switch (split_format[i]) {
-                case "%d":
-                    day = date[i];
-                    break;
-                case "%m":
-                    month = date[i] - 1;
-                    break;
-                case "%Y":
-                    year = date[i];
-                    break;
-                case "%y":
-                    year = date[i];
-                    break;
+            case "%d":
+                day = date[i];
+                break;
+            case "%m":
+                month = date[i] - 1;
+                break;
+            case "%Y":
+                year = date[i];
+                break;
+            case "%y":
+                year = date[i];
+                break;
             }
             ++i;
         }
@@ -199,14 +211,15 @@ function findPosY(obj) {
 function getStyle(oElm, strCssRule) {
     'use strict';
     var strValue = "";
-    if(document.defaultView && document.defaultView.getComputedStyle) {
+
+    if (document.defaultView && document.defaultView.getComputedStyle) {
         strValue = document.defaultView.getComputedStyle(oElm, "").getPropertyValue(strCssRule);
-    }
-    else if(oElm.currentStyle) {
-        strCssRule = strCssRule.replace(/\-(\w)/g, function(strMatch, p1) {
+    } else if (oElm.currentStyle) {
+        strCssRule = strCssRule.replace(/-(\w)/g, function(strMatch, p1) {
             return p1.toUpperCase();
         });
         strValue = oElm.currentStyle[strCssRule];
     }
+
     return strValue;
 }
