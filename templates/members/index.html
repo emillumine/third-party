@@ -26,12 +26,15 @@
 {% endblock %}
 {% block content %}
 <section class="grid-6 has-gutter" id="first_page">
-    <h1 class="col-6 txtcenter">{{WELCOME_ENTRANCE_MSG}}</h1>
+  <h1 class="col-6 txtcenter">{{WELCOME_ENTRANCE_MSG}}</h1>
+  {% if WELCOME_SUBTITLE_ENTRANCE_MSG %}
+    <h4 class="col-6 txtcenter">{{WELCOME_SUBTITLE_ENTRANCE_MSG|safe}}</h4>
+  {% endif %}
     <div class="col-1"></div>
-    <a class="col-4 row-2 btn txtcenter b_yellow" data-next="shopping_entry">Je viens faire mes courses</a>
+    <a class="col-4 row-2 btn txtcenter b_yellow" data-next="shopping_entry">…faire <b>mes courses 🛒</b></a>
     <div class="col-1 row-2"></div>
     <div class="col-1 row-2"></div>
-    <a class="col-4 row-2 btn txtcenter b_green" data-next="service_entry">Je viens faire mon service</a>
+    <a class="col-4 row-2 btn txtcenter b_green" data-next="service_entry">…faire <b>mon service 🤝</b></a>
     <div class="col-1 row-2"></div>
 </section>
 <section class="grid-6 has-gutter" id="shopping_entry">
