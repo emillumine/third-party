@@ -1,14 +1,14 @@
 """Secret data for DB connexion ."""
 
 ODOO = {
-    'url': 'http://127.0.0.1:8069'
+    'url': 'http://odoo:8069',
     'user': 'api',
-    'passwd': 'xxxxxxxxxxxx',
-    'db': 'bd_test',
+    'passwd': 'changeme',
+    'db': 'foodcoops',
 }
 
 COUCHDB = {
-    'url': 'http://127.0.0.1:5984',
+    'url': 'http://couchdb:5984',
     'dbs': {
               'member': 'coops',
               'inventory': 'inventory',
