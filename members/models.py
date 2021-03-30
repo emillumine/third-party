@@ -986,8 +986,18 @@ class CagetteServices(models.Model):
                  'seats_available']
             c = [['active', '=', True]]
             shift_templates = api.search_read('shift.template', c, f)
+
+            # Get count of active registrations for each shift template
+            # shift_templates_active_count = api.execute('lacagette_shifts', 'get_active_shifts', [])
+            # With LGDS tests, seats_reserved reflects better what's shown in Odoo ...
+
             title = re.compile(r"^(\w{1})(\w{3})\. - (\d{2}:\d{2}) ?-? ?(\w*)")
             for l in shift_templates:
+                # nb_reserved = 0
+                # for stac in shift_templates_active_count:
+                #     if stac['shift_template_id'] == l['id']:
+                #         nb_reserved = stac['seats_active_registration']
+
                 line = {}
                 end = time.strptime(l['end_datetime_tz'], "%Y-%m-%d %H:%M:%S")
                 end_min = str(end.tm_min)
@@ -995,6 +1005,7 @@ class CagetteServices(models.Model):
                     end_min = '00'
                 line['end'] = str(end.tm_hour) + ':' + end_min
                 line['max'] = l['seats_max']
+                # line['reserved'] = nb_reserved
                 line['reserved'] = l['seats_reserved']
                 line['week'] = l['week_number']
                 line['id'] = l['id']
@@ -1214,4 +1225,3 @@ class CagetteUser(models.Model):
                 pass
 
         return answer
-

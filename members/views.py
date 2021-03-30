@@ -76,6 +76,7 @@ def inscriptions(request, type=1):
                'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
                'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
+               'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
                'db': settings.COUCHDB['dbs']['member']}
 
     response = HttpResponse(template.render(context, request))

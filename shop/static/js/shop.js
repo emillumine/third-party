@@ -92,6 +92,10 @@ function djLogError(e) {
 }
 
 var french_date_and_time = function(dstring) {
+    if (shop_mode == 'delivery') {
+        return dstring;
+    }
+
     var formatted = dstring.trim().replace(/-/g, "/"); // replace for Safari
     //expected = YYYY-MM-DD HH:MM[:00]
 
@@ -494,7 +498,7 @@ var getStoredOrder = function() {
     var stored = null;
 
     try {
-        stored = JSON.parse(localStorage.getItem('currentOrder'));
+        stored = JSON.parse(localStorage.getItem(current_order_name));
     } catch (e) {
         //WARNING : In this case, make sure the user haven't got any order initialized
         //TODO : make a request to retrieve it
@@ -508,7 +512,7 @@ var getStoredOrderForMigration = function() {
     var stored = null;
 
     try {
-        stored = JSON.parse(localStorage.getItem('saved_order'));
+        stored = JSON.parse(localStorage.getItem(saved_order_name));
     } catch (e) {
         djLogError({ctx: "get stored for mig", msg:e});
     }
@@ -523,7 +527,7 @@ var storeOrderForMigration = function() {
         delete to_save._rev;
         delete to_save.timer_end_date;
         delete to_save.best_date;
-        localStorage.setItem("saved_order", JSON.stringify(to_save));
+        localStorage.setItem(saved_order_name, JSON.stringify(to_save));
         order = to_save;
         storeOrder();
     } catch (e) {
@@ -532,7 +536,7 @@ var storeOrderForMigration = function() {
 };
 var storeOrder = function() {
     try {
-        localStorage.setItem("currentOrder", JSON.stringify(order));
+        localStorage.setItem(current_order_name, JSON.stringify(order));
     } catch (e) {
         djLogError({ctx: "store order", msg:e});
     }
@@ -604,7 +608,8 @@ var pass2step2 = function() {
     $('h1').show();
     var recup = order.best_date || 'non défini';
 
-    current_order_bdate.html("Récupération : <strong>" + french_date_and_time(recup) + "</strong>");
+    if (shop_mode == 'shop')
+        current_order_bdate.html("Récupération : <strong>" + french_date_and_time(recup) + "</strong>");
     if (visit_mode == true) {
         $('.product .choice').hide();
         right_column.hide();
@@ -774,19 +779,22 @@ var isChoosenSlotValid = function(slot) {
     var answer = true;
     var cause = '';
 
-    forbidden_slots.forEach(function(e) {
-        if (slot == e) {
-            answer = false; cause = 'full';
-        }
-    });
-    //Does it respect min delay ?
-    var now = new Date();
-    var min_date = new Date();
-    var slot_date = new Date(slot.replace(/-/g, "/")); // replace for Safari
+    // For delivery, no slot validation: return true
+    if (shop_mode == 'shop') {
+        forbidden_slots.forEach(function(e) {
+            if (slot == e) {
+                answer = false; cause = 'full';
+            }
+        });
+        //Does it respect min delay ?
+        var now = new Date();
+        var min_date = new Date();
+        var slot_date = new Date(slot.replace(/-/g, "/")); // replace for Safari
 
-    min_date = new Date(min_date.setHours(now.getHours() + min_delay));
-    if (slot_date - min_date < 0) {
-        answer = false; cause = 'delay';
+        min_date = new Date(min_date.setHours(now.getHours() + min_delay));
+        if (slot_date - min_date < 0) {
+            answer = false; cause = 'delay';
+        }
     }
 
     return {res: answer, reason: cause};
@@ -912,7 +920,6 @@ var validCart = function() {
     post_form(
         '/shop/cart', {order: JSON.stringify(order)},
         function(err, result) {
-            //console.log(result)
             if (!err) {
                 try {
                     if (typeof result.res.cart != "undefined" && result.res.cart != null) {
@@ -948,7 +955,7 @@ var validCart = function() {
 };
 
 var clearCart = function() {
-    order = {products: [], total: 0.00};
+    order = { products: [], total: 0.00, type: shop_mode};
     storeOrder();
     cart.find('.cart-elt').remove();
     updateCartTotal(0, 0);
@@ -1053,14 +1060,22 @@ var loadAllAvailableBoughtProducts = function() {
 };
 
 var appendChildrenCatToMenu = function (catdiv, children) {
-    // console.log(children)
     var ul = catdiv.find('ul');
 
     $.each(children, function(i, e) {
         if (excluded_cat.indexOf(e.id) < 0) {
             var li = $('<li>').addClass("nav-item");
+
+            // Remove TVA in cat name
+            let name = e.name;
+
+            name = name.replaceAll(' TVA 20%', '');
+            name = name.replaceAll(' TVA 5,5%', '');
+            name = name.replaceAll(' 20%', '');
+            name = name.replaceAll(' 5,5%', '');
+
             var span = $('<span>').attr('data-id', e.id)
-                .text(e.name);
+                .text(name);
 
             li.append(span);
             ul.append(li);
@@ -1347,7 +1362,8 @@ var changeBestDate = function() {
 
     msg.find('select[name="bhour-change"]').html(cart_vform.find('select[name="bhour"]').html());
     msg.find('.slots-constraints').html(cart_vform.find('.slots-constraints').html());
-    fillBDayOptions(bday_change_sel);
+    if (shop_mode == 'shop')
+        fillBDayOptions(bday_change_sel);
 
     updateUnavailableSlots(function() {
         openModal(msg.html(), function() {
@@ -1473,7 +1489,8 @@ var launch_init_form = function() {
     make_user_wait('Préparation du formulaire...');
     current_action = 'init_form';
     updateUnavailableSlots(function() {
-        fillBDayOptions(bday_sel);
+        if (shop_mode == 'shop')
+            fillBDayOptions(bday_sel);
         openModal($('#cart_creation_form').html(), initCart, 'Commencer la commande');
     });
 };
@@ -1520,7 +1537,9 @@ var justVisit = function() {
     pass2step2();
 };
 
-var order = getStoredOrder() || {products: [], total: 0.00};
+var current_order_name = shop_mode == 'shop' ? 'currentShopOrder' : 'currentDeliveryOrder';
+var saved_order_name = shop_mode == 'shop' ? 'saved_shop_order' : 'saved_delivery_order';
+var order = getStoredOrder() || { products: [], total: 0.00, type: shop_mode};
 var content1 = $('#tab-content1');
 var content4 = $('#tab-content4');
 var category_elts = getStoredCatElts() || {};

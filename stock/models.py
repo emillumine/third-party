@@ -8,6 +8,31 @@ from datetime import datetime
 class CagetteStock(models.Model):
 
     @staticmethod
+    def get_movements(movement_type, date_from, date_to):
+        o_api = OdooAPI()
+        errors = []
+
+        if movement_type == 'losses':
+            location_dest_id = settings.LOSSES_LOC_ID
+        elif movement_type == 'meals':
+            location_dest_id = settings.MEALS_LOC_ID
+        elif movement_type == 'autoconso':
+            location_dest_id = settings.AUTOCONSO_LOC_ID
+        else:
+            errors.append('Type de mouvement incorrect')
+            return {'errors': errors}
+
+        f = ['name', 'date_done', 'inventory_value']
+        c = [['location_dest_id', "=", location_dest_id],
+        ['date_done', ">=", date_from],
+        ['date_done', "<=", date_to],
+        ['state', "=", 'done']]
+
+        res = o_api.search_read('stock.picking', c, f)
+
+        return res
+
+    @staticmethod
     def do_stock_movement(stock_movement_data):
         """Do a stock movement : """
 
@@ -18,20 +43,23 @@ class CagetteStock(models.Model):
 
         # Set stock movement details according to destination
         if stock_movement_data['movement_type'] == 'losses':
-            picking_name = 'Pertes - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            picking_name = 'Pertes - '
             picking_type = settings.LOSSES_PICKING_TYPE_ID
             destination = settings.LOSSES_LOC_ID
         elif stock_movement_data['movement_type'] == 'meals':
-            picking_name = 'Repas Salarié - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            picking_name = 'Repas Salarié - '
             picking_type = settings.MEALS_PICKING_TYPE_ID
             destination = settings.MEALS_LOC_ID
         elif stock_movement_data['movement_type'] == 'autoconso':
-            picking_name = 'Autoconsommation - ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            picking_name = 'Autoconsommation - '
             picking_type = settings.AUTOCONSO_PICKING_TYPE_ID
             destination = settings.AUTOCONSO_LOC_ID
         else:
             errors.append('Type de mouvement incorrect')
             return {'errors': errors, 'picking_id': picking}
+
+        picking_name += datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        picking_name += ' - ' + stock_movement_data['operator']['name'] + ' ('+ str(stock_movement_data['operator']['barcode_base']) + ')'
 
         fields = {
             'company_id': 1,
@@ -39,8 +67,9 @@ class CagetteStock(models.Model):
             'picking_type_id' : picking_type,       # mouvement type
             'location_id': settings.STOCK_LOC_ID,   # movement origin
             'location_dest_id': destination,        # movement dest
-            "move_lines": [],
-            "pack_operation_ids": []
+            'move_lines': [],
+            'pack_operation_ids': [],
+            'operator_id': stock_movement_data['operator']['id']
         }
 
         for p in stock_movement_data['products']:

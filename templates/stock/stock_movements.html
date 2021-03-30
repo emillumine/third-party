@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/stock_movements.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/stock_movements.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+  <div id="content_movement_type_selection" class="page_content">
+    <div class="header txtcenter">
+      <h1>Saisie de mouvements de stock</h1>
+      <p><i>Choisissez le type de mouvement de stock que vous voulez enregistrer</i></p>
+    </div>
+
+    <div class="movement_type_buttons txtcenter">
+        <button type="button" class="btn--primary movement_type_button" id="losses_type_button">
+          Pertes
+          <span class="movement_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+        </button><br>
+        <button type="button" class="btn--primary movement_type_button" id="autoconso_type_button">
+          Autoconsommation
+          <span class="movement_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+        </button><br>
+        <button type="button" class="btn--primary movement_type_button" id="meals_type_button">
+          Repas salariés
+          <span class="movement_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+        </button>
+    </div>
+  </div>
+
+  <div id="content_main" class="page_content" style="display:none;">
+    <div class="header txtcenter">
+      <div id="back_to_movement_selection">
+        <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+      </div>
+      <h1 id="title_movement_type"></h1>
+      <p style="margin-bottom:0;"><i>Passez un produit sous la douchette ! Si rien ne se passe, cliquez sur le champ ci-dessous puis ré-essayez.</i></p>
+      <p><i>Vous pouvez également taper le codebarre, puis appuyer sur la touche Entrée.</i></p>
+    </div>
+
+    <div class="barcode_search_area txtcenter">
+      <input type="text" id="sm_barcode_selector" placeholder="Codebarre">
+      <div id="icon_product_not_found" class="tooltip" style="display:none;">
+        <span class="tooltiptext tooltip-lg tt_twolines">Aucun produit trouvé avec ce code-barre.</span>
+        <span style="color: #d9534f;"> <i class="fas fa-ban"></i>
+        </div>
+    </div>
+
+    <div class="main">
+      <table id="products_table" class="display" cellspacing="0" ></table>
+    </div>
+
+    <div class="footer txtcenter" style="display:none">
+      <h4>Total (H.T.) : <span class="total_value">0</span> €</h4>
+      <button type="button" class="btn--primary" id="movement_validation_button" name="button">Validation du total des produits saisis</button>
+    </div>
+    <input type="hidden" name="barcode"/>
+  </div>
+
+  <div id="templates" style="display:none;">
+    <div id="modal_confirm_movement">
+      <h4 id="confirm_message_movtype"></h4>
+      <br>
+      <div class="confirmation_modal_content">
+        <div class="confirmation_checking_msgs">
+          <p id="confirmation_checking_price_msg"><i class="fas fa-spinner fa-spin"></i> Vérification des prix...</p>
+          <p id="confirmation_price_changed" style="display:none;"><i class="fas fa-exclamation-triangle"></i> Des prix ont changé, veuillez recharger la page après cette opération.</p>
+        </div>
+        <table id="confirmation_table" class="display" cellspacing="0" width="100%"></table>
+      </div>
+      <br>
+      <h5>Total (H.T.) : <span class="total_value">0</span> €</h5>
+      <hr />
+      <section class="set_member_to_movement">
+        <p>Avant de valider l'opération, merci de nous dire qui vous êtes :</p>
+        <form id="sm_search_member_form" action="javascript:;" method="post">
+          <input type="text" id="sm_search_member_input" value="" placeholder="Votre nom ou numéro..." required>
+          <button type="submit" class="btn--primary" id="sm_search_member_button">Recherche</button>
+        </form>
+        <div class="search_member_results_area" style="display:none;">
+          <div>
+            <p>Vous êtes (cliquez sur votre nom) :</p>
+          </div>
+          <div class="search_member_results"></div>
+        </div>
+      </section>
+      <hr />
+    </div>
+
+    <div id="modal_confirm_delete_line">
+      <p>Vous vous apprêtez à suprimer une ligne du tableau, <b>êtes-vous sûr ?</b></p>
+    </div>
+  </div>
+</div>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src='{% static "js/barcodes.js" %}?v='></script>
+{% endblock %}

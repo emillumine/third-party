@@ -26,11 +26,11 @@ var reception_status,
     editing_product = null, // Store the product currently being edited
     editing_origin, // Keep track of where editing_product comes from
     processed_row_counter = 0, // Order in which products were added in processed list
-    search_chars = [],
     user_comments = "",
     updatedProducts = [], // Keep record of updated products
     validProducts = [], // Keep record of directly validated products
-    updateType = ""; // step 1: qty_valid; step2: br_valid
+    updateType = "", // step 1: qty_valid; step2: br_valid
+    barcodes = null; // Barcodes stored locally
 
 
 /* UTILS */
@@ -64,21 +64,31 @@ function searchUpdatedProduct() {
 function select_product_from_bc(barcode) {
     try {
         if (editing_product == null) {
+            let p = barcodes.get_corresponding_odoo_product(barcode);
+
+            if (p == null) {
+                alert("Le code-barre " + barcode + " ne correspond à aucun article connu.");
+
+                return -1;
+            }
+
             var found = {data: null, place: null};
 
             $.each(list_to_process, function(i, e) {
-                if (e.barcode == barcode) {
+                if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
                     found.data = e;
                     found.place = 'to_process';
                 }
             });
 
-            $.each(list_processed, function(i, e) {
-                if (e.barcode == barcode) {
-                    found.data = e;
-                    found.place = 'processed';
-                }
-            });
+            if (found.data != null) {
+                $.each(list_processed, function(i, e) {
+                    if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
+                        found.data = e;
+                        found.place = 'processed';
+                    }
+                });
+            }
 
             if (found.data !== null) {
                 setLineEdition(found.data);
@@ -220,7 +230,7 @@ function initLists() {
                 {
                     data:"product_id.1",
                     title:"Produit",
-                    width: "50%",
+                    width: "45%",
                     render: function (data, type, full, meta) {
                         // Add tooltip with barcode over product name
                         let display_barcode = "Aucun";
@@ -258,6 +268,12 @@ function initLists() {
                     defaultContent: "<a class='btn' id='toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
                     className:"dt-body-center",
                     orderable: false
+                },
+                {
+                    title:"Autres",
+                    defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
+                    className:"dt-body-center",
+                    orderable: false
                 }
             ],
             rowId : "product_id.0",
@@ -283,7 +299,7 @@ function initLists() {
                 {
                     data:"product_id.1",
                     title:"Produit",
-                    width: "60%",
+                    width: "55%",
                     render: function (data, type, full, meta) {
                         // Add tooltip with barcode over product name
                         let display_barcode = "Aucun";
@@ -292,9 +308,17 @@ function initLists() {
                             display_barcode = full.barcode;
                         }
 
-                        return '<div class="tooltip">' + data
-              + ' <span class="tooltiptext tt_twolines">Code barre : '
-              + display_barcode + '</span> </div>';
+                        let display = '<div class="tooltip">' + data
+                                      + ' <span class="tooltiptext tt_twolines">Code barre : '
+                                      + display_barcode + '</span> </div>';
+
+                        if (full.supplier_shortage) {
+                            display += ' <div class="tooltip"><i class="fas fa-info-circle"></i>'
+                                      + ' <span class="tooltiptext tt_twolines">Rupture fournisseur'
+                                      + '</span> </div>';
+                        }
+
+                        return display;
                     }
                 },
                 {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
@@ -315,6 +339,19 @@ function initLists() {
                     defaultContent: "<a class='btn' id='processed_line_edit' href='#'><i class='far fa-edit'></i></a>",
                     className:"dt-body-center",
                     orderable: false
+                },
+                {
+                    title:"Autres",
+                    className:"dt-body-center",
+                    orderable: false,
+                    render: function (data, type, full, meta) {
+                        let disabled = (full.supplier_shortage) ? "disabled" : '';
+
+                        return "<select class='select_product_action'>"
+                              + "<option value=''></option>"
+                              + "<option value='supplier_shortage' "+disabled+">Rupture fournisseur</option>"
+                              + "</select>";
+                    }
                 }
             ],
             rowId : "product_id.0",
@@ -386,7 +423,6 @@ function initLists() {
                 $('table.dataTable').DataTable()
                     .search('')
                     .draw();
-                search_chars = [];
             }
         } catch (e) {
             err = {msg: e.name + ' : ' + e.message, ctx: 'initLists : listener edit line from list to process'};
@@ -394,6 +430,38 @@ function initLists() {
             report_JS_error(err, 'reception');
         }
     });
+
+    $('#table_to_process tbody').on('change', '.select_product_action', function () {
+        try {
+            if ($(this).val() == 'supplier_shortage') {
+                var row = table_to_process.row($(this).parents('tr'));
+                var data = row.data();
+
+                var modal_shortage = $('#modal_set_supplier_shortage');
+
+                modal_shortage.find(".supplier_shortage_product").text(' ' + data.product_id[1]);
+                modal_shortage.find(".supplier_shortage_supplier").text(' ' + data.partner_id[1]);
+
+                openModal(
+                    modal_shortage.html(),
+                    function() {
+                        set_supplier_shortage(row, data);
+                    },
+                    'Valider',
+                    true,
+                    true,
+                    function() {
+                        $(".select_product_action").val('');
+                    }
+                );
+            }
+        } catch (e) {
+            err = {msg: e.name + ' : ' + e.message, ctx: 'initLists : listener set supplier shortage'};
+            console.error(err);
+            report_JS_error(err, 'reception');
+        }
+    });
+
 
     // Edit processed line
     $('#table_processed tbody').on('click', 'a#processed_line_edit', function () {
@@ -412,13 +480,43 @@ function initLists() {
                 $('table.dataTable').DataTable()
                     .search('')
                     .draw();
-                search_chars = [];
             }
         } catch (e) {
             err = {
                 msg: e.name + ' : ' + e.message,
                 ctx: 'initLists: listener edit line from processed list'
             };
+            console.error(err);
+            report_JS_error(err, 'reception');
+        }
+    });
+
+    $('#table_processed tbody').on('change', '.select_product_action', function () {
+        try {
+            if ($(this).val() == 'supplier_shortage') {
+                var row = table_processed.row($(this).parents('tr'));
+                var data = row.data();
+
+                var modal_shortage = $('#modal_set_supplier_shortage');
+
+                modal_shortage.find(".supplier_shortage_product").text(' ' + data.product_id[1]);
+                modal_shortage.find(".supplier_shortage_supplier").text(' ' + data.partner_id[1]);
+
+                openModal(
+                    modal_shortage.html(),
+                    function() {
+                        set_supplier_shortage(row, data, true);
+                    },
+                    'Valider',
+                    true,
+                    true,
+                    function() {
+                        $(".select_product_action").val('');
+                    }
+                );
+            }
+        } catch (e) {
+            err = {msg: e.name + ' : ' + e.message, ctx: 'initLists : listener set supplier shortage'};
             console.error(err);
             report_JS_error(err, 'reception');
         }
@@ -550,6 +648,87 @@ function remove_from_processed(row, product) {
     }
 }
 
+// Indicate the product is on supplier shortage.
+// Direct validation from to_process & set qty to 0
+function set_supplier_shortage(row, product, from_processed = false) {
+    try {
+        product.supplier_shortage = true;
+
+        // Step 1: set qty to 0
+        if (reception_status == 'False') {
+            if (!from_processed) {
+                product.old_qty = product.product_qty;
+            }
+            product.product_qty = 0;
+        // Step 2: for consistency purposes, updated products need these fields to be set
+        } else {
+            if (!from_processed) {
+                product.old_price_unit = product.price_unit;
+                product.new_shelf_price = null;
+            }
+        }
+
+        // Create 'updated products' list in order if doesn't exists
+        if (!orders[product.id_po]['updated_products'])
+            orders[product.id_po]['updated_products'] = [];
+
+        if (from_processed) {
+            // Look for product in order's updated products list
+            let already_updated = false;
+
+            for (i in orders[product.id_po]['updated_products']) {
+                if (orders[product.id_po]['updated_products'][i]['id']
+                    == product['id']) {
+
+                    orders[product.id_po]['updated_products'][i] = product;
+                    already_updated = true;
+                }
+            }
+
+            // If not updated before, add product to updated list...
+            if (!already_updated) {
+                orders[product.id_po]['updated_products'].push(product);
+
+                // ... and remove product from 'direct validated' products if was there
+                if ('valid_products' in orders[product.id_po]) {
+                    for (i in orders[product.id_po]['valid_products']) {
+                        if (orders[product.id_po]['valid_products'][i] == product['id']) {
+                            orders[product.id_po]['valid_products'].splice(i, 1);
+                        }
+                    }
+                }
+            }
+
+        } else {
+            // Add the product to the updated products
+            updatedProducts.push(product);
+            orders[product.id_po]['updated_products'].push(product);
+        }
+
+        // Re-add product in table
+        if (from_processed) {
+            remove_from_processed(row, product);
+        } else {
+            remove_from_toProcess(row, product);
+        }
+        add_to_processed(product);
+
+        // Update local storage of product's order
+        localStorage.setItem("order_" + product.id_po, JSON.stringify(orders[product.id_po]));
+
+        // Reset search
+        document.getElementById('search_input').value = '';
+        $('table.dataTable').DataTable()
+            .search('')
+            .draw();
+        document.getElementById('search_input').focus();
+    } catch (e) {
+        err = {msg: e.name + ' : ' + e.message, ctx: 'set_supplier_shortage'};
+        console.error(err);
+        report_JS_error(err, 'reception');
+    }
+}
+
 
 /* EDITION */
 
@@ -635,9 +814,9 @@ function editProductInfo (productToEdit, value = null) {
             // Edit product info
             productToEdit.product_qty = newValue;
             /*
-      If qty has changed, we choose to set detailed values as follow:
-      1 package (product_qty_package) of X products (package_qty)
-      */
+            If qty has changed, we choose to set detailed values as follow:
+            1 package (product_qty_package) of X products (package_qty)
+            */
             productToEdit.product_qty_package = 1;
             productToEdit.package_qty = productToEdit.product_qty;
         }
@@ -862,7 +1041,7 @@ function data_validation() {
 // Send the request to the server
 function send() {
     try {
-    // Loading on
+        // Loading on
         openModal();
 
         // Only send to server the updated lines
@@ -894,7 +1073,7 @@ function send() {
                         product_copy.old_qty = other_order_data.initial_qty;
                         for (j in orders[updatedProducts[i].id_po]['updated_products']) {
                             if (orders[updatedProducts[i].id_po]['updated_products'][j].product_id[0]
-              == product_copy.product_id[0]) {
+                            == product_copy.product_id[0]) {
                                 orders[updatedProducts[i].id_po]['updated_products'][j].old_qty -= other_order_data.initial_qty;
                                 break;
                             }
@@ -940,8 +1119,6 @@ function send() {
             prod_order_id = updatedProducts[i].id_po;
             update_data.orders[prod_order_id]['po'].push(updatedProducts[i]);
         }
-        // console.log(update_data)
-        // return -1
 
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
         $.ajax({
@@ -1001,7 +1178,7 @@ function send() {
                                 span_node.appendChild(textNode);
 
                                 textNode = document.createTextNode(orders[order_id].partner
-                  + ' du ' + orders[order_id].date_order + ' : ');
+                                            + ' du ' + orders[order_id].date_order + ' : ');
                                 p_node.appendChild(textNode);
                                 p_node.appendChild(span_node);
 
@@ -1160,11 +1337,27 @@ function openErrorReport() {
 
 function saveErrorReport() {
     user_comments = document.getElementById("error_report").value;
+
+    // Save comment in local storage, in all orders
+    for (order_id of Object.keys(orders)) {
+        orders[order_id].user_comments = user_comments;
+        localStorage.setItem("order_" + order_id, JSON.stringify(orders[order_id]));
+    }
+
     document.getElementById("search_input").focus();
 }
 
+// Load barcodes at page loading, then barcodes are stored locally
+var get_barcodes = async function() {
+    if (barcodes == null) barcodes = await init_barcodes();
+};
+
 
 $(document).ready(function() {
+    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+    // Load barcodes
+    get_barcodes();
+
     // Get Route parameter
     var pathArray = window.location.pathname.split('/');
     var id = pathArray[pathArray.length-1];
@@ -1278,6 +1471,9 @@ $(document).ready(function() {
 
             // Set current reception status: take first order's
             reception_status = orders[Object.keys(orders)[0]].reception_status;
+
+            // Load user comments from local storage, get it from first order
+            user_comments = orders[Object.keys(orders)[0]].user_comments;
         }
 
         // Fetch orders data
@@ -1373,15 +1569,15 @@ $(document).ready(function() {
         $(this).on('wheel.disableScroll', function (e) {
             e.preventDefault();
             /*
-        Option to possibly enable page scrolling when mouse over the input, but :
-          - deltaY is not in pixels in Firefox
-          - movement not fluid on other browsers
+              Option to possibly enable page scrolling when mouse over the input, but :
+                - deltaY is not in pixels in Firefox
+                - movement not fluid on other browsers
 
-      var scrollTo = (e.originalEvent.deltaY) + $(document.documentElement).scrollTop();
-      $(document.documentElement).scrollTop(scrollTo);
+            var scrollTo = (e.originalEvent.deltaY) + $(document.documentElement).scrollTop();
+            $(document.documentElement).scrollTop(scrollTo);
 
-        -> other option to allow scrolling would be to loose input focus with blur(): not acceptable
-      */
+              -> other option to allow scrolling would be to loose input focus with blur(): not acceptable
+            */
         });
     })
         .on('blur', function (e) {
@@ -1439,24 +1635,28 @@ $(document).ready(function() {
         }
     });
 
-    // Barcode reader: listen for 13 digits read in a very short time
-    $('#search_input').keypress(function(e) {
-        if (e.which >= 48 && e.which <= 57) {
-            search_chars.push(String.fromCharCode(e.which));
-        }
-        if (search_chars.length >= 13) {
-            var barcode = search_chars.join("");
+    // Barcode reader
+    $(document).pos();
+    $(document).on('scan.pos.barcode', function(event) {
+        //access `event.code` - barcode data
+        var barcode = event.code;
 
-            if (!isNaN(barcode)) {
-                search_chars = [];
-                setTimeout(function() {
-                    document.getElementById('search_input').value = '';
-                    $('table.dataTable').DataTable()
-                        .search('')
-                        .draw();
-                    select_product_from_bc(barcode);
-                }, 300);
-            }
+        if (barcode.length >=13) {
+            barcode = barcode.substring(barcode.length-13);
+        } else if (barcode.length == 12 && barcode.indexOf('0') !== 0) {
+        // User may use a scanner which remove leading 0
+            barcode = '0' + barcode;
+        } else {
+        //manually submitted after correction
+            var barcode_input = $('#search_input');
+
+            barcode = barcode_input.val();
         }
+
+        document.getElementById('search_input').value = '';
+        $('table.dataTable').DataTable()
+            .search('')
+            .draw();
+        select_product_from_bc(barcode);
     });
 });

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/stock_movements_view.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/jszip.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/pdfmake.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/vfs_fonts.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/stock_movements_view.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v="></script>
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+  <div id="content_main" class="page_content">
+    <div class="header txtcenter">
+      <h1>Extraction de mouvements de stock</h1>
+    </div>
+
+    <div class="select_movement_area txtcenter">
+      <select class="select_movement_element select_movement_input" id="movement_type_selector" name="">
+        <option value="">-- Choisissez un type de mouvement --</option>
+        <option value="losses">Pertes</option>
+        <option value="meals">Repas salariés</option>
+        <option value="autoconso">Autoconsomation</option>
+      </select>
+      <p class="select_movement_element">De : <input type="text" id="from" class="select_movement_input"></p>
+      <p class="select_movement_element">À : <input type="text" id="to" class="select_movement_input"></p>
+      <button type="button" class="btn--primary" id="movement_selection_button" disabled>C'est parti !</button>
+    </div>
+
+    <div class="main" style="display:none;">
+      <div class="txtcenter">
+        <h3>Total de <span id="count_movements"></span> mouvement(s) d'une valeur de <span id="total_value_movements"></span> €</h3>
+      </div>
+      <div class="table_area">
+          <table id="movements_table" class="display" cellspacing="0" width="100%"></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="templates" style="display:none;">
+
+  </div>
+</div>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+{% endblock %}

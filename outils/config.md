@@ -98,10 +98,13 @@
                                   {'code': 'cash', 'title': 'Espèces','journal_id': CASH_PAYMENT_ID},
                                   {'code': 'ch', 'title': 'Chèque', 'journal_id': CHECK_PAYMENT_ID},
                                   {'code': 'cb', 'title': 'Carte bancaire', 'journal_id': CB_PAYMENT_ID},
-                  {'code': 'vir', 'title': 'Virement', 'journal_id': VIREMENT_PAYMENT_ID}
-]
+                                  {'code': 'vir', 'title': 'Virement', 'journal_id': VIREMENT_PAYMENT_ID}]
 
         Used to generate payment meanings in subscription form
+
+- MAX_CHQ_NB = 12
+
+        Maximum accepted checks numbers
 
 ### Scales and labels files generation
 
@@ -124,6 +127,10 @@
 - SHELF_LABELS_ADD_FIELDS = ['category_print_id', 'categ_id', 'country_id', 'label_ids', 'uom_id']
 
         Fields add to generated text file
+
+- EXPORT_POS_CAT_FOR_SCALES = True
+
+        Exports POS categories data as a JSON file, and add a POS Category column in CSV file for scale database update
 
 ### Shop module
 

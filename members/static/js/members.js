@@ -20,7 +20,8 @@ var current_displayed_member = null,
     loaded_services = null,
     selected_service = null,
     last_search_time = null,
-    rattrapage_ou_volant = null;
+    rattrapage_ou_volant = null,
+    timeout_counter = null;
 var search_button = $('.btn--primary.search');
 var loading2 = $('.loading2');
 var search_field = $('input[name="search_string"]');
@@ -77,9 +78,10 @@ function fill_member_slide(member) {
     html_elts.name.html(member.name);
     var img_src = '';
 
-    if (typeof member.image_medium.length != "undefined") {
+    if (member.image_medium) {
         img_src = 'data:image/'+member.image_extension+';base64,'+member.image_medium;
     } else {
+        img_src = "/static/img/pas-de-photo.png";
         no_pict_msg.show();
     }
     html_elts.image_medium.html('<img src="'+img_src+'" width="128" />');
@@ -157,8 +159,8 @@ function canSearch() {
     return answer;
 }
 
-function search_member() {
-    if (canSearch() == true) {
+function search_member(force_search = false) {
+    if (canSearch() || force_search) {
 
         html_elts.member_slide.hide();
         search_box_clear_html_elts();
@@ -588,6 +590,13 @@ function goto_page(jquery_page_selected) {
     jquery_page_selected.css('display', 'grid');
 }
 
+function timeout_to_homepage() {
+    if (timeout_counter) clearTimeout(timeout_counter);
+    timeout_counter = setTimeout(function() {
+        goto_page(pages.first_page);
+    }, 40000);
+}
+
 $('button.search').click(search_member);
 search_field.keyup(search_input_listing);
 
@@ -657,32 +666,42 @@ html_elts.image_medium.on('click', function() {
 });
 
 $(document).ready(function() {
-    var pressed = false;
     var chars = [];
-    //barcode-reader
 
+    var shopping_entry_btn = $('a[data-next="shopping_entry"]');
+
+    shopping_entry_btn.on('click', function() {
+        // Always focus on search field
+        search_field.focus();
+
+        // Return to homepage after 40 seconds
+        timeout_to_homepage();
+    });
+
+    // Force barcode-reader to search member
     $(window).keypress(function(e) {
         if (e.which >= 48 && e.which <= 57) {
             chars.push(String.fromCharCode(e.which));
         }
 
-        if (pressed == false) {
-            setTimeout(function() {
-                if (chars.length >= 13) {
-                    var barcode = chars.join("");
+        timeout_to_homepage();
 
-                    if (!isNaN(barcode)) {
-                        chars = [];
-                        pressed = false;
-                        search_member();
-                    }
+        setTimeout(function() {
+            if (chars.length >= 13) {
+                var barcode = chars.join("");
 
+                if (!isNaN(barcode)) {
+                    chars = [];
+                    goto_page(pages.shopping_entry);
+                    search_field.val(barcode);
+                    last_search_time = null;
+                    search_member(true);
                 }
+            }
 
-            }, 300);
-        }
-        pressed = true;
+        }, 300);
     });
+
     init_webcam();
     $('#crop_width').change(function() {
         Webcam.reset();

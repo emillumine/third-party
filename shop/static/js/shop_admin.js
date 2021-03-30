@@ -354,6 +354,18 @@ function init_and_fill_order_list() {
             orders_table.destroy();
         var cols = [
             {data: 'h_submitted_date', title: "Date commande"},
+            {
+                data: 'type',
+                title: "Type",
+                width: "5%",
+                render: function (data) {
+                    if (data == 'delivery') {
+                        return 'Livraison';
+                    } else {
+                        return 'Commande';
+                    }
+                }
+            },
             {data: 'partner.display_name', title: "Nom"},
             {data: 'best_date', title: "Livraison"},
             {data: 'total', title: "Montant"}

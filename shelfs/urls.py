@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^$', views.index),
     url(r'^shelf_view/([0-9]+)$', views.shelf_view),
     url(r'^shelf_inventory/([0-9]+)$', views.shelf_inventory),
+    url(r'^inventory_process_state/([0-9]+)$', views.inventory_process_state),
     url(r'^all$', views.all),
     url(r'^get_shelves_extra_data$', views.get_shelves_extra_data),
     url(r'^(?P<shelf_id>\d+)$', views.shelf_data),

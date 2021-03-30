@@ -239,7 +239,6 @@ function addMakeUpMsg() {
             }
         });
         make_up_nb = parseInt(partner_points) + shifts_before_limit;
-
         // Besoin de choisir un rattrapage : afficher message rattrapage
         if (make_up_nb < 0) {
             make_up_nb = Math.abs(make_up_nb);
@@ -284,7 +283,9 @@ function addMakeUpMsg() {
 
             msg += " avant le " + limitDate.toLocaleDateString("fr-fr", optDate) + ", faute de quoi je serai suspendu.e à cette date.";
 
-            $('#partnerData').append("<span class=\"need_make_up\"><strong>"+ msg + "</strong></span>");
+            msg += "<br/>Je dois m'inscrire à tous mes services de rattrapage avant de pouvoir échanger mes services.";
+
+            $('#partnerData').append("<p class=\"need_make_up_area\"><span class=\"need_make_up\"><strong>"+ msg + "</strong></span></p>");
             $('.need_make_up').show();
         } else {
             $('.need_make_up').hide();

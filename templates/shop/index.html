@@ -36,6 +36,10 @@
             <li class="nav-item">
               <span class="new-order">Nouvelle commande</span>
             </li>
+            {% elif DELIVERY_CAN_BUY != False %}
+            <li class="nav-item">
+              <span class="new-order">Nouvelle commande</span>
+            </li>
             {%endif%}
             <li class="nav-item">
               <span class="my-orders">Commande(s) envoyée(s)</span>
@@ -318,7 +322,10 @@
     <div id="cart_creation_form">
         <p>
             <h2>Initialisation de la commande</h2>
-            <span class="ask-day">Merci d'indiquer ci-dessous quand vous viendrez récupérer la commande au magasin</span><br/>
+            {% if mode == 'shop' %}
+            <span class="ask-day">
+              Merci d'indiquer ci-dessous quand vous viendrez récupérer la commande au magasin
+            </span><br/>
             <select name="bday">
 
             </select>
@@ -341,6 +348,50 @@
                 <option value="17:00">17:00</option>
                 <option value="17:30">17:30</option>
             </select>
+            {% elif mode == 'delivery' %}
+            <span class="ask-day">
+              Merci d'indiquer ci-dessous un jour et une heure de livraison suggérés.<br>
+              Le jour et l'heure de la livraison seront choisis en direct avec le/la livreur.se en fonction de ses disponibilités.
+            </span><br/>
+            <select name="bday">
+              <option value="">---> Jour</option>
+              <option value="lundi">lundi</option>
+              <option value="mardi">mardi</option>
+              <option value="mercredi">mercredi</option>
+              <option value="jeudi">jeudi</option>
+              <option value="vendredi">vendredi</option>
+              <option value="samedi">samedi</option>
+              <option value="dimanche">dimanche</option>
+            </select>
+            <select name="bhour">
+              <option value="">---> Heure</option>
+              <option value="01:00">00:00</option>
+              <option value="01:00">01:00</option>
+              <option value="02:00">02:00</option>
+              <option value="03:00">03:00</option>
+              <option value="04:00">04:00</option>
+              <option value="05:00">05:00</option>
+              <option value="06:00">06:00</option>
+              <option value="07:00">07:00</option>
+              <option value="08:00">08:00</option>
+              <option value="09:00">09:00</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="12:00">12:00</option>
+              <option value="13:00">13:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+              <option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+              <option value="19:00">19:00</option>
+              <option value="20:00">20:00</option>
+              <option value="21:00">21:00</option>
+              <option value="22:00">22:00</option>
+              <option value="23:00">23:00</option>
+            </select>
+            {% endif %}
+            
             <div class="slots-constraints" style="display: none;">
                 <span class="delay24h"><strong>avec un délai de {{MIN_DELAY_FOR_SLOT}}h minimum</strong></span>
                 <!--<input type="text" placeholder="Exemple: mardi 24 mars à 10h30" name="best_date" style="width: 350px;"/>--><br/>
@@ -354,7 +405,9 @@
             {%if HOURS_FOR_VALIDATION > 0 %}
             <div class="tv-msg" style="display: none;">
               <strong>
-              Vous aurez <span class="time-given-for-validation">{{HOURS_FOR_VALIDATION}} heure(s)</span>  pour valider votre commande.<br/> Passé ce temps, la réservation du créneau horaire sera annulée.<br/>Vous devrez rechoisir un horaire (le panier sera mémorisé).
+                Vous aurez <span class="time-given-for-validation">{{HOURS_FOR_VALIDATION}} heure(s)</span>  pour valider votre commande.<br/> 
+                Passé ce temps, la {% if mode == 'shop' %}réservation du créneau horaire{% elif mode == 'delivery' %}commande{% endif %} sera annulée.<br/>
+                Vous devrez rechoisir un horaire (le panier sera mémorisé).
               </strong>
             </div>
             {%endif%}
@@ -367,7 +420,7 @@
     <div id="cart_validation_form">
         <h2>Validation de la commande</h2>
         <p class="pickup_date">
-            Récupération au magasin : <span></span>
+          {% if mode == 'shop' %}Récupération au magasin{% elif mode == 'delivery'  %}Date et heure de livraison{%endif%} : <span></span>
         </p>
         {%if SHOW_SUBSTITUTION_OPTION %}
         <p class="accept_substitution">
@@ -382,7 +435,9 @@
             {%endif%}
         </p>
         <p>
+          {% if mode == 'shop' %}
             <strong><i>Si vous arrivez avec un retard de plus d'une heure, la commande pourrait ne plus être disponible.</i></strong>
+          {%endif%}
         </p>
         <p>
           {{CART_VALIDATION_BOTTOM_MSG}}
@@ -413,6 +468,9 @@
                     {% if SHOP_CAN_BUY != False %}
                     <li><button type="button" class="new-order btn--primary">Passer une nouvelle commande</button></li>
                     {%endif%}
+                    {% if DELIVERY_CAN_BUY != False %}
+                    <li><button type="button" class="new-order btn--primary">Passer une nouvelle commande</button></li>
+                    {%endif%}
                     <li><button type="button" class="my-orders btn--primary">Gérer mes commandes (*)</button></li>
                     <li><button type="button" class="visit btn--primary">Parcourir le "magasin"</button></li>
 
@@ -428,6 +486,7 @@
     </div>
 </div>
 <script type="text/javascript">
+    const shop_mode = '{{ mode|safe }}'
     var categories = {{SHOP_CATEGORIES|safe}}
     var min_delay = {{MIN_DELAY_FOR_SLOT}}
     var hours_for_validation = {{HOURS_FOR_VALIDATION}}

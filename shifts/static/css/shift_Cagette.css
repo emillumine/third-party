@@ -1,6 +1,7 @@
 body {margin: 5px;}
 #exchange_instructions,  .need_make_up {display:none;}
 .need_make_up, .highlight {background: #ffff00;}
+.need_make_up_area {margin-top: 15px;}
 #partnerData {margin:8px 0;}
 #shift_list_wrapper {margin:15px 25px; padding: 5px; border-radius: 5px; border: 2px solid #424242; max-width: 530px; width: 350px;}
 
@@ -9,10 +10,10 @@ span.shift_booked{
       border-radius: 5px;
       border: 2px solid #424242;
       margin : 5px;
-      padding:5px; 
+      padding:5px;
 }
 .shift_list_item {margin-bottom:5px; padding-bottom:5px;}
-.shift_list_item label {  
+.shift_list_item label {
   display: inline-block;
   vertical-align: top;
   padding-left: 20px;
@@ -27,24 +28,24 @@ h3 {margin-top: 10px;}
 .intro .fa-info-circle {color: #7ecbee;}
 span.step {border-radius: 3px; border: 2px solid #424242; padding: 3px;}
 /* Pour les couleur des events dans le calendrier   ------------------------------------*/
-.shift_booked 
+.shift_booked
 {
         background-color: #585858;
         color: #FFFFFF !important;
-} 
-.shift_full 
+}
+.shift_full
 {
         background-color: #F5A9F2;
-} 
-.shift_empty 
+}
+.shift_empty
 {
         background-color: #60B000;
 }
-.shift_less_alf 
+.shift_less_alf
 {
         background-color: #D9EBD2;
-}		
-.shift_other 
+}
+.shift_other
 {
         background-color: #FA8282;
 }

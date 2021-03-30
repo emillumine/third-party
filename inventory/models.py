@@ -105,6 +105,14 @@ class CagetteInventory(models.Model):
         return res
 
     @staticmethod
+    def get_custom_list_inv_status(list_id):
+        file_data = {}
+        with open(custom_list_file_path + list_id + '.json') as json_file:
+            file_data = json.load(json_file)
+
+        return file_data['inventory_status']
+
+    @staticmethod
     def create_custom_inv_file(line_ids, line_type):
         res = {}
 
@@ -153,7 +161,7 @@ class CagetteInventory(models.Model):
                 'products': ids
             }
 
-            # Crate inventory file, name is timestamp of creation
+            # Create inventory file, name is timestamp of creation
             timestamp = int(time.time())
             filename = custom_list_file_path + str(timestamp) + '.json'
             with open(filename, 'w+') as outfile:

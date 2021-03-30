@@ -1,0 +1,26 @@
+.select_movement_area {
+  margin-top: 25px;
+}
+
+.select_movement_element {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.main {
+  margin-top: 25px;
+}
+
+.table_area {
+  margin: auto;
+  width: 50%;
+  padding: 10px;
+}
+
+.select_movement_input {
+  border-radius:5px;
+}
+
+.btn_export_movements {
+  margin-top: 10px;
+}

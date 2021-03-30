@@ -232,3 +232,7 @@ hr {
 }
 
 #main_content {width: 100%;}
+
+.select_product_action {
+  max-width: 15px;
+}

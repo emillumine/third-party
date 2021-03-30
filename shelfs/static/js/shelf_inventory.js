@@ -106,14 +106,18 @@ function handle_blinking_effect(element) {
 // When edition event is fired
 function edit_event(clicked) {
     // Remove from origin table
+    var row_data = null;
+
     if (editing_origin == 'to_process') {
         let row = table_to_process.row(clicked.parents('tr'));
-        let row_data = row.data();
+
+        row_data = row.data();
 
         remove_from_toProcess(row);
     } else {
         let row = table_processed.row(clicked.parents('tr'));
-        let row_data = row.data();
+
+        row_data = row.data();
 
         remove_from_processed(row);
     }
@@ -430,7 +434,7 @@ function pre_send() {
 // Proceed with inventory: send the request to the server
 function send() {
     if (is_time_to('submit_inv_qties')) {
-    // Loading on
+        // Loading on
         var wz = $('#main-waiting-zone').clone();
 
         wz.find('.msg').text("Patience, cela peut prendre de nombreuses minutes s'il y a une centaine de produits");
@@ -440,6 +444,7 @@ function send() {
         shelf.user_comments = user_comments;
 
         var url = "../do_" + originView + "_inventory";
+        var call_begin_at = new Date().getTime();
 
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
         $.ajax({
@@ -475,14 +480,60 @@ function send() {
                 // Clear local storage before leaving
                 localStorage.removeItem(originView + '_' + shelf.id);
             },
-            error: function(data) { // 500 error has been thrown
-                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                    console.log(data.responseJSON.error);
+            error: function(jqXHR, textStatus) { // 500 error has been thrown or web server sent a timeout
+                if (jqXHR.status == 504) {
+                    /*
+                        django is too long to respond.
+                        Let it the same time laps before asking if the process is well done
+                    */
+                    var now = new Date().getTime();
+
+                    setTimeout(
+                        function() {
+                            $.ajax({
+                                type: 'GET',
+                                url: '../inventory_process_state/' + shelf.id,
+                                success: function(rData) {
+                                    if ('res' in rData && 'state' in rData.res) {
+                                        // Verification for step 2 only ; step 1 is always fast
+                                        if (shelf.inventory_status == 'step1_done' && rData.res.state != 'step1_done') {
+                                            // shelf inventory has been already done
+                                            localStorage.removeItem(originView + '_' + shelf.id);
+                                            closeModal();
+                                            back();
+                                        } else {
+                                            console.log('Still in process : need to call recursively to make other calls');
+                                        }
+                                    } else {
+                                        console.log(rData);
+                                    }
+                                }
+                            });
+                        }
+                        , now - call_begin_at
+                    );
+
+                } else if (jqXHR.status == 500) {
+                    var message = "Erreur lors de la sauvegarde des données. " +
+                                  "Pas de panique, les données de l'inventaire n'ont pas été perdues ! " +
+                                  "Merci de contacter un salarié et de réessayer plus tard.";
+
+                    if (typeof jqXHR.responseJSON != 'undefined' && typeof jqXHR.responseJSON.error != 'undefined') {
+                        //console.log(jqXHR.responseJSON.error);
+
+                        if ('busy' in jqXHR.responseJSON) {
+                            message = "Inventaire en cours de traitement.";
+                        } else if (jqXHR.responseJSON.error == 'FileExistsError') {
+                            //step1 file has been found => previous request succeeded
+                            message = "Les données avaient déjà été transmises....";
+                            // Clear local storage before leaving
+                            localStorage.removeItem(originView + '_' + shelf.id);
+                        }
+                    }
+                    closeModal();
+                    alert(message);
+                    back();
                 }
-                closeModal();
-                alert("Erreur lors de la sauvegarde des données. " +
-        "Pas de panique, les données de l'inventaire n'ont pas été perdues ! " +
-        "Merci de contacter un salarié et de réessayer plus tard.");
             }
         });
     } else {
@@ -776,7 +827,6 @@ $(document).ready(function() {
         originView = 'custom_list';
         parent_location = '/inventory/custom_lists';
     }
-    //console.log(products)
 
     // Get shelf data from local storage
     if (Modernizr.localstorage) {

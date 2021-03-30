@@ -1,3 +1,4 @@
+//used in prepa-odoo and validation_coop
 var coop_page = $('#coop_page');
 
 function show_checks_nb() {
