@@ -14,7 +14,6 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 from .settings_secret import *
-from .settings_constants import *
 from .texts.cagette import *
 from .config import *
 from .customized_errors_filter import *

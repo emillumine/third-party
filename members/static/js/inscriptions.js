@@ -212,8 +212,12 @@ function store_new_coop(event) {
         msex = $('input[name="sex"]:checked').val();
     }
 
-    if (payment_meaning.val() == 'ch' && ch_qty.val() <1) {
-        errors.push("Le nombre de chèque est obligatoire.");
+    if (payment_meaning.val() == 'ch') {
+        if (ch_qty.val() <1) {
+            errors.push("Le nombre de chèque est obligatoire.");
+        } else if (ch_qty.val() > max_chq_nb) {
+            errors.push("Le nombre de chèque est trop grand.");
+        }
     }
 
     $.ajax({url : '/members/exists/' + email,

@@ -12,7 +12,7 @@ function init_datatable() {
             {
                 data:"datetime_created",
                 title:"Liste",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     return "Liste du " + data;
                 }
             },
@@ -31,7 +31,7 @@ function init_datatable() {
                 title:"Inventaire à faire",
                 className:"dt-body-center",
                 width: "15%",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     if (data == '')
                         return "<button class='btn--primary do_inventory'>Inventaire en rayon</button>";
                     else

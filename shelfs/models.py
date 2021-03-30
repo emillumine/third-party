@@ -27,7 +27,7 @@ class Shelf(models.Model):
         self.o_api = OdooAPI()
 
     def get(self):
-        res ={}
+        res = {}
         try:
             c = [['id', '=', self.id]]
             f = []
@@ -160,6 +160,7 @@ class Shelf(models.Model):
             barcodes = list(map(str, barcodes))
             # Get bc as should be stored in Odoo
             bc_map = CagetteProducts.get_fixed_barcode_correspondance(barcodes)
+
             p_res = self._get_pdts_from_barcodes(list(bc_map.values()))
             if (p_res):
                 found_bc = []
@@ -200,6 +201,12 @@ class Shelf(models.Model):
             filename = tmp_inv_file_prefix + str(self.id) + '.json'
             os.remove(filename)
 
+            lockfilename = tmp_inv_file_prefix + str(self.id) + '.lock'
+            try:
+                os.remove(lockfilename)
+            except Exception as e:
+                pass
+
             return True
         except Exception as e:
             return False
@@ -220,6 +227,24 @@ class Shelf(models.Model):
                 first_inventory = json.load(json_file)
         except Exception as e:
             coop_logger.error("Unable to process first step file : %s", e)
+            import errno
+            raise FileExistsError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+
+        lockfilename = tmp_inv_file_prefix + str(self.id) + '.lock'
+
+        # Look for lock file: if exists, first step file is being processed so stop here
+        try:
+            with open(lockfilename) as lock_file:
+                return {'error': 'First step file busy', 'busy': True}
+        except Exception as e:
+            pass
+
+        # Verification passed, create the lock file to indicate first step file is being processed
+        try:
+            with open(lockfilename, 'w') as lock_file:
+                json.dump({}, lock_file)
+        except Exception as e:
+            coop_logger.error("Unable to create lock file : %s", e)
 
         if first_inventory:
             # if poducts in saved data

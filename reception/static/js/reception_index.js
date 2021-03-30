@@ -38,7 +38,6 @@ function group_goto(i) {
  * Set local storage for given order
  */
 function set_local_storage(order_data) {
-    console.log(order_data);
     if (Modernizr.localstorage) {
         var stored_order = JSON.parse(localStorage.getItem('order_' + order_data.id));
 

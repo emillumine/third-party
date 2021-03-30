@@ -83,7 +83,13 @@ def labels_appli_csv(request, params):
     try:
         if (params == '/wc'):
             withCandidate = True
+        with_pos_categories = getattr(settings, 'EXPORT_POS_CAT_FOR_SCALES', False)
         products = CagetteProducts.get_products_for_label_appli(withCandidate)
+        if with_pos_categories is True:
+            pos_categories = CagetteProducts.get_pos_categories()
+        else:
+            pos_categories = []
+
         rows = []
         for p in products:
             if (p['sale_ok'] is True):
@@ -96,28 +102,31 @@ def labels_appli_csv(request, params):
                     barcode = ''
                 if not (barcode.isnumeric()):
                     barcode = ''
-
-                rows.append([p['id'], p['display_name'], barcode,
-                             p['list_price'],
-                             # p['categ_id'][1],
-                             p['categ'],
-                             uom,
-                             # p['image'].replace(img_temp_folder, ""),
-                             p['image'].replace("\n", ""),
-                             # p['available_in_pos'] # ,p['sale_ok']
-                             ])
+                p_row = [p['id'], p['display_name'], barcode,
+                         p['list_price'],
+                         p['categ'],
+                         uom,
+                         p['image'].replace("\n", "")]
+                if with_pos_categories is True:
+                    if p['pos_categ_id']:
+                        p_row.append(p['pos_categ_id'][0])
+                    else:
+                        p_row.append('')
+                rows.append(p_row)
 
         header = ['id', 'nom', 'code-barre', 'prix',
                   'categorie', 'unite', 'image'
                   # 'en vente', 'sale_ok'
                   ]
+        if with_pos_categories is True and len(pos_categories) > 0:
+            header.append('id_categorie_pos')
+            with open(settings.DAV_PATH + '/pos_categories.json', 'w') as outfile:
+                json.dump(pos_categories, outfile)
 
         os_file = settings.DAV_PATH + '/flv.csv'
         file_copies = []
 
-        nb = 1
-        if hasattr(settings, 'FLV_CSV_NB'):
-            nb = int(settings.FLV_CSV_NB)
+        nb = int(getattr(settings, 'FLV_CSV_NB', 1))
 
         for i in range(1, nb + 1):
             file_copies.append(settings.DAV_PATH + '/flv_' + str(i) + '.csv')
@@ -133,6 +142,8 @@ def labels_appli_csv(request, params):
         file.close()
         for c in file_copies:
             copyfile(os_file, c)
+
+
     except Exception as e:
         res['error'] = str(e)
     return JsonResponse({'res': res})
@@ -176,14 +187,14 @@ def get_all_barcodes(request):
             'available_in_pos': 3,
             'id': 4,
             'standard_price': 5,
-            'uom_id': 6
+            'list_price': 6,
+            'uom_id': 7
         }
         rules = CagetteProducts.get_barcode_rules()
+
+        res['patterns'] = rules['patterns']
+        res['aliases'] = rules['aliases']
         res['time'] = int(round(time.time() * 1000)) - start
-        res['patterns'] = []
-        for r in rules:
-            if '{' in r['pattern'] or '.' in r['pattern']:
-                res['patterns'].append(r['pattern'])
     except Exception as e:
         coop_logger.error("products_barcodes : %s", str(e))
         res['error'] = str(e)

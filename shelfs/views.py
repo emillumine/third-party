@@ -13,7 +13,7 @@ def index(request):
     """Main shelf page"""
     shelfs = Shelfs.get_all()
     # TODO : Make the distinction beetween active and inactive products
-    for s in shelfs :
+    for s in shelfs:
         s['shelf_value'] = -1
 
     context = {'title': 'Rayons',
@@ -107,8 +107,29 @@ def add_product(request, shelf_id):
 
     return JsonResponse({'res': res})
 
+def inventory_process_state(request, shelf_id):
+    res = {}
+    try:
+        s = Shelf(shelf_id)
+        s_data = s.get()
+        res['state'] = s_data['inventory_status']
+    except Exception as e:
+        res['error'] = str(e)
+        coop_logger.error("Inventory process state : %s", str(e))
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
 def do_shelf_inventory(request):
     """Process shelf inventory"""
+    """
+    If many products are implied, the whole process could last many minutes.
+    During this time, user can submit data again.
+    This is managed with 'busy' message returned by Shelf.get_full_inventory_data method
+    Web server can also return a timeout message during this time.
+    This is managed by sending a query to above "get_process_state" (within browser ajax error capture)
+    """
     res = {}
     # TODO : manage error strings array instead of one string
     try:
@@ -121,7 +142,8 @@ def do_shelf_inventory(request):
             'name': shelf_data['name'] + ' - ' + inventory_date.strftime("%d/%m/%Y"),
             'shelf_id': shelf_data['id'],
             'user_comments': shelf_data['user_comments'],
-            'products': shelf_data['list_processed']
+            'products': shelf_data['list_processed'],
+            'status': shelf_data['inventory_status']
         }
         try:
             filename = 'data/inventories_backup/'
@@ -129,20 +151,26 @@ def do_shelf_inventory(request):
             filename += "__" + str(shelf_data['id']) + '.json'
             with open(filename, 'w') as outfile:
                 json.dump(shelf_data, outfile)
-        except:
-            pass
+        except Exception as serr:
+            coop_logger.error("Inventory backup failure : %s", str(serr))
 
         try:
-            if shelf_data['inventory_status'] == '' :
+            if shelf_data['inventory_status'] == '':
                 # First step: save first products count in temp file
                 res = m.save_tmp_inventory(inventory_data)
-            else :
+            else:
                 inventory_data['date'] = inventory_date
                 inventory_data['shelf_name'] = shelf_data['name']
                 inventory_data['shelf_num'] = shelf_data['sort_order']
 
                 # Get data from step 1
                 full_inventory_data = m.get_full_inventory_data(inventory_data)
+                if 'error' in full_inventory_data:
+                    res['error'] = full_inventory_data['error']
+
+                    if 'busy' in full_inventory_data:
+                        res['busy'] = True
+                    return JsonResponse(res, status=500)
 
                 # Proceed with inventory
                 res['inventory'] = CagetteInventory.update_stock_with_shelf_inventory_data(full_inventory_data)
@@ -173,7 +201,7 @@ def do_shelf_inventory(request):
 
         except Exception as e:
             # Don't validate if error anywhere in inventory process
-            res['error'] = {'inventory' : str(e)}
+            res['error'] = type(e).__name__
             coop_logger.error("Shelf inv.  : %s", str(e))
     except Exception as err_json:
         res['error'] = "Unable to parse received JSON"

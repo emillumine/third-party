@@ -13,11 +13,12 @@ IFCBarcodes = {
                 closeModal();
                 if (typeof bc_data.res.error == "undefined") {
                     this.patterns = bc_data.res.patterns;
+                    this.aliases = bc_data.res.aliases;
                     this.codes = bc_data.res.list.pdts;
                     this.uoms = bc_data.res.list.uoms;
                     this.keys = bc_data.res.keys;
                 } else {
-                    this.errors.push(bc_data.error);
+                    this.errors.push(bc_data.res.error);
                 }
             } catch (e) {
                 err = {msg: e.name + ' : ' + e.message, ctx: 'retrieve barcodes'};
@@ -33,26 +34,33 @@ IFCBarcodes = {
     },
     get_corresponding_odoo_product: function(bc) {
         //console.log('To analyze :' + bc)
-        var odoo_product = null;
-
         var index = 0,
             pattern_found = false,
-            encoded_value = '';
+            is_alias = false,
+            encoded_value = '',
+            pattern_type = '',
+            odoo_product = null,
+            product_data = null;
         // Let's find out if it matches a pattern
 
         while (index < this.patterns.length -1 && pattern_found === false) {
-            var pattern = this.patterns[index];
+            var pattern = this.patterns[index].pattern;
             var significant_prefix = pattern.replace(/[^0-9]/g, ''); //remove all but figures
 
             if (bc.indexOf(significant_prefix) === 0) {
-                // console.log(pattern)
+                /*
+                    For example,
+                    bc = 0493213018809
+                    pattern = 0493...{NNDDD}
+                */
+                //console.log(pattern)
                 // console.log(bc)
-                //0493...{NNDDD} (pattern)
-                //0493213018809 (bc)
+                odoo_bc = '';
                 pattern_found = true;
+                pattern_type = this.patterns[index].type;
                 pattern = pattern.replace(/[^0-9.ND]/, '');
                 bc = bc.slice(0, -1); // remove original check figure
-                odoo_bc = '';
+
                 // Read pattern character by character
                 for (var i = 0; i < pattern.length; i++) {
                     if (/[0-9]/.exec(pattern[i])) {
@@ -72,13 +80,39 @@ IFCBarcodes = {
             index++;
         }
 
-        // let's seek "normalized" bc in codes array
-        for (code in this.codes) {
-            if (code == bc) {
-                odoo_product = {barcode: code, data: this.codes[code], value: encoded_value};
+        // let's seek "normalized" bc in codes array or alias map
+        for (alias in this.aliases) {
+            if (bc == alias) {
+                is_alias = true;
+                for (barcode in this.codes) {
+                    if (barcode == this.aliases[alias]) {
+                        product_data = this.codes[barcode];
+                    }
+                }
             }
         }
-        //console.log(odoo_product)
+        if (is_alias === false) {
+            for (code in this.codes) {
+                if (code == bc) {
+                    product_data = this.codes[code];
+                }
+            }
+        }
+
+        if (product_data !== null) {
+            p_uom = (this.uoms)[product_data[this.keys.uom_id]];
+            if (encoded_value.length > 0 && !isNaN(encoded_value)) {
+                if (p_uom == 'Unit(s)' || p_uom == 'unité') {
+                    encoded_value = parseInt(encoded_value, 10);
+                } else {
+                    encoded_value = parseFloat(encoded_value);
+                }
+            }
+
+            odoo_product = {barcode: bc, data: product_data, rule: pattern_type, value: encoded_value};
+
+        }
+
         return odoo_product;
     }
 };
@@ -93,5 +127,6 @@ init_barcodes = async function() {
     else
         result = ifcb;
     // console.log(result.patterns)
+
     return result;
 };

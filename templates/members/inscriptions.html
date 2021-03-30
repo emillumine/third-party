@@ -15,7 +15,8 @@
  <script type="text/javascript">
     var type = {{type}},
         context = 'inscription',
-        force_fn_hyphen = {% if force_firstname_hyphen %}true{% else %}false{% endif%};
+        force_fn_hyphen = {% if force_firstname_hyphen %}true{% else %}false{% endif%},
+        max_chq_nb = {{max_chq_nb}};
     {% if open_on_sunday %}
     let open_on_sunday = true
     {% endif %}

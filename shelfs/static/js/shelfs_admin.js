@@ -16,6 +16,7 @@ var main_content = $('#main-content'),
         .removeAttr('id'),
     active_phase = 'main',
     add_pdts_btn_text = 'AJOUTER AU RAYON',
+    add_to_shelf_product_ids = [],
     barcodes = null;
 
 
@@ -339,14 +340,27 @@ var init_and_fill_selfs_list = function() {
     }
 };
 var deleteBarcodeFromList = function () {
-    var clicked = $(this);
+    let clicked = $(this);
+    let new_pids_list = [];
+    let tr_to_remove = clicked.closest('tr');
+    let pid_to_remove = tr_to_remove.data('id');
 
-    clicked.closest('li').remove();
-    /*
-    if (clicked.closest('ul').find('li').length == 0)
-        main_content.find('button.add-products').css('display','none')
-    */
+    $.each(add_to_shelf_product_ids, function(idx, pid) {
+        if (pid != pid_to_remove) new_pids_list.push(pid);
+    });
+    add_to_shelf_product_ids = new_pids_list;
+    tr_to_remove.remove();
 };
+var is_product_in_shelf_adding_queue_list = function(testing_pid) {
+    let found = false;
+
+    $.each(add_to_shelf_product_ids, function(idx, pid) {
+        if (pid == testing_pid) found = true;
+    });
+
+    return found;
+};
+
 var addProductToList = async function(barcode) {
     if (barcodes == null) barcodes = await init_barcodes(); // May appens (after inactivity?)
     //Get Odoo corresponding barcode
@@ -355,23 +369,29 @@ var addProductToList = async function(barcode) {
 
     odoo_product = barcodes.get_corresponding_odoo_product(barcode);
 
-    if (odoo_product === null) {
-        alert(barcode + ' : Code-barre inconnu');
+    if (is_product_in_shelf_adding_queue_list(odoo_product.data[barcodes.keys.id])) {
+        console.log("Already added product");
     } else {
-        var pdt_line = $('<tr>').attr('data-bc', odoo_product.barcode)
-            .addClass('obc');
+        add_to_shelf_product_ids.push(odoo_product.data[4]);
+        if (odoo_product === null) {
+            alert(barcode + ' : Code-barre inconnu');
+        } else {
+            var pdt_line = $('<tr>').attr('data-id', odoo_product.data[barcodes.keys.id])
+                .attr('data-bc', odoo_product.barcode)
+                .addClass('obc');
 
-        $('<td>').text(barcode)
-            .appendTo(pdt_line);
-        $('<td>').text(odoo_product.barcode)
-            .appendTo(pdt_line);
-        $('<td>').text(odoo_product.data[0])
-            .appendTo(pdt_line);
-        $('<td>').html(delete_icon)
-            .appendTo(pdt_line);
-        adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
-        main_content.find('button.add-products').css('display', 'block')
-            .html(add_pdts_btn_text);
+            $('<td>').text(barcode)
+                .appendTo(pdt_line);
+            $('<td>').text(odoo_product.barcode)
+                .appendTo(pdt_line);
+            $('<td>').text(odoo_product.data[barcodes.keys.name])
+                .appendTo(pdt_line);
+            $('<td>').html(delete_icon)
+                .appendTo(pdt_line);
+            adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
+            main_content.find('button.add-products').css('display', 'block')
+                .html(add_pdts_btn_text);
+        }
     }
 };
 
@@ -380,7 +400,7 @@ var addProducts = async function() {
     var data = rowGetData(clicked);
 
     if (barcodes == null) barcodes = await init_barcodes();
-
+    add_to_shelf_product_ids = [];
     adding_pdts_tpl.find('.shelf').text(data.name + ' (num = ' + data.sort_order+')')
         .attr('data-shelfid', data.id);
     adding_pdts_tpl.find('#added_products tbody').empty();
@@ -402,6 +422,7 @@ var recordProductsAddedShelf = function() {
         to_add.each(function(i, e) {
             barcodes.push($(e).data('bc'));
         });
+
         if (is_time_to('add_pdts_to_shelf', 5000)) { // prevent double click or browser hic up bug
             main_content.find('button.add-products').html(loading_img);
             post_form(
@@ -518,7 +539,7 @@ $(document).ready(function() {
         $(document).on('click', '.shelfs .fa-edit', open_update_form);
         $(document).on('click', '.shelfs .fa-trash', deleteShelf);
         $(document).on('click', '.shelfs .fa-download', downloadInventoryReport);
-        $(document).on('click', '.bc .fa-trash', deleteBarcodeFromList);
+        $(document).on('click', '.obc .fa-trash', deleteBarcodeFromList);
         $(document).on('click', 'td.products .fa-plus-circle', addProducts);
         $(document).on('click', '#main-content button.add-products', recordProductsAddedShelf);
         $(document).on('click', 'td.p_nb', showProductsList);

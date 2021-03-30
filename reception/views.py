@@ -4,6 +4,7 @@ from outils.for_view_imports import *
 from django.views.generic import View
 
 import os
+from datetime import date
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
@@ -138,16 +139,35 @@ def update_orders(request):
                     for order_line in order['po']:
                         if order_line['indicative_package'] is False:
                             m.remove_package_restriction(order_line)
-                        update = m.update_line(int(order_line['id']), data['update_type'], float(order_line['package_qty']), float(order_line['product_qty_package']), float(order_line['price_unit']))
+
+                        update = m.update_line(int(order_line['id']),
+                                                data['update_type'],
+                                                float(order_line['package_qty']),
+                                                float(order_line['product_qty_package']),
+                                                float(order_line['price_unit']))
                         if not (update is True):
-                            # indicative_package may have been changed since data have been loaded in browser
+                            # indicative_package may have been changed since data have been loaded in browser, retry
                             m.remove_package_restriction(order_line)
-                            update = m.update_line(int(order_line['id']), data['update_type'], float(order_line['package_qty']), float(order_line['product_qty_package']), float(order_line['price_unit']))
+                            update = m.update_line(int(order_line['id']),
+                                                    data['update_type'],
+                                                    float(order_line['package_qty']),
+                                                    float(order_line['product_qty_package']),
+                                                    float(order_line['price_unit']))
                             if not (update is True):
                                 errors.append(order_line['id'])
 
+                        # If update succeded, and supplier shortage set, try to register the supplier shortage
+                        if update is True and 'supplier_shortage' in order_line:
+                            try:
+                                answer_data['res_shortage'] = CagetteProduct.register_start_supplier_shortage(
+                                                                order_line['product_id'][0],
+                                                                order_line['partner_id'][0],
+                                                                date.today().strftime("%Y-%m-%d"))
+                            except Exception as e:
+                                errors.append('error registering shortage on p'+order_line['id']+':'+str(e))
+
                         # Print etiquette with new price if update if successful
-                        if (print_labels is True) and (update is True) and (data['update_type'] == 'br_valid'):
+                        if (print_labels is True) and (update is True) and (data['update_type'] == 'br_valid') and order_line['new_shelf_price']:
                             try:
                                 tools_url = settings.TOOLS_SERVER + '/products/label_print/'
                                 tools_url += str(order_line['product_tmpl_id']) + '/'
@@ -232,7 +252,14 @@ def save_error_report(request):
                     ws = wb.active
                     ws.title = "Commande " + order['name']
 
-                    ws.append(['type', 'nom_contenu', 'supplier_code', 'barcode', 'old_qty', 'product_qty', 'price_unit'])
+                    ws.append(['type',
+                                'nom_contenu',
+                                'supplier_code',
+                                'barcode',
+                                'old_qty',
+                                'product_qty',
+                                'price_unit',
+                                'supplier_shortage'])
 
                     # If in group add group name
                     if len(data['orders']) > 1 :
@@ -247,12 +274,24 @@ def save_error_report(request):
                                 else:
                                     supplier_code = 'X'
 
-                                ws.append( ['produit', product['product_id'][1], supplier_code, str(product['barcode']), product['old_qty'], product['product_qty'], product['price_unit']] )
+                                if 'supplier_shortage' in product:
+                                    supplier_shortage = '/!\ Rupture fournisseur'
+                                else:
+                                    supplier_shortage = ''
+
+                                ws.append( ['produit',
+                                            product['product_id'][1],
+                                            supplier_code,
+                                            str(product['barcode']),
+                                            product['old_qty'],
+                                            product['product_qty'],
+                                            product['price_unit'],
+                                            supplier_shortage] )
                     except:
                         # no updated products, do nothing
                         pass
 
-                    if data['user_comments'] != "":
+                    if ('user_comments' in data) and data['user_comments'] != "":
                         ws.append( ['commentaire', data['user_comments']] )
                     else:
                         ws.append( ['commentaire', 'Aucun commentaire.'] )
@@ -282,7 +321,8 @@ def save_error_report(request):
                                     'barcode' : row[3],
                                     'old_qty' : row[4],
                                     'product_qty' : row[5],
-                                    'price_unit' : row[6]
+                                    'price_unit' : row[6],
+                                    'supplier_shortage' : row[7]
                                 }
                             elif row[0] == 'group':
                                 group_name = row[1]         # group's orders name
@@ -298,7 +338,7 @@ def save_error_report(request):
                     data_full = []
                     error_total = 0
                     error_total_abs = 0
-                    if data['user_comments'] != "":
+                    if ('user_comments' in data) and data['user_comments'] != "":
                         data_comment_s2 = data['user_comments']
                     else:
                         data_comment_s2 = "Aucun commentaire."
@@ -311,12 +351,18 @@ def save_error_report(request):
                             else:
                                 supplier_code = 'X'
 
+                            if 'supplier_shortage' in product:
+                                supplier_shortage = '/!\ Rupture fournisseur'
+                            else:
+                                supplier_shortage = ''
+
                             item = {
                                 'product_id': product['product_id'][1],
                                 'product_supplier_code': supplier_code,
                                 'product_barcode': product['barcode'],
                                 'old_price_unit': float(product['old_price_unit']),
-                                'price_unit': float(product['price_unit'])
+                                'price_unit': float(product['price_unit']),
+                                'supplier_shortage': supplier_shortage
                             }
 
                             # If the product was also modified in step 1
@@ -325,6 +371,10 @@ def save_error_report(request):
                                 item['product_qty'] = float(data_qties[item['product_id']]['product_qty'])
                                 item['expected_amount'] = item['old_qty']*item['old_price_unit']
                                 item['error_line'] = (item['old_qty'] - item['product_qty'])*item['price_unit']
+
+                                # If product was set on supplier shortage in step 1 and not in step 2
+                                if item['supplier_shortage'] == '' and data_qties[item['product_id']]['supplier_shortage'] != '':
+                                    item['supplier_shortage'] = data_qties[item['product_id']]['supplier_shortage']
 
                                 data_qties.pop(item['product_id'])
                             else:
@@ -354,7 +404,8 @@ def save_error_report(request):
                             'old_price_unit': float(product['price_unit']),
                             'price_unit': '',
                             'expected_amount':float(product['old_qty'])*float(product['price_unit']),
-                            'error_line': (float(product['old_qty'])-float(product['product_qty']))*float(product['price_unit'])
+                            'error_line': (float(product['old_qty'])-float(product['product_qty']))*float(product['price_unit']),
+                            'supplier_shortage': product['supplier_shortage']
                         }
 
                         error_total += item['error_line']
@@ -389,13 +440,30 @@ def save_error_report(request):
                     ws.append( ['Montant total attendu (TTC) : ', str(round(order['amount_total'],2)) + ' €'] )
                     ws.append( [] )
 
-                    ws.append( ['Nom produit', 'Code Four.', 'Numéro de Code Barre', 'Qté commande', 'Qté réception', 'Prix unit. initial', 'Prix unit. MAJ', 'Prix total attendu', "Montant erreur livraison (basé sur les différences de prix: (nouveau_prix-ancien_prix)*nouvelle_qté)"] )
+                    ws.append( ['Nom produit',
+                                'Code Four.',
+                                'Numéro de Code Barre',
+                                'Qté commande',
+                                'Qté réception',
+                                'Prix unit. initial',
+                                'Prix unit. MAJ',
+                                'Prix total attendu',
+                                "Montant erreur livraison (basé sur les différences de quantité)"] )
 
                     if len(data_full) == 0:
                         ws.append( ['- Aucune modification -'] )
                     else:
                         for product in data_full:
-                            ws.append( [product['product_id'], product['product_supplier_code'],  str(product['product_barcode']), product['old_qty'], product['product_qty'], product['old_price_unit'], product['price_unit'], round(product['expected_amount'], 2), round(product['error_line'], 2)] )
+                            ws.append( [product['product_id'],
+                                        product['product_supplier_code'],
+                                        str(product['product_barcode']),
+                                        product['old_qty'],
+                                        product['product_qty'],
+                                        product['old_price_unit'],
+                                        product['price_unit'],
+                                        round(product['expected_amount'], 2),
+                                        round(product['error_line'], 2),
+                                        product['supplier_shortage']] )
 
                     ws.append( [] )
                     ws.append( ['Montant total de l\'erreur :', '', '', '', '', '', '', '', round(error_total, 2)] )

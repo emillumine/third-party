@@ -18,6 +18,15 @@ def movements_page(request):
 
     return HttpResponse(template.render(context, request))
 
+def movements_view(request):
+    """Page d'extraction des mouvements de stocks"""
+    context = {
+        'title': 'Mouvements de stock'
+    }
+    template = loader.get_template('stock/stock_movements_view.html')
+
+    return HttpResponse(template.render(context, request))
+
 def do_movement(request):
     """Do the stock movement: losses, self conso or stock correction"""
     res = {}
@@ -40,6 +49,20 @@ def do_movement(request):
         res = CagetteInventory.update_stock_with_shelf_inventory_data(inventory_data)
     else:
         res = CagetteStock.do_stock_movement(data)
+
+    if 'errors' in res and res['errors']:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+def get_movements(request):
+    res = {}
+
+    movement_type = request.GET.get('movement_type', '')
+    date_from = request.GET.get('from', '')
+    date_to = request.GET.get('to', '')
+
+    res = CagetteStock.get_movements(movement_type, date_from, date_to)
 
     if 'errors' in res and res['errors']:
         return JsonResponse(res, status=500)

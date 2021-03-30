@@ -5,7 +5,8 @@ from . import views
 from . import admin
 
 urlpatterns = [
-    url(r'^$', views.index),
+    url(r'^$', views.shop_index),
+    url(r'^delivery$', views.delivery_index),
     url(r'^get_all_available_bought_products$', views.get_all_available_bought_products),
     url(r'^get_cat_children$', views.get_cat_children),
     url(r'^get_categ_products$', views.get_categ_products),

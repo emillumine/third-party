@@ -501,27 +501,33 @@ function coop_problem_delete() {
 }
 
 function open_coop_form(e) {
-    if (e) {
-        var clicked = $(this);
+    try {
+        if (e) {
+            var clicked = $(this);
 
-        coop_target = {};
-        coop_target.id = clicked.data('id');
-        coop_target.validation_state = clicked.closest('div.main').attr('id');
-    } else {
-        return display_current_coop_form();
-    }
-
-    set_current_coop(coop_target, function() {
-        if (coop_target.validation_state == 'to_fill') {
-            display_current_coop_form();
-        } else if ((coop_target.validation_state == 'waiting_validation_employee' || coop_target.validation_state == 'waiting_validation_member') && coop_is_connected()) {
-            display_current_coop_form();
-        } else if (coop_target.validation_state == 'done') {
-            ask_for_deletion();
+            coop_target = {};
+            coop_target.id = clicked.data('id');
+            coop_target.validation_state = clicked.closest('div.main').attr('id');
         } else {
-            process_signaler_click();
+            return display_current_coop_form();
         }
-    });
+
+        set_current_coop(coop_target, function() {
+            if (coop_target.validation_state == 'to_fill') {
+                display_current_coop_form();
+            } else if ((coop_target.validation_state == 'waiting_validation_employee' || coop_target.validation_state == 'waiting_validation_member') && coop_is_connected()) {
+                display_current_coop_form();
+            } else if (coop_target.validation_state == 'done') {
+                ask_for_deletion();
+            } else {
+                process_signaler_click();
+            }
+        });
+    } catch (err) {
+        error = {msg: err.name + ' : ' + err.message, ctx: 'open_coop_form'};
+        console.error(error);
+        report_JS_error(error, 'prepa-odoo');
+    }
 }
 
 function ask_for_deletion() {
@@ -537,56 +543,68 @@ function ask_for_problem_deletion() {
     openModal(msg, coop_problem_delete, 'Oui');
 }
 function add_coop_to_box(box, coop) {
-    var info = coop.firstname + ' ' + coop.lastname;
+    try {
+        var info = coop.firstname + ' ' + coop.lastname;
 
-    if (coop.odoo_state && coop.odoo_state == 'done') {
-        info = coop.barcode_base + ' - ' + info;
-    }
+        if (coop.odoo_state && coop.odoo_state == 'done') {
+            info = coop.barcode_base + ' - ' + info;
+        }
 
-    info = $('<span/>').text(info);
-    var cbox = $('<div/>').addClass('coop')
-        .attr('data-id', coop._id)
-        .append(info);
-    // Only connected user can do these actions
+        info = $('<span/>').text(info);
+        var cbox = $('<div/>').addClass('coop')
+            .attr('data-id', coop._id)
+            .append(info);
+        // Only connected user can do these actions
 
-    if ([
-        "waiting_validation_employee",
-        "waiting_validation_member",
-        "done"
-    ].indexOf(coop.validation_state) > -1
+        if ([
+            "waiting_validation_employee",
+            "waiting_validation_member",
+            "done"
+        ].indexOf(coop.validation_state) > -1
       && !coop_is_connected()) {
-        cbox.addClass('coop_no_select');
+            cbox.addClass('coop_no_select');
+        }
+        box.append(cbox);
+    } catch (e) {
+        err = {msg: e.name + ' : ' + e.message, ctx: 'add_coop_to_box'};
+        console.error(err);
+        report_JS_error(err, 'prepa-odoo');
     }
-    box.append(cbox);
 }
 
 //Called after having retrieved all coops
 function dispatch_coops_in_boxes() {
-    $('div.coop').off('click', open_coop_form);
-    to_fill_box.html('');
-    with_errors_box.html('');
-    waiting_validation_employee_div.find('.elts').html('');
-    waiting_validation_member_div.find('.elts').html('');
-    done_div.find('.elts').html('');
+    try {
+        $('div.coop').off('click', open_coop_form);
+        to_fill_box.html('');
+        with_errors_box.html('');
+        waiting_validation_employee_div.find('.elts').html('');
+        waiting_validation_member_div.find('.elts').html('');
+        done_div.find('.elts').html('');
 
-    $.each(coops.to_fill, function(i, e) {
-        add_coop_to_box(to_fill_box, e);
-    });
-    $.each(coops.with_errors, function(i, e) {
-        add_coop_to_box(with_errors_box, e);
-    });
-    $.each(coops.waiting_validation_employee, function(i, e) {
-        add_coop_to_box(waiting_validation_employee_div.find('.elts'), e);
-    });
-    $.each(coops.waiting_validation_member, function(i, e) {
-        add_coop_to_box(waiting_validation_member_div.find('.elts'), e);
-    });
-    $.each(coops.done, function(i, e) {
-        add_coop_to_box(done_div.find('.elts'), e);
-    });
+        $.each(coops.to_fill, function(i, e) {
+            add_coop_to_box(to_fill_box, e);
+        });
+        $.each(coops.with_errors, function(i, e) {
+            add_coop_to_box(with_errors_box, e);
+        });
+        $.each(coops.waiting_validation_employee, function(i, e) {
+            add_coop_to_box(waiting_validation_employee_div.find('.elts'), e);
+        });
+        $.each(coops.waiting_validation_member, function(i, e) {
+            add_coop_to_box(waiting_validation_member_div.find('.elts'), e);
+        });
+        $.each(coops.done, function(i, e) {
+            add_coop_to_box(done_div.find('.elts'), e);
+        });
 
-    $('div.coop').on('click', open_coop_form);
-    $('div.coop_no_select').off('click', open_coop_form);
+        $('div.coop').on('click', open_coop_form);
+        $('div.coop_no_select').off('click', open_coop_form);
+    } catch (e) {
+        err = {msg: e.name + ' : ' + e.message, ctx: 'dispatch_coops_in_boxes'};
+        console.error(err);
+        report_JS_error(err, 'prepa-odoo');
+    }
 }
 
 function handle_legacy_states(rows) {
@@ -609,49 +627,55 @@ function handle_legacy_states(rows) {
 
 // first function called when loading page
 function retrieve_all_coops() {
-    dbc.allDocs({include_docs: true, descending: true}, function(err, resp) {
-        if (err) {
-            return console.log(err);
-        }
-        coops = {'to_fill': [], 'with_errors': [], 'waiting_validation_employee':[], 'waiting_validation_member':[], 'done':[]};
-        $.each(handle_legacy_states(resp.rows), function(i, e) {
-            if (e.doc.firstname) {
-                if (e.doc.errors) {
-                    coops.with_errors.push(e.doc);
-                } else if (e.doc.validation_state == "to_fill") {
-                    coops.to_fill.push(e.doc);
-                } else if (e.doc.validation_state == "waiting_validation_employee") {
-                    coops.waiting_validation_employee.push(e.doc);
-                } else if (e.doc.validation_state == "waiting_validation_member") {
-                    coops.waiting_validation_member.push(e.doc);
-                } else if (e.doc.validation_state == "done") {
-                    coops.done.push(e.doc);
-                }
-
-                if (e.doc.coop_msg) {
-                    coops.with_errors.push(e.doc);
-                }
+    try {
+        dbc.allDocs({include_docs: true, descending: true}, function(err, resp) {
+            if (err) {
+                return console.log(err);
             }
+            coops = {'to_fill': [], 'with_errors': [], 'waiting_validation_employee':[], 'waiting_validation_member':[], 'done':[]};
+            $.each(handle_legacy_states(resp.rows), function(i, e) {
+                if (e.doc.firstname) {
+                    if (e.doc.errors) {
+                        coops.with_errors.push(e.doc);
+                    } else if (e.doc.validation_state == "to_fill") {
+                        coops.to_fill.push(e.doc);
+                    } else if (e.doc.validation_state == "waiting_validation_employee") {
+                        coops.waiting_validation_employee.push(e.doc);
+                    } else if (e.doc.validation_state == "waiting_validation_member") {
+                        coops.waiting_validation_member.push(e.doc);
+                    } else if (e.doc.validation_state == "done") {
+                        coops.done.push(e.doc);
+                    }
 
-        });
+                    if (e.doc.coop_msg) {
+                        coops.with_errors.push(e.doc);
+                    }
+                }
 
-        coops['to_fill'].sort(function(a, b) {
-            return a.barcode_base - b.barcode_base;
+            });
+
+            coops['to_fill'].sort(function(a, b) {
+                return a.barcode_base - b.barcode_base;
+            });
+            coops['with_errors'].sort(function(a, b) {
+                return a.barcode_base - b.barcode_base;
+            });
+            coops['waiting_validation_employee'].sort(function(a, b) {
+                return a.barcode_base - b.barcode_base;
+            });
+            coops['waiting_validation_member'].sort(function(a, b) {
+                return a.odoo_id - b.odoo_id;
+            });
+            coops['done'].sort(function(a, b) {
+                return b.timestamp - a.timestamp;
+            });
+            dispatch_coops_in_boxes();
         });
-        coops['with_errors'].sort(function(a, b) {
-            return a.barcode_base - b.barcode_base;
-        });
-        coops['waiting_validation_employee'].sort(function(a, b) {
-            return a.barcode_base - b.barcode_base;
-        });
-        coops['waiting_validation_member'].sort(function(a, b) {
-            return a.odoo_id - b.odoo_id;
-        });
-        coops['done'].sort(function(a, b) {
-            return b.timestamp - a.timestamp;
-        });
-        dispatch_coops_in_boxes();
-    });
+    } catch (err) {
+        error = {msg: err.name + ' : ' + err.message, ctx: 'retrieve_all_coops'};
+        console.log(error);
+        report_JS_error(error, 'prepa-odoo');
+    }
 }
 
 $(document).ready(function() {

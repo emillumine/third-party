@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^delete_custom_list$', views.delete_custom_list),
     url(r'^custom_list_inventory/([0-9]+)$', views.custom_list_inventory),
     url(r'^get_custom_list_data$', views.get_custom_list_data),
+    url(r'^inventory_process_state/([0-9]+)$', views.inventory_process_state),
     url(r'^do_custom_list_inventory$', views.do_custom_list_inventory),
     url(r'^generate_inventory_list$', views.generate_inventory_list),
     url(r'^get_credentials$', views.get_credentials),

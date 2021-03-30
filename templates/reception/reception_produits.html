@@ -10,6 +10,7 @@
 <script type="text/javascript" src="{% static 'js/download.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -92,7 +93,6 @@
             <span id="valid_all"></span>
             <span id="all_left_is_good">
               <button class='btn--danger half_width_button'  onclick="openModal($('#templates #modal_all_left_is_good').html(), confirm_all_left_is_good, 'Confirmer', false);">Tout le reste est bon</button>
-              
             </span>
           </div>
         {% else %}
@@ -153,6 +153,14 @@
       <p>Êtez-vous sûr ?</p>
       <hr />
     </div>
+    <div id="modal_set_supplier_shortage">
+      <h3>Attention !</h3>
+      <p>Vous vous apprêtez indiquer que le produit<b><span class="supplier_shortage_product"></span></b>
+          est en rupture chez le fournisseur<b><span class="supplier_shortage_supplier"></span></b>.</p>
+      <p>La quantité du produit sera mise à 0 si vous en êtes à l'étape du comptage de produits.</p>
+      <p>Êtez-vous sûr ?</p>
+      <hr />
+    </div>
     <div id="modal_unprocessable_porducts">
       <h3>Traitement impossible</h3>
       <p>
@@ -179,6 +187,6 @@
   var fixed_barcode_prefix = '{{FIXED_BARCODE_PREFIX}}'
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
-<script src="{% static "js/common.js" %}?v="></script>
+<script src='{% static "js/barcodes.js" %}?v='></script>
 <script type="text/javascript" src="{% static 'js/reception_produits.js' %}?v="></script>
 {% endblock %}

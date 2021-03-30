@@ -64,6 +64,17 @@ def get_custom_list_data(request):
     except Exception as e:
         return JsonResponse(id, status=500)
 
+def inventory_process_state(request, list_id):
+    res = {}
+
+    try:
+        res['state'] = CagetteInventory.get_custom_list_inv_status(list_id)
+    except Exception as e:
+        # Exception raised: no file found ; inventory is done
+        res['state'] = 'done'
+
+    return JsonResponse({'res': res})
+
 def do_custom_list_inventory(request):
     res = {}
     data = json.loads(request.body.decode())
@@ -97,7 +108,7 @@ def do_custom_list_inventory(request):
     else:
         return JsonResponse({'res': res})
 
-@csrf_exempt 
+@csrf_exempt
 def generate_inventory_list(request):
     """Responding to Odoo ajax call (no csrf)."""
     res = {}

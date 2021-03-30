@@ -212,9 +212,10 @@ class Order(models.Model):
 
     def get_custom_barcode_labels_to_print(self):
         import re
+        fixed_prefix = getattr(settings, 'FIXED_BARCODE_PREFIX', '0490')
         labels_data = {'total': 0, 'details': []}
         lines = self.get_lines()
-        bc_pattern = re.compile('^0490')
+        bc_pattern = re.compile('^' + fixed_prefix)
         for l in lines:
             if ('barcode' in l) and not (bc_pattern.match(str(l['barcode'])) is None):
                 labels_data['details'].append(l)
@@ -256,7 +257,8 @@ class Orders(models.Model):
         import re
         labels_data = {}
         try:
-            bc_pattern = re.compile('^0490|0491')
+            fixed_prefix = getattr(settings, 'FIXED_BARCODE_PREFIX', '0490')
+            bc_pattern = re.compile('^' + fixed_prefix)
             for l in Orders.get_lines(oids):
                 if not (bc_pattern.match(str(l['barcode'])) is None):
                     if not (l['product_tmpl_id'] in labels_data):

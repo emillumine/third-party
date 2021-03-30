@@ -46,6 +46,7 @@ class CagetteProduct(models.Model):
 
         return res
 
+
     @staticmethod
     def get_product_info_for_label_from_template_id(template_id):
         """Get product info for label."""
@@ -54,14 +55,26 @@ class CagetteProduct(models.Model):
         fields = ['barcode', 'product_tmpl_id', 'pricetag_rackinfos',
                   'price_weight_net', 'price_volume', 'list_price',
                   'weight_net', 'volume', 'to_weight']
-        fields += getattr(settings, 'SHELF_LABELS_ADD_FIELDS', [])
-        return api.search_read('product.product', cond, fields)
+        additionnal_fields = getattr(settings, 'SHELF_LABELS_ADD_FIELDS', [])
+        fields += additionnal_fields
+        product_data = api.search_read('product.product', cond, fields)
+        if product_data and 'suppliers' in additionnal_fields:
+            cond = [['product_tmpl_id.id', '=', template_id]]
+            fields = ['name']
+            suppliers = api.search_read('product.supplierinfo', cond, fields)
+            if suppliers:
+                suppliers_name = []
+                for s in suppliers:
+                    suppliers_name.append(s['name'][1])
+                product_data[0]['suppliers'] = ', '.join(list(set(suppliers_name)))
+        return product_data
 
     @staticmethod
     def generate_label_for_printing(templ_id, directory, price=None, nb=None):
         res = {}
         try:
             p = CagetteProduct.get_product_info_for_label_from_template_id(templ_id)
+
             if (p and p[0]['product_tmpl_id'][0] == int(templ_id)):
                 product = p[0]
                 txt = ''
@@ -89,6 +102,18 @@ class CagetteProduct(models.Model):
         except Exception as e:
             res['error'] = str(e)
             coop_logger.error("Generate label : %s %s", templ_id, str(e))
+        return res
+
+    @staticmethod
+    def register_start_supplier_shortage(product_id, partner_id, date_start):
+        """Start a supplier shortage for a product"""
+        api = OdooAPI()
+        f = {
+            'product_id' : product_id,
+            'partner_id' : partner_id,
+            'date_start' : date_start,
+        }
+        res = api.create('product.supplier.shortage', f)
         return res
 
 class CagetteProducts(models.Model):
@@ -166,6 +191,8 @@ class CagetteProducts(models.Model):
     def get_products_for_label_appli(withCandidate=False):
         fields = ['sale_ok', 'uom_id', 'barcode',
                   'name', 'display_name', 'list_price', 'categ_id', 'image_medium']
+        if getattr(settings, 'EXPORT_POS_CAT_FOR_SCALES', False) is True:
+            fields.append('pos_categ_id')
         to_weight = CagetteProducts.get_products_to_weight(withCandidate, fields)
         if len(vcats) > 0:
             vrac = CagetteProducts.get_vrac_products_from_cats(vcats, withCandidate, fields)
@@ -182,6 +209,19 @@ class CagetteProducts(models.Model):
         fields = ['uom_id', 'display_name','barcode']
         return api.search_read('product.product', cond, fields)
 
+
+    @staticmethod
+    def get_pos_categories():
+        api = OdooAPI()
+        fields = ['name', 'parent_id', 'sequence', 'image_small']
+        try:
+            res = api.search_read('pos.category', [], fields)
+        except Exception as e:
+            coop_logger.error('Getting POS categories : %s', str(e))
+            res = []
+
+        return res
+
     @staticmethod
     def get_all_barcodes():
         """Needs lacagette_products Odoo module to be active."""
@@ -195,6 +235,12 @@ class CagetteProducts(models.Model):
                 for p in res['list']:
                     # transcode result to compact format (for bandwith save and browser memory)
                     # real size / 4 (for 2750 products)
+                    # following 2 lines is only useful for La Cagette (changing uom_id in Database has cascade effects...)
+                    # TODO : Use mapping list in config.py
+                    if p['uom_id'] == 3:
+                        p['uom_id'] = 21
+                    if p['uom_id'] == 20:
+                        p['uom_id'] = 1
                     result['pdts'][p['barcode']] = [
                                                     p['display_name'],
                                                     p['sale_ok'],
@@ -202,6 +248,7 @@ class CagetteProducts(models.Model):
                                                     p['available_in_pos'],
                                                     p['id'],
                                                     p['standard_price'],
+                                                    p['list_price'],
                                                     p['uom_id']]
                 if 'uoms' in res and 'list' in res['uoms']:
                     result['uoms'] = res['uoms']['list']
@@ -264,18 +311,32 @@ class CagetteProducts(models.Model):
 
     @staticmethod
     def get_barcode_rules():
-        c = [['type', 'in', ['FF_price_to_weight', 'price', 'price_to_weight', 'product', 'weight' ]], ['barcode_nomenclature_id','=', 1]]
-        rules = OdooAPI().search_read('barcode.rule', c, ['pattern'], order="sequence ASC")
-        # As rules are ordered by sequence, let's find where to stop (.* pattern)
-        stop_idx = len(rules) - 1
-        i = 0
-        for r in rules:
-            if r['pattern'] == ".*":
-                stop_idx = i
-            i += 1
-        if stop_idx > 0:
-            rules = rules[:stop_idx - 1]
-        return rules
+        result = {'patterns': [], 'aliases': {}}
+        try:
+            import re
+            c = [['type', 'in', ['FF_price_to_weight', 'price', 'price_to_weight', 'product', 'weight', 'alias']], ['barcode_nomenclature_id','=', 1]]
+            rules = OdooAPI().search_read('barcode.rule', c, ['pattern', 'type', 'alias'], order="sequence ASC")
+            # As rules are ordered by sequence, let's find where to stop (.* pattern)
+            stop_idx = len(rules) - 1
+            i = 0
+            for r in rules:
+                if r['pattern'] == ".*":
+                    stop_idx = i
+                i += 1
+            if stop_idx > 0:
+                rules = rules[:stop_idx - 1]
+            for r in rules:
+                if r['type'] == 'alias':
+                    alias_bc = re.sub('[^0-9]', '', r['pattern'])
+                    if len(alias_bc) > 0:
+                        result['aliases'][alias_bc] = r['alias']
+                elif '{' in r['pattern'] or '.' in r['pattern']:
+                    result['patterns'].append(r)
+        except Exception as e:
+            result['error'] = str(e)
+            coop_logger.error("Get Barcode Rules : %s", str(e))
+        # coop_logger.info("Fin get bc rules : %s", str(result))
+        return result
 
 
     @staticmethod
@@ -283,16 +344,16 @@ class CagetteProducts(models.Model):
         import re
         from outils.functions import computeEAN13Check
         bc_map = {}
-
         rules = CagetteProducts.get_barcode_rules()
 
+        rules = rules['patterns']
         # now, just keep rules with N in pattern
         rules = list(filter(lambda x: '.' in x['pattern'], rules))
         rules = list(map(lambda x: x['pattern'], rules))
 
         # now remove {NN...} from pattern
         rules = list(map(lambda x: re.sub(r'{.+}', '', x), rules))
-
+        # coop_logger.info('rules = %s', rules)
         # now compile regex for pattern
         regex = []
         for r in rules:

@@ -4,8 +4,10 @@ from django.conf.urls import  url
 from . import views
 
 urlpatterns = [
-    url(r'^movements', views.movements_page),
+    url(r'^movements$', views.movements_page),
     url(r'^do_movement', views.do_movement),
+    url(r'^movements_view$', views.movements_view),
+    url(r'^get_movements$', views.get_movements),
 
     ### NOT IN USE: ###
 

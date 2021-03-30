@@ -5,13 +5,20 @@ from outils.for_view_imports import *
 from members.models import CagetteMember
 from shop.models import CagetteShop
 
-
 @never_cache
-def index(request):
+def shop_index(request):
+    return index(request, mode='shop')
+    
+@never_cache
+def delivery_index(request):
+    return index(request, mode='delivery')
+
+def index(request, mode="shop"):
     template = loader.get_template('shop/index.html')
     credentials = CagetteMember.get_credentials(request)
     shop_settings = CagetteShop.get_shop_settings()
     context = {'title': 'Commande / Réservation',
+               'mode': mode,
                'COMPANY_NAME': settings.COMPANY_NAME,
                'SHOP_CATEGORIES': settings.SHOP_CATEGORIES,
                'EXCLUDE_SHOP_CATEGORIES': settings.EXCLUDE_SHOP_CATEGORIES,
@@ -44,8 +51,12 @@ def index(request):
             context['SHOP_SLOT_SIZE'] = settings.SHOP_SLOT_SIZE
         if hasattr(settings, 'SHOP_OPENING_START_DATE'):
             context['SHOP_OPENING_START_DATE'] = settings.SHOP_OPENING_START_DATE
-        if hasattr(settings, 'SHOP_CAN_BUY'):
+        if mode == 'shop' and hasattr(settings, 'SHOP_CAN_BUY'):
             context['SHOP_CAN_BUY'] = settings.SHOP_CAN_BUY
+            context['DELIVERY_CAN_BUY'] = False
+        if mode == 'delivery' and hasattr(settings, 'DELIVERY_CAN_BUY'):
+            context['SHOP_CAN_BUY'] = False
+            context['DELIVERY_CAN_BUY'] = settings.DELIVERY_CAN_BUY
 
         d_p_pdts = CagetteShop.get_promoted_and_discounted_products()
         context['discounted_pdts'] = d_p_pdts['discounted']
@@ -129,7 +140,8 @@ def cart_init(request):
     try:
         # first of all, verifiying cart is respecting time slots constraints
         cart = json.loads(request.POST.get('order'))
-        ts_respect = CagetteShop.isCartRespectingTimeSlotContraints(cart)
+        # Verify for shop only, not for delivery
+        ts_respect = CagetteShop.isCartRespectingTimeSlotContraints(cart) if cart['type'] == 'shop' else True
         if (ts_respect is False):
             result['ts_respect'] = False
             result['error'] = 'Forbidden timeslot'
