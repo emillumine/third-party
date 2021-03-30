@@ -18,8 +18,11 @@ def index(request):
     from outils.common import MConfig
     template = loader.get_template('members/index.html')
 
-    context = {'form': '', 'title': 'Coopérateurs',
-               'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG}
+    context = {
+        'form': '', 'title': 'Coopérateurs',
+        'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
+        'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')
+    }
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
 
     msettings = MConfig.get_settings('members')
@@ -133,7 +136,8 @@ def validation_inscription(request, email):
                    'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                    'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
                    'em_url': settings.EM_URL,
-                   'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG}
+                   'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
+                   'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
 
     # with_addr_complement
     response = HttpResponse(template.render(context, request))

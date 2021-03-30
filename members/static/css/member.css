@@ -17,7 +17,15 @@ video {max-width:none;}
 #photo_advice, #photo_studio,
 #service_entry_success .compteur
 {display:none;}
-#first_page .btn {height:50px; font-size: xx-large; margin-top:150px;}
+#first_page .btn {
+    height: auto;
+    font-size: xx-large;
+    margin-top: 150px;
+    border-radius: 5px;
+    border: 1px solid;
+    padding: 15px;
+    box-shadow: 1px 1px 2px #555;
+}
 #post_take_buttons .btn--primary,#post_take_buttons .btn--inverse {margin-bottom:15px;}
 
 #shopping_entry .btn--primary,  #service_entry .btn--primary,

@@ -61,7 +61,8 @@ def index(request):
                        'max_begin_hour': settings.MAX_BEGIN_HOUR,
                        'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
                        'em_url': settings.EM_URL,
-                       'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG}
+                       'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
+                       'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
             if hasattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX'):
                 context['ask_for_sex'] = settings.SUBSCRIPTION_ASK_FOR_SEX
             if hasattr(settings, 'SUBSCRIPTION_ADD_STREET2'):
