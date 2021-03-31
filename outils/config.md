@@ -202,12 +202,23 @@
 
 ### Entrance module
 
+- WELCOME_ENTRANCE_MSG = "Bienvenue dans ce super-marché"
+
+        Message shown as H1 at screen top
+
+- WELCOME_SUBTITLE_ENTRANCE_MSG = "Vous êtes venu aujourd'hui pour..."
+
+        Text to introduce button texts (Here for shopping or for a shift)
+
 - ENTRANCE_COME_FOR_SHOPING_MSG = "Hey coucou toi ! Cet été nous sommes plus de <strong>1000 acheteur·euses</strong> pour seulement  <strong>300 coopérateur·rice·s</strong> en service. <br />Tu fais tes courses à La Cagette cet été ?<br/> Inscris-toi sur ton espace membre !"
 
 - ENTRANCE_FTOP_BUTTON_DISPLAY = False
 
         Hide the "I come as FTOP" button when set on False
 
+- ENTRANCE_SHOPPING_BTN = "…faire <b>mes courses 🛒"
+
+- ENTRANCE_SERVICE_BTN = "…faire <b>mon service 🤝"
 
 ### Member space
 
