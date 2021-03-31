@@ -16,9 +16,11 @@ SUBSCRIPTION_PAYMENT_MEANINGS = [
 ]
 
 # Borne d'accueil /members/
-WELCOME_ENTRANCE_MSG="Bienvenue dans ce super-marché"
+WELCOME_ENTRANCE_MSG = "Bienvenue dans ce super-marché"
 # Sous-titre optionel
-#WELCOME_SUBTITLE_ENTRANCE_MSG="Vous êtes venu aujourd'hui pour…"
+#WELCOME_SUBTITLE_ENTRANCE_MSG = "Vous êtes venu aujourd'hui pour…"
+#ENTRANCE_SHOPPING_BTN = "…faire <b>mes courses 🛒"
+#ENTRANCE_SERVICE_BTN = "…faire <b>mon service 🤝"
 
 # Shop
 COMPANY_NAME = "Demo interfoodcoop"

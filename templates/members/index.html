@@ -1,7 +1,8 @@
-{% extends "base.html" %}
+{% extends "members/base.html" %}
 {% load static %}
 {% block additionnal_css %}
-  <link rel="stylesheet" href="{% static "css/member.css" %}?v=">
+  <link rel="stylesheet" href="{% static 'css/member.css' %}?v=">
+  {{ block.super }}
 {% endblock %}
 {% block additionnal_scripts %}
  <script type="text/javascript">
@@ -31,10 +32,10 @@
     <h4 class="col-6 txtcenter">{{WELCOME_SUBTITLE_ENTRANCE_MSG|safe}}</h4>
   {% endif %}
     <div class="col-1"></div>
-    <a class="col-4 row-2 btn txtcenter b_yellow" data-next="shopping_entry">…faire <b>mes courses 🛒</b></a>
+    <a class="col-4 row-2 btn txtcenter b_yellow" data-next="shopping_entry">{{ENTRANCE_SHOPPING_BTN|safe}}</b></a>
     <div class="col-1 row-2"></div>
     <div class="col-1 row-2"></div>
-    <a class="col-4 row-2 btn txtcenter b_green" data-next="service_entry">…faire <b>mon service 🤝</b></a>
+    <a class="col-4 row-2 btn txtcenter b_green" data-next="service_entry">{{ENTRANCE_SERVICE_BTN|safe}}</b></a>
     <div class="col-1 row-2"></div>
 </section>
 <section class="grid-6 has-gutter" id="shopping_entry">
