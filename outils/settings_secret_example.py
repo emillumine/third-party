@@ -3,12 +3,12 @@
 ODOO = {
     'url': 'http://odoo:8069',
     'user': 'api',
-    'passwd': 'changeme',
+    'passwd': 'foodcoops',
     'db': 'foodcoops',
 }
 
 COUCHDB = {
-    'url': 'http://couchdb:5984',
+    'url': 'http://127.0.0.1:5984',
     'dbs': {
               'member': 'coops',
               'inventory': 'inventory',
@@ -17,7 +17,7 @@ COUCHDB = {
             }
 }
 
-
+""" To ignore """
 SQL_OFF = {
              'db': 'open_food_facts',
              'user': 'off_user',
