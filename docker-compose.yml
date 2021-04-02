@@ -1,6 +1,7 @@
 version: '3'
 
 services:
+
   app:
     build:
       context: .
@@ -12,6 +13,9 @@ services:
     links:
       - "couchdb:couchdb"
       - "odoo:odoo"
+    volumes:
+      - "./:/home/app/"
+
   couchdb:
     build:
       context: .
@@ -22,6 +26,7 @@ services:
       - "5984:5984" # Expose port because it's used by the frontend
     volumes:
       - "couchdb-data:/opt/couchdb/data"
+
   database:
     image: "postgres:10"
     env_file: .env
@@ -29,7 +34,7 @@ services:
     volumes:
       - "odoo-pg-data:/var/lib/postgresql/data"
   odoo:
-    image: "registry.gitlab.com/lgds/foodcoops:9.0-cooperatic-2021-03-21"
+    image: "registry.gitlab.com/lgds/foodcoops:9.0-cooperatic-2021-04-02"
     env_file: .env
     restart: always
     ports:

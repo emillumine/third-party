@@ -11,8 +11,8 @@ WORKDIR /home/app
 COPY requirements.txt /home/app/
 RUN pip install -r requirements.txt
 
-# Copy application
-ADD . /home/app/
+# Setup volume to be able to dev application locally
+VOLUME /home/app
 
 # Run the application:
 EXPOSE 8080
