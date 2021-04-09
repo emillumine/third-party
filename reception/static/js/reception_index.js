@@ -74,7 +74,6 @@ function clean_local_storage() {
                     // Remove from local storage
                     localStorage.removeItem("order_" + uptodate_order.id);
 
-                    // Evolution: remove order's group too
                     // Evolution: warn user (order modified elsewhere, local data has been deleted)
                     found = true;
                 } 
