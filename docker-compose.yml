@@ -13,6 +13,9 @@ services:
     links:
       - "couchdb:couchdb"
       - "odoo:odoo"
+    depends_on:
+      - odoo
+      - couchdb
     volumes:
       - "./:/home/app/"
 
@@ -28,19 +31,23 @@ services:
       - "couchdb-data:/opt/couchdb/data"
 
   database:
-    image: "postgres:10"
+    image: "registry.gitlab.com/lgds/private-docker-images/postgres-lgds-anon:2021-04-28"
     env_file: .env
     restart: always
     volumes:
       - "odoo-pg-data:/var/lib/postgresql/data"
   odoo:
-    image: "registry.gitlab.com/lgds/foodcoops:9.0-cooperatic-2021-04-02"
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.odoo-lgds
     env_file: .env
     restart: always
     ports:
       - "8069:8069"
     links:
       - "database:database"
+    depends_on:
+      - database
     volumes:
       - "odoo-shared-data:/home/app/.local/share/Odoo"
 

@@ -1,0 +1,11 @@
+# FROM registry.gitlab.com/lgds/foodcoops:9.0-cooperatic-2021-04-15
+FROM registry.gitlab.com/lgds/private-docker-images/odoo-with-filestore:2021-04-28
+
+# Basic configuration of Odoo
+RUN mkdir -p /home/app/.local/share/Odoo/
+COPY --chown=app dockerfiles/odoo.conf /home/app/.local/share/Odoo/odoo.conf
+COPY --chown=app .env /home/app/
+# Don't install modules because we start with an already provisioned database
+RUN rm -rf /home/app/modules.txt
+
+CMD ["./odoo.sh", "/home/app/.local/share/Odoo/odoo.conf", "lgds"]
