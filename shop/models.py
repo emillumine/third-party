@@ -62,7 +62,7 @@ class CagetteShop(models.Model):
     def filter_products_according_settings(pdts):
         res = pdts
         try:
-            conditions = settings.SHOP_LIMIT_PRODUCTS
+            conditions = gettattr(settings, 'SHOP_LIMIT_PRODUCTS', [])
             filtered = []
             for p in pdts:
                 keep_it = True
