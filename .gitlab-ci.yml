@@ -5,5 +5,4 @@ lint:js:
     paths:
       - node_modules/
   script:
-    - source ~/.profile
     - make lint-js
