@@ -50,11 +50,11 @@ function set_local_storage(order_data) {
 }
 
 /*
- * Remove from local storage orders that have a wrong status 
+ * Remove from local storage orders that have a wrong status
  *  (-> order has been updated elsewhere)
  */
 function clean_local_storage() {
-    var stored_order = null
+    var stored_order = null;
 
     // Loop through local storage
     for (key of Object.keys(localStorage)) {
@@ -64,19 +64,20 @@ function clean_local_storage() {
             // Loop through orders in table to find match
             var i = 0;
             var found = false;
+
             while (i < table_orders.rows().data().length && !found) {
-                var uptodate_order = table_orders.rows(i).data()[0]
+                var uptodate_order = table_orders.rows(i).data()[0];
 
                 // If status in local storage is wrong
-                if (stored_order.id == uptodate_order.id 
-                    && stored_order.reception_status != uptodate_order.reception_status)  {
+                if (stored_order.id == uptodate_order.id
+                    && stored_order.reception_status != uptodate_order.reception_status) {
 
                     // Remove from local storage
                     localStorage.removeItem("order_" + uptodate_order.id);
 
                     // Evolution: warn user (order modified elsewhere, local data has been deleted)
                     found = true;
-                } 
+                }
 
                 i++;
             }
@@ -111,7 +112,7 @@ function create_groups_from_server_data() {
     }
 
     // Add server groups to stored groups
-    grouped_orders = grouped_orders.concat(server_stored_groups)
+    grouped_orders = grouped_orders.concat(server_stored_groups);
     localStorage.setItem('grouped_orders', JSON.stringify(grouped_orders));
 }
 
@@ -120,7 +121,7 @@ function create_groups_from_server_data() {
  */
 function extract_grouped_orders() {
     var saved_grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
-    var groups_to_delete = []   // indexes
+    var groups_to_delete = []; // indexes
 
     // if there are grouped orders
     if (saved_grouped_orders != null) {
@@ -146,7 +147,7 @@ function extract_grouped_orders() {
 
             // No order found, delete group and skip the rest
             if (g.length == 0) {
-                groups_to_delete.push(group_index)
+                groups_to_delete.push(group_index);
                 continue;
             }
 
@@ -163,12 +164,12 @@ function extract_grouped_orders() {
             }
 
             if (g[0].reception_status == 'False') {
-                group_row += "<button class='btn--primary' onClick='group_goto(" 
-                    + saved_groups.length 
+                group_row += "<button class='btn--primary' onClick='group_goto("
+                    + saved_groups.length
                     + ")'>Compter les produits</button>";
             } else {
-                group_row += "<button class='btn--success' onClick='group_goto(" 
-                    + saved_groups.length 
+                group_row += "<button class='btn--success' onClick='group_goto("
+                    + saved_groups.length
                     + ")'>Mettre à jour les prix</button>";
             }
 
@@ -181,7 +182,7 @@ function extract_grouped_orders() {
 
     if (groups_to_delete.length > 0) {
         for (index of groups_to_delete) {
-            saved_grouped_orders.splice(index, 1)
+            saved_grouped_orders.splice(index, 1);
         }
         localStorage.setItem('grouped_orders', JSON.stringify(saved_grouped_orders));
     }
@@ -265,7 +266,7 @@ function group_action() {
             for (var i = 0; i < selected_data.length; i++) {
                 group_ids.push(selected_data[i].id);
             }
-            
+
             // Notify server that group is created
             $.ajax({
                 type: "POST",
@@ -307,14 +308,14 @@ function group_action() {
                 error: function(data) {
                     if (data != null && data.status == 409) {
                         alert("Un groupe a déjà été formé sur un autre poste "
-                        + "avec au moins l'une des commandes sélectionnées. Merci de rafraichir la page.")
+                        + "avec au moins l'une des commandes sélectionnées. Merci de rafraichir la page.");
                     }
                 }
             });
 
-            
+
         } else {
-            alert("Le local storage n'est pas disponible. Merci de contacter un.e salarié.e !")
+            alert("Le local storage n'est pas disponible. Merci de contacter un.e salarié.e !");
         }
 
     } else if (pswd == null) {
@@ -326,7 +327,7 @@ function group_action() {
 
 
 $(document).ready(function() {
-    openModal()
+    openModal();
 
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
@@ -397,10 +398,10 @@ $(document).ready(function() {
         iDisplayLength: 25,
         language: {url : '/static/js/datatables/french.json'},
         initComplete: function(settings, json) { // After data is loaded
-            clean_local_storage()
-            create_groups_from_server_data()
-            extract_grouped_orders()
-            closeModal()         
+            clean_local_storage();
+            create_groups_from_server_data();
+            extract_grouped_orders();
+            closeModal();
         }
     });
 

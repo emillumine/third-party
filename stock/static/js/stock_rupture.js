@@ -4,9 +4,9 @@
  *  Ecran de rechreche d'un article sur le nom et sur le code barre */
 
 
-var table_article;
+var table_article = null;
 var dataSet =[];
-var csrftoken;
+var csrftoken = '';
 
 // lance la recherche sur le nom des l'article
 function search_table_article() {
@@ -30,7 +30,7 @@ $(document).ready(function() {
             {
                 data:"image_small",
                 "title":"Photo",
-                "render": function (data, type, full, meta) {
+                "render": function (data, type, full) {
 
                     debut = '<button id="page1" type="button" data-toggle="modal" data-target=".modal" data-remote=' + full.id + ' class="btn btn-primary">';
                     fin = "</button>";
@@ -41,14 +41,14 @@ $(document).ready(function() {
             {data:"name", "title":"Article", "width": "50%"},
             {data:"qty_available", "title":"En Stock", "width": "10%"},
             {data:"uom_id",
-                "render":function (data, type, row) {
+                "render":function (data) {
 
                     return data[1];
                 },
                 "title":"Unité", "width":"5%"},
             {data:"reception_status",
                 "title":"Rupture", "className":"dt-body-center",
-                "render": function (data, type, full, meta) {
+                "render": function (data, type, full) {
                     if (full.qty_available > 0) {
                         return "<div><button id='bt_change' href='#'>Rupture</button></div>";
                     } else {
@@ -135,7 +135,7 @@ $(document).ready(function() {
 });
 
 // Lancement de la rupture sur l'article choisie
-function ruptureArticle(test) {
+function ruptureArticle() {
 
     var jIdArcticle = { 'idArticle': selArctileData.id, 'uom_id' :  selArctileData.uom_id[0] };
 
@@ -148,7 +148,7 @@ function ruptureArticle(test) {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(jIdArcticle),
 
-        success: function(data) {
+        success: function() {
 
             document.location.href = "/stock/listArticleBreaking";
         },
@@ -159,7 +159,7 @@ function ruptureArticle(test) {
     });
 }
 
-var selArctileData;
+var selArctileData = null;
 
 // Fenetre de validation sur l'article
 
