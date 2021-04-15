@@ -221,3 +221,5 @@ LOGGING = {
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True # Needed to make dev test with different IP and ports
+
+ADMIN_IDS = [1]

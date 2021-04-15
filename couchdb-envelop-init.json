@@ -1,0 +1,7 @@
+{
+  "views": {
+    "by_type": {
+      "map": "function(doc){emit(doc.type);}"
+    }
+  }
+}

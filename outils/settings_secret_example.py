@@ -1,10 +1,10 @@
 """Secret data for DB connexion ."""
 
 ODOO = {
-    'url': 'http://127.0.0.1:8069'
+    'url': 'http://odoo:8069',
     'user': 'api',
-    'passwd': 'xxxxxxxxxxxx',
-    'db': 'bd_test',
+    'passwd': 'foodcoops',
+    'db': 'foodcoops',
 }
 
 COUCHDB = {
@@ -17,7 +17,7 @@ COUCHDB = {
             }
 }
 
-
+""" To ignore """
 SQL_OFF = {
              'db': 'open_food_facts',
              'user': 'off_user',
