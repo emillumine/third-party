@@ -21,9 +21,18 @@ def as_text(value):
 
 def home(request):
     """Page de selection de la commande suivant un fournisseurs"""
+
+    # Get grouped orders stored on the server
+    try:        
+        with open('temp/grouped_order.json', 'r') as json_file:
+            saved_groups = json.load(json_file)
+    except Exception:
+        saved_groups = []
+
     context = {
         'title': 'Reception',
-        'merge_orders_pswd': settings.RECEPTION_MERGE_ORDERS_PSWD
+        'merge_orders_pswd': settings.RECEPTION_MERGE_ORDERS_PSWD,
+        'server_stored_groups' : saved_groups
     }
     template = loader.get_template('reception/index.html')
 
@@ -117,6 +126,40 @@ def data_validation(request):
         coop_logger.error("Orders data validation : %s", str(e))
         return JsonResponse({'error': str(e)}, status=500)
 
+def save_order_group(request):
+    """ 
+        When an order group is created, save it to force group these orders later.
+        Raise an error if one of the orders is already in a group.
+    """
+
+    order_ids = json.loads(request.body.decode())
+
+    try:
+        try:        
+            # Check if any of the orders attempted to be grouped is already in a group
+            with open('temp/grouped_order.json', 'r') as json_file:
+                saved_groups = json.load(json_file)
+
+                for order_id in order_ids:
+                    for group in saved_groups:
+                        if order_id in group:
+                            # Found in a group, stop
+                            msg = 'One of the orders is already in a group'
+                            return JsonResponse({'message': msg}, status=409)
+        except Exception:
+            saved_groups = []
+
+        # All good, save group
+        with open('temp/grouped_order.json', 'w+') as json_file:
+            saved_groups.append(order_ids) 
+            json.dump(saved_groups, json_file)
+
+        msg = 'Group saved'
+        return JsonResponse({'message': msg})   
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'message': str(e)}, status=500)
+
 def update_orders(request):
     """Update orders lines: quantity and unit prices"""
 
@@ -130,7 +173,10 @@ def update_orders(request):
             print_labels = True
             if hasattr(settings, 'RECEPTION_SHELF_LABEL_PRINT'):
                 print_labels = settings.RECEPTION_SHELF_LABEL_PRINT
+
+            order_ids = []
             for order_id, order in data['orders'].items():
+                order_ids.append(int(order_id))
                 answer_data[order_id] = {}
                 errors = []
 
@@ -181,10 +227,28 @@ def update_orders(request):
 
                 answer_data[order_id]['order_data'] = order
                 answer_data[order_id]['errors'] = errors
+
                 if len(errors) == 0:
                     m.update_order_status(order_id, data['update_type'])
                     if data['update_type'] == 'br_valid':
                         answer_data[order_id]['finalyze_result'] = m.register_purchase_order_to_finalyze()
+
+                        # Remove order's group
+                        try:
+                            with open('temp/grouped_order.json', 'r') as json_file:
+                                saved_groups = json.load(json_file)
+
+                            for oi in order_ids:
+                                for i, group in enumerate(saved_groups):
+                                    if oi in group:
+                                        saved_groups.pop(i)
+                                        break
+
+                            with open('temp/grouped_order.json', 'w') as json_file:
+                                json.dump(saved_groups, json_file)
+                        except Exception as e:
+                            # no saved groups
+                            print(str(e))
 
             rep = JsonResponse(answer_data, safe=False)
     return rep

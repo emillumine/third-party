@@ -64,7 +64,7 @@ $(document).on('click', '#dp_Search', function() {
     search_table_article();
 });
 
-var csrftoken;
+var csrftoken = '';
 
 $(document).ready(function() {
     csrftoken = getCookie('csrftoken');
@@ -98,7 +98,7 @@ function actionButton (vUrl, jIdArcticle, followPage) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(jIdArcticle),
-        success: function(data) {
+        success: function() {
             document.location.href = followPage;
         },
         error: function(resultat, statut, erreur) {
@@ -108,7 +108,7 @@ function actionButton (vUrl, jIdArcticle, followPage) {
     });
 }
 
-var selArctileData;
+var selArctileData = null;
 
 // Fenetre de validation sur l'article
 
