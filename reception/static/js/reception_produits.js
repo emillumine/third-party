@@ -1129,6 +1129,8 @@ function send() {
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(update_data),
             success: function(data) {
+                closeModal();
+
                 try {
                     // If step 1 (counting), open pop-up with procedure explanation
                     if (reception_status == "False") {
