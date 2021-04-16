@@ -891,7 +891,7 @@ function editProductInfo (productToEdit, value = null) {
 }
 
 // Validate product edition
-function validateEdition(form) {
+function validateEdition(form = null) {
     if (editing_product != null) {
         if (editProductInfo(editing_product)) {
             clearLineEdition();
@@ -1640,6 +1640,13 @@ $(document).ready(function() {
           (!e.shiftKey && (e.keyCode < 96 || e.keyCode > 105))
         ) {
             e.preventDefault();
+        }
+    });
+
+    $("#edition_input").keypress(function(event) {
+        // Force validation when enter pressed in edition
+        if (event.keyCode == 13 || event.which == 13) {
+            validateEdition();
         }
     });
 
