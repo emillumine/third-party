@@ -1,0 +1,13 @@
+{
+  "views": {
+    "by_fp": {
+      "map": "function(doc){emit(doc.fingerprint);}"
+    },
+    "by_completed": {
+      "map": "function(doc){emit(doc.completed);}"
+    },
+    "by_odoo_id": {
+      "map": "function(doc){emit(doc.odoo_id);}"
+    }
+  }
+}
