@@ -18,13 +18,13 @@ var orders = {},
     is_group = false,
     group_ids = [];
 
-var reception_status,
+var reception_status = null,
     list_to_process = [],
     list_processed = [],
-    table_to_process,
-    table_processed,
+    table_to_process = null,
+    table_processed = null,
     editing_product = null, // Store the product currently being edited
-    editing_origin, // Keep track of where editing_product comes from
+    editing_origin = null, // Keep track of where editing_product comes from
     processed_row_counter = 0, // Order in which products were added in processed list
     user_comments = "",
     updatedProducts = [], // Keep record of updated products
@@ -108,6 +108,8 @@ function select_product_from_bc(barcode) {
         console.error(err);
         report_JS_error(err, 'reception');
     }
+
+    return 0;
 }
 
 /* INIT */
@@ -231,7 +233,7 @@ function initLists() {
                     data:"product_id.1",
                     title:"Produit",
                     width: "45%",
-                    render: function (data, type, full, meta) {
+                    render: function (data, type, full) {
                         // Add tooltip with barcode over product name
                         let display_barcode = "Aucun";
 
@@ -300,7 +302,7 @@ function initLists() {
                     data:"product_id.1",
                     title:"Produit",
                     width: "55%",
-                    render: function (data, type, full, meta) {
+                    render: function (data, type, full) {
                         // Add tooltip with barcode over product name
                         let display_barcode = "Aucun";
 
@@ -344,7 +346,7 @@ function initLists() {
                     title:"Autres",
                     className:"dt-body-center",
                     orderable: false,
-                    render: function (data, type, full, meta) {
+                    render: function (data, type, full) {
                         let disabled = (full.supplier_shortage) ? "disabled" : '';
 
                         return "<select class='select_product_action'>"
@@ -900,10 +902,12 @@ function validateEdition(form) {
 // Set the quantity to 0 for all the products in to_process
 function setAllQties() {
     // Iterate over all rows in to_process
-    table_to_process.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    table_to_process.rows().every(function () {
         var data = this.data();
 
         editProductInfo(data, 0);
+
+        return true;
     });
     list_to_process = [];
     table_to_process.rows().remove()
@@ -1128,7 +1132,7 @@ function send() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(update_data),
-            success: function(data) {
+            success: function() {
                 closeModal();
 
                 try {
@@ -1215,11 +1219,11 @@ function send() {
                     }
 
                     // Go back to to_process list if modal closed
-                    $('#modal_closebtn_top').on('click', function (e) {
+                    $('#modal_closebtn_top').on('click', function () {
                         document.location.href = "/reception";
                     });
 
-                    $('#modal_closebtn_bottom').on('click', function (e) {
+                    $('#modal_closebtn_bottom').on('click', function () {
                         document.location.href = "/reception";
                     });
 
@@ -1305,7 +1309,7 @@ function confirmPricesAllValid() {
 function confirm_all_left_is_good() {
     // all products left are to be considered as well filled
     // Iterate over all rows in to_process
-    table_to_process.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    table_to_process.rows().every(function () {
         let data = this.data();
         var value = null;
 
@@ -1315,6 +1319,8 @@ function confirm_all_left_is_good() {
             value = data.price_unit;
         }
         editProductInfo(data, value);
+
+        return true;
     });
     list_to_process = [];
     table_to_process.rows().remove()
@@ -1562,12 +1568,12 @@ $(document).ready(function() {
     container_edition.addEventListener('animationend', onAnimationEnd);
     container_edition.addEventListener('webkitAnimationEnd', onAnimationEnd);
 
-    function onAnimationEnd(e) {
+    function onAnimationEnd() {
         container_edition.classList.remove('blink_me');
     }
 
     // Disable mousewheel on an input number field when in focus
-    $('#edition_input').on('focus', function (e) {
+    $('#edition_input').on('focus', function () {
         $(this).on('wheel.disableScroll', function (e) {
             e.preventDefault();
             /*
@@ -1582,7 +1588,7 @@ $(document).ready(function() {
             */
         });
     })
-        .on('blur', function (e) {
+        .on('blur', function () {
             $(this).off('wheel.disableScroll');
         });
 

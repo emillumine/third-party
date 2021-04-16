@@ -50,11 +50,11 @@ function set_local_storage(order_data) {
 }
 
 /*
- * Remove from local storage orders that have a wrong status 
+ * Remove from local storage orders that have a wrong status
  *  (-> order has been updated elsewhere)
  */
 function clean_local_storage() {
-    var stored_order = null
+    var stored_order = null;
 
     // Loop through local storage
     for (key of Object.keys(localStorage)) {
@@ -64,19 +64,20 @@ function clean_local_storage() {
             // Loop through orders in table to find match
             var i = 0;
             var found = false;
+
             while (i < table_orders.rows().data().length && !found) {
-                var uptodate_order = table_orders.rows(i).data()[0]
+                var uptodate_order = table_orders.rows(i).data()[0];
 
                 // If status in local storage is wrong
-                if (stored_order.id == uptodate_order.id 
-                    && stored_order.reception_status != uptodate_order.reception_status)  {
+                if (stored_order.id == uptodate_order.id
+                    && stored_order.reception_status != uptodate_order.reception_status) {
 
                     // Remove from local storage
                     localStorage.removeItem("order_" + uptodate_order.id);
 
                     // Evolution: warn user (order modified elsewhere, local data has been deleted)
                     found = true;
-                } 
+                }
 
                 i++;
             }
@@ -111,7 +112,7 @@ function create_groups_from_server_data() {
     }
 
     // Add server groups to stored groups
-    grouped_orders = grouped_orders.concat(server_stored_groups)
+    grouped_orders = grouped_orders.concat(server_stored_groups);
     localStorage.setItem('grouped_orders', JSON.stringify(grouped_orders));
 }
 
@@ -120,7 +121,7 @@ function create_groups_from_server_data() {
  */
 function extract_grouped_orders() {
     var saved_grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
-    var groups_to_delete = []   // indexes
+    var groups_to_delete = []; // indexes
 
     // if there are grouped orders
     if (saved_grouped_orders != null) {
@@ -146,7 +147,7 @@ function extract_grouped_orders() {
 
             // No order found, delete group and skip the rest
             if (g.length == 0) {
-                groups_to_delete.push(group_index)
+                groups_to_delete.push(group_index);
                 continue;
             }
 
@@ -163,12 +164,12 @@ function extract_grouped_orders() {
             }
 
             if (g[0].reception_status == 'False') {
-                group_row += "<button class='btn--primary' onClick='group_goto(" 
-                    + saved_groups.length 
+                group_row += "<button class='btn--primary' onClick='group_goto("
+                    + saved_groups.length
                     + ")'>Compter les produits</button>";
             } else {
-                group_row += "<button class='btn--success' onClick='group_goto(" 
-                    + saved_groups.length 
+                group_row += "<button class='btn--success' onClick='group_goto("
+                    + saved_groups.length
                     + ")'>Mettre à jour les prix</button>";
             }
 
@@ -181,7 +182,7 @@ function extract_grouped_orders() {
 
     if (groups_to_delete.length > 0) {
         for (index of groups_to_delete) {
-            saved_grouped_orders.splice(index, 1)
+            saved_grouped_orders.splice(index, 1);
         }
         localStorage.setItem('grouped_orders', JSON.stringify(saved_grouped_orders));
     }
@@ -208,7 +209,7 @@ function validatePrices() {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(update_data),
-        success: function(data) {
+        success: function() {
             localStorage.removeItem("order_" + order["id"]);
             callback_update = true;
             reload();
@@ -237,7 +238,7 @@ function validatePrices() {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(updates),
-        success: function(data) {
+        success: function() {
             callback_report = true;
             reload();
         },
@@ -265,7 +266,7 @@ function group_action() {
             for (var i = 0; i < selected_data.length; i++) {
                 group_ids.push(selected_data[i].id);
             }
-            
+
             // Notify server that group is created
             $.ajax({
                 type: "POST",
@@ -274,7 +275,7 @@ function group_action() {
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
                 data: JSON.stringify(group_ids),
-                success: function(data) {
+                success: function() {
                     var min_id = 9999999;
 
                     for (var i = 0; i < selected_data.length; i++) {
@@ -307,14 +308,14 @@ function group_action() {
                 error: function(data) {
                     if (data != null && data.status == 409) {
                         alert("Un groupe a déjà été formé sur un autre poste "
-                        + "avec au moins l'une des commandes sélectionnées. Merci de rafraichir la page.")
+                        + "avec au moins l'une des commandes sélectionnées. Merci de rafraichir la page.");
                     }
                 }
             });
 
-            
+
         } else {
-            alert("Le local storage n'est pas disponible. Merci de contacter un.e salarié.e !")
+            alert("Le local storage n'est pas disponible. Merci de contacter un.e salarié.e !");
         }
 
     } else if (pswd == null) {
@@ -326,14 +327,12 @@ function group_action() {
 
 
 $(document).ready(function() {
-    openModal()
+    openModal();
 
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     // Set date format for DataTable so date ordering can work
     $.fn.dataTable.moment('D/M/Y');
-
-    var saved_grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
 
     table_orders = $('#orders').DataTable({
         ajax: "get_list_orders",
@@ -342,7 +341,7 @@ $(document).ready(function() {
                 data:"id",
                 title:"Sélectionner",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     return '<input type="checkbox" id="select_bc_'+data+'" value="'+data+'">';
                 },
                 width: "4%",
@@ -352,7 +351,7 @@ $(document).ready(function() {
             {
                 data:"partner",
                 title:"Fournisseur",
-                render: function (data, type, full, meta) {
+                render: function (data, type, full) {
                     // Add tooltip with PO over partner name
                     return '<div class="tooltip">' + data + ' <span class="tooltiptext">' + full.name + '</span> </div>';
                 }
@@ -360,7 +359,7 @@ $(document).ready(function() {
             {
                 data:"reception_status",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     if (data == "qty_valid") {
                         return "<span class='btn--danger'>Pas de prix sur le bon de livraison</span>";
                     } else {
@@ -374,7 +373,7 @@ $(document).ready(function() {
                 data:"reception_status",
                 title:"Statut",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     switch (data) {
                     case 'qty_valid':
                         return "<span class='btn--success'>Mettre à jour les prix</span>";
@@ -396,11 +395,11 @@ $(document).ready(function() {
         ],
         iDisplayLength: 25,
         language: {url : '/static/js/datatables/french.json'},
-        initComplete: function(settings, json) { // After data is loaded
-            clean_local_storage()
-            create_groups_from_server_data()
-            extract_grouped_orders()
-            closeModal()         
+        initComplete: function() { // After data is loaded
+            clean_local_storage();
+            create_groups_from_server_data();
+            extract_grouped_orders();
+            closeModal();
         }
     });
 
@@ -459,9 +458,7 @@ $(document).ready(function() {
                 selection_type = null;
                 document.getElementById("group_action").hidden = true;
             }
-        }
-        // Click on last cell button -> go to products page
-        else if (this.cellIndex == 4) {
+        } else if (this.cellIndex == 4) { // Click on last cell button -> go to products page
             // Extra security if order with a different status gets lost in here
             if (row_data.reception_status == "qty_valid" || row_data.reception_status == "False") {
                 // Use local storage to pass order data to next page
@@ -469,9 +466,8 @@ $(document).ready(function() {
 
                 goto(row_data.id);
             }
-        }
-        // If 'update prices' step, click on before-last cell -> validate all prices
-        else if (this.cellIndex == 3 && row_data.reception_status == "qty_valid") {
+        } else if (this.cellIndex == 3 && row_data.reception_status == "qty_valid") {
+            // If 'update prices' step, click on before-last cell -> validate all prices
             order = row_data;
             openModal($('#modal_no_prices').html(), validatePrices, 'Confirmer', false);
         }
