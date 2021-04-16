@@ -303,7 +303,7 @@ function group_action() {
                     localStorage.setItem('grouped_orders', JSON.stringify(grouped_orders));
 
                     // Go to products page of order with smallest id
-                    // goto(min_id);
+                    goto(min_id);
                 },
                 error: function(data) {
                     if (data != null && data.status == 409) {
