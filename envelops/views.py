@@ -46,6 +46,7 @@ def archive_envelop(request):
                     "done": False,
                     "error": repr(e)
                 }
+                coop_logger.error("Payment error : %s \n %s", str(data), str(e))
 
             if res['done']:
                 # Immediately save a token than this payment has been saved
@@ -59,22 +60,19 @@ def archive_envelop(request):
                 try:
                     res['partner_name'] = envelop['envelop_content'][partner_id]['partner_name']
                     res['amount'] = envelop['envelop_content'][partner_id]['amount']
-                except:
+                except Exception as e:
                     res['error'] = "Wrong envelop structure"
+                    coop_logger.error("Wrong envelop structure : %s",  str(e))
                 res_payments.append(res)
 
                 try:
                     # Log the error
-                    lf = open("/tmp/erreurs_django.log", "a")
-                    lf.write(datetime.date.today().strftime("%Y-%m-%d") + " - Erreur lors de l'enregistrement du paiement de " + res['partner_name'] + "(odoo_id:" + partner_id + " )")
-                    lf.write(res['error'] + "\n")
-                    lf.close()
                     msg = 'Erreur lors de l\'enregistrement du paiement ' + envelop['type']
-                    msg += ' ' + envelop['envelop_content'][partner_id]['amount'] + ' euros '
+                    msg += ' ' + str(envelop['envelop_content'][partner_id]['amount']) + ' euros '
                     msg += ' (' + res['error'] + ')'
                     CagetteMember(int(partner_id)).attach_message(msg)
-                except:
-                    pass
+                except Exception as e:
+                    coop_logger.error("Cannot attach payment error message to member : %s",  str(e))
 
     try:
         # Delete envelop from couchdb
