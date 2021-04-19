@@ -1,5 +1,12 @@
 FROM python:3-slim
 
+# Add french locale
+RUN apt update && \
+    apt install -y --no-install-recommends locales && \
+    rm -rf /var/lib/apt/lists/* && \
+    sed -i '/^#.* fr_FR.UTF-8 /s/^#//' /etc/locale.gen && \
+    locale-gen
+
 # Virtual env:
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
