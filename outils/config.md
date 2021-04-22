@@ -106,6 +106,14 @@
 
         Maximum accepted checks numbers
 
+- INPUT_PHONE_PATTERN = "^(0\d{9})$"
+        Regexp pattern which is used to validate values input in phone fields
+        Default is "^((\+33(-| )\d{1})|\d{2})(\.| )\d{2}(\.| )\d{2}(\.| )\d{2}(\.| )\d{2}$"
+
+- PHONE_PAIRS_SEPARATOR = "."
+        Character which by used to separate every 2 phone figures (04.67.23.89.21 for example)
+        Default is " "
+
 ### Scales and labels files generation
 
 - DAV_PATH = '/data/dav/cagette'

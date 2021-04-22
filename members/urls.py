@@ -48,5 +48,4 @@ urlpatterns = [
     url(r'^add_pts_to_everybody/([0-9]+)/([a-zA-Z0-9_ ]+)$', admin.add_pts_to_everybody),
     # conso / groupe recherche / socio
     url(r'^panel_get_purchases$', views.panel_get_purchases),
-
 ]
