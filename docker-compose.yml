@@ -36,6 +36,7 @@ services:
     restart: always
     volumes:
       - "odoo-pg-data:/var/lib/postgresql/data"
+
   odoo:
     build:
       context: .

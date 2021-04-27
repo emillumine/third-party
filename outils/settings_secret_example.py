@@ -3,8 +3,8 @@
 ODOO = {
     'url': 'http://odoo:8069',
     'user': 'api',
-    'passwd': 'foodcoops',
-    'db': 'foodcoops',
+    'passwd': 'dev',
+    'db': 'lgds',
 }
 
 COUCHDB = {
