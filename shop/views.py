@@ -8,49 +8,28 @@ from shop.models import CagetteShop
 @never_cache
 def shop_index(request):
     return index(request, mode='shop')
-    
+
 @never_cache
 def delivery_index(request):
     return index(request, mode='delivery')
 
-def index(request, mode="shop"):
-    template = loader.get_template('shop/index.html')
-    credentials = CagetteMember.get_credentials(request)
-    shop_settings = CagetteShop.get_shop_settings()
+def _get_index_context(credentials, shop_settings, mode):
     context = {'title': 'Commande / Réservation',
                'mode': mode,
                'COMPANY_NAME': settings.COMPANY_NAME,
-               'SHOP_CATEGORIES': settings.SHOP_CATEGORIES,
-               'EXCLUDE_SHOP_CATEGORIES': settings.EXCLUDE_SHOP_CATEGORIES,
-               'MIN_DELAY_FOR_SLOT': settings.MIN_DELAY_FOR_SLOT,
-               'HOURS_FOR_VALIDATION': settings.HOURS_FOR_VALIDATION_SHOP}
+               'header_img': getattr(settings, 'SHOP_HEADER_IMG', '/static/img/header.jpg')
+               }
     if 'capital_message' in shop_settings:
         context['capital_message'] = shop_settings['capital_message']
-    allowed_states = ["up_to_date", "alert", "delay"]
-    #  Uncomment if 'coop_state' in credentials .... etc
-    #  to prevent other states people to use the shop
-    allowed = True
+
     if ('failure' in credentials):
-        #  Visitor has not been identified
-        template = loader.get_template('website/connect.html')
         context['msg'] = ''
         if 'msg' in credentials:
             context['msg'] = credentials['msg']
         context['password_placeholder'] = 'Mot de passe'
         context['password_notice'] = "Par défaut, la date de naissance (jjmmaaaa)"
         context['with_shop_header'] = True
-
-        try:
-            context['header_img'] = settings.SHOP_HEADER_IMG
-        except:
-            context['header_img'] = '/static/img/header.jpg'
     else:
-        if hasattr(settings, 'SHOP_OPENING'):
-            context['SHOP_OPENING'] = settings.SHOP_OPENING
-        if hasattr(settings, 'SHOP_SLOT_SIZE'):
-            context['SHOP_SLOT_SIZE'] = settings.SHOP_SLOT_SIZE
-        if hasattr(settings, 'SHOP_OPENING_START_DATE'):
-            context['SHOP_OPENING_START_DATE'] = settings.SHOP_OPENING_START_DATE
         if mode == 'shop' and hasattr(settings, 'SHOP_CAN_BUY'):
             context['SHOP_CAN_BUY'] = settings.SHOP_CAN_BUY
             context['DELIVERY_CAN_BUY'] = False
@@ -58,22 +37,53 @@ def index(request, mode="shop"):
             context['SHOP_CAN_BUY'] = False
             context['DELIVERY_CAN_BUY'] = settings.DELIVERY_CAN_BUY
 
+        context['SHOP_CATEGORIES'] = getattr(settings, 'SHOP_CATEGORIES', [])
+        context['EXCLUDE_SHOP_CATEGORIES'] = getattr(settings, 'EXCLUDE_SHOP_CATEGORIES', [])
+        context['MIN_DELAY_FOR_SLOT'] = getattr(settings, 'MIN_DELAY_FOR_SLOT', 30)
+        context['HOURS_FOR_VALIDATION'] = getattr(settings, 'HOURS_FOR_VALIDATION_SHOP', 2)
+        context['SHOP_OPENING'] = getattr(settings, 'SHOP_OPENING', {})
+        context['SHOP_SLOT_SIZE'] = getattr(settings, 'SHOP_SLOT_SIZE', 15)
+        context['SHOP_OPENING_START_DATE'] = getattr(settings, 'SHOP_OPENING_START_DATE', None)
+        context['survey_link'] = getattr(settings, 'SHOP_SURVEY_LINK', '')
+        context['extra_menus'] = getattr(settings, 'SHOP_EXTRA_MENUS', None)
+        context['SHOW_SUBSTITUTION_OPTION'] = getattr(settings, 'SHOW_SUBSTITUTION_OPTION', False)
+        context['CART_VALIDATION_BOTTOM_MSG'] = getattr(settings, 'CART_VALIDATION_BOTTOM_MSG', "")
+        context['SHOP_BOTTOM_VALIDATION_MSG'] = getattr(settings, 'SHOP_BOTTOM_VALIDATION_MSG',\
+                "Si vous arrivez avec un retard de plus d'une heure, la commande pourrait ne plus être disponible.")
+
+        stock_warning = getattr(settings, 'SHOP_STOCK_WARNING', True)
+        if stock_warning is True:
+            context['SHOP_STOCK_WARNING'] = 'true'
+        else:
+            context['SHOP_STOCK_WARNING'] = 'false'
+
+    return context
+
+
+def index(request, mode="shop"):
+    template = loader.get_template('shop/index.html')
+    credentials = CagetteMember.get_credentials(request)
+    shop_settings = CagetteShop.get_shop_settings()
+
+    allowed_states = ["up_to_date", "alert", "delay"]
+    #  Uncomment if 'coop_state' in credentials .... etc
+    #  to prevent other states people to use the shop
+    allowed = True
+
+    context = _get_index_context(credentials, shop_settings, mode)
+
+    if ('failure' in credentials):
+        #  Visitor has not been identified
+        template = loader.get_template('website/connect.html')
+    else:
         d_p_pdts = CagetteShop.get_promoted_and_discounted_products()
         context['discounted_pdts'] = d_p_pdts['discounted']
         context['promoted_pdts'] = d_p_pdts['promoted']
-        context['survey_link'] = ''
-
-        if hasattr(settings, 'SHOP_EXTRA_MENUS'):
-            context['extra_menus'] = settings.SHOP_EXTRA_MENUS
-        if hasattr(settings, 'SHOP_SURVEY_LINK'):
-            context['survey_link'] = settings.SHOP_SURVEY_LINK
-
-        context['SHOW_SUBSTITUTION_OPTION'] = True
-        if hasattr(settings, 'SHOW_SUBSTITUTION_OPTION'):
-            if settings.SHOW_SUBSTITUTION_OPTION is False:
-                del context['SHOW_SUBSTITUTION_OPTION']
-        if hasattr(settings, 'CART_VALIDATION_BOTTOM_MSG'):
-            context['CART_VALIDATION_BOTTOM_MSG'] = settings.CART_VALIDATION_BOTTOM_MSG
+        cat_nb_pdts = CagetteShop.get_categories_nb_of_products()
+        if 'error' in cat_nb_pdts:
+            context['cat_nb_pdts'] = None
+        else:
+            context['cat_nb_pdts'] = cat_nb_pdts
 
     # if 'coop_state' in credentials and not (credentials['coop_state'] in allowed_states):
     #     allowed = False
@@ -118,6 +128,7 @@ def get_categ_products(request):
     else:
         result['error'] = 'Authentification non valide'
     return JsonResponse({'res': result})
+
 
 def search_product(request):
     result = {}
@@ -177,7 +188,10 @@ def cart(request):
         credentials = CagetteMember.get_credentials(request)
         if 'success' in credentials:
             try:
-                result['cart'] = CagetteShop.registrerCart(cart, request.COOKIES['id'])
+                mode = "shop"
+                if 'type' in cart:
+                     mode = cart['type']
+                result['cart'] = CagetteShop.registrerCart(cart, request.COOKIES['id'], mode)
             except Exception as e:
                 result['error'] = str(e)
         else:

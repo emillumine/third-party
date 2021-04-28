@@ -47,7 +47,11 @@ def get_all_children(branch):
                 children += get_all_children(c)
     return children
 
-
+def get_all_children_ids(branch):
+    ids = []
+    for c in get_all_children(branch):
+        ids.append(c['id'])
+    return ids
 
 class CagetteShop(models.Model):
     """Class to handle cagette Shop."""
@@ -62,7 +66,7 @@ class CagetteShop(models.Model):
     def filter_products_according_settings(pdts):
         res = pdts
         try:
-            conditions = gettattr(settings, 'SHOP_LIMIT_PRODUCTS', [])
+            conditions = getattr(settings, 'SHOP_LIMIT_PRODUCTS', [])
             filtered = []
             for p in pdts:
                 keep_it = True
@@ -124,13 +128,14 @@ class CagetteShop(models.Model):
             fields = ['parent_id', 'name']
             res = api.search_read('product.category', [], fields)
             tree = build_tree_from_categories(res)
-        except:
-            pass
+        except Exception as e:
+            coop_logger.error('get_product_categories : %s', str(e))
         return tree
 
     @staticmethod
     def get_cat_children_ids(categ_id):
         cat_ids = [categ_id]
+
         tree = CagetteShop.get_product_categories()
         branch = None
         for cats in tree:
@@ -159,15 +164,23 @@ class CagetteShop(models.Model):
         return children
 
     @staticmethod
+    def get_categories_nb_of_products():
+        """Needs lacagette_categories Odoo module to be activated"""
+        res = {}
+        try:
+            api = OdooAPI()
+            res = api.execute('lacagette.categories', 'get_all_with_products_count', {})
+        except Exception as e:
+            coop_logger.error('get_categories_nb_of_products %s', str(e))
+            res['error'] = str(e)
+        return res
+
+    @staticmethod
     def get_category_products(categ_id):
         res = {}
         try:
             pdts = []
-            limit_conditions = []
-            try:
-                limit_conditions = settings.SHOP_LIMIT_PRODUCTS
-            except:
-                pass
+            limit_conditions = getattr(settings, 'SHOP_LIMIT_PRODUCTS', [])
             api = OdooAPI()
             cat_ids = CagetteShop.get_cat_children_ids(categ_id)
             # removed ['qty_available', '>', 0]
@@ -183,6 +196,7 @@ class CagetteShop(models.Model):
             res['pdts'] = CagetteShop.filter_products_according_settings(pdts)
 
         except Exception as e:
+            coop_logger.error('get_category_products %s %s', categ_id, str(e))
             res['error'] = str(e)
         return res
 
@@ -239,7 +253,7 @@ class CagetteShop(models.Model):
 
 
     @staticmethod
-    def registrerCart(cart, partner_id):
+    def registrerCart(cart, partner_id, mode="shop"):
         result = {}
         try:
             cart['submitted_time'] = time.time()
@@ -260,7 +274,7 @@ class CagetteShop(models.Model):
             if result:
                 try:
                     from outils.mail import CagetteMail
-                    CagetteMail.sendCartValidation(partner['email'], cart)
+                    CagetteMail.sendCartValidation(partner['email'], cart, mode)
                 except Exception as e:
                     coop_logger.error("Shop, registrerCart : %s, %s", str(e), str(cart))
         except Exception as e:

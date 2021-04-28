@@ -26,6 +26,7 @@ var main_content = $('#main-content'),
     dragSrcEl = null,
     forbidden_slots = [],
     closing_dates = [],
+    my_sent_orders = [],
     right_column = $('#right-column'),
     visit_mode = false,
     timer = null;
@@ -717,7 +718,7 @@ var addProductToCart = function() {
                 var msg = "";
                 var too_much = "Vous avez pris plus de produit que le stock indicatif.\nVous n'aurez peut-être pas toute la quantité.";
 
-                if (parseFloat(qty) > available_qty) {
+                if (parseFloat(qty) > available_qty && stock_warning == true) {
                     msg = too_much;
                 }
                 var u = p_div.find('.unit').text()
@@ -757,7 +758,7 @@ var addProductToCart = function() {
                         }
                     }
                     if (typeof answer.warning !== "undefined") {
-                        if (answer.warning == "max_qty")
+                        if (answer.warning == "max_qty" && stock_warning == true)
                             msg = too_much;
                     }
                 });
@@ -1059,11 +1060,28 @@ var loadAllAvailableBoughtProducts = function() {
     }
 };
 
+var shouldCategoryBeShown = function (cat_id) {
+    let answer = true;
+
+    if (excluded_cat.indexOf(cat_id) > -1) {
+        answer = false;
+    }
+    if (typeof cat_nb_pdts != "undefined") {
+        let list =  cat_nb_pdts.list;
+        let cat_ids = Object.keys(list).map(x => parseInt(x,10));
+        //cat_ids is now an array of category ids which have product
+        if (cat_ids.indexOf(cat_id) < 0) {
+            // cat_id is corresponding to a category which have no product
+            answer = false;
+        }
+    }
+    return answer;
+}
 var appendChildrenCatToMenu = function (catdiv, children) {
     var ul = catdiv.find('ul');
 
     $.each(children, function(i, e) {
-        if (excluded_cat.indexOf(e.id) < 0) {
+        if (shouldCategoryBeShown(e.id)) {
             var li = $('<li>').addClass("nav-item");
 
             // Remove TVA in cat name
@@ -1092,7 +1110,6 @@ var getCategChildren = function() {
     if (typeof category_elts[cat_id] == "undefined") {
         try {
             $.ajax({
-                //url :'/shop/get_categ_products',
                 url : '/shop/get_cat_children',
                 data: {id: cat_id},
                 dataType: 'json'
@@ -1236,12 +1253,13 @@ var displaySentOrders = function() {
                     }
                 } else if (typeof rData.res.data.orders != "undefined") {
                     if (rData.res.data.orders.length > 0) {
+                        my_sent_orders = rData.res.data.orders;
                         var eye = '<i class="fas fa-eye fl"></i>';
                         var delete_icon = '<i class="fas fa-trash fr"></i>';
                         var edit = '<i class="fas fa-edit"></i>';
                         var show_no_action_available_msg = false;
 
-                        $.each(rData.res.data.orders, function(i, o) {
+                        $.each(my_sent_orders, function(i, o) {
                             var bdate_content = "<span>" + o.best_date + "</span>";
 
                             if (o.state == "init" || o.state == "validating") bdate_content += " " + edit;
@@ -1267,7 +1285,8 @@ var displaySentOrders = function() {
                                 .text(o.products.length);
                             var td4 = $('<td>').addClass('amount')
                                 .text(parseFloat(o.total).toFixed(2));
-                            //var td5 = $('<td>').addClass('actions').html(eye + ' ' + delete_icon)
+
+                            actions_content = eye + ' ' + actions_content;
                             var td5 = $('<td>').addClass('actions')
                                 .html(actions_content);
 
@@ -1373,6 +1392,36 @@ var changeBestDate = function() {
 
 
 };
+
+var showSentCart = function() {
+    let clicked = $(this),
+        clicked_tr = clicked.closest('tr'),
+        id = clicked_tr.data('id'),
+        content = $('<div>'),
+        table = $('<table>');
+    let header = $('<tr><th>Article</th><th>Qté</th><th>Prix Total (T.T.C)</th></tr>');
+    let bottom_msg = $('<p>').html("<em>Contenu non modifiable.</em>")
+    table.append(header);
+    $.each(my_sent_orders, function(i,e) {
+        if (e._id == id) {
+            $.each(e.products, function (j,p) {
+                let tr = $('<tr>'),
+                    name = $('<td>').text(p.name),
+                    qty = $('<td>').text(p.qty),
+                    total = $('<td>').text(p.total)
+
+                tr.append(name);
+                tr.append(qty);
+                tr.append(total);
+                table.append(tr);
+            })
+        }
+    })
+
+    content.append(table);
+    content.append(bottom_msg);
+    displayMsg(content.html());
+}
 
 var destroySentCart = function() {
     var clicked = $(this);
@@ -1561,14 +1610,18 @@ valid_cart.click(function() {
 
 
 $('#get_my_bought_products').click(loadAllAvailableBoughtProducts);
-$(document).on('change', '[name^="bday"]', filterHourOptions);
+
 $(document).on('change', '[name="bhour"]', adaptTimeGivenForValidationMsg);
 $(document).on('click', '#alim_categ > div, #non_alim_categ > div', getCategChildren);
 $(document).on('click', '#alim_categ ul li span, #non_alim_categ ul li span', getCategProducts);
 $(document).on('click', '.product button', addProductToCart);
 $(document).on('click', '.forbidden-slots .fs-close', closeForbiddenList);
 $(document).on('click', 'td.date .fa-edit', changeBestDate);
+$(document).on('click', 'td.actions .fa-eye', showSentCart);
 $(document).on('click', 'td.actions .fa-trash', destroySentCart);
+
+if (shop_mode == 'shop')
+    $(document).on('change', '[name^="bday"]', filterHourOptions);
 
 $(document).on(
     'click', '.new-order',

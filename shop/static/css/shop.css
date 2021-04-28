@@ -252,7 +252,10 @@ li.tab { border-right: 1px solid white; }
 
 #my-orders-sumup .date {text-align: left;padding: 0 4px;}
 #my-orders-sumup tbody tr:hover {background-color: #b3b7c4;}
-td.actions .fa-trash, td.actions .fa-paper-plane, td.date .fa-edit {cursor: pointer;}
+td.actions .fa-trash,
+td.actions .fa-eye,
+td.actions .fa-paper-plane,
+td.date .fa-edit {cursor: pointer;}
 
 .no-action-available-msg {margin-top: 15px;}
 #survey_link {text-decoration: none;}
