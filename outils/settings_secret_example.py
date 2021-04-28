@@ -8,6 +8,7 @@ ODOO = {
 }
 
 COUCHDB = {
+    'private_url': 'http://couchdb:5984',
     'url': 'http://127.0.0.1:5984',
     'dbs': {
               'member': 'coops',
