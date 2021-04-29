@@ -21,9 +21,9 @@
                 <input name="city" placeholder="Ville" class="b_green" autocomplete="address-level4"/>
                 <input name="country" placeholder="Pays" class="b_yellow" autocomplete="address-level4"/>
                 <span class="phone-wrapper{% if ask_for_second_phone %}-2{% endif %}">
-                <input type="tel" name="mobile" placeholder="Tél. mobile" class="b_green" pattern="^(\+\d{1,3}(-| ))?\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{0,2}?$" autocomplete="address-level4"/>
+                <input type="tel" name="mobile" placeholder="Tél. mobile" class="b_green" pattern="{{input_phone_pattern}}" autocomplete="address-level4"/>
                 {% if ask_for_second_phone %}
-                     <input type="tel" name="phone" placeholder="Tél. fixe" class="b_green" pattern="^(\+\d{1,3}(-| ))?\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{1,2}(\.| )\d{0,2}?$" autocomplete="address-level4"/>
+                     <input type="tel" name="phone" placeholder="Tél. fixe" class="b_green" pattern="{{input_phone_pattern}}" autocomplete="address-level4"/>
                 {% endif %}
                 </span>
             </p>

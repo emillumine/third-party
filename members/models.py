@@ -317,7 +317,7 @@ class CagetteMember(models.Model):
         if 'street2' in post_data:
             received_data['street2'] = post_data['street2']
         if 'phone' in post_data:
-            received_data['phone'] = post_data['phone']
+            received_data['phone'] = format_phone_number(post_data['phone'])
         r = c_db.updateDoc(received_data, 'odoo_id')
         if r:
             if ('odoo_id' in r):
@@ -394,7 +394,7 @@ class CagetteMember(models.Model):
                  'street': post_data['address'],
                  'zip': post_data['zip'],
                  'city': post_data['city'],
-                 'phone': post_data['mobile'], # Because list view default show Phone and people mainly gives mobile
+                 'phone': format_phone_number(post_data['mobile']), # Because list view default show Phone and people mainly gives mobile
                  'barcode_rule_id': settings.COOP_BARCODE_RULE_ID
                  }
             if ('_id' in post_data):
@@ -407,10 +407,10 @@ class CagetteMember(models.Model):
                 f['street2'] = post_data['street2']
             if ('phone' in post_data) and len(post_data['phone']) > 0:
                 if len(f['phone']) == 0:
-                    f['phone'] = post_data['phone']
+                    f['phone'] = format_phone_number(post_data['phone'])
                 else:
                     f['mobile'] = f['phone']
-                    f['phone'] = post_data['phone']
+                    f['phone'] = format_phone_number(post_data['phone'])
 
             # Create coop
             if not ('odoo_id' in post_data):
