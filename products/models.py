@@ -108,6 +108,16 @@ class CagetteProduct(models.Model):
     def register_start_supplier_shortage(product_id, partner_id, date_start):
         """Start a supplier shortage for a product"""
         api = OdooAPI()
+
+        c = [['product_id', '=', product_id],
+                ['partner_id', '=', partner_id],
+                ['date_start', '=', date_start]]
+        existing = api.search_read('product.supplier.shortage', c)
+
+        if existing:
+            res = "already on shortage"
+            return res
+
         f = {
             'product_id' : product_id,
             'partner_id' : partner_id,
