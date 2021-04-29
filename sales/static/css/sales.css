@@ -1,0 +1,23 @@
+.select_sales_dates {
+    margin-top: 25px;
+}
+  
+.sales_date {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.main {
+    margin-top: 25px;
+}
+
+.table_area {
+    margin: auto;
+    width: 90%;
+    padding: 10px;
+}
+
+.select_sales_date_input {
+    border-radius:5px;
+}
+  
