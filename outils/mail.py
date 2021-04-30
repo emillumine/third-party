@@ -22,7 +22,7 @@ class CagetteMail:
                   html_message=html_msg)
 
     @staticmethod
-    def sendCartValidation(email, cart):
+    def sendCartValidation(email, cart, mode="shop"):
         """Used by Shop"""
         from django.core.mail import send_mail
         from django.utils.html import strip_tags
@@ -43,7 +43,10 @@ class CagetteMail:
 
         html_msg = render_to_string(mail_template, ctx)
         msg = strip_tags(html_msg)
-        send_mail("Votre commande en ligne à " + settings.COMPANY_NAME,
+        subject_prefix = "Votre commande en ligne à "
+        if mode == "delivery":
+            subject_prefix = "Votre demande de livraison à "
+        send_mail(subject_prefix + settings.COMPANY_NAME,
                   msg,
                   settings.DEFAULT_FROM_EMAIL,
                   [email],

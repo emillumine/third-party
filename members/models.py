@@ -93,7 +93,9 @@ class CagetteMember(models.Model):
         fp = request.POST.get('fp') #  fingerprint (prevent using stolen cookies)
         if login and password:
             api = OdooAPI()
-            cond = [['email', '=', login], ['is_member', '=', True]]
+            cond = [['email', '=', login]]
+            if getattr(settings, 'ALLOW_NON_MEMBER_TO_CONNECT', False) is False:
+                cond.append(['is_member', '=', True])
             fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
