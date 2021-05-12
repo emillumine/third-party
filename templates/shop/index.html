@@ -391,7 +391,7 @@
               <option value="23:00">23:00</option>
             </select>
             {% endif %}
-            
+
             <div class="slots-constraints" style="display: none;">
                 <span class="delay24h"><strong>avec un délai de {{MIN_DELAY_FOR_SLOT}}h minimum</strong></span>
                 <!--<input type="text" placeholder="Exemple: mardi 24 mars à 10h30" name="best_date" style="width: 350px;"/>--><br/>
@@ -405,7 +405,7 @@
             {%if HOURS_FOR_VALIDATION > 0 %}
             <div class="tv-msg" style="display: none;">
               <strong>
-                Vous aurez <span class="time-given-for-validation">{{HOURS_FOR_VALIDATION}} heure(s)</span>  pour valider votre commande.<br/> 
+                Vous aurez <span class="time-given-for-validation">{{HOURS_FOR_VALIDATION}} heure(s)</span>  pour valider votre commande.<br/>
                 Passé ce temps, la {% if mode == 'shop' %}réservation du créneau horaire{% elif mode == 'delivery' %}commande{% endif %} sera annulée.<br/>
                 Vous devrez rechoisir un horaire (le panier sera mémorisé).
               </strong>
@@ -436,7 +436,7 @@
         </p>
         <p>
           {% if mode == 'shop' %}
-            <strong><i>Si vous arrivez avec un retard de plus d'une heure, la commande pourrait ne plus être disponible.</i></strong>
+            <strong><i>{{SHOP_BOTTOM_VALIDATION_MSG}}</i></strong>
           {%endif%}
         </p>
         <p>
@@ -500,6 +500,10 @@
     {%if SHOP_OPENING_START_DATE%}
     const opening_start_date = new Date('{{SHOP_OPENING_START_DATE}}')
     {%endif%}
+    {%if cat_nb_pdts%}
+    const cat_nb_pdts = {{cat_nb_pdts|safe}}
+    {%endif%}
+    const stock_warning = {{SHOP_STOCK_WARNING|safe}}
 </script>
 <script src="{% static 'js/all_common.js' %}?v="></script>
 <script type="text/javascript" src="{% static 'js/shop.js' %}?v="></script>

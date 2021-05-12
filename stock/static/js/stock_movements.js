@@ -256,10 +256,10 @@ function init_confirmation_datatable() {
     });
 }
 
-function without_consent_update_product(p) {
+function without_consent_update_product(p, added_qty) {
     let undo_option = true;
 
-    update_existing_product(p, undo_option);
+    update_existing_product(p, added_qty, undo_option);
 }
 
 function get_stored_product_with_bc(barcode) {
@@ -307,19 +307,17 @@ function fetch_product_from_bc(barcode) {
         'uom': barcodes['uoms'][p.data[barcodes['keys']['uom_id']]],
 
         'standard_price' : p.data[barcodes['keys']['standard_price']], // cost
-        'list_price': p.data[barcodes['keys']['list_price']] // public price
+        'list_price': p.data[barcodes['keys']['list_price']], // public price
+        'qty': p.qty
     };
 
     product['uom']['id'] = p.data[barcodes['keys']['uom_id']];
-    product['value'] = parseFloat(p.value) || 1;
     product['rule'] = p.rule;
 
     p_existing = get_stored_product_with_bc(p.barcode);
 
     if (p_existing !== null) {
-        product.qty = p_existing.qty;
-        without_consent_update_product(product);
-
+        without_consent_update_product(p_existing, product.qty);
         return 0;
     } else {
         add_product(product);
@@ -335,16 +333,6 @@ function fetch_product_from_bc(barcode) {
 var add_product = function(product) {
     try {
         // Add to list
-        product.qty = 1;
-        if (typeof product.value == "number" || (product.value.length > 0 && !isNaN(product.value))) {
-            //encoded value will be translated in quantity
-            if (product.rule == "FF_price_to_weight") {
-                product.qty = get_quantity_eq_to_franc_price(product);
-            } else {
-                product.qty = parseFloat(product.value);
-            }
-
-        }
 
         products.push(product);
 
@@ -385,26 +373,11 @@ var update_in_products = function(product) {
     else console.log("Le produit n'a pas pu être trouvé dans la variable products !");
 };
 
-var get_quantity_eq_to_franc_price = function(product) {
-    let value = 0;
 
-    try {
-        let price = parseFloat(product.value / 6.55957);
-
-        value = parseFloat(price / product.list_price).toFixed(3);
-    } catch (error) {
-        console.log(error);
-    }
-
-    return value;
-};
 /*
  * Update a line in the table: update quantity
 */
-var update_existing_product = function(product, undo_option = false) {
-    // By default added qty is 1 unit
-
-    let added_qty = 1;
+var update_existing_product = function(product, added_qty, undo_option = false) {
 
     let op = "augmentée";
     let notify_options = {
@@ -413,35 +386,8 @@ var update_existing_product = function(product, undo_option = false) {
         clickToHide: false
     };
 
-    // type product qty value
-    if (product.rule == 'weight' || product.rule == 'FF_price_to_weight' && product.value) {
-        // Quantities are kg or price
-        product.qty = parseFloat(product.qty) || 0;
-        if (product.rule == 'weight') {
-            added_qty = parseFloat(product.value);
-        } else {
-            if (product.value < 0) added_qty = parseFloat(product.value); // value is already a qty
-            else added_qty = parseFloat(get_quantity_eq_to_franc_price(product));
-        }
-    } else {
-        //Quantity is by "defaut" considered as to be in "unit"
-        product.qty = parseInt(product.qty, 10);
-
-        if (product.rule == "" && product.value) {
-            added_qty = product.value;
-        }
-    }
-
     product.qty += added_qty;
 
-    /* Surprisingly, this assignment by addition (0 + value)
-       always correctly "typing" the value
-       whereas "product.qty = added_qty"
-       is sometimes typed as "string" !!
-    */
-
-    // always set to empty to avoid next operation on same product to be misprocessed
-    product.value = "";
 
     // Find index of row which match product id in the first column
     var indexes = products_table.rows().eq(0)
@@ -470,10 +416,7 @@ var update_existing_product = function(product, undo_option = false) {
         notify_options.autoHide = false;
         // notify_options.autoHideDelay = 10000;
         notify_options.style = 'cancelable';
-        // msg = $('<span>').text(msg)
-        //                  .attr('data-barcode', product.barcode)
-        //                  .attr('data-addedqty', added_qty);
-        // msg = msg.html()
+
         msg = '<span class="msg" data-barcode="' + product.barcode + '" data-added_qty="' + added_qty + '">'
             + "<b>" + product.name + "</b><br/>" + msg
             + '</span>';
@@ -919,8 +862,7 @@ $(document).ready(function() {
             let product = get_stored_product_with_bc(bc);
 
             if (product !== null) {
-                product.value = - added_qty;
-                update_existing_product(product);
+                update_existing_product(product, - added_qty);
             } else {
                 alert("Le produit n'a pas été retrouvé dans la mémoire de travail.");
             }

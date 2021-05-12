@@ -209,7 +209,7 @@ function validatePrices() {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(update_data),
-        success: function(data) {
+        success: function() {
             localStorage.removeItem("order_" + order["id"]);
             callback_update = true;
             reload();
@@ -238,7 +238,7 @@ function validatePrices() {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(updates),
-        success: function(data) {
+        success: function() {
             callback_report = true;
             reload();
         },
@@ -275,7 +275,7 @@ function group_action() {
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
                 data: JSON.stringify(group_ids),
-                success: function(data) {
+                success: function() {
                     var min_id = 9999999;
 
                     for (var i = 0; i < selected_data.length; i++) {
@@ -303,7 +303,7 @@ function group_action() {
                     localStorage.setItem('grouped_orders', JSON.stringify(grouped_orders));
 
                     // Go to products page of order with smallest id
-                    // goto(min_id);
+                    goto(min_id);
                 },
                 error: function(data) {
                     if (data != null && data.status == 409) {
@@ -334,8 +334,6 @@ $(document).ready(function() {
     // Set date format for DataTable so date ordering can work
     $.fn.dataTable.moment('D/M/Y');
 
-    var saved_grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
-
     table_orders = $('#orders').DataTable({
         ajax: "get_list_orders",
         columns:[
@@ -343,7 +341,7 @@ $(document).ready(function() {
                 data:"id",
                 title:"Sélectionner",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     return '<input type="checkbox" id="select_bc_'+data+'" value="'+data+'">';
                 },
                 width: "4%",
@@ -353,7 +351,7 @@ $(document).ready(function() {
             {
                 data:"partner",
                 title:"Fournisseur",
-                render: function (data, type, full, meta) {
+                render: function (data, type, full) {
                     // Add tooltip with PO over partner name
                     return '<div class="tooltip">' + data + ' <span class="tooltiptext">' + full.name + '</span> </div>';
                 }
@@ -361,7 +359,7 @@ $(document).ready(function() {
             {
                 data:"reception_status",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     if (data == "qty_valid") {
                         return "<span class='btn--danger'>Pas de prix sur le bon de livraison</span>";
                     } else {
@@ -375,7 +373,7 @@ $(document).ready(function() {
                 data:"reception_status",
                 title:"Statut",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     switch (data) {
                     case 'qty_valid':
                         return "<span class='btn--success'>Mettre à jour les prix</span>";
@@ -397,7 +395,7 @@ $(document).ready(function() {
         ],
         iDisplayLength: 25,
         language: {url : '/static/js/datatables/french.json'},
-        initComplete: function(settings, json) { // After data is loaded
+        initComplete: function() { // After data is loaded
             clean_local_storage();
             create_groups_from_server_data();
             extract_grouped_orders();
@@ -460,9 +458,7 @@ $(document).ready(function() {
                 selection_type = null;
                 document.getElementById("group_action").hidden = true;
             }
-        }
-        // Click on last cell button -> go to products page
-        else if (this.cellIndex == 4) {
+        } else if (this.cellIndex == 4) { // Click on last cell button -> go to products page
             // Extra security if order with a different status gets lost in here
             if (row_data.reception_status == "qty_valid" || row_data.reception_status == "False") {
                 // Use local storage to pass order data to next page
@@ -470,9 +466,8 @@ $(document).ready(function() {
 
                 goto(row_data.id);
             }
-        }
-        // If 'update prices' step, click on before-last cell -> validate all prices
-        else if (this.cellIndex == 3 && row_data.reception_status == "qty_valid") {
+        } else if (this.cellIndex == 3 && row_data.reception_status == "qty_valid") {
+            // If 'update prices' step, click on before-last cell -> validate all prices
             order = row_data;
             openModal($('#modal_no_prices').html(), validatePrices, 'Confirmer', false);
         }
