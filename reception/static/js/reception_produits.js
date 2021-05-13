@@ -1338,7 +1338,7 @@ function openErrorReport() {
 
     var textarea = document.getElementById("error_report");
 
-    textarea.value = user_comments;
+    textarea.value = (user_comments != undefined) ? user_comments : "";
     textarea.focus();
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 }
