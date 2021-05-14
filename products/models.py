@@ -6,6 +6,7 @@ from outils.common import OdooAPI
 import csv
 import tempfile
 import pymysql.cursors
+import datetime
 
 vcats = []
 
@@ -386,6 +387,44 @@ class CagetteProducts(models.Model):
             if found is False:
                 bc_map[bc] = bc
         return bc_map
+
+    @staticmethod
+    def get_products_by_supplier(supplier_id):
+        api = OdooAPI()
+        res = {}
+
+        # todo : try with no result
+        try:
+            today = datetime.date.today().strftime("%Y-%m-%d")
+            print(today)
+
+            # Get products/supplier relation
+            f = ["product_tmpl_id", 'date_start', 'date_end']
+            c = [['name', '=', int(supplier_id)]]
+            psi = api.search_read('product.supplierinfo', c, f)
+
+            # Filter valid data
+            ptids = []
+            for p in psi:
+                if (p["product_tmpl_id"] is not False 
+                    and (p["date_start"] is False or p["date_start"] < today) 
+                    and (p["date_end"] is False or p["date_end"] < today)):
+                    ptids.append(p["product_tmpl_id"][0])
+
+            # Get products templates
+            f = ["id", "state", "product_variant_ids", "name"]
+            c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
+            products_t = api.search_read('product.template', c, f)
+            filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
+
+            # TODO get additional product data (product_variant_ids -> list of product.product)
+            
+            res["products"] = filtered_products_t
+        except Exception as e:
+            print(str(e))
+            res["error"] = str(e)
+
+        return res
 
 class OFF(models.Model):
     """OpenFoodFact restricted DB queries."""

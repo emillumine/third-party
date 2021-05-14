@@ -1,0 +1,9 @@
+#form_container {
+    margin-top: 30px;
+}
+
+#supplier_input {
+    width: 500px;
+    margin-right: 10px;
+    border-radius: 5px;
+}
