@@ -396,7 +396,6 @@ class CagetteProducts(models.Model):
         # todo : try with no result
         try:
             today = datetime.date.today().strftime("%Y-%m-%d")
-            print(today)
 
             # Get products/supplier relation
             f = ["product_tmpl_id", 'date_start', 'date_end']

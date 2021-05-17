@@ -7,3 +7,7 @@
     margin-right: 10px;
     border-radius: 5px;
 }
+
+.product_qty_input {
+    width: 100px;
+}
