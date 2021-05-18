@@ -1481,7 +1481,7 @@ $(document).ready(function() {
             reception_status = orders[Object.keys(orders)[0]].reception_status;
 
             // Load user comments from local storage, get it from first order
-            user_comments = orders[Object.keys(orders)[0]].user_comments;
+            user_comments = orders[Object.keys(orders)[0]].user_comments || "";
         }
 
         // Fetch orders data
