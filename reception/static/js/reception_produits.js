@@ -1336,6 +1336,16 @@ function openFAQ() {
 function openErrorReport() {
     openModal($('#templates #modal_error_report').html(), saveErrorReport, 'Confirmer');
 
+    // listener for error report textarea
+    // this is necessary because default behavior is overwritten by the listener defined in jquery.pos.js;
+    $("#error_report").keypress(function(e) {
+        var key = e.keyCode;
+        console.log(this)
+        if (key === 13) {
+            this.value += "\n";
+        }
+    });
+
     var textarea = document.getElementById("error_report");
 
     textarea.value = user_comments;
