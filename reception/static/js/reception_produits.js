@@ -1340,7 +1340,6 @@ function openErrorReport() {
     // this is necessary because default behavior is overwritten by the listener defined in jquery.pos.js;
     $("#error_report").keypress(function(e) {
         var key = e.keyCode;
-        console.log(this)
         if (key === 13) {
             this.value += "\n";
         }
