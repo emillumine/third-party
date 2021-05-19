@@ -74,10 +74,10 @@ def produits(request, id):
                "TOOLS_SERVER": settings.TOOLS_SERVER}
     fixed_barcode_prefix = '0490'
 
-    if hasattr(settings, 'RECEPTION_PB_EMAIL'):
-        context['RECEPTION_PB_EMAIL'] = settings.RECEPTION_PB_EMAIL
+    if hasattr(settings, 'RECEPTION_PB'):
+        context['RECEPTION_PB'] = settings.RECEPTION_PB
     else:
-        context['RECEPTION_PB_EMAIL'] = ' [mail à renseigner dans config.py]'
+        context['RECEPTION_PB'] = ' [texte à renseigner dans config.py]'
 
     if hasattr(settings, 'FIXED_BARCODE_PREFIX'):
         fixed_barcode_prefix = settings.FIXED_BARCODE_PREFIX
