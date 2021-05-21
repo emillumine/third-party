@@ -5,6 +5,7 @@ var suppliers_list = [],
 
 /**
  * Add a supplier to the selected suppliers list.
+ * 
  * @returns -1 if validation failed, void otherwise
  */
 function add_supplier() {
@@ -59,6 +60,7 @@ function add_supplier() {
 
 /**
  * Remove a supplier from the selected list & its associated products
+ * 
  * @param {int} supplier_id 
  */
 function remove_supplier(supplier_id) {
@@ -89,10 +91,30 @@ function save_supplier_products(supplier, new_products) {
         let index = products.findIndex(p => p.id === np.id);
 
         if (index === -1) {
-            np.suppliers = [supplier];
+            np.suppliers = [{ ...supplier }];
             products.push(np)
         } else {
-            products[index].suppliers.push(supplier)
+            products[index].suppliers.push({ ...supplier })
+        }
+    }
+}
+
+/**
+ * Save the quantity set for a product/supplier
+ * 
+ * @param {int} prod_id 
+ * @param {int} supplier_id 
+ * @param {float} val 
+ */
+function save_product_supplier_qty(prod_id, supplier_id, val) {
+    for (const i in products) {
+        if (products[i].id == prod_id) {
+            for (const j in products[i].suppliers) {
+                if (products[i].suppliers[j].id == supplier_id) {
+                    products[i].suppliers[j].qty = val;
+                    break;
+                }
+            }
         }
     }
 }
@@ -108,16 +130,12 @@ function is_product_related_to_supplier(product, supplier) {
     return product.suppliers.find(s => s.id === supplier.id) !== undefined;
 }
 
-
 /**
  * Create a string to represent a supplier column in product data
  * @returns String
  */
 function supplier_column_name(supplier) {
-    let parsed_name = supplier.display_name
-    parsed_name = parsed_name.toLowerCase().replaceAll(/\s+/g, " ").trim()
-    parsed_name = parsed_name.replaceAll(" ", "_");
-    return `supplier_${parsed_name}`;
+    return `qty_supplier_${supplier.id}`;
 }
 
 /**
@@ -152,12 +170,19 @@ function prepare_datatable_data() {
 
     for (product of products) {
         let item = {
+            id: product.id,
             name: product.name
         }
 
+        // If product not related to supplier : false ; else null (qty to be set) or qty
+        for (product_supplier of product.suppliers) {
+            item[supplier_column_name(product_supplier)] = ("qty" in product_supplier) ? product_supplier.qty : null;
+        }
+
         for (supplier of selected_suppliers) {
-            // If product not related to supplier : false ; else null (value to be set)
-            item[supplier_column_name(supplier)] = is_product_related_to_supplier(product, supplier) ? null : false;
+            if (!is_product_related_to_supplier(product, supplier)) {
+                item[supplier_column_name(supplier)] = false;
+            }
         }
 
         data.push(item);
@@ -171,6 +196,11 @@ function prepare_datatable_data() {
  */
 function prepare_datatable_columns() {
     columns = [
+        {
+            data: "id",
+            title: "id",
+            visible: false
+        },
         {
             data: "name",
             title: "Produit",
@@ -187,7 +217,8 @@ function prepare_datatable_columns() {
                 if (data === false) {
                     return "X";
                 } else {
-                    return `<input type="number" class="product_qty_input">`
+                    const input_id = `product_${full.id}_supplier_${supplier.id}_qty_input`
+                    return `<input type="number" class="product_qty_input" id=${input_id} value=${data}>`
                 }
             }
         })
@@ -219,7 +250,7 @@ function display_products() {
         columns: columns,
         order: [
             [
-                1,
+                2,
                 "asc"
             ]
         ],
@@ -229,6 +260,19 @@ function display_products() {
     });
 
     $('.main').show();
+
+    // Save value on inputs change
+    $('#products_table').on('input', 'tbody td .product_qty_input', function () {
+        let val = parseFloat($(this).val())
+
+        // If value is a number
+        if (!isNaN(val)) {
+            const id_split = $(this).attr('id').split('_')
+            const prod_id = id_split[1];
+            const supplier_id = id_split[3];
+            save_product_supplier_qty(prod_id, supplier_id, val);
+        }
+    });
 }
 
 /**
@@ -278,6 +322,5 @@ $(document).ready(function() {
         add_supplier();
     })
 
-    // todo on input change : update value in array of products
-    // todo on click on 'X' change to i
+    // TODO: on click on 'X' change to input
 });
