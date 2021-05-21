@@ -40,7 +40,7 @@ function add_supplier() {
         contentType: "application/json; charset=utf-8",
         success: function(data) {
             save_supplier_products(supplier, data.res.products);
-            display_products();
+            update_display();
             $("#supplier_input").val("")
             closeModal();
         },
@@ -55,6 +55,25 @@ function add_supplier() {
             alert('Erreur lors de la récupération des produits, réessayer plus tard.');
         }
     });
+}
+
+/**
+ * Remove a supplier from the selected list & its associated products
+ * @param {int} supplier_id 
+ */
+function remove_supplier(supplier_id) {
+    // Remove from suppliers list
+    selected_suppliers = selected_suppliers.filter(supplier => supplier.id != supplier_id)
+
+    // Remove the supplier from the products suppliers list
+    for (const i in products) {
+        products[i].suppliers = products[i].suppliers.filter(supplier => supplier.id != supplier_id)
+    }
+
+    // Remove products only associated to this product
+    products = products.filter(product => product.suppliers.length > 0)
+
+    update_display();
 }
 
 /**
@@ -99,6 +118,28 @@ function supplier_column_name(supplier) {
     parsed_name = parsed_name.toLowerCase().replaceAll(/\s+/g, " ").trim()
     parsed_name = parsed_name.replaceAll(" ", "_");
     return `supplier_${parsed_name}`;
+}
+
+/**
+ * Display the selected suppliers
+ */
+function display_suppliers() {
+    let supplier_container = $("#suppliers_container");
+    $("#suppliers_container").empty();
+
+    for (supplier of selected_suppliers) {
+        let template = $("#templates #supplier_pill")
+        template.find(".supplier_name").text(supplier.display_name);
+        template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`)
+
+        supplier_container.append(template.html());
+    }
+
+    $(".remove_supplier_icon").on("click", function(e) {
+        const el_id = $(this).attr('id').split('_');
+        const supplier_id = el_id[el_id.length-1]
+        remove_supplier(supplier_id);
+    })
 }
 
 /* DATATABLE */
@@ -160,6 +201,11 @@ function prepare_datatable_columns() {
  */
 function display_products() {
     // Empty datatable if already exists
+    if (products.length == 0) {
+        $('.main').hide();
+        return -1;
+    }
+
     if (products_table) {
         products_table.clear().destroy();
         $('#products_table').empty();
@@ -183,6 +229,14 @@ function display_products() {
     });
 
     $('.main').show();
+}
+
+/**
+ * Update DOM display
+ */
+function update_display() {
+    display_suppliers();
+    display_products();
 }
 
 $(document).ready(function() {
@@ -223,4 +277,7 @@ $(document).ready(function() {
         e.preventDefault();
         add_supplier();
     })
+
+    // todo on input change : update value in array of products
+    // todo on click on 'X' change to i
 });

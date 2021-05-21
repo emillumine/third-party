@@ -11,3 +11,30 @@
 .product_qty_input {
     width: 100px;
 }
+
+
+#suppliers_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0 20px 0;
+}
+
+.supplier_pill {
+    background-color: #e7e9ed;
+    border-radius: 50px;
+    width: 200px;
+    min-height: 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    margin-right: 5px;
+}
+
+.remove_supplier_icon {
+    color: red;
+    margin-left: 5px;
+    cursor: pointer;
+}
