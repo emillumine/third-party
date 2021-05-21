@@ -5,23 +5,27 @@ var suppliers_list = [],
 
 /**
  * Add a supplier to the selected suppliers list.
- * 
- * @returns -1 if validation failed, void otherwise
+ *
+ * @returns -1 if validation failed, 0 otherwise
  */
 function add_supplier() {
     const user_input = $("#supplier_input").val();
 
     // Check if user input is a valid supplier
-    const supplier = suppliers_list.find(s => s.display_name === user_input)
+    const supplier = suppliers_list.find(s => s.display_name === user_input);
+
     if (supplier === undefined) {
-        alert("Le fournisseur renseigné n'est pas valide.\n" 
+        alert("Le fournisseur renseigné n'est pas valide.\n"
         + "Veuillez sélectionner un fournisseur dans la liste déroulante.");
+
         return -1;
     }
 
-    const supplier_selected = selected_suppliers.find(s => s.display_name === user_input)
+    const supplier_selected = selected_suppliers.find(s => s.display_name === user_input);
+
     if (supplier_selected !== undefined) {
         alert("Ce fournisseur est déjà sélectionné.");
+
         return -1;
     }
 
@@ -30,6 +34,7 @@ function add_supplier() {
     selected_suppliers.push(supplier);
 
     let url = "/orders/get_supplier_products";
+
     url += "?sid=" + encodeURIComponent(supplier.id);
 
     // Fetch supplier products
@@ -42,7 +47,7 @@ function add_supplier() {
         success: function(data) {
             save_supplier_products(supplier, data.res.products);
             update_display();
-            $("#supplier_input").val("")
+            $("#supplier_input").val("");
             closeModal();
         },
         error: function(data) {
@@ -56,24 +61,26 @@ function add_supplier() {
             alert('Erreur lors de la récupération des produits, réessayer plus tard.');
         }
     });
+
+    return 0;
 }
 
 /**
  * Remove a supplier from the selected list & its associated products
- * 
- * @param {int} supplier_id 
+ *
+ * @param {int} supplier_id
  */
 function remove_supplier(supplier_id) {
     // Remove from suppliers list
-    selected_suppliers = selected_suppliers.filter(supplier => supplier.id != supplier_id)
+    selected_suppliers = selected_suppliers.filter(supplier => supplier.id != supplier_id);
 
     // Remove the supplier from the products suppliers list
     for (const i in products) {
-        products[i].suppliers = products[i].suppliers.filter(supplier => supplier.id != supplier_id)
+        products[i].suppliers = products[i].suppliers.filter(supplier => supplier.id != supplier_id);
     }
 
     // Remove products only associated to this product
-    products = products.filter(product => product.suppliers.length > 0)
+    products = products.filter(product => product.suppliers.length > 0);
 
     update_display();
 }
@@ -82,9 +89,9 @@ function remove_supplier(supplier_id) {
  * When products are fetched, save them and the relation with the supplier.
  * If product already saved, add the supplier to its suppliers list.
  * Else, add product with supplier.
- * 
- * @param {object} supplier 
- * @param {array} new_products 
+ *
+ * @param {object} supplier
+ * @param {array} new_products
  */
 function save_supplier_products(supplier, new_products) {
     for (np of new_products) {
@@ -92,19 +99,19 @@ function save_supplier_products(supplier, new_products) {
 
         if (index === -1) {
             np.suppliers = [{ ...supplier }];
-            products.push(np)
+            products.push(np);
         } else {
-            products[index].suppliers.push({ ...supplier })
+            products[index].suppliers.push({ ...supplier });
         }
     }
 }
 
 /**
  * Save the quantity set for a product/supplier
- * 
- * @param {int} prod_id 
- * @param {int} supplier_id 
- * @param {float} val 
+ *
+ * @param {int} prod_id
+ * @param {int} supplier_id
+ * @param {float} val
  */
 function save_product_supplier_qty(prod_id, supplier_id, val) {
     for (const i in products) {
@@ -121,9 +128,9 @@ function save_product_supplier_qty(prod_id, supplier_id, val) {
 
 /**
  * Look in the 'suppliers' property of a product
- * 
- * @param {object} product 
- * @param {object} supplier 
+ *
+ * @param {object} product
+ * @param {object} supplier
  * @returns boolean
  */
 function is_product_related_to_supplier(product, supplier) {
@@ -143,21 +150,25 @@ function supplier_column_name(supplier) {
  */
 function display_suppliers() {
     let supplier_container = $("#suppliers_container");
+
     $("#suppliers_container").empty();
 
     for (supplier of selected_suppliers) {
-        let template = $("#templates #supplier_pill")
+        let template = $("#templates #supplier_pill");
+
         template.find(".supplier_name").text(supplier.display_name);
-        template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`)
+        template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`);
 
         supplier_container.append(template.html());
     }
 
-    $(".remove_supplier_icon").on("click", function(e) {
-        const el_id = $(this).attr('id').split('_');
+    $(".remove_supplier_icon").on("click", function() {
+        const el_id = $(this).attr('id')
+            .split('_');
         const supplier_id = el_id[el_id.length-1];
 
         let modal_remove_supplier = $('#templates #modal_remove_supplier');
+
         modal_remove_supplier.find(".supplier_name").text(supplier.display_name);
 
         openModal(
@@ -165,9 +176,9 @@ function display_suppliers() {
             () => {
                 remove_supplier(supplier_id);
             },
-            'Valider',
+            'Valider'
         );
-    })
+    });
 }
 
 /* DATATABLE */
@@ -182,7 +193,7 @@ function prepare_datatable_data() {
         let item = {
             id: product.id,
             name: product.name
-        }
+        };
 
         // If product not related to supplier : false ; else null (qty to be set) or qty
         for (product_supplier of product.suppliers) {
@@ -213,7 +224,7 @@ function prepare_datatable_columns() {
         },
         {
             data: "name",
-            title: "Produit",
+            title: "Produit"
         }
     ];
 
@@ -227,11 +238,13 @@ function prepare_datatable_columns() {
                 if (data === false) {
                     return "X";
                 } else {
-                    const input_id = `product_${full.id}_supplier_${supplier.id}_qty_input`
-                    return `<input type="number" class="product_qty_input" id=${input_id} value=${data}>`
+                    const input_id = `product_${full.id}_supplier_${supplier.id}_qty_input`;
+
+
+                    return `<input type="number" class="product_qty_input" id=${input_id} value=${data}>`;
                 }
             }
-        })
+        });
     }
 
     return columns;
@@ -244,6 +257,7 @@ function display_products() {
     // Empty datatable if already exists
     if (products.length == 0) {
         $('.main').hide();
+
         return -1;
     }
 
@@ -264,7 +278,7 @@ function display_products() {
                 "asc"
             ]
         ],
-        dom: 'lrtip',   // TODO: change DOM display?
+        dom: 'lrtip', // TODO: change DOM display?
         iDisplayLength: 100,
         language: {url : '/static/js/datatables/french.json'}
     });
@@ -273,16 +287,20 @@ function display_products() {
 
     // Save value on inputs change
     $('#products_table').on('input', 'tbody td .product_qty_input', function () {
-        let val = parseFloat($(this).val())
+        let val = parseFloat($(this).val());
 
         // If value is a number
         if (!isNaN(val)) {
-            const id_split = $(this).attr('id').split('_')
+            const id_split = $(this).attr('id')
+                .split('_');
             const prod_id = id_split[1];
             const supplier_id = id_split[3];
+
             save_product_supplier_qty(prod_id, supplier_id, val);
         }
     });
+
+    return 0;
 }
 
 /**
@@ -309,7 +327,7 @@ $(document).ready(function() {
             suppliers_list = data.res;
 
             // Set up autocomplete on supplier input
-            $( "#supplier_input" ).autocomplete({
+            $("#supplier_input").autocomplete({
                 source: suppliers_list.map(a => a.display_name)
             });
 
@@ -330,7 +348,7 @@ $(document).ready(function() {
     $("#supplier_form").on("submit", function(e) {
         e.preventDefault();
         add_supplier();
-    })
+    });
 
     // TODO: on click on 'X' change to input
 });
