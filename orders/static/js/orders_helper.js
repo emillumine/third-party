@@ -155,8 +155,18 @@ function display_suppliers() {
 
     $(".remove_supplier_icon").on("click", function(e) {
         const el_id = $(this).attr('id').split('_');
-        const supplier_id = el_id[el_id.length-1]
-        remove_supplier(supplier_id);
+        const supplier_id = el_id[el_id.length-1];
+
+        let modal_remove_supplier = $('#templates #modal_remove_supplier');
+        modal_remove_supplier.find(".supplier_name").text(supplier.display_name);
+
+        openModal(
+            modal_remove_supplier.html(),
+            () => {
+                remove_supplier(supplier_id);
+            },
+            'Valider',
+        );
     })
 }
 
