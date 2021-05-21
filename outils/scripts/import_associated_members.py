@@ -2,10 +2,12 @@
 import sys, getopt, os
 sys.path.append(os.path.abspath('../..'))
 from outils.common import OdooAPI
+from outils.config import COOP_BARCODE_RULE_ID
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 import datetime
+# from django.conf import settings
 
 from openpyxl.utils.exceptions import InvalidFileException
 
@@ -21,6 +23,9 @@ def main():
 
     try:
         wb = load_workbook(data_file)
+    except FileNotFoundError:
+        print("Fichier introuvable.")
+        exit(2)
     except InvalidFileException:
         print("Le fichier fourni est invalide, il doit être au format Excel (.xlsx,.xlsm,.xltx,.xltm)")
         exit(2)
@@ -59,16 +64,16 @@ O: (ignorée)
 P: parent_member_id*
 
 (* ces champs doivent être renseignés)
-Vous confirmez ? (o/n) """)
+Vous confirmez ? (O/n) """)
 
     while True:
         if (columns_valid == 'n' or columns_valid == 'N'):
             print("Veuillez formatter correctement le fichier avant de continuer !")
             exit()
-        elif (columns_valid == 'o' or columns_valid == 'O'):
+        elif (columns_valid == 'o' or columns_valid == 'O' or columns_valid== ''):
             break
         else: 
-            columns_valid = input("Vous confirmez ? (o/n) ")
+            columns_valid = input("Vous confirmez ? (O/n) ")
             continue
 
     users = []
@@ -87,8 +92,9 @@ Vous confirmez ? (o/n) """)
                 "is_member": False,
                 "is_associated_people": True,
                 "active": active,
+                "barcode_rule_id": COOP_BARCODE_RULE_ID,
                 "name": row[2],
-                "parent_id": int(row[15])  # for development, override with local existing member id
+                "parent_id": int(row[15]),  # for development, override with local existing member id
             }
 
             if row[1] is not None and row[1] != "NON":
@@ -97,6 +103,9 @@ Vous confirmez ? (o/n) """)
                 except Exception:
                     print(f"[Mauvais format du champ 'barcode_base' pour l'utilisateur '{row[2]}' (Attendu : nombre entier)")
                     has_error = True
+
+            if row[4] is not None:
+                user["comment"] = f"Date d'inclusion : {row[4].date().strftime('%d/%m/%Y')}"
 
             if row[5] is not None:
                 user["email"] = row[5]
@@ -155,7 +164,6 @@ Vous confirmez ? (o/n) """)
         exit(2)
 
     res = None
-    ids = []
     marshal_none_error = 'cannot marshal None unless allow_none is enabled'
     
     for user in users:
@@ -164,19 +172,11 @@ Vous confirmez ? (o/n) """)
 
             if res:
                 print(f"Rattaché.e importé.e avec succès : {user['name']} (id : {res})")
-                ids.append(res)
         except Exception as e:
             if not (marshal_none_error in str(e)):
                 print(f"Erreur lors de l'insertion de {user['name']}, vérifiez ses données dans le tableau ({str(e)})")
             else:
                 pass
-
-    # TODO : remove barcode?
-    # fields = {
-    #     "barcode": ""
-    # }
-    # result_update = api.update('res.partner', ids, fields)
-    # TODO : "date_inclusion" (row[4])
 
 if __name__ == "__main__":
     main()
