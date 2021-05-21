@@ -23,7 +23,8 @@ def index(request):
         'WELCOME_ENTRANCE_MSG': getattr(settings, 'WELCOME_ENTRANCE_MSG', 'Bienvenue !'),
         'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', ''),
         'ENTRANCE_SHOPPING_BTN': getattr(settings, 'ENTRANCE_SHOPPING_BTN', 'Je viens faire mes courses'),
-        'ENTRANCE_SERVICE_BTN': getattr(settings, 'ENTRANCE_SERVICE_BTN', 'Je viens faire mon service')
+        'ENTRANCE_SERVICE_BTN': getattr(settings, 'ENTRANCE_SERVICE_BTN', 'Je viens faire mon service'),
+        'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e')
     }
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
 

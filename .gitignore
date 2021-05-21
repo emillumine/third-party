@@ -10,6 +10,7 @@ outils/settings_secret.py
 outils/config.py
 outils/texts/*
 outils/js_errors.log
+outils/scripts/scripts_settings.py
 db.sqlite3
 */max_timeslot_carts.txt
 .gitlab-ci.yml
