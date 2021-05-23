@@ -10,6 +10,11 @@ ODOO = {
 COUCHDB = {
     'private_url': 'http://couchdb:5984',
     'url': 'http://127.0.0.1:5984',
+    'admin': {
+        'url': 'http://%s:%s@couchdb:5984',
+        'user': 'admin',
+        'password': '123abc',
+    },
     'dbs': {
               'member': 'coops',
               'inventory': 'inventory',
