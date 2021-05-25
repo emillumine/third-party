@@ -21,6 +21,16 @@ var to_fill_box = $('#to_fill'),
     problem_delete = $('#problem_delete'),
     vform = $('#coop_validation_form');
 
+// date validation
+Date.prototype.isValid = function () {
+
+    // If the date object is invalid it
+    // will return 'NaN' on getTime()
+    // and NaN is never equal to itself.
+    return this.getTime() === this.getTime();
+};
+
+
 sync.on('change', function (info) {
     // handle change
     if (info.direction == 'pull') {
@@ -248,16 +258,29 @@ function save_current_coop(callback) {
             sex_error = false;
 
         if (/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/.exec(birthdate)) {
-            var jj = RegExp.$1,
+            try{
+                var jj = RegExp.$1,
                 mm = RegExp.$2,
                 aaaa = RegExp.$3;
 
-            if (jj > 31 || mm > 12 || aaaa < 1900 || aaaa > 2018) {
+                let tmp_date = aaaa + "-" + mm + "-" + jj;
+                // try to create a date object
+                date_test = new Date(tmp_date);
+                // if date is invalid a correction is apply in date object. Check it
+                // january start at 0, so we add + 1 for the month
+                if ((date_test.getDate() !== parseInt(jj)) || ((date_test.getMonth()+1) !== parseInt(mm)) || (date_test.getFullYear() !== parseInt(aaaa)) || !date_test.isValid())
+                {
+                    birthdate_error = true;
+                }
+            }catch(Exception){
                 birthdate_error = true;
             }
+
         } else {
             birthdate_error = true;
         }
+
+
 
         let street2_input = form.find('[name="street2"]'),
             phone_input = form.find('[name="phone"]');
