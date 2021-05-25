@@ -27,17 +27,6 @@ services:
     volumes:
       - "couchdb-data:/opt/couchdb/data"
 
-  initializer:
-    image: curlimages/curl
-    deploy:
-      restart_policy:
-        condition: on-failure
-    depends_on:
-      - couchdb
-    command: ["sh", "-c", "cd /tmp && ./couchdb-setup.sh"]
-    volumes:
-      - "./:/tmp"
-
   database:
     image: "postgres:10"
     env_file: .env
