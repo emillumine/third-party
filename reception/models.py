@@ -29,12 +29,14 @@ class CagetteReception(models.Model):
             if res and len(res) > 0:
                 for r in res:
                     pids.append(int(r['purchase_id'][0]))
+
             if len(pids):
                 f=["id","name","date_order", "partner_id", "date_planned", "amount_untaxed", "amount_total", "x_reception_status"]
 
                 # Only get orders that need to be treated in Reception
-                c=[['id', 'in', pids], ["x_reception_status", "in", [False, 'qty_valid']]]
-            orders =  api.search_read('purchase.order', c, f)
+                c=[['id', 'in', pids], ["x_reception_status", "in", [False, 'qty_valid', 'valid_pending', 'br_valid', 'error_pack_op', 'uprice_valid']]]
+
+                orders = api.search_read('purchase.order', c, f)
         except Exception as e:
             print (str(e))
         return orders
