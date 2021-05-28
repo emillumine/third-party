@@ -192,7 +192,11 @@ function prepare_datatable_data() {
     for (product of products) {
         let item = {
             id: product.id,
-            name: product.name
+            name: product.name,
+            default_code: product.default_code,
+            incoming_qty: +parseFloat(product.incoming_qty).toFixed(3), // + sign removes unecessary zeroes at the end
+            qty_available: +parseFloat(product.qty_available).toFixed(3),
+            uom: product.uom_id[1],
         };
 
         // If product not related to supplier : false ; else null (qty to be set) or qty
@@ -220,12 +224,30 @@ function prepare_datatable_columns() {
         {
             data: "id",
             title: "id",
-            visible: false
+            visible: false,
+        },
+        {
+            data: "default_code",
+            title: "Référence Produit",
+            width: "10%",
+            render: function (data) {
+                return (data === false) ? "" : data;
+            }
         },
         {
             data: "name",
             title: "Produit"
-        }
+        },
+        {
+            data: "qty_available",
+            title: "Stock",
+            width: "5%",
+        },
+        {
+            data: "incoming_qty",
+            title: "Quantité entrante",
+            width: "5%",
+        },
     ];
 
     for (supplier of selected_suppliers) {
@@ -246,6 +268,12 @@ function prepare_datatable_columns() {
             }
         });
     }
+
+    columns.push({
+        data: "uom",
+        title: "UDM",
+        width: "5%",
+    })
 
     return columns;
 }
@@ -350,5 +378,5 @@ $(document).ready(function() {
         add_supplier();
     });
 
-    // TODO: on click on 'X' change to input
+    // TODO: on click on 'X' change to input, make product available for this supplier
 });

@@ -406,18 +406,18 @@ class CagetteProducts(models.Model):
             ptids = []
             for p in psi:
                 if (p["product_tmpl_id"] is not False 
-                    and (p["date_start"] is False or p["date_start"] < today) 
-                    and (p["date_end"] is False or p["date_end"] < today)):
+                    and (p["date_start"] is False or p["date_end"] is not False and p["date_start"] <= today) 
+                    and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
                     ptids.append(p["product_tmpl_id"][0])
 
             # Get products templates
-            f = ["id", "state", "product_variant_ids", "name"]
+            f = ["id", "state", "name", "default_code", "qty_available", "incoming_qty", "uom_id"]
             c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
 
-            # TODO get additional product data (product_variant_ids -> list of product.product)
-            
+            # Note: if product.product is needed, get "product_variant_ids" from product template
+
             res["products"] = filtered_products_t
         except Exception as e:
             print(str(e))
