@@ -127,6 +127,27 @@ class CagetteProduct(models.Model):
         res = api.create('product.supplier.shortage', f)
         return res
 
+    @staticmethod
+    def associate_supplier_to_product(product_tmpl_id, partner_id):
+        api = OdooAPI()
+
+        f = ["id", "standard_price", "purchase_ok"]
+        c = [['product_tmpl_id', '=', product_tmpl_id]]
+        res_products = api.search_read('product.product', c, f)
+        product = res_products[0]
+
+        f = {
+            'product_tmpl_id' : product_tmpl_id,
+            'product_id' : product["id"],
+            'name' : partner_id,
+            'product_purchase_ok': product["purchase_ok"],
+            'price': product["standard_price"],     # By default, use product price
+            'base_price': product["standard_price"],
+        }
+        res = api.create('product.supplierinfo', f)
+
+        return res
+
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
 

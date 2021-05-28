@@ -3,6 +3,9 @@ var suppliers_list = [],
     selected_suppliers = [],
     products = [];
 
+
+/* CALLS TO SERVER */
+
 /**
  * Add a supplier to the selected suppliers list.
  *
@@ -63,6 +66,56 @@ function add_supplier() {
     });
 
     return 0;
+}
+
+/**
+ * Send to server the association product-supplier
+ * 
+ * @param {object} product 
+ * @param {object} supplier 
+ * @param {node} cell product's row in datatable
+ */
+function save_supplier_product_association(product, supplier, cell) {
+    openModal();
+
+    const data = {
+        product_tmpl_id: product.id,
+        supplier_id: supplier.id
+    }
+
+    // Fetch supplier products
+    $.ajax({
+        type: "POST",
+        url: "/orders/associate_supplier_to_product",
+        dataType: "json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(data),
+        success: () => {
+            // Save relation locally
+            save_supplier_products(supplier, [product])
+
+            // Update table
+            $(cell).removeClass( "product_not_from_supplier" )
+            const row = $(cell).closest("tr")
+            const new_row_data = prepare_datatable_data([product.id])[0]
+            products_table.row(row).data(new_row_data).draw()
+
+            closeModal();
+        },
+        error: function(data) {
+            let msg = "erreur serveur lors de la sauvegarde de l'association product/supplier".
+            msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`
+            err = {msg: msg, ctx: 'save_supplier_product_association'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'orders');
+
+            closeModal();
+            alert('Erreur lors de la sauvegarde de l\'association. Veuillez ré-essayer plus tard.');
+        }
+    });
 }
 
 /**
@@ -156,7 +209,7 @@ function display_suppliers() {
     for (supplier of selected_suppliers) {
         let template = $("#templates #supplier_pill");
 
-        template.find(".supplier_name").text(supplier.display_name);
+        template.find(".pill_supplier_name").text(supplier.display_name);
         template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`);
 
         supplier_container.append(template.html());
@@ -184,12 +237,20 @@ function display_suppliers() {
 /* DATATABLE */
 
 /**
+ * @param {array} product_ids if set, return formatted data for these products only
  * @returns Array of formatted data for datatable data setup
  */
-function prepare_datatable_data() {
+function prepare_datatable_data(product_ids = []) {
     let data = [];
+    let products_to_format = []
 
-    for (product of products) {
+    if (product_ids.length > 0) {
+        products_to_format = products.filter(p => product_ids.includes(p.id));
+    } else {
+        products_to_format = products;
+    }
+
+    for (product of products_to_format) {
         let item = {
             id: product.id,
             name: product.name,
@@ -250,18 +311,21 @@ function prepare_datatable_columns() {
         },
     ];
 
-    for (supplier of selected_suppliers) {
+    for (const supplier of selected_suppliers) {
         columns.push({
             data: supplier_column_name(supplier),
             title: supplier.display_name,
             width: "8%",
-            className:"dt-body-center supplier_input_cell",
-            render: function (data, type, full) {
+            className: `dt-body-center supplier_input_cell`,
+            render: (data, type, full) => {
+                const base_id = `product_${full.id}_supplier_${supplier.id}`;
+
                 if (data === false) {
-                    return "X";
+                    return `<div id="${base_id}_cell_content" class="cell_content">X</div>`;
                 } else {
-                    const input_id = `product_${full.id}_supplier_${supplier.id}_qty_input`;
-                    return `<input type="number" class="product_qty_input" id=${input_id} value=${data}>`;
+                    return `<div id="${base_id}_cell_content" class="cell_content">
+                                <input type="number" class="product_qty_input" id="${base_id}_qty_input" value=${data}>
+                            </div>`;
                 }
             }
         });
@@ -311,6 +375,7 @@ function display_products() {
         createdRow: function( row, data, dataIndex ) {
             for (const cell_node of row.cells) {
                 const cell = $(cell_node);
+
                 if (cell.hasClass("supplier_input_cell")) {
                     if (cell.text() == "X") {
                         cell.addClass( 'product_not_from_supplier' );
@@ -342,6 +407,36 @@ function display_products() {
 
             save_product_supplier_qty(prod_id, supplier_id, val);
         }
+    });
+
+    // Associate product to supplier on click on 'X' in the table
+    $('#products_table').on('click', 'tbody .product_not_from_supplier', function () {
+        // todo istimeto
+
+        // Get supplier & product id 
+        const el_id = $(this).children().first().attr('id')
+            .split('_');
+        const product_id = el_id[1];
+        const supplier_id = el_id[3];
+
+        const product = products.find(p => p.id == product_id)
+        const supplier = selected_suppliers.find(s => s.id == supplier_id)
+
+        let modal_attach_product_to_supplier = $('#templates #modal_attach_product_to_supplier');
+
+        modal_attach_product_to_supplier.find(".product_name").text(product.name);
+        modal_attach_product_to_supplier.find(".supplier_name").text(supplier.display_name);
+
+        const cell = this
+
+        openModal(
+            modal_attach_product_to_supplier.html(),
+            () => {
+                save_supplier_product_association(product, supplier, cell);
+            },
+            'Valider',
+            false
+        );
     });
 
     return 0;
@@ -393,6 +488,4 @@ $(document).ready(function() {
         e.preventDefault();
         add_supplier();
     });
-
-    // TODO: on click on 'X' change to input, make product available for this supplier
 });

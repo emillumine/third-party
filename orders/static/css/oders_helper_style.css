@@ -22,8 +22,12 @@
 
 .product_not_from_supplier {
     background-color: #e7e9ed;
+    cursor: pointer;
 }
 
+.product_name, .supplier_name {
+    font-weight: bold;
+}
 
 #suppliers_container {
     display: flex;

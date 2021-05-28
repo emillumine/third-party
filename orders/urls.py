@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^helper$', views.helper),
     url(r'^get_suppliers$', views.get_suppliers),
     url(r'^get_supplier_products$', views.get_supplier_products),
+    url(r'^associate_supplier_to_product$', views.associate_supplier_to_product),
 ]

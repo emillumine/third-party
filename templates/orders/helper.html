@@ -38,7 +38,7 @@
     <div id="supplier_pill">
         <div class="supplier_pill">
             <div class="supplier_name_container">
-                <span class="supplier_name"></span>
+                <span class="pill_supplier_name"></span>
                 <i class="fas fa-times remove_supplier_icon"></i>
             </div>
         </div>
@@ -47,12 +47,21 @@
     <div id="modal_remove_supplier">
         <h3>Attention !</h3>
         <p>
-            Vous vous apprêtez à supprimer le fournisseur <span class="supplier_name"></span>.<br/>
-            Les produits associés à ce fournisseur uniquement seront supprimés.<br/>
+            Vous vous apprêtez à supprimer le fournisseur <span class="supplier_name"></span> de la sélection.<br/>
+            Les produits associés uniquement à ce fournisseur seront supprimés du tableau.<br/>
             Les données renseignées dans la colonne de ce fournisseur seront perdues.
         </p>
         <p>Êtez-vous sûr ?</p>
-        <ul id="list_unprocessable_porducts"></ul>
+        <hr/>
+    </div>
+
+    <div id="modal_attach_product_to_supplier">
+        <h3>Attention !</h3>
+        <p> 
+            Vous vous apprêtez à associer le produit <span class="product_name"></span> au fournisseur <span class="supplier_name"></span>.<br/>
+            L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
+        </p>
+        <p>Êtez-vous sûr ?</p>
         <hr/>
     </div>
 </div>

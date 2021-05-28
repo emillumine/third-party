@@ -45,6 +45,18 @@ def get_supplier_products(request):
     else:
         return JsonResponse({'res': res})
 
+def associate_supplier_to_product(request):
+    """ This product is now supplied by this supplier """
+    res = {}
+    try:
+        data = json.loads(request.body.decode())
+        res = CagetteProduct.associate_supplier_to_product(data["product_tmpl_id"], data["supplier_id"])
+    except Exception as e:
+        res["error"] = str(e)
+        return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
+
 def export_one(request, oid):
     msg = ''
     try:
