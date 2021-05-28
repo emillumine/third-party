@@ -255,14 +255,12 @@ function prepare_datatable_columns() {
             data: supplier_column_name(supplier),
             title: supplier.display_name,
             width: "8%",
-            className:"dt-body-center",
+            className:"dt-body-center supplier_input_cell",
             render: function (data, type, full) {
                 if (data === false) {
                     return "X";
                 } else {
                     const input_id = `product_${full.id}_supplier_${supplier.id}_qty_input`;
-
-
                     return `<input type="number" class="product_qty_input" id=${input_id} value=${data}>`;
                 }
             }
@@ -302,13 +300,31 @@ function display_products() {
         columns: columns,
         order: [
             [
-                2,
+                5,  // Order by default by first supplier
                 "asc"
             ]
         ],
-        dom: 'lrtip', // TODO: change DOM display?
+        stripeClasses: [],  // Remove datatable cells coloring
+        orderClasses: false,
         iDisplayLength: 100,
-        language: {url : '/static/js/datatables/french.json'}
+        language: {url : '/static/js/datatables/french.json'},
+        createdRow: function( row, data, dataIndex ) {
+            for (const cell_node of row.cells) {
+                const cell = $(cell_node);
+                if (cell.hasClass("supplier_input_cell")) {
+                    if (cell.text() == "X") {
+                        cell.addClass( 'product_not_from_supplier' );
+                    } else {
+                        // TODO: supplier shortage cell coloring, when supplier shortage usecase is defined
+
+                        // let val = parseFloat(cell.find('.product_qty_input').val());
+                        // if (!isNaN(val) && val < 0) {
+                        //     cell.addClass( 'product_supplier_shortage' );
+                        // }
+                    }
+                }
+            }
+          }
     });
 
     $('.main').show();
