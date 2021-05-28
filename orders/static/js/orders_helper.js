@@ -1,10 +1,8 @@
 var suppliers_list = [],
     products_table = null,
+    products = []
     selected_suppliers = [],
-    products = [];
-
-
-/* CALLS TO SERVER */
+    selected_rows = [];
 
 /**
  * Add a supplier to the selected suppliers list.
@@ -69,13 +67,34 @@ function add_supplier() {
 }
 
 /**
+ * Remove a supplier from the selected list & its associated products
+ *
+ * @param {int} supplier_id
+ */
+function remove_supplier(supplier_id) {
+    // Remove from suppliers list
+    selected_suppliers = selected_suppliers.filter(supplier => supplier.id != supplier_id);
+
+    // Remove the supplier from the products suppliers list
+    for (const i in products) {
+        products[i].suppliers = products[i].suppliers.filter(supplier => supplier.id != supplier_id);
+    }
+
+    // Remove products only associated to this product
+    products = products.filter(product => product.suppliers.length > 0);
+
+    update_display();
+}
+
+
+/**
  * Send to server the association product-supplier
  * 
  * @param {object} product 
  * @param {object} supplier 
  * @param {node} cell product's row in datatable
  */
-function save_supplier_product_association(product, supplier, cell) {
+ function save_supplier_product_association(product, supplier, cell) {
     openModal();
 
     const data = {
@@ -116,26 +135,6 @@ function save_supplier_product_association(product, supplier, cell) {
             alert('Erreur lors de la sauvegarde de l\'association. Veuillez ré-essayer plus tard.');
         }
     });
-}
-
-/**
- * Remove a supplier from the selected list & its associated products
- *
- * @param {int} supplier_id
- */
-function remove_supplier(supplier_id) {
-    // Remove from suppliers list
-    selected_suppliers = selected_suppliers.filter(supplier => supplier.id != supplier_id);
-
-    // Remove the supplier from the products suppliers list
-    for (const i in products) {
-        products[i].suppliers = products[i].suppliers.filter(supplier => supplier.id != supplier_id);
-    }
-
-    // Remove products only associated to this product
-    products = products.filter(product => product.suppliers.length > 0);
-
-    update_display();
 }
 
 /**
@@ -221,7 +220,6 @@ function display_suppliers() {
         const supplier_id = el_id[el_id.length-1];
 
         let modal_remove_supplier = $('#templates #modal_remove_supplier');
-
         modal_remove_supplier.find(".supplier_name").text(supplier.display_name);
 
         openModal(
@@ -285,7 +283,16 @@ function prepare_datatable_columns() {
         {
             data: "id",
             title: "id",
-            visible: false,
+            title:` <div id="table_header_select_all">
+                        Tout 
+                        <input type="checkbox" class="select_product_cb" id="select_all_products_cb" value="all">
+                    </div>`,
+            className:"dt-body-center",
+            orderable: false,
+            render: function (data) {
+                return `<input type="checkbox" class="select_product_cb" id="select_product_${data}" value="${data}">`;
+            },
+            width: "4%",
         },
         {
             data: "default_code",
@@ -315,7 +322,7 @@ function prepare_datatable_columns() {
         columns.push({
             data: supplier_column_name(supplier),
             title: supplier.display_name,
-            width: "8%",
+            width: "10%",
             className: `dt-body-center supplier_input_cell`,
             render: (data, type, full) => {
                 const base_id = `product_${full.id}_supplier_${supplier.id}`;
@@ -411,8 +418,6 @@ function display_products() {
 
     // Associate product to supplier on click on 'X' in the table
     $('#products_table').on('click', 'tbody .product_not_from_supplier', function () {
-        // todo istimeto
-
         // Get supplier & product id 
         const el_id = $(this).children().first().attr('id')
             .split('_');
@@ -423,7 +428,6 @@ function display_products() {
         const supplier = selected_suppliers.find(s => s.id == supplier_id)
 
         let modal_attach_product_to_supplier = $('#templates #modal_attach_product_to_supplier');
-
         modal_attach_product_to_supplier.find(".product_name").text(product.name);
         modal_attach_product_to_supplier.find(".supplier_name").text(supplier.display_name);
 
@@ -439,15 +443,141 @@ function display_products() {
         );
     });
 
+    // Select row(s) on checkbox change
+    $('#products_table').on('click', 'thead th #select_all_products_cb', function () {
+        if (this.checked) {
+            selected_rows = []
+            products_table.rows().every(function() {
+                const node = $(this.node());
+                node.addClass('selected');
+                node.find(".select_product_cb").first().prop( "checked", true );
+
+                // Save selected rows in case the table is updated
+                selected_rows.push(this.data().id)
+            });
+        } else {
+            unselect_all_rows()
+        }
+    });
+    $('#products_table').on('click', 'tbody td .select_product_cb', function () {
+        $(this).closest('tr').toggleClass('selected');
+
+        // Save / unsave selected row
+        p_id = products_table.row($(this).closest('tr')).data().id;
+        if (this.checked) {
+            selected_rows.push(p_id)
+        } else {
+            const i = selected_rows.findIndex(id => id == p_id)
+            selected_rows.splice(i, 1)
+        }
+    });
+
     return 0;
+}
+
+/**
+ * Unselect all rows from datatable.
+ */
+function unselect_all_rows() {
+    products_table.rows().every(function() {
+        const node = $(this.node());
+        node.removeClass('selected');
+        node.find(".select_product_cb").first().prop( "checked", false );
+    });
+    
+    selected_rows = []
 }
 
 /**
  * Update DOM display
  */
 function update_display() {
+    // Remove listener before recreating them
+    $('#products_table').off('click', 'tbody .product_not_from_supplier');
+    $('#products_table').off('click', 'thead th #select_all_products_cb');
+    $('#products_table').off('click', 'tbody td .select_product_cb');
+
     display_suppliers();
     display_products();
+
+    // Re-select previously selected rows
+    if(selected_rows.length > 0) {
+        products_table.rows().every(function() {
+            if (selected_rows.includes(this.data().id)) {
+                const node = $(this.node());
+                node.addClass('selected');
+                node.find(".select_product_cb").first().prop( "checked", true );
+            }
+        });
+    }
+}
+
+function generate_inventory() {
+    if  (products_table !== null) {
+        const selected_data = products_table.rows('.selected').data();
+
+        if (selected_data.length == 0) {
+            alert("Veuillez sélectionner les produits à inventorier en cochant les cases sur la gauche du tableau.")
+        } else {
+            data = {
+                lines: [],
+                partners_id: [],
+                type: 'product_templates'
+            }
+
+            for (var i = 0; i < selected_data.length; i++) {
+                const product = products.find(p => p.id == selected_data[i].id)
+                data.lines.push(product.id);
+                for (const supplier of product.suppliers) {
+                    if (data.partners_id.indexOf(supplier.id) === -1) {
+                        data.partners_id.push(supplier.id)
+                    }
+                }
+            }
+
+            let modal_create_inventory = $('#templates #modal_create_inventory');
+            modal_create_inventory.find(".inventory_products_count").text(data.lines.length);
+
+            openModal(
+                modal_create_inventory.html(),
+                () => {
+                    $.ajax({
+                        type: "POST",
+                        url: "/inventory/generate_inventory_list",
+                        dataType: "json",
+                        traditional: true,
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify(data),
+                        success: () => {
+                            unselect_all_rows();
+
+                            // Give time for modal to fade
+                            setTimeout(function(){ 
+                                $.notify(
+                                    "Inventaire créé !",
+                                    {
+                                        globalPosition:"top left",
+                                        className: "success"
+                                    }
+                                );
+                            }, 500);
+                        },
+                        error: function(data) {
+                            let msg = "erreur serveur lors de la création de l'inventaire".
+                            err = {msg: msg, ctx: 'generate_inventory'};
+                            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                                err.msg += ' : ' + data.responseJSON.error;
+                            }
+                            report_JS_error(err, 'orders');
+                
+                            alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
+                        }
+                    });
+                },
+                'Valider',
+            );
+        }
+    }
 }
 
 $(document).ready(function() {
@@ -487,5 +617,9 @@ $(document).ready(function() {
     $("#supplier_form").on("submit", function(e) {
         e.preventDefault();
         add_supplier();
+    });
+
+    $("#do_inventory").on("click", function(e) {
+        generate_inventory();
     });
 });

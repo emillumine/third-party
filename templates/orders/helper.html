@@ -10,10 +10,15 @@
 {% block additionnal_scripts %}
 <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v="></script>
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
 {% endblock %}
 
 {% block content %}
 <div class="page_body">
+    <div id="actions_buttons_area">
+        <button type="button" class='btn--primary' id="do_inventory">Faire un inventaire</button>
+    </div>
+
     <div class="header txtcenter">
         <h1>Aide à la commande</h1>
     </div>
@@ -60,6 +65,14 @@
         <p> 
             Vous vous apprêtez à associer le produit <span class="product_name"></span> au fournisseur <span class="supplier_name"></span>.<br/>
             L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
+        </p>
+        <p>Êtez-vous sûr ?</p>
+        <hr/>
+    </div>
+
+    <div id="modal_create_inventory">
+        <p> 
+            Vous vous apprêtez à créer un inventaire de <span class="inventory_products_count"></span> produits.
         </p>
         <p>Êtez-vous sûr ?</p>
         <hr/>
