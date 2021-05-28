@@ -1,6 +1,6 @@
 var suppliers_list = [],
     products_table = null,
-    products = []
+    products = [],
     selected_suppliers = [],
     selected_rows = [];
 
@@ -89,18 +89,18 @@ function remove_supplier(supplier_id) {
 
 /**
  * Send to server the association product-supplier
- * 
- * @param {object} product 
- * @param {object} supplier 
+ *
+ * @param {object} product
+ * @param {object} supplier
  * @param {node} cell product's row in datatable
  */
- function save_supplier_product_association(product, supplier, cell) {
+function save_supplier_product_association(product, supplier, cell) {
     openModal();
 
     const data = {
         product_tmpl_id: product.id,
         supplier_id: supplier.id
-    }
+    };
 
     // Fetch supplier products
     $.ajax({
@@ -112,19 +112,22 @@ function remove_supplier(supplier_id) {
         data: JSON.stringify(data),
         success: () => {
             // Save relation locally
-            save_supplier_products(supplier, [product])
+            save_supplier_products(supplier, [product]);
 
             // Update table
-            $(cell).removeClass( "product_not_from_supplier" )
-            const row = $(cell).closest("tr")
-            const new_row_data = prepare_datatable_data([product.id])[0]
-            products_table.row(row).data(new_row_data).draw()
+            $(cell).removeClass("product_not_from_supplier");
+            const row = $(cell).closest("tr");
+            const new_row_data = prepare_datatable_data([product.id])[0];
+
+            products_table.row(row).data(new_row_data)
+                .draw();
 
             closeModal();
         },
         error: function(data) {
             let msg = "erreur serveur lors de la sauvegarde de l'association product/supplier".
-            msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`
+                msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
+
             err = {msg: msg, ctx: 'save_supplier_product_association'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
@@ -220,6 +223,7 @@ function display_suppliers() {
         const supplier_id = el_id[el_id.length-1];
 
         let modal_remove_supplier = $('#templates #modal_remove_supplier');
+
         modal_remove_supplier.find(".supplier_name").text(supplier.display_name);
 
         openModal(
@@ -240,7 +244,7 @@ function display_suppliers() {
  */
 function prepare_datatable_data(product_ids = []) {
     let data = [];
-    let products_to_format = []
+    let products_to_format = [];
 
     if (product_ids.length > 0) {
         products_to_format = products.filter(p => product_ids.includes(p.id));
@@ -255,7 +259,7 @@ function prepare_datatable_data(product_ids = []) {
             default_code: product.default_code,
             incoming_qty: +parseFloat(product.incoming_qty).toFixed(3), // + sign removes unecessary zeroes at the end
             qty_available: +parseFloat(product.qty_available).toFixed(3),
-            uom: product.uom_id[1],
+            uom: product.uom_id[1]
         };
 
         // If product not related to supplier : false ; else null (qty to be set) or qty
@@ -282,7 +286,6 @@ function prepare_datatable_columns() {
     columns = [
         {
             data: "id",
-            title: "id",
             title:` <div id="table_header_select_all">
                         Tout 
                         <input type="checkbox" class="select_product_cb" id="select_all_products_cb" value="all">
@@ -292,7 +295,7 @@ function prepare_datatable_columns() {
             render: function (data) {
                 return `<input type="checkbox" class="select_product_cb" id="select_product_${data}" value="${data}">`;
             },
-            width: "4%",
+            width: "4%"
         },
         {
             data: "default_code",
@@ -309,13 +312,13 @@ function prepare_datatable_columns() {
         {
             data: "qty_available",
             title: "Stock",
-            width: "5%",
+            width: "5%"
         },
         {
             data: "incoming_qty",
             title: "Quantité entrante",
-            width: "5%",
-        },
+            width: "5%"
+        }
     ];
 
     for (const supplier of selected_suppliers) {
@@ -341,8 +344,8 @@ function prepare_datatable_columns() {
     columns.push({
         data: "uom",
         title: "UDM",
-        width: "5%",
-    })
+        width: "5%"
+    });
 
     return columns;
 }
@@ -371,21 +374,21 @@ function display_products() {
         columns: columns,
         order: [
             [
-                5,  // Order by default by first supplier
+                5, // Order by default by first supplier
                 "asc"
             ]
         ],
-        stripeClasses: [],  // Remove datatable cells coloring
+        stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
         iDisplayLength: 100,
         language: {url : '/static/js/datatables/french.json'},
-        createdRow: function( row, data, dataIndex ) {
+        createdRow: function(row) {
             for (const cell_node of row.cells) {
                 const cell = $(cell_node);
 
                 if (cell.hasClass("supplier_input_cell")) {
                     if (cell.text() == "X") {
-                        cell.addClass( 'product_not_from_supplier' );
+                        cell.addClass('product_not_from_supplier');
                     } else {
                         // TODO: supplier shortage cell coloring, when supplier shortage usecase is defined
 
@@ -396,7 +399,7 @@ function display_products() {
                     }
                 }
             }
-          }
+        }
     });
 
     $('.main').show();
@@ -418,25 +421,26 @@ function display_products() {
 
     // Associate product to supplier on click on 'X' in the table
     $('#products_table').on('click', 'tbody .product_not_from_supplier', function () {
-        // Get supplier & product id 
-        const el_id = $(this).children().first().attr('id')
+        // Get supplier & product id
+        const el_id = $(this).children()
+            .first()
+            .attr('id')
             .split('_');
         const product_id = el_id[1];
         const supplier_id = el_id[3];
 
-        const product = products.find(p => p.id == product_id)
-        const supplier = selected_suppliers.find(s => s.id == supplier_id)
+        const product = products.find(p => p.id == product_id);
+        const supplier = selected_suppliers.find(s => s.id == supplier_id);
 
         let modal_attach_product_to_supplier = $('#templates #modal_attach_product_to_supplier');
+
         modal_attach_product_to_supplier.find(".product_name").text(product.name);
         modal_attach_product_to_supplier.find(".supplier_name").text(supplier.display_name);
-
-        const cell = this
 
         openModal(
             modal_attach_product_to_supplier.html(),
             () => {
-                save_supplier_product_association(product, supplier, cell);
+                save_supplier_product_association(product, supplier, this);
             },
             'Valider',
             false
@@ -446,29 +450,35 @@ function display_products() {
     // Select row(s) on checkbox change
     $('#products_table').on('click', 'thead th #select_all_products_cb', function () {
         if (this.checked) {
-            selected_rows = []
+            selected_rows = [];
             products_table.rows().every(function() {
                 const node = $(this.node());
+
                 node.addClass('selected');
-                node.find(".select_product_cb").first().prop( "checked", true );
+                node.find(".select_product_cb").first()
+                    .prop("checked", true);
 
                 // Save selected rows in case the table is updated
-                selected_rows.push(this.data().id)
+                selected_rows.push(this.data().id);
+
+                return 0;
             });
         } else {
-            unselect_all_rows()
+            unselect_all_rows();
         }
     });
     $('#products_table').on('click', 'tbody td .select_product_cb', function () {
-        $(this).closest('tr').toggleClass('selected');
+        $(this).closest('tr')
+            .toggleClass('selected');
 
         // Save / unsave selected row
         p_id = products_table.row($(this).closest('tr')).data().id;
         if (this.checked) {
-            selected_rows.push(p_id)
+            selected_rows.push(p_id);
         } else {
-            const i = selected_rows.findIndex(id => id == p_id)
-            selected_rows.splice(i, 1)
+            const i = selected_rows.findIndex(id => id == p_id);
+
+            selected_rows.splice(i, 1);
         }
     });
 
@@ -481,11 +491,15 @@ function display_products() {
 function unselect_all_rows() {
     products_table.rows().every(function() {
         const node = $(this.node());
+
         node.removeClass('selected');
-        node.find(".select_product_cb").first().prop( "checked", false );
+        node.find(".select_product_cb").first()
+            .prop("checked", false);
+
+        return 0;
     });
-    
-    selected_rows = []
+
+    selected_rows = [];
 }
 
 /**
@@ -501,41 +515,47 @@ function update_display() {
     display_products();
 
     // Re-select previously selected rows
-    if(selected_rows.length > 0) {
+    if (selected_rows.length > 0) {
         products_table.rows().every(function() {
             if (selected_rows.includes(this.data().id)) {
                 const node = $(this.node());
+
                 node.addClass('selected');
-                node.find(".select_product_cb").first().prop( "checked", true );
+                node.find(".select_product_cb").first()
+                    .prop("checked", true);
             }
+
+            return 0;
         });
     }
 }
 
 function generate_inventory() {
-    if  (products_table !== null) {
+    if (products_table !== null) {
         const selected_data = products_table.rows('.selected').data();
 
         if (selected_data.length == 0) {
-            alert("Veuillez sélectionner les produits à inventorier en cochant les cases sur la gauche du tableau.")
+            alert("Veuillez sélectionner les produits à inventorier en cochant les cases sur la gauche du tableau.");
         } else {
             data = {
                 lines: [],
                 partners_id: [],
                 type: 'product_templates'
-            }
+            };
 
             for (var i = 0; i < selected_data.length; i++) {
-                const product = products.find(p => p.id == selected_data[i].id)
+                const product = products.find(p => p.id == selected_data[i].id);
+
                 data.lines.push(product.id);
                 for (const supplier of product.suppliers) {
                     if (data.partners_id.indexOf(supplier.id) === -1) {
-                        data.partners_id.push(supplier.id)
+                        data.partners_id.push(supplier.id);
                     }
                 }
             }
 
             let modal_create_inventory = $('#templates #modal_create_inventory');
+
             modal_create_inventory.find(".inventory_products_count").text(data.lines.length);
 
             openModal(
@@ -552,7 +572,7 @@ function generate_inventory() {
                             unselect_all_rows();
 
                             // Give time for modal to fade
-                            setTimeout(function(){ 
+                            setTimeout(function() {
                                 $.notify(
                                     "Inventaire créé !",
                                     {
@@ -564,17 +584,18 @@ function generate_inventory() {
                         },
                         error: function(data) {
                             let msg = "erreur serveur lors de la création de l'inventaire".
-                            err = {msg: msg, ctx: 'generate_inventory'};
+                                err = {msg: msg, ctx: 'generate_inventory'};
+
                             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                                 err.msg += ' : ' + data.responseJSON.error;
                             }
                             report_JS_error(err, 'orders');
-                
+
                             alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
                         }
                     });
                 },
-                'Valider',
+                'Valider'
             );
         }
     }
@@ -619,7 +640,7 @@ $(document).ready(function() {
         add_supplier();
     });
 
-    $("#do_inventory").on("click", function(e) {
+    $("#do_inventory").on("click", function() {
         generate_inventory();
     });
 });
