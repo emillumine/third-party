@@ -1,13 +1,12 @@
 stages: 
-  - lint
-  - unit
+  - test
 
 variables:
   COUCHDB_USER: "ci-only"
   COUCHDB_PASSWORD: "ci-only"
 
 lint:js:
-  stage: lint
+  stage: test
   image: node:14
   cache:
     key: node-modules
@@ -17,7 +16,7 @@ lint:js:
     - make lint-js
 
 unit:django:
-  stage: unit
+  stage: test
   image: python:3
   services: 
     - couchdb:3
