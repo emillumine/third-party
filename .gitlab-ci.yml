@@ -26,11 +26,7 @@ unit:django:
     paths:
       - "$CI_PROJECT_DIR/pip-cache"
   before_script: 
-    - pip install -U pip setuptools
-    - pip install -r requirements.txt
-    - cp outils/settings_example.py outils/settings.py
-    - cp outils/settings_secret_example.py outils/settings_secret.py
-    - cp outils/config.example.py outils/config.py
+    - ./unit_setup.sh
   script: 
     - python manage.py test 
 
