@@ -33,5 +33,5 @@ unit:django:
     - cp outils/settings_secret_example.py outils/settings_secret.py
     - cp outils/config.example.py outils/config.py
   script: 
-    - python manage.py test members
+    - python manage.py test 
 
