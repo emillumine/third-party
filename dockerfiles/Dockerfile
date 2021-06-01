@@ -1,4 +1,6 @@
-FROM python:3-slim
+FROM python:3
+
+ENV PYTHONUNBUFFERED=1
 
 # Add french locale
 RUN apt update && \
@@ -7,19 +9,16 @@ RUN apt update && \
     sed -i '/^#.* fr_FR.UTF-8 /s/^#//' /etc/locale.gen && \
     locale-gen
 
-# Virtual env:
-ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
 WORKDIR /home/app
 
-# Install dependencies:
+RUN pip install --upgrade pip
+
 COPY requirements.txt /home/app/
 RUN pip install -r requirements.txt
 
 # Setup volume to be able to dev application locally
 VOLUME /home/app
+COPY . /home/app
 
 # Run the application:
 EXPOSE 8080
