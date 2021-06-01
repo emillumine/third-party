@@ -34,6 +34,8 @@ services:
     image: "registry.gitlab.com/lgds/private-docker-images/postgres-lgds-anon:2021-04-28"
     env_file: .env
     restart: always
+    ports:
+      - "5432:5432"
     volumes:
       - "odoo-pg-data:/var/lib/postgresql/data"
 
