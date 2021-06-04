@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env sh
+
+set -euo pipefail
 
 #setup de l'environnement de test
 pip install -U pip setuptools 
