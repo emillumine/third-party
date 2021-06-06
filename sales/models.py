@@ -27,7 +27,7 @@ class CagetteSales(models.Model):
         # Get payment lines
         cond = [['statement_id', 'in', statements]]
         fields = ["partner_id", "amount", "journal_id", "create_date", "date"]
-        payments = self.o_api.search_read('account.bank.statement.line', cond, fields, order="create_date ASC")
+        payments = self.o_api.search_read('account.bank.statement.line', cond, fields, order="create_date ASC", limit=50000)
 
         item = None
         try:
