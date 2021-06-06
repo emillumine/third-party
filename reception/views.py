@@ -2,6 +2,8 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
 from django.views.generic import View
+from django.http import HttpResponse
+from django.http import JsonResponse
 
 import os
 from datetime import date
@@ -14,6 +16,9 @@ from outils.common import OdooAPI
 from members.models import CagetteUser
 from products.models import CagetteProduct
 
+# create temp directory if needed
+if not os.path.exists("temp"):
+    os.mkdir("temp")
 
 def as_text(value):
     """ Utils """
@@ -21,9 +26,18 @@ def as_text(value):
 
 def home(request):
     """Page de selection de la commande suivant un fournisseurs"""
+
+    # Get grouped orders stored on the server
+    try:        
+        with open('temp/grouped_order.json', 'r') as json_file:
+            saved_groups = json.load(json_file)
+    except Exception:
+        saved_groups = []
+
     context = {
         'title': 'Reception',
-        'merge_orders_pswd': settings.RECEPTION_MERGE_ORDERS_PSWD
+        'merge_orders_pswd': settings.RECEPTION_MERGE_ORDERS_PSWD,
+        'server_stored_groups' : saved_groups
     }
     template = loader.get_template('reception/index.html')
 
@@ -65,10 +79,10 @@ def produits(request, id):
                "TOOLS_SERVER": settings.TOOLS_SERVER}
     fixed_barcode_prefix = '0490'
 
-    if hasattr(settings, 'RECEPTION_PB_EMAIL'):
-        context['RECEPTION_PB_EMAIL'] = settings.RECEPTION_PB_EMAIL
+    if hasattr(settings, 'RECEPTION_PB'):
+        context['RECEPTION_PB'] = settings.RECEPTION_PB
     else:
-        context['RECEPTION_PB_EMAIL'] = ' [mail à renseigner dans config.py]'
+        context['RECEPTION_PB'] = ' [texte à renseigner dans config.py]'
 
     if hasattr(settings, 'FIXED_BARCODE_PREFIX'):
         fixed_barcode_prefix = settings.FIXED_BARCODE_PREFIX
@@ -117,10 +131,47 @@ def data_validation(request):
         coop_logger.error("Orders data validation : %s", str(e))
         return JsonResponse({'error': str(e)}, status=500)
 
+def save_order_group(request):
+    """ 
+        When an order group is created, save it to force group these orders later.
+        Raise an error if one of the orders is already in a group.
+    """
+
+    order_ids = json.loads(request.body.decode())
+
+    try:
+        try:
+            # Check if any of the orders attempted to be grouped is already in a group
+            with open('temp/grouped_order.json', 'r') as json_file:
+                saved_groups = json.load(json_file)
+
+                for order_id in order_ids:
+                    for group in saved_groups:
+                        if order_id in group:
+                            # Found in a group, stop
+                            msg = 'One of the orders is already in a group'
+                            return JsonResponse({'message': msg}, status=409)
+        except Exception:
+            saved_groups = []
+
+        # All good, save group
+        with open('temp/grouped_order.json', 'w+') as json_file:
+            saved_groups.append(order_ids) 
+            json.dump(saved_groups, json_file)
+
+        msg = 'Group saved'
+        return JsonResponse({'message': msg})   
+    except Exception as e:
+        print(str(e))
+        return JsonResponse({'message': str(e)}, status=500)
+
 def update_orders(request):
     """Update orders lines: quantity and unit prices"""
 
     import requests
+
+    # don't print barcode which begin with these codes
+    noprint_list = ["0493", "0492", "0499"]
 
     rep = HttpResponse("Not")
     if request.is_ajax():
@@ -130,7 +181,10 @@ def update_orders(request):
             print_labels = True
             if hasattr(settings, 'RECEPTION_SHELF_LABEL_PRINT'):
                 print_labels = settings.RECEPTION_SHELF_LABEL_PRINT
+
+            order_ids = []
             for order_id, order in data['orders'].items():
+                order_ids.append(int(order_id))
                 answer_data[order_id] = {}
                 errors = []
 
@@ -166,8 +220,8 @@ def update_orders(request):
                             except Exception as e:
                                 errors.append('error registering shortage on p'+order_line['id']+':'+str(e))
 
-                        # Print etiquette with new price if update if successful
-                        if (print_labels is True) and (update is True) and (data['update_type'] == 'br_valid') and order_line['new_shelf_price']:
+                        # Print etiquette with new price if update if successful and barcode is authorized
+                        if (print_labels is True) and (update is True) and (data['update_type'] == 'br_valid') and order_line['new_shelf_price'] and order_line['barcode'][:4] not in noprint_list:
                             try:
                                 tools_url = settings.TOOLS_SERVER + '/products/label_print/'
                                 tools_url += str(order_line['product_tmpl_id']) + '/'
@@ -181,10 +235,29 @@ def update_orders(request):
 
                 answer_data[order_id]['order_data'] = order
                 answer_data[order_id]['errors'] = errors
+
                 if len(errors) == 0:
                     m.update_order_status(order_id, data['update_type'])
                     if data['update_type'] == 'br_valid':
                         answer_data[order_id]['finalyze_result'] = m.register_purchase_order_to_finalyze()
+
+                        # Remove order's group
+                        try:
+                            if os.path.exists('temp/grouped_order.json'):
+                                with open('temp/grouped_order.json', 'r') as json_file:
+                                    saved_groups = json.load(json_file)
+
+                                for oi in order_ids:
+                                    for i, group in enumerate(saved_groups):
+                                        if oi in group:
+                                            saved_groups.pop(i)
+                                            break
+
+                                with open('temp/grouped_order.json', 'w') as json_file:
+                                    json.dump(saved_groups, json_file)
+                        except Exception as e:
+                            # no saved groups
+                            print(str(e))
 
             rep = JsonResponse(answer_data, safe=False)
     return rep
@@ -228,6 +301,7 @@ def save_error_report(request):
                         orders_partner = orders_partner + ', '
                     orders_partner = orders_partner + order['partner'] + ' du ' + order['date_order']
 
+
             # If group of orders
             if len(data['orders']) > 1 :
                 temp_group_file_name = "temp/" + orders_name + "_rapport-reception_temp.xlsx"
@@ -244,6 +318,7 @@ def save_error_report(request):
                 }
 
                 data['orders'].append(group_order)
+
 
             # Save qties & comments after step 1
             if data['update_type'] == 'qty_valid':
@@ -264,33 +339,32 @@ def save_error_report(request):
                     # If in group add group name
                     if len(data['orders']) > 1 :
                         ws.append( ['group', orders_name] )
-
                     try:
-                        for product in order['updated_products']:
-                            # Don't store products with same qties
-                            if product['old_qty'] != product['product_qty']:
-                                if 'supplier_code' in product:
-                                    supplier_code = str(product['supplier_code'])
-                                else:
-                                    supplier_code = 'X'
+                        if 'updated_products' in order:
+                            for product in order['updated_products']:
+                                # Don't store products with same qties
+                                if product['old_qty'] != product['product_qty']:
+                                    if 'supplier_code' in product:
+                                        supplier_code = str(product['supplier_code'])
+                                    else:
+                                        supplier_code = 'X'
 
-                                if 'supplier_shortage' in product:
-                                    supplier_shortage = '/!\ Rupture fournisseur'
-                                else:
-                                    supplier_shortage = ''
+                                    if 'supplier_shortage' in product:
+                                        supplier_shortage = '/!\ Rupture fournisseur'
+                                    else:
+                                        supplier_shortage = ''
 
-                                ws.append( ['produit',
-                                            product['product_id'][1],
-                                            supplier_code,
-                                            str(product['barcode']),
-                                            product['old_qty'],
-                                            product['product_qty'],
-                                            product['price_unit'],
-                                            supplier_shortage] )
-                    except:
-                        # no updated products, do nothing
-                        pass
-
+                                    ws.append( ['produit',
+                                                product['product_id'][1],
+                                                supplier_code,
+                                                str(product['barcode']),
+                                                product['old_qty'],
+                                                product['product_qty'],
+                                                product['price_unit'],
+                                                supplier_shortage] )
+                    except Exception as exp:
+                        print("Error while updating products")
+                        print(exp)
                     if ('user_comments' in data) and data['user_comments'] != "":
                         ws.append( ['commentaire', data['user_comments']] )
                     else:
@@ -298,6 +372,8 @@ def save_error_report(request):
 
                     # Save file
                     wb.save(filename=order['temp_file_name'])
+
+
 
             # Create report with data from steps 1 & 2
             else:
@@ -333,7 +409,6 @@ def save_error_report(request):
                         os.remove(order['temp_file_name'])
                     except:
                         data_comment_s1 = "Rapport de la première étape absent !"
-
                     # Add data from step 2
                     data_full = []
                     error_total = 0
@@ -345,54 +420,55 @@ def save_error_report(request):
 
                     # Concatenate products info from each step
                     try:
-                        for product in order['updated_products']:
-                            if 'supplier_code' in product:
-                                supplier_code = str(product['supplier_code'])
-                            else:
-                                supplier_code = 'X'
+                        if "updated_products" in order:
+                            for product in order['updated_products']:
+                                if 'supplier_code' in product:
+                                    supplier_code = str(product['supplier_code'])
+                                else:
+                                    supplier_code = 'X'
 
-                            if 'supplier_shortage' in product:
-                                supplier_shortage = '/!\ Rupture fournisseur'
-                            else:
-                                supplier_shortage = ''
+                                if 'supplier_shortage' in product:
+                                    supplier_shortage = '/!\ Rupture fournisseur'
+                                else:
+                                    supplier_shortage = ''
 
-                            item = {
-                                'product_id': product['product_id'][1],
-                                'product_supplier_code': supplier_code,
-                                'product_barcode': product['barcode'],
-                                'old_price_unit': float(product['old_price_unit']),
-                                'price_unit': float(product['price_unit']),
-                                'supplier_shortage': supplier_shortage
-                            }
+                                item = {
+                                    'product_id': product['product_id'][1],
+                                    'product_supplier_code': supplier_code,
+                                    'product_barcode': product['barcode'],
+                                    'old_price_unit': float(product['old_price_unit']),
+                                    'price_unit': float(product['price_unit']),
+                                    'supplier_shortage': supplier_shortage
+                                }
 
-                            # If the product was also modified in step 1
-                            if item['product_id'] in data_qties:
-                                item['old_qty'] = float(data_qties[item['product_id']]['old_qty'])
-                                item['product_qty'] = float(data_qties[item['product_id']]['product_qty'])
-                                item['expected_amount'] = item['old_qty']*item['old_price_unit']
-                                item['error_line'] = (item['old_qty'] - item['product_qty'])*item['price_unit']
+                                # If the product was also modified in step 1
+                                if item['product_id'] in data_qties:
+                                    item['old_qty'] = float(data_qties[item['product_id']]['old_qty'])
+                                    item['product_qty'] = float(data_qties[item['product_id']]['product_qty'])
+                                    item['expected_amount'] = item['old_qty']*item['old_price_unit']
+                                    item['error_line'] = (item['old_qty'] - item['product_qty'])*item['price_unit']
 
-                                # If product was set on supplier shortage in step 1 and not in step 2
-                                if item['supplier_shortage'] == '' and data_qties[item['product_id']]['supplier_shortage'] != '':
-                                    item['supplier_shortage'] = data_qties[item['product_id']]['supplier_shortage']
+                                    # If product was set on supplier shortage in step 1 and not in step 2
+                                    if item['supplier_shortage'] == '' and data_qties[item['product_id']]['supplier_shortage'] != '':
+                                        item['supplier_shortage'] = data_qties[item['product_id']]['supplier_shortage']
 
-                                data_qties.pop(item['product_id'])
-                            else:
-                                item['old_qty'] = float(product['product_qty'])
-                                item['product_qty'] = item['old_qty']
-                                item['expected_amount'] = item['old_qty']*item['old_price_unit']
-                                item['error_line'] = 0
-                                if (item['price_unit'] != item['old_price_unit']):
-                                    item['error_line'] = (item['price_unit'] - item['old_price_unit']) * item['product_qty']
+                                    data_qties.pop(item['product_id'])
+                                else:
+                                    item['old_qty'] = float(product['product_qty'])
+                                    item['product_qty'] = item['old_qty']
+                                    item['expected_amount'] = item['old_qty']*item['old_price_unit']
+                                    item['error_line'] = 0
+                                    if (item['price_unit'] != item['old_price_unit']):
+                                        item['error_line'] = (item['price_unit'] - item['old_price_unit']) * item['product_qty']
 
-                            error_total += item['error_line']
-                            error_total_abs += abs(item['error_line'])
+                                error_total += item['error_line']
+                                error_total_abs += abs(item['error_line'])
 
-                            data_full.append(item)
-                    except:
+                                data_full.append(item)
+                    except Exception as exp:
                         # no updated products, do nothing
-                        pass
-
+                        print("Error while updating products")
+                        print(exp)
                     # Add remaining products, the ones edited only in step 1
                     for product in data_qties.values():
                         item = {
@@ -422,7 +498,6 @@ def save_error_report(request):
                     wb = Workbook()
                     ws = wb.active
                     ws.title = "Commande " + order['name']
-
                     # Group
                     if 'group_ids' in order :
                         ws.append( ['Rapport de réception d\'un groupe de commandes'] )
@@ -464,7 +539,6 @@ def save_error_report(request):
                                         round(product['expected_amount'], 2),
                                         round(product['error_line'], 2),
                                         product['supplier_shortage']] )
-
                     ws.append( [] )
                     ws.append( ['Montant total de l\'erreur :', '', '', '', '', '', '', '', round(error_total, 2)] )
                     ws.append( ['Montant total en valeur absolue :', '', '', '', '', '', '', '', round(error_total_abs, 2)] )
@@ -499,7 +573,6 @@ def save_error_report(request):
                     top_left_cell.alignment = Alignment(vertical="top")
                     top_left_cell = ws['B'+str(merge_begin)]
                     top_left_cell.alignment = Alignment(vertical="top")
-
                     # "Auto fit" columns width to content
                     for column_cells in ws.columns:
                         length = max(len(as_text(cell.value)) for cell in column_cells)
@@ -508,23 +581,23 @@ def save_error_report(request):
                             length = 20
 
                         ws.column_dimensions[column_cells[3].column_letter].width = length
-
                     # Save file
                     fileName = "temp/" + order['name'] + "_rapport-reception.xlsx"
-                    wb.save(filename=fileName)
-
+                    try:
+                        wb.save(filename=fileName)
+                    except Exception as exp:
+                        print("Error while saving file %s"%fileName)
+                        print(str(exp))
                     #Attach file to order
                     if 'group_ids' in order :     # group report
                         # Attach group report to each order
                         for group_item_id in order['group_ids'] :
                             m = CagetteReception(group_item_id)
                             m.attach_file(fileName, False)
-
                         os.remove(fileName)
                     else:
                         m = CagetteReception(order['id'])
                         m.attach_file(fileName)
-
     return JsonResponse("ok", safe=False)
 
 def reception_FAQ(request):

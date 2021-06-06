@@ -15,7 +15,7 @@ $(document).ready(function() {
 
             {data:"name", "title":"Article", "width": "50%"},
             {data:"maxdate",
-                "render":function (data, type, row) {
+                "render":function (data) {
                     my = new Date(data);
 
                     return my.toLocaleDateString() +" " + my.toLocaleTimeString();
@@ -23,7 +23,7 @@ $(document).ready(function() {
                 "title":"Date", "width":"15%"},
 
             {data:"maxdate",
-                "render":function (data, type, row) {
+                "render":function (data) {
                     my = new Date(data);
                     var today = new Date();
 
@@ -37,7 +37,7 @@ $(document).ready(function() {
 
             {data:"purchase_ok", "width":"5%",
                 "title":"Achetable", "className":"dt-body-center",
-                "render": function (data, type, full, meta) {
+                "render": function (data) {
 
                     if (data == true) {
                         return '<div><input type="checkbox"  id="bt_dontPurchase" checked><div>';
@@ -48,14 +48,14 @@ $(document).ready(function() {
             },
             {data:"reception_status", "width":"5%",
                 "title":"Rupture", "className":"dt-body-center",
-                "render": function (data, type, full, meta) {
+                "render": function () {
                     return "<div><button id='bt_change' href='#'>Stock à 0</button></div>";
 
                 }
             },
             {data:"reception_status", "width":"5%",
                 "title":"Archive", "className":"dt-body-center",
-                "render": function (data, type, full, meta) {
+                "render": function () {
                     return "<div><button id='bt_archive' href='#'>Archive</button></div>";
                 }
             }
@@ -103,7 +103,7 @@ $(document).on('click', '#dp_Search', function() {
     search_table_article();
 });
 
-var csrftoken;
+var csrftoken ='';
 
 $(document).ready(function() {
     csrftoken = getCookie('csrftoken');
@@ -137,7 +137,7 @@ function actionButton (vUrl, jIdArcticle, followPage) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(jIdArcticle),
-        success: function(data) {
+        success: function() {
             document.location.href = followPage;
         },
         error: function(resultat, statut, erreur) {
@@ -147,7 +147,7 @@ function actionButton (vUrl, jIdArcticle, followPage) {
     });
 }
 
-var selArctileData;
+var selArctileData = null;
 
 // Fenetre de validation sur l'article
 

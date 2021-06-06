@@ -79,3 +79,4 @@ LOGGING = {
 }
 """
 coop_logger = logging.getLogger("coop.framework")
+

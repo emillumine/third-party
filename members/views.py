@@ -23,7 +23,8 @@ def index(request):
         'WELCOME_ENTRANCE_MSG': getattr(settings, 'WELCOME_ENTRANCE_MSG', 'Bienvenue !'),
         'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', ''),
         'ENTRANCE_SHOPPING_BTN': getattr(settings, 'ENTRANCE_SHOPPING_BTN', 'Je viens faire mes courses'),
-        'ENTRANCE_SERVICE_BTN': getattr(settings, 'ENTRANCE_SERVICE_BTN', 'Je viens faire mon service')
+        'ENTRANCE_SERVICE_BTN': getattr(settings, 'ENTRANCE_SERVICE_BTN', 'Je viens faire mon service'),
+        'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e')
     }
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
 
@@ -102,6 +103,7 @@ def prepa_odoo(request):
                'office_place_string': settings.OFFICE_NAME,
                'max_begin_hour': settings.MAX_BEGIN_HOUR,
                'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
+               'input_phone_pattern': getattr(settings, 'INPUT_PHONE_PATTERN', default_input_phone_pattern),
                'input_barcode': getattr(settings, 'SUBSCRIPTION_INPUT_BARCODE', False),
                'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
@@ -135,6 +137,7 @@ def validation_inscription(request, email):
                    'office_place_string': settings.OFFICE_NAME,
                    'max_begin_hour': settings.MAX_BEGIN_HOUR,
                    'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
+                   'input_phone_pattern': getattr(settings, 'INPUT_PHONE_PATTERN', default_input_phone_pattern),
                    'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                    'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                    'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),

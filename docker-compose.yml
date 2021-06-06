@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    env_file: .env
+    restart: always
+    ports:
+      - "8080:8080"
+    links:
+      - "couchdb:couchdb"
+      - "odoo:odoo"
+    volumes:
+      - "./:/home/app/"
+
+  couchdb:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.couchdb
+    env_file: .env
+    restart: always
+    ports:
+      - "5984:5984" # Expose port because it's used by the frontend
+    volumes:
+      - "couchdb-data:/opt/couchdb/data"
+
+  database:
+    image: "postgres:10"
+    env_file: .env
+    restart: always
+    volumes:
+      - "odoo-pg-data:/var/lib/postgresql/data"
+  odoo:
+    image: "registry.gitlab.com/lgds/foodcoops:9.0-cooperatic-2021-04-02"
+    env_file: .env
+    restart: always
+    ports:
+      - "8069:8069"
+    links:
+      - "database:database"
+    volumes:
+      - "odoo-shared-data:/home/app/.local/share/Odoo"
+
+volumes:
+  odoo-shared-data:
+  odoo-pg-data:
+  couchdb-data:

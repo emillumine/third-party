@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static "css/sales.css" %}?v=">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/jszip.min.js' %}"></script>  
+{% endblock %}
+
+{% block content %}
+
+<div class="page_body">
+  <div id="content_main" class="page_content">
+    <div class="header txtcenter">
+      <h1>Extraction de ventes</h1>
+    </div>
+
+    <div class="select_sales_dates txtcenter">
+      <form id="sales_form" action="javascript:;">
+        <div class="sales_date">
+          <label for="from">Entre :</label>
+          <input type="text" name="from" id="from" class="select_sales_date_input" required>
+        </div>
+        <div class="sales_date">
+          <label for="to">et :</label>
+          <input type="text" name="to" id="to" class="select_sales_date_input" required>
+        </div>
+        <button type="submit" class="btn--primary" id="dates_selection_button" disabled>C'est parti !</button>
+      </form>
+    </div>
+
+    <div class="main" style="display:none;">
+      <div class="table_area">
+          <table id="orders_table" class="display" cellspacing="0" width="100%"></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="templates" style="display:none;">
+
+  </div>
+</div>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/sales.js" %}?v="></script>
+{% endblock %}

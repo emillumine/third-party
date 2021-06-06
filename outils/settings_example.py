@@ -14,7 +14,6 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 from .settings_secret import *
-from .texts.cagette import *
 from .config import *
 from .customized_errors_filter import *
 
@@ -53,6 +52,7 @@ INSTALLED_APPS = (
     'orders',
     'shop',
     'shelfs',
+    'sales',
     #  'tests'
 
 )
@@ -222,3 +222,5 @@ LOGGING = {
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True # Needed to make dev test with different IP and ports
+
+ADMIN_IDS = [1]

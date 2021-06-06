@@ -77,7 +77,10 @@ class OdooAPI:
 class CouchDB:
     """Class to handle interactions with CouchDB"""
 
-    url = settings.COUCHDB['url']
+    if 'private_url' in settings.COUCHDB:
+        url = settings.COUCHDB['private_url']
+    else:
+        url = settings.COUCHDB['url']
     dbs = settings.COUCHDB['dbs']
     db = None
     dbc = None

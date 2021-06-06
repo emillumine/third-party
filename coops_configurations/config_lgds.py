@@ -91,4 +91,4 @@ BRINKS_MUST_IDENTIFY = True
 ENTRANCE_FTOP_BUTTON_DISPLAY = False
 
 CUSTOM_CSS_FILES = {'all': ['common_lgds.css'],
-                    'members': ['inscription_lgds.css']}
+                    'members': ['inscription_lgds.css','member_lgds.css']}
