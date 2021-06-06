@@ -1,0 +1,1 @@
+do_shelf_inventory received data are beeing stored in this directory, to help for data recovery and analysis
