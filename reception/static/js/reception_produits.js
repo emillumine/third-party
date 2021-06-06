@@ -1336,6 +1336,15 @@ function openFAQ() {
 function openErrorReport() {
     openModal($('#templates #modal_error_report').html(), saveErrorReport, 'Confirmer');
 
+    // listener for error report textarea
+    // this is necessary because default behavior is overwritten by the listener defined in jquery.pos.js;
+    $("#error_report").keypress(function(e) {
+        var key = e.keyCode;
+        if (key === 13) {
+            this.value += "\n";
+        }
+    });
+
     var textarea = document.getElementById("error_report");
 
     textarea.value = (user_comments != undefined) ? user_comments : "";
@@ -1481,7 +1490,7 @@ $(document).ready(function() {
             reception_status = orders[Object.keys(orders)[0]].reception_status;
 
             // Load user comments from local storage, get it from first order
-            user_comments = orders[Object.keys(orders)[0]].user_comments;
+            user_comments = orders[Object.keys(orders)[0]].user_comments || "";
         }
 
         // Fetch orders data

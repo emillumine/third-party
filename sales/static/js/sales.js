@@ -32,14 +32,13 @@ function display_orders(orders) {
     if (orders_table) {
         orders_table.destroy();
     }
-    console.log(orders);
 
     orders_table = $('#orders_table').DataTable({
         data: orders,
         columns:[
             {
                 data:"create_date",
-                title:"Date",
+                title:"Date de vente",
                 width: "10%"
             },
             {
@@ -61,7 +60,6 @@ function display_orders(orders) {
             {
                 data:"payments",
                 title:"Paiements",
-                className:"dt-body-center",
                 orderable: false,
                 render: function (data) {
                     let res = '<ul>';
@@ -79,8 +77,15 @@ function display_orders(orders) {
                 "asc"
             ]
         ],
-        dom: 'rtip',
-        iDisplayLength: 25,
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: 'Export en Excel',
+                className: 'btn--primary btn_export_movements'
+            }
+        ],
+        dom: '<lr<t>ip><"clear"><B>',
+        iDisplayLength: 100,
         language: {url : '/static/js/datatables/french.json'}
     });
 
@@ -188,8 +193,4 @@ $(document).ready(function() {
         event.preventDefault();
         get_sales();
     });
-
-    // $('#dates_selection_button').click(function() {
-    //     get_sales();
-    // });
 });

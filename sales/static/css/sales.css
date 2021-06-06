@@ -20,4 +20,7 @@
 .select_sales_date_input {
     border-radius:5px;
 }
-  
+
+.btn_export_movements {
+    margin-top: 10px;
+}

@@ -27,32 +27,35 @@ class CagetteSales(models.Model):
         # Get payment lines
         cond = [['statement_id', 'in', statements]]
         fields = ["partner_id", "amount", "journal_id", "create_date", "date"]
-        payments = self.o_api.search_read('account.bank.statement.line', cond, fields, order="create_date ASC")
+        payments = self.o_api.search_read('account.bank.statement.line', cond, fields, order="create_date ASC", limit=50000)
 
         item = None
         try:
             for payment in payments:
-                if item is not None and item["partner_id"][0] == payment["partner_id"][0] and item["date"] == payment["date"]:
-                    res[len(res)-1]["total_amount"] += round(float(payment["amount"]), 2)
-                    res[len(res)-1]["payments"].append({
-                        "amount": round(float(payment["amount"]), 2),
-                        "journal_id": payment["journal_id"]
-                    })
-                else:
-                    item = {
-                        "partner_id": payment["partner_id"],
-                        "create_date": payment["create_date"],
-                        "date": payment["date"],
-                        "total_amount": round(float(payment["amount"]), 2),
-                        "payments": [
-                            {
-                                "amount": round(float(payment["amount"]), 2),
-                                "journal_id": payment["journal_id"]
-                            }
-                        ]
-                    }
+                # POS session can contain payments from another day (closing session on next morning, ...)
+                if payment["date"] >= date_from and payment["date"] <= date_to:
+                    # If the consecutive payment in the results is from the same partner on the same day, we consider it's the same basket
+                    if item is not None and item["partner_id"][0] == payment["partner_id"][0] and item["date"] == payment["date"]:
+                        res[len(res)-1]["total_amount"] += round(float(payment["amount"]), 2)
+                        res[len(res)-1]["payments"].append({
+                            "amount": round(float(payment["amount"]), 2),
+                            "journal_id": payment["journal_id"]
+                        })
+                    else:
+                        item = {
+                            "partner_id": payment["partner_id"],
+                            "create_date": payment["create_date"],
+                            "date": payment["date"],
+                            "total_amount": round(float(payment["amount"]), 2),
+                            "payments": [
+                                {
+                                    "amount": round(float(payment["amount"]), 2),
+                                    "journal_id": payment["journal_id"]
+                                }   
+                            ]
+                        }
 
-                    res.append(item)
+                        res.append(item)
         except Exception as e:
             pass
 
