@@ -300,7 +300,7 @@ function prepare_datatable_columns() {
         {
             data: "default_code",
             title: "Référence Produit",
-            width: "10%",
+            width: "8%",
             render: function (data) {
                 return (data === false) ? "" : data;
             }
@@ -312,12 +312,12 @@ function prepare_datatable_columns() {
         {
             data: "qty_available",
             title: "Stock",
-            width: "5%"
+            width: "4%"
         },
         {
             data: "incoming_qty",
             title: "Quantité entrante",
-            width: "5%"
+            width: "4%"
         }
     ];
 
@@ -344,7 +344,7 @@ function prepare_datatable_columns() {
     columns.push({
         data: "uom",
         title: "UDM",
-        width: "5%"
+        width: "4%"
     });
 
     return columns;
@@ -381,6 +381,7 @@ function display_products() {
         stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
         iDisplayLength: 100,
+        scrollX: true,
         language: {url : '/static/js/datatables/french.json'},
         createdRow: function(row) {
             for (const cell_node of row.cells) {
