@@ -291,7 +291,6 @@ function initLists() {
             dom: 'lrtip', // Remove the search input from that table
             language: {url : '/static/js/datatables/french.json'}
         });
-
         // Init table for processed content
         table_processed = $('#table_processed').DataTable({
             data: list_processed,
@@ -327,8 +326,13 @@ function initLists() {
                 {
                     data:"product_qty",
                     title:"Qté",
-                    className:"dt-body-center",
-                    visible: (reception_status == "False")
+                    className:"dt-head-center dt-body-center",
+                    visible: (reception_status == "False"),
+                    render: function (data, type, full) {
+                        let disp = [full.product_qty, (full.old_qty !== undefined)?full.old_qty:full.product_qty].join("/");
+                        return  disp;
+                    },
+                    orderable: false
                 },
                 {
                     data:"price_unit",
