@@ -275,7 +275,8 @@ function initLists() {
                     title:"Autres",
                     defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
                     className:"dt-body-center",
-                    orderable: false
+                    orderable: false,
+                    visible: display_autres
                 }
             ],
             rowId : "product_id.0",
@@ -346,6 +347,7 @@ function initLists() {
                     title:"Autres",
                     className:"dt-body-center",
                     orderable: false,
+                    visible: display_autres,
                     render: function (data, type, full) {
                         let disabled = (full.supplier_shortage) ? "disabled" : '';
 
