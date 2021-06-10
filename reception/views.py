@@ -28,7 +28,7 @@ def home(request):
     """Page de selection de la commande suivant un fournisseurs"""
 
     # Get grouped orders stored on the server
-    try:        
+    try:
         with open('temp/grouped_order.json', 'r') as json_file:
             saved_groups = json.load(json_file)
     except Exception:
@@ -132,7 +132,7 @@ def data_validation(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 def save_order_group(request):
-    """ 
+    """
         When an order group is created, save it to force group these orders later.
         Raise an error if one of the orders is already in a group.
     """
@@ -156,11 +156,11 @@ def save_order_group(request):
 
         # All good, save group
         with open('temp/grouped_order.json', 'w+') as json_file:
-            saved_groups.append(order_ids) 
+            saved_groups.append(order_ids)
             json.dump(saved_groups, json_file)
 
         msg = 'Group saved'
-        return JsonResponse({'message': msg})   
+        return JsonResponse({'message': msg})
     except Exception as e:
         print(str(e))
         return JsonResponse({'message': str(e)}, status=500)
@@ -177,6 +177,16 @@ def update_orders(request):
     if request.is_ajax():
         if request.method == 'PUT':
             data = json.loads(request.body.decode())
+            if getattr(settings, 'RECEPTION_DATA_BACKUP', True) is True:
+                try:
+                    file_name = ''
+                    for order_id, order in data['orders'].items():
+                        file_name += str(order_id) + '_'
+                    file_name += data['update_type'] + '_' + str(round(time.time() * 1000)) + '.json'
+                    with open('data/receptions_backup/' + file_name, 'w') as data_file:
+                        json.dump(data, data_file)
+                except Exception as ef:
+                    coop_logger.error("Enable to save data : %s (data = %s)",str(ef), str(data))
             answer_data = {}
             print_labels = True
             if hasattr(settings, 'RECEPTION_SHELF_LABEL_PRINT'):
@@ -232,6 +242,8 @@ def update_orders(request):
 
                 except KeyError:
                     coop_logger.info("No line to update.")
+                except Exception as e:
+                    coop_logger.error("update_orders : %s", str(e))
 
                 answer_data[order_id]['order_data'] = order
                 answer_data[order_id]['errors'] = errors
@@ -258,7 +270,8 @@ def update_orders(request):
                         except Exception as e:
                             # no saved groups
                             print(str(e))
-
+                else:
+                    coop_logger.error("update_orders errors : %s", str(errors))
             rep = JsonResponse(answer_data, safe=False)
     return rep
 
