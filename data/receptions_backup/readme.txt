@@ -1,0 +1,1 @@
+Received reception data are stored in this directory (could be desactivated if RECEPTION_DATA_BACKUP is set to False in config.py)
