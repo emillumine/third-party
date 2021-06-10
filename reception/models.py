@@ -34,11 +34,11 @@ class CagetteReception(models.Model):
                 f=["id","name","date_order", "partner_id", "date_planned", "amount_untaxed", "amount_total", "x_reception_status"]
 
                 # Only get orders that need to be treated in Reception
-                c=[['id', 'in', pids], ["x_reception_status", "in", [False, 'qty_valid', 'valid_pending', 'br_valid', 'error_pack_op', 'uprice_valid']]]
+                c = [['id', 'in', pids], ["x_reception_status", "in", [False, 'qty_valid', 'valid_pending', 'error_pack_op', 'uprice_valid']]]
 
                 orders = api.search_read('purchase.order', c, f)
         except Exception as e:
-            print (str(e))
+            print(str(e))
         return orders
 
     def get_order_unprocessable_products(id_po):
@@ -63,7 +63,7 @@ class CagetteReception(models.Model):
         """Update purchase.order.line with qty data and/or price"""
         result = None
         try:
-            f={}
+            f = {}
 
             if updateType == "qty_valid" or updateType == "br_valid":
                 f['package_qty'] = pakageQty
@@ -76,7 +76,8 @@ class CagetteReception(models.Model):
 
             res = self.o_api.update('purchase.order.line', idOnLine, f)
             result = True
-        except:
+        except Exception as e:
+            coop_logger.error("update_line : %s (fields values = %s, line_id = %s)",str(e), str(f), str(idOnLine))
             result = False
         return result
 
