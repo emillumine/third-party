@@ -23,8 +23,7 @@ function reset_data() {
     order_doc = {
         _id: null,
         products: [],
-        selected_suppliers: [],
-        selected_rows: []
+        selected_suppliers: []
     };
 }
 
@@ -669,7 +668,6 @@ function update_order_selection_screen() {
                 order_doc = doc;
                 products = order_doc.products;
                 selected_suppliers = order_doc.selected_suppliers;
-                selected_rows = order_doc.selected_rows;
 
                 update_main_screen();
                 switch_screen();
@@ -746,7 +744,6 @@ function create_order() {
 function update_order() {
     order_doc.products = products;
     order_doc.selected_suppliers = selected_suppliers;
-    order_doc.selected_rows = selected_rows;
 
     dbc.put(order_doc, function callback(err, result) {
         if (!err && result !== undefined) {
