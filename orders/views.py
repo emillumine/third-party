@@ -16,6 +16,8 @@ def index(request):
 def helper(request):
     context = {
         'title': 'Aide à la commande',
+        'couchdb_server': settings.COUCHDB['url'],
+        'db': settings.COUCHDB['dbs']['orders']
     }
 
     template = loader.get_template('orders/helper.html')

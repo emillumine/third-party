@@ -2,7 +2,33 @@ var suppliers_list = [],
     products_table = null,
     products = [],
     selected_suppliers = [],
-    selected_rows = [];
+    selected_rows = [],
+    dbc = null,
+    sync = null,
+    order_doc = {
+        _id: null,
+        products: [],
+        selected_suppliers: [],
+        selected_rows: []
+    };
+
+
+/**
+ * Reset data that changes between screens
+ */
+function reset_data() {
+    products = [],
+    selected_suppliers = [],
+    selected_rows = [],
+    order_doc = {
+        _id: null,
+        products: [],
+        selected_suppliers: [],
+        selected_rows: []
+    };
+}
+
+/* - SUPPLIERS */
 
 /**
  * Add a supplier to the selected suppliers list.
@@ -47,8 +73,9 @@ function add_supplier() {
         contentType: "application/json; charset=utf-8",
         success: function(data) {
             save_supplier_products(supplier, data.res.products);
-            update_display();
+            update_main_screen();
             $("#supplier_input").val("");
+            update_order();
             closeModal();
         },
         error: function(data) {
@@ -83,7 +110,8 @@ function remove_supplier(supplier_id) {
     // Remove products only associated to this product
     products = products.filter(product => product.suppliers.length > 0);
 
-    update_display();
+    update_main_screen();
+    update_order();
 }
 
 
@@ -192,6 +220,84 @@ function is_product_related_to_supplier(product, supplier) {
     return product.suppliers.find(s => s.id === supplier.id) !== undefined;
 }
 
+/* - INVENTORY */
+
+/**
+ * Create an inventory with the selected lines in the table
+ */
+function generate_inventory() {
+    if (products_table !== null) {
+        const selected_data = products_table.rows('.selected').data();
+
+        if (selected_data.length == 0) {
+            alert("Veuillez sélectionner les produits à inventorier en cochant les cases sur la gauche du tableau.");
+        } else {
+            data = {
+                lines: [],
+                partners_id: [],
+                type: 'product_templates'
+            };
+
+            for (var i = 0; i < selected_data.length; i++) {
+                const product = products.find(p => p.id == selected_data[i].id);
+
+                data.lines.push(product.id);
+                for (const supplier of product.suppliers) {
+                    if (data.partners_id.indexOf(supplier.id) === -1) {
+                        data.partners_id.push(supplier.id);
+                    }
+                }
+            }
+
+            let modal_create_inventory = $('#templates #modal_create_inventory');
+
+            modal_create_inventory.find(".inventory_products_count").text(data.lines.length);
+
+            openModal(
+                modal_create_inventory.html(),
+                () => {
+                    $.ajax({
+                        type: "POST",
+                        url: "/inventory/generate_inventory_list",
+                        dataType: "json",
+                        traditional: true,
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify(data),
+                        success: () => {
+                            unselect_all_rows();
+
+                            // Give time for modal to fade
+                            setTimeout(function() {
+                                $.notify(
+                                    "Inventaire créé !",
+                                    {
+                                        globalPosition:"top left",
+                                        className: "success"
+                                    }
+                                );
+                            }, 500);
+                        },
+                        error: function(data) {
+                            let msg = "erreur serveur lors de la création de l'inventaire".
+                                err = {msg: msg, ctx: 'generate_inventory'};
+
+                            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                                err.msg += ' : ' + data.responseJSON.error;
+                            }
+                            report_JS_error(err, 'orders');
+
+                            alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
+                        }
+                    });
+                },
+                'Valider'
+            );
+        }
+    }
+}
+
+/* - DISPLAY */
+
 /**
  * Create a string to represent a supplier column in product data
  * @returns String
@@ -207,9 +313,10 @@ function display_suppliers() {
     let supplier_container = $("#suppliers_container");
 
     $("#suppliers_container").empty();
+    $(".remove_supplier_icon").off();
 
     for (supplier of selected_suppliers) {
-        let template = $("#templates #supplier_pill");
+        let template = $("#templates #supplier_pill_template");
 
         template.find(".pill_supplier_name").text(supplier.display_name);
         template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`);
@@ -235,8 +342,6 @@ function display_suppliers() {
         );
     });
 }
-
-/* DATATABLE */
 
 /**
  * @param {array} product_ids if set, return formatted data for these products only
@@ -354,13 +459,13 @@ function prepare_datatable_columns() {
  * Display the Datatable containing the products
  */
 function display_products() {
-    // Empty datatable if already exists
     if (products.length == 0) {
         $('.main').hide();
 
         return -1;
     }
 
+    // Empty datatable if it already exists
     if (products_table) {
         products_table.clear().destroy();
         $('#products_table').empty();
@@ -417,6 +522,7 @@ function display_products() {
             const supplier_id = id_split[3];
 
             save_product_supplier_qty(prod_id, supplier_id, val);
+            update_order();
         }
     });
 
@@ -504,13 +610,15 @@ function unselect_all_rows() {
 }
 
 /**
- * Update DOM display
+ * Update DOM display on main screen
  */
-function update_display() {
+function update_main_screen() {
     // Remove listener before recreating them
+    $('#products_table').off('input', 'tbody td .product_qty_input');
     $('#products_table').off('click', 'tbody .product_not_from_supplier');
     $('#products_table').off('click', 'thead th #select_all_products_cb');
     $('#products_table').off('click', 'tbody td .select_product_cb');
+    $(".remove_supplier_icon").off();
 
     display_suppliers();
     display_products();
@@ -531,81 +639,171 @@ function update_display() {
     }
 }
 
-function generate_inventory() {
-    if (products_table !== null) {
-        const selected_data = products_table.rows('.selected').data();
+/**
+ * Update DOM display on the order selection screen
+ */
+function update_order_selection_screen() {
+    // Remove listener before recreating them
+    $(".order_pill").off();
 
-        if (selected_data.length == 0) {
-            alert("Veuillez sélectionner les produits à inventorier en cochant les cases sur la gauche du tableau.");
-        } else {
-            data = {
-                lines: [],
-                partners_id: [],
-                type: 'product_templates'
-            };
+    let existing_orders_container = $("#existing_orders");
 
-            for (var i = 0; i < selected_data.length; i++) {
-                const product = products.find(p => p.id == selected_data[i].id);
+    existing_orders_container.empty();
 
-                data.lines.push(product.id);
-                for (const supplier of product.suppliers) {
-                    if (data.partners_id.indexOf(supplier.id) === -1) {
-                        data.partners_id.push(supplier.id);
-                    }
-                }
-            }
+    dbc.allDocs({
+        include_docs: true
+    }).then(function (result) {
+        for (let row of result.rows) {
+            let template = $("#templates #order_pill_template");
 
-            let modal_create_inventory = $('#templates #modal_create_inventory');
+            template.find(".pill_order_name").text(row.id);
 
-            modal_create_inventory.find(".inventory_products_count").text(data.lines.length);
-
-            openModal(
-                modal_create_inventory.html(),
-                () => {
-                    $.ajax({
-                        type: "POST",
-                        url: "/inventory/generate_inventory_list",
-                        dataType: "json",
-                        traditional: true,
-                        contentType: "application/json; charset=utf-8",
-                        data: JSON.stringify(data),
-                        success: () => {
-                            unselect_all_rows();
-
-                            // Give time for modal to fade
-                            setTimeout(function() {
-                                $.notify(
-                                    "Inventaire créé !",
-                                    {
-                                        globalPosition:"top left",
-                                        className: "success"
-                                    }
-                                );
-                            }, 500);
-                        },
-                        error: function(data) {
-                            let msg = "erreur serveur lors de la création de l'inventaire".
-                                err = {msg: msg, ctx: 'generate_inventory'};
-
-                            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                                err.msg += ' : ' + data.responseJSON.error;
-                            }
-                            report_JS_error(err, 'orders');
-
-                            alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
-                        }
-                    });
-                },
-                'Valider'
-            );
+            existing_orders_container.append(template.html());
         }
-    }
+
+        $(".order_pill").on("click", function() {
+            let order_name_container = $(this).find('.pill_order_name');
+            let doc_id = $(order_name_container).text();
+
+            dbc.get(doc_id).then((doc) => {
+                order_doc = doc;
+                products = order_doc.products;
+                selected_suppliers = order_doc.selected_suppliers;
+                selected_rows = order_doc.selected_rows;
+
+                update_main_screen();
+                switch_screen();
+            })
+                .catch(function (err) {
+                    alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
+                    console.log(err);
+                });
+        });
+    })
+        .catch(function (err) {
+            alert('Erreur lors de la synchronisation des commandes. Vous pouvez créer une nouvelle commande.');
+            console.log(err);
+        });
 }
+
+/**
+ * Switch screen between order selection & main screens
+ * @param {String} direction target screen
+ */
+function switch_screen(direction = 'main_screen') {
+    let oldBox = null;
+    let newBox = null;
+    let outerWidth = null;
+
+    if (direction == 'main_screen') {
+        oldBox = $("#select_order_content");
+        newBox = $("#main_content");
+
+        outerWidth = oldBox.outerWidth(true);
+    } else {
+        oldBox = $("#main_content");
+        newBox = $("#select_order_content");
+
+        outerWidth = - oldBox.outerWidth(true);
+    }
+
+    // Display the new box and place it on the right of the screen
+    newBox.css({ "left": outerWidth + "px", "right": -outerWidth + "px", "display": "" });
+    // Make the old content slide to the left
+    oldBox.animate({ "left": -outerWidth + "px", "right": outerWidth + "px" }, 800, function() {
+        // Hide old content after animation
+        oldBox.css({ "left": "", "right": "", "display": "none" });
+    });
+    // Slide new box to regular place
+    newBox.animate({ "left": "", "right": "" }, 800);
+}
+
+/* - ORDER */
+
+/**
+ * Create an order in couchdb if the name doesn't exist
+ */
+function create_order() {
+    const order_name = $("#new_order_name").val();
+
+    order_doc._id = order_name;
+    dbc.put(order_doc, function callback(err, result) {
+        if (!err) {
+            order_doc._rev = result.rev;
+            switch_screen();
+        } else {
+            if (err.status == 409) {
+                alert("Une commande porte déjà ce nom !");
+            }
+            console.log(err);
+        }
+    });
+}
+
+/**
+ * Update an existing order in couchdb
+ */
+function update_order() {
+    order_doc.products = products;
+    order_doc.selected_suppliers = selected_suppliers;
+    order_doc.selected_rows = selected_rows;
+
+    dbc.put(order_doc, function callback(err, result) {
+        if (!err && result !== undefined) {
+            order_doc._rev = result.rev;
+        } else {
+            alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
+            console.log(err);
+        }
+    });
+}
+
 
 $(document).ready(function() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     openModal();
+
+    // Init CouchDB
+    dbc = new PouchDB(couchdb_dbname);
+    sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+        live: true,
+        retry: true,
+        auto_compaction: false
+    });
+
+    sync.on('change', function (info) {
+        console.log(info);
+        // TODO get current order new data (ou prévenir de changements ? -> pas changer les infos brutalement sans prévenir)
+        // TODO alert if current doc was deleted
+    }).on('error', function (err) {
+        console.log('erreur sync');
+        console.log(err);
+    });
+
+    // Main screen listeners
+    $("#supplier_form").on("submit", function(e) {
+        e.preventDefault();
+        add_supplier();
+    });
+
+    $("#do_inventory").on("click", function() {
+        generate_inventory();
+    });
+
+    $('#back_to_order_selection').on('click', function() {
+        reset_data();
+        update_order_selection_screen();
+        switch_screen('order_selection');
+    });
+
+    // Order selection screen
+    update_order_selection_screen();
+
+    $("#new_order_form").on("submit", function(e) {
+        e.preventDefault();
+        create_order();
+    });
 
     // Get suppliers
     $.ajax({
@@ -634,14 +832,5 @@ $(document).ready(function() {
             closeModal();
             alert('Erreur lors de la récupération des fournisseurs, rechargez la page plus tard');
         }
-    });
-
-    $("#supplier_form").on("submit", function(e) {
-        e.preventDefault();
-        add_supplier();
-    });
-
-    $("#do_inventory").on("click", function() {
-        generate_inventory();
     });
 });

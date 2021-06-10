@@ -15,70 +15,97 @@
 
 {% block content %}
 <div class="page_body">
-    <div id="actions_buttons_area">
-        <button type="button" class='btn--primary' id="do_inventory">Faire un inventaire</button>
-    </div>
-
-    <div class="header txtcenter">
-        <h1>Aide à la commande</h1>
-    </div>
-
-    <div class="txtcenter" id="form_container">
-        <form action="javascript:;" id="supplier_form">
-            <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
-            <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
+    <div id="select_order_content" class="page_content txtcenter">
+        <h2>Créer une nouvelle commande</h2>
+        <form id="new_order_form">
+            <input type="text" id="new_order_name" placeholder="Nom de la commande...">
+            <button type="submit" class="btn btn--primary">Valider</button>
         </form>
+        <h2>Ou, continuer une commande existante</h2>
+        <div id="existing_orders"></div>
     </div>
 
-    <div class="txtcenter" id="suppliers_container"></div>
-
-    <div class="main" style="display:none;">
-        <div class="table_area">
-            <table id="products_table" class="display" cellspacing="0" width="100%"></table>
+    <div id="main_content" class="page_content" style="display:none;">
+        <div id="back_to_order_selection">
+            <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
         </div>
-    </div>
-</div>
-
-<div id="templates" style="display:none;">
-    <div id="supplier_pill">
-        <div class="supplier_pill">
-            <div class="supplier_name_container">
-                <span class="pill_supplier_name"></span>
-                <i class="fas fa-times remove_supplier_icon"></i>
+        <div id="actions_buttons_area">
+            <button type="button" class='btn--primary' id="do_inventory">Faire un inventaire</button>
+        </div>
+    
+        <div class="header txtcenter">
+            <h1>Aide à la commande</h1>
+        </div>
+    
+        <div class="txtcenter" id="supplier_form_container">
+            <form action="javascript:;" id="supplier_form">
+                <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
+                <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
+            </form>
+        </div>
+    
+        <div class="txtcenter" id="suppliers_container"></div>
+    
+        <div class="main" style="display:none;">
+            <div class="table_area">
+                <table id="products_table" class="display" cellspacing="0" width="100%"></table>
             </div>
         </div>
     </div>
 
-    <div id="modal_remove_supplier">
-        <h3>Attention !</h3>
-        <p>
-            Vous vous apprêtez à supprimer le fournisseur <span class="supplier_name"></span> de la sélection.<br/>
-            Les produits associés uniquement à ce fournisseur seront supprimés du tableau.<br/>
-            Les données renseignées dans la colonne de ce fournisseur seront perdues.
-        </p>
-        <p>Êtez-vous sûr ?</p>
-        <hr/>
-    </div>
+    <div id="templates" style="display:none;">
+        <div id="supplier_pill_template">
+            <div class="supplier_pill">
+                <div class="supplier_name_container">
+                    <span class="pill_supplier_name"></span>
+                    <i class="fas fa-times remove_supplier_icon"></i>
+                </div>
+            </div>
+        </div>
 
-    <div id="modal_attach_product_to_supplier">
-        <h3>Attention !</h3>
-        <p> 
-            Vous vous apprêtez à associer le produit <span class="product_name"></span> au fournisseur <span class="supplier_name"></span>.<br/>
-            L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
-        </p>
-        <p>Êtez-vous sûr ?</p>
-        <hr/>
-    </div>
-
-    <div id="modal_create_inventory">
-        <p> 
-            Vous vous apprêtez à créer un inventaire de <span class="inventory_products_count"></span> produits.
-        </p>
-        <p>Êtez-vous sûr ?</p>
-        <hr/>
+        <div id="order_pill_template">
+            <div class="pill order_pill btn btn--primary">
+                <span class="pill_order_name"></span>
+            </div>
+        </div>
+    
+        <div id="modal_remove_supplier">
+            <h3>Attention !</h3>
+            <p>
+                Vous vous apprêtez à supprimer le fournisseur <span class="supplier_name"></span> de la sélection.<br/>
+                Les produits associés uniquement à ce fournisseur seront supprimés du tableau.<br/>
+                Les données renseignées dans la colonne de ce fournisseur seront perdues.
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
+    
+        <div id="modal_attach_product_to_supplier">
+            <h3>Attention !</h3>
+            <p> 
+                Vous vous apprêtez à associer le produit <span class="product_name"></span> au fournisseur <span class="supplier_name"></span>.<br/>
+                L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
+    
+        <div id="modal_create_inventory">
+            <p> 
+                Vous vous apprêtez à créer un inventaire de <span class="inventory_products_count"></span> produits.
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
     </div>
 </div>
 
+
+<script src="{% static "js/pouchdb.min.js" %}"></script>
+<script type="text/javascript">
+    var couchdb_dbname = '{{db}}';
+    var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+</script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script type="text/javascript" src="{% static 'js/orders_helper.js' %}?v="></script>
 {% endblock %}

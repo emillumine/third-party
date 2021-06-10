@@ -2,10 +2,65 @@
     position: relative;
 }
 
-#form_container {
+.page_content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+/* - Common */
+
+
+/* - Order selection screen */
+#new_order_form {
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+#existing_orders {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 80%;
+    margin: 0 auto;
+    padding-top: 20px;
+}
+
+.order_pill {
+    border-radius: 30px;
+    min-width: 200px;
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    margin: 0 10px 5px 0;
+}
+
+/* - Main screen */
+
+/* -- Top right action button(s) */
+#actions_buttons_area {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* -- Supplier form */
+#supplier_form_container {
     margin-top: 30px;
 }
 
+#supplier_input {
+    width: 500px;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+/* -- Table */
 #products_table_filter{
     text-align: right !important;
 }
@@ -14,10 +69,15 @@
     height: 40px;
 }
 
-#supplier_input {
-    width: 500px;
-    margin-right: 10px;
-    border-radius: 5px;
+#table_header_select_all{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#table_header_select_all input{
+    margin-left: 5px;
 }
 
 .product_qty_input {
@@ -33,21 +93,11 @@
     font-weight: bold;
 }
 
-#table_header_select_all{
-    display: flex;
-    align-content: center;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-#table_header_select_all input{
-    margin-left: 5px;
-}
-
 .select_product_cb {
     cursor: pointer;
 }
 
+/* -- Suppliers list */
 #suppliers_container {
     display: flex;
     justify-content: center;
@@ -73,10 +123,4 @@
     color: red;
     margin-left: 5px;
     cursor: pointer;
-}
-
-#actions_buttons_area {
-    position: absolute;
-    top: 0;
-    right: 0;
 }
