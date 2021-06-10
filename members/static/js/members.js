@@ -61,6 +61,7 @@ var html_elts = {
     next_shifts : $('#next_shifts')
 };
 
+var chars = []; //input chars buffer
 
 function fill_member_slide(member) {
     no_pict_msg.hide();
@@ -160,6 +161,7 @@ function canSearch() {
 }
 
 function search_member(force_search = false) {
+    chars = []; // to prevent false "as barcode-reader" input
     if (canSearch() || force_search) {
 
         html_elts.member_slide.hide();
@@ -666,8 +668,6 @@ html_elts.image_medium.on('click', function() {
 });
 
 $(document).ready(function() {
-    var chars = [];
-
     var shopping_entry_btn = $('a[data-next="shopping_entry"]');
 
     shopping_entry_btn.on('click', function() {
