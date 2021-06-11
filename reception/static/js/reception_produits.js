@@ -116,13 +116,13 @@ function select_product_from_bc(barcode) {
 
 /**
  * Update couchdb order
- * @param {int} order_id 
+ * @param {int} order_id
  */
 function update_distant_order(order_id) {
     // TODO insert fingerprint & timestamp
 
     console.log(order_id);
-    dbc.put(orders[order_id], (err, result) =>  {
+    dbc.put(orders[order_id], (err, result) => {
         if (!err && result !== undefined) {
             orders[order_id]._rev = result.rev;
         } else {
@@ -348,8 +348,13 @@ function initLists() {
                     className:"dt-head-center dt-body-center",
                     visible: (reception_status == "False"),
                     render: function (data, type, full) {
-                        let disp = [full.product_qty, (full.old_qty !== undefined)?full.old_qty:full.product_qty].join("/");
-                        return  disp;
+                        let disp = [
+                            full.product_qty,
+                            (full.old_qty !== undefined)?full.old_qty:full.product_qty
+                        ].join("/");
+
+
+                        return disp;
                     },
                     orderable: false
                 },
@@ -414,7 +419,7 @@ function initLists() {
                     orders[data.id_po]['valid_products'] = [];
                 }
                 orders[data.id_po]['valid_products'].push(data['id']);
-                update_distant_order(data.id_po)
+                update_distant_order(data.id_po);
 
                 // Reset search
                 document.getElementById('search_input').value = '';
@@ -1189,9 +1194,9 @@ function send() {
                         }
 
                         // Set order(s) name in popup DOM
-                        if (Object.keys(orders).length === 1) {  // Single order
+                        if (Object.keys(orders).length === 1) { // Single order
                             document.getElementById("order_ref").innerHTML = orders[Object.keys(orders)[0]].name;
-                        } else {  // group
+                        } else { // group
                             document.getElementById("success_order_name_container").hidden = true;
                             document.getElementById("success_orders_name_container").hidden = false;
 
@@ -1306,7 +1311,7 @@ function send() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(updates),
-            success: function(data) {},
+            success: function() {},
             error: function() {
                 closeModal();
                 alert('Erreur dans l\'envoi du rapport.');
@@ -1360,6 +1365,7 @@ function openErrorReport() {
     // this is necessary because default behavior is overwritten by the listener defined in jquery.pos.js;
     $("#error_report").keypress(function(e) {
         var key = e.keyCode;
+
         if (key === 13) {
             this.value += "\n";
         }
@@ -1378,7 +1384,7 @@ function saveErrorReport() {
     // Save comments in all orders
     for (order_id of Object.keys(orders)) {
         orders[order_id].user_comments = user_comments;
-        update_distant_order(order_id)
+        update_distant_order(order_id);
     }
 
     document.getElementById("search_input").focus();
@@ -1393,8 +1399,8 @@ var get_barcodes = async function() {
 
 /**
  * Init the page according to order(s) data (texts, colors, events...)
- * 
- * @param {Array} partners_display_data 
+ *
+ * @param {Array} partners_display_data
  */
 function init_dom(partners_display_data) {
     // Grouped orders
@@ -1580,7 +1586,7 @@ $(document).ready(function() {
     let pathArray = window.location.pathname.split('/');
     let id = pathArray[pathArray.length-1];
 
-    // Init couchdb 
+    // Init couchdb
     dbc = new PouchDB(couchdb_dbname),
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
         live: true,
@@ -1589,6 +1595,12 @@ $(document).ready(function() {
     });
 
     // TODO on sync change : redirect (cf order_helper)
+    sync.on('change', function (info) {
+        console.log(info);
+    }).on('error', function (err) {
+        console.log(err);
+    });
+
     // TODO insert fingerprint & timestamp on access to order
 
     // Disable alert errors from datatables
@@ -1653,7 +1665,8 @@ $(document).ready(function() {
 
     /* Get order info from couchdb */
     // Get order groups
-    let order_groups = []
+    let order_groups = [];
+
     dbc.get("grouped_orders").then((doc) => {
         order_groups = doc.groups;
 
@@ -1678,8 +1691,9 @@ $(document).ready(function() {
         }).then(function (result) {
             // for each order in the group
             for (let order_id of group_ids) {
-                // find order 
+                // find order
                 let order = result.rows.find(el => el.id == 'order_' + order_id);
+
                 order = order.doc;
 
                 orders[order_id] = order;
@@ -1708,9 +1722,22 @@ $(document).ready(function() {
 
             init_dom(partners_display_data);
         })
+            .catch(function (e) {
+                let msg = ('message' in e && 'name' in e) ? e.name + ' : ' + e.message : '';
+
+                err = {msg, ctx: 'page init - get orders from couchdb', details: e};
+                console.error(err);
+                report_JS_error(err, 'reception');
+
+                // Should be there, redirect
+                alert("Erreur au chargement de cette commande. Vous allez être redirigé.");
+                back();
+            });
+    })
         .catch(function (e) {
             let msg = ('message' in e && 'name' in e) ? e.name + ' : ' + e.message : '';
-            err = {msg, ctx: 'page init - get orders from couchdb', details: e};
+
+            err = {msg, ctx: 'page init - get grouped orders', details: e};
             console.error(err);
             report_JS_error(err, 'reception');
 
@@ -1718,15 +1745,4 @@ $(document).ready(function() {
             alert("Erreur au chargement de cette commande. Vous allez être redirigé.");
             back();
         });
-    })
-    .catch(function (e) {
-        let msg = ('message' in e && 'name' in e) ? e.name + ' : ' + e.message : '';
-        err = {msg, ctx: 'page init - get grouped orders', details: e};
-        console.error(err);
-        report_JS_error(err, 'reception');
-
-        // Should be there, redirect
-        alert("Erreur au chargement de cette commande. Vous allez être redirigé.");
-        back();
-    });
 });

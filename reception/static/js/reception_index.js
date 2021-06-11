@@ -42,7 +42,7 @@ function group_goto(group_index) {
         // Find order data
         for (let order of orders) {
             if (order.id == order_groups.groups[group_index][i]) {
-                order_data = order
+                order_data = order;
             }
         }
 
@@ -55,7 +55,7 @@ function group_goto(group_index) {
 
 /**
  * Create a couchdb document for an order if it doesn't exist
- * @param {Object} order_data 
+ * @param {Object} order_data
  * @param {Boolean} goto if true, go to order page
  */
 function create_order_doc(order_data, go_to_order = false) {
@@ -63,32 +63,33 @@ function create_order_doc(order_data, go_to_order = false) {
 
     dbc.get(order_doc_id).then(() => {
         if (go_to_order === true) {
-            goto(order_data.id)
+            goto(order_data.id);
         }
     })
-    .catch(function (err) {
+        .catch(function (err) {
         // Create if doesn't exist
-        if (err.status === 404) {
-            let order_doc = { ... order_data };
-            order_doc._id = order_doc_id;
+            if (err.status === 404) {
+                let order_doc = { ...order_data };
 
-            dbc.put(order_doc, (err) => {
-                if (!err) {
-                    if (go_to_order === true) {
-                        goto(order_data.id)
+                order_doc._id = order_doc_id;
+
+                dbc.put(order_doc, (err) => {
+                    if (!err) {
+                        if (go_to_order === true) {
+                            goto(order_data.id);
+                        }
+                    } else {
+                        error = {
+                            msg: 'Erreur dans la creation de la commande dans couchdb',
+                            ctx: 'validatePrices',
+                            details: err
+                        };
+                        report_JS_error(error, 'reception');
+                        console.log(error);
                     }
-                } else {
-                    error = {
-                        msg: 'Erreur dans la creation de la commande dans couchdb',
-                        ctx: 'validatePrices', 
-                        details: err
-                    };
-                    report_JS_error(error, 'reception');
-                    console.log(error);
-                }
-            });
-        }
-    });
+                });
+            }
+        });
 }
 
 /* ACTIONS */
@@ -96,7 +97,7 @@ function create_order_doc(order_data, go_to_order = false) {
 /**
  * Validate all prices of an order
  */
- function validatePrices() {
+function validatePrices() {
     // Loading on
     openModal();
 
@@ -119,15 +120,15 @@ function create_order_doc(order_data, go_to_order = false) {
             dbc.get(`order_${order['id']}`).then((doc) => {
                 return dbc.remove(doc);
             })
-            .then(() => {
-                callback_update = true;
-                reload();
-            })
-            .catch((err) => {
+                .then(() => {
+                    callback_update = true;
+                    reload();
+                })
+                .catch((err) => {
                 // No doc found
-                console.log(err);
-                reload();
-            });
+                    console.log(err);
+                    reload();
+                });
         },
         error: function() {
             closeModal();
@@ -168,7 +169,7 @@ function create_order_doc(order_data, go_to_order = false) {
 
 /**
  * Action fired when orders are grouped (new group)
- * @returns 
+ * @returns
  */
 function group_action() {
     let pswd = prompt('Merci de demander à un.e salarié.e le mot de passe pour fusionner ces commandes.');
@@ -194,7 +195,7 @@ function group_action() {
             if (!err) {
                 goto(group_ids[0]);
             } else {
-                alert("Une erreur est survenue lors de la création du groupe. Veuillez ré-essayer plus tard svp.")
+                alert("Une erreur est survenue lors de la création du groupe. Veuillez ré-essayer plus tard svp.");
                 console.log(err);
             }
         });
@@ -210,35 +211,35 @@ function group_action() {
 
 /**
  * Display the order groups.
- * Remove the grouped orders from the order table to prevent grouping in multiple groups. 
+ * Remove the grouped orders from the order table to prevent grouping in multiple groups.
  */
 function display_grouped_orders() {
     if (table_orders !== null) {
         let groups_display_content = "<ul>";
-    
+
         for (let group_index in order_groups.groups) {
             let group_orders = [];
-    
+
             // Extract every order in the groups from the orders table
             for (group_order_id of order_groups.groups[group_index]) {
                 // Look for order in datatable"
                 for (let i = 0; i < table_orders.rows().data().length; i++) {
                     if (group_order_id == table_orders.rows(i).data()[0].id) {
                         var order = table_orders.rows(i).data()[0];
-    
+
                         group_orders.push(order);
-    
+
                         // remove table row
                         table_orders.rows(i).remove()
                             .draw();
                     }
                 }
             }
-    
+
             // Display group
             document.getElementById("container_groups").hidden = false;
             let group_row = `<li class="group_line"> Commandes de `;
-    
+
             for (let i in group_orders) {
                 if (i == group_orders.length-1) { // last element of list
                     group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + " : ";
@@ -246,7 +247,7 @@ function display_grouped_orders() {
                     group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + ", ";
                 }
             }
-    
+
             if (group_orders[0].reception_status == 'False') {
                 group_row += "<button class='btn--primary' onClick='group_goto("
                     + group_index
@@ -256,7 +257,7 @@ function display_grouped_orders() {
                     + group_index
                     + ")'>Mettre à jour les prix</button>";
             }
-    
+
             group_row += "</li>";
             groups_display_content += group_row;
         }
@@ -311,34 +312,34 @@ function display_orders_table() {
                 render: function (data) {
 
                     switch (data) {
-                        case 'qty_valid':
-                            return "<span class='btn--success'>Mettre à jour les prix</span>";
-                        case 'br_valid':
-                            return "<span class='btn'><i class='far fa-check-circle'></i> Réception OK</span>";
-                        case 'False':
-                            return "<span class='btn--primary'>Compter les produits</span>";
+                    case 'qty_valid':
+                        return "<span class='btn--success'>Mettre à jour les prix</span>";
+                    case 'br_valid':
+                        return "<span class='btn'><i class='far fa-check-circle'></i> Réception OK</span>";
+                    case 'False':
+                        return "<span class='btn--primary'>Compter les produits</span>";
 
-                        case 'done':
-                            return "<span class='btn'><i class='far fa-check-circle'></i> Terminé</span>";
-                        case 'uprice_valid':
-                            return "<span class='btn--primary'>Mise à jour du prix OK</span>";
-                        case "valid_pending":
-                            return "<span class='btn--info'>En attente de validation</span>";
+                    case 'done':
+                        return "<span class='btn'><i class='far fa-check-circle'></i> Terminé</span>";
+                    case 'uprice_valid':
+                        return "<span class='btn--primary'>Mise à jour du prix OK</span>";
+                    case "valid_pending":
+                        return "<span class='btn--info'>En attente de validation</span>";
 
-                        case 'legacy':
-                            return "<span class='btn--success'>Legacy</span>";
-                        case 'error_pack_op':
-                            return "<span class='btn--danger'>Erreur pack operations</span>";
+                    case 'legacy':
+                        return "<span class='btn--success'>Legacy</span>";
+                    case 'error_pack_op':
+                        return "<span class='btn--danger'>Erreur pack operations</span>";
 
-                        case 'error_transfer':
-                            return "<span class='btn--danger'>Erreur de transfert</span>";
-                        case 'error_picking':
-                            return "<span class='btn--danger'>Erreur validation quantité</span>";
-                        case '/error_uprice':
-                            return "<span class='btn--danger'>Erreur mise à jour du prix</span>";
+                    case 'error_transfer':
+                        return "<span class='btn--danger'>Erreur de transfert</span>";
+                    case 'error_picking':
+                        return "<span class='btn--danger'>Erreur validation quantité</span>";
+                    case '/error_uprice':
+                        return "<span class='btn--danger'>Erreur mise à jour du prix</span>";
 
-                        default:
-                            return "<span class='btn--warning'>Status inconnu : " + data + "</span>";
+                    default:
+                        return "<span class='btn--warning'>Status inconnu : " + data + "</span>";
                     }
                 },
                 width: "20%"
@@ -436,7 +437,7 @@ $(document).ready(function() {
     openModal();
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
-    // Init couchdb 
+    // Init couchdb
     dbc = new PouchDB(couchdb_dbname),
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
         live: true,
@@ -445,26 +446,32 @@ $(document).ready(function() {
     });
 
     // TODO sync on change : get data, update data & dom
+    sync.on('change', function (info) {
+        console.log(info);
+    }).on('error', function (err) {
+        console.log(err);
+    });
+
     // TODO on button click to access order: verif fingerprint & timestamp
 
     // Get or create order groups doc
     dbc.get("grouped_orders").then((doc) => {
         order_groups = doc;
     })
-    .catch(function (err) {
-        console.log(err);
-        if (err.status === 404) {
+        .catch(function (err) {
+            console.log(err);
+            if (err.status === 404) {
             // Create if doesn't exist
-            dbc.put(order_groups, (err, result) => {
-                if (!err) {
-                    order_groups._rev = result.rev;
-                } else {
-                    console.log("document pour les groupes déjà créé");
-                    console.log(err);
-                }
-            });
-        }
-    });
+                dbc.put(order_groups, (err, result) => {
+                    if (!err) {
+                        order_groups._rev = result.rev;
+                    } else {
+                        console.log("document pour les groupes déjà créé");
+                        console.log(err);
+                    }
+                });
+            }
+        });
 
     // Set date format for DataTable so date ordering can work
     $.fn.dataTable.moment('D/M/Y');
