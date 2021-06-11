@@ -106,4 +106,5 @@ RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, 
         Merci d'indiquer un maximum d'informations, le nom du produit et son code barre. \
         Dans le cas de produits déteriorés, merci d'envoyer une photo avec votre téléphone à [Adresse_email]"
 
-
+# display or not column "Autres" in reception process
+DISPLAY_COL_AUTRES = False
