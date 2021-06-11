@@ -77,7 +77,7 @@ def produits(request, id):
     """ Gets Order details """
     context = {'title': 'Réception des produits',
                "TOOLS_SERVER": settings.TOOLS_SERVER,
-               "DISPLAY_AUTRES": "false" if (settings.COMPANY_NAME == "La Cagette") else "true",
+               "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
                }
     fixed_barcode_prefix = '0490'
 
