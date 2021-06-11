@@ -19,7 +19,8 @@ COUCHDB = {
               'member': 'coops',
               'inventory': 'inventory',
               'envelops': 'envelop',
-              'shop': 'shopping_carts'
+              'shop': 'shopping_carts',
+              'reception': 'reception_test'
             }
 }
 

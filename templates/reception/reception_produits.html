@@ -180,9 +180,13 @@
   </div>
   <br/>
 </div>
+
+<script src="{% static 'js/pouchdb.min'|add:POUCHDB_VERSION|add:'.js' %}"></script>        
 <script type="text/javascript">
   var tools_server = '{{TOOLS_SERVER}}'
   var fixed_barcode_prefix = '{{FIXED_BARCODE_PREFIX}}'
+  var couchdb_dbname = '{{db}}';
+  var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src='{% static "js/barcodes.js" %}?v='></script>

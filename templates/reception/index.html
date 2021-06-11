@@ -11,7 +11,6 @@
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/moment.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugin.moment_sorting.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v="></script>
 {% endblock %}
 
 {% block content %}
@@ -31,7 +30,6 @@
   <div id="groups_items"></div>
 </div>
 
-<br>
 <div id="grouped_action">
   <button type="button" class='btn--primary' id='group_action' onclick="group_action()" hidden>Compter les produits des commandes sélectionnées</button>
 </div>
@@ -52,9 +50,11 @@
 <br/>
 
 <script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static 'js/pouchdb.min'|add:POUCHDB_VERSION|add:'.js' %}"></script>        
 <script type="text/javascript">
         var merge_orders_pswd = '{{merge_orders_pswd}}';
-        var server_stored_groups = {{server_stored_groups}};
+        var couchdb_dbname = '{{db}}';
+        var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
 </script>
-<script src="{% static "js/common.js" %}?v="></script>
+<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v="></script>
 {% endblock %}

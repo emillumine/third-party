@@ -11,6 +11,10 @@ input[type="number"] {
 }
 
 /* INDEX */
+.group_line {
+  margin-bottom: 5px;
+}
+
 #orders tbody tr {
   cursor: pointer;
 }
