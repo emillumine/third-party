@@ -11,11 +11,33 @@
 
 /* - Common */
 
+.pill {
+    border-radius: 30px;
+    min-width: 200px;
+    min-height: 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 15px 8px 15px;
+    margin: 0 10px 5px 0;
+}
+
+.disabled {
+    background-color: #c9cbce;
+}
+
+.disabled:hover {
+    background-color: #a1a2a3;
+}
 
 /* - Order selection screen */
+#new_order_area {
+    margin-bottom: 40px;
+}
+
 #new_order_form {
     margin-top: 20px;
-    margin-bottom: 30px;
 }
 
 #existing_orders {
@@ -25,24 +47,25 @@
     flex-wrap: wrap;
     width: 80%;
     margin: 0 auto;
-    padding-top: 20px;
+    padding-top: 15px;
 }
 
-.order_pill {
-    border-radius: 30px;
-    min-width: 200px;
-    min-height: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 8px;
-    margin: 0 10px 5px 0;
+.order_last_update {
+    font-weight: bold;
+}
+
+.order_modified_msg {
+    font-size: 2rem;
+    color: #e62720;
 }
 
 /* - Main screen */
 
-/* -- Top right action button(s) */
+/* -- Top action button(s) */
+#back_to_order_selection {
+    position: absolute;
+}
+
 #actions_buttons_area {
     position: absolute;
     top: 0;
@@ -108,15 +131,6 @@
 
 .supplier_pill {
     background-color: #e7e9ed;
-    border-radius: 50px;
-    width: 200px;
-    min-height: 35px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 8px;
-    margin-right: 10px;
 }
 
 .remove_supplier_icon {

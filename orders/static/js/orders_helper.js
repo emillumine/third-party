@@ -7,11 +7,18 @@ var suppliers_list = [],
     sync = null,
     order_doc = {
         _id: null,
+        last_update : {
+            timestamp: null,
+            fingerprint: null,
+        },
         products: [],
         selected_suppliers: [],
         selected_rows: []
-    };
+    },
+    fingerprint = null;
 
+
+/* - UTILS */
 
 /**
  * Reset data that changes between screens
@@ -22,9 +29,38 @@ function reset_data() {
     selected_rows = [],
     order_doc = {
         _id: null,
+        last_update : {
+            timestamp: null,
+            fingerprint: null,
+        },
         products: [],
         selected_suppliers: []
     };
+}
+
+/**
+ * Difference between two dates
+ * @param {Date} date1 
+ * @param {Date} date2 
+ * @returns difference object
+ */
+function dates_diff(date1, date2) {
+    var diff = {}
+    var tmp = date2 - date1;
+ 
+    tmp = Math.floor(tmp/1000);
+    diff.sec = tmp % 60;
+ 
+    tmp = Math.floor((tmp-diff.sec)/60);
+    diff.min = tmp % 60;
+ 
+    tmp = Math.floor((tmp-diff.min)/60);
+    diff.hours = tmp % 24;
+     
+    tmp = Math.floor((tmp-diff.hours)/24);
+    diff.days = tmp;
+     
+    return diff;
 }
 
 /* - SUPPLIERS */
@@ -494,13 +530,6 @@ function display_products() {
                 if (cell.hasClass("supplier_input_cell")) {
                     if (cell.text() == "X") {
                         cell.addClass('product_not_from_supplier');
-                    } else {
-                        // TODO: supplier shortage cell coloring, when supplier shortage usecase is defined
-
-                        // let val = parseFloat(cell.find('.product_qty_input').val());
-                        // if (!isNaN(val) && val < 0) {
-                        //     cell.addClass( 'product_supplier_shortage' );
-                        // }
                     }
                 }
             }
@@ -554,7 +583,7 @@ function display_products() {
     });
 
     // Select row(s) on checkbox change
-    $('#products_table').on('click', 'thead th #select_all_products_cb', function () {
+    $(products_table.table().header()).on('click', 'th #select_all_products_cb', function () {
         if (this.checked) {
             selected_rows = [];
             products_table.rows().every(function() {
@@ -619,6 +648,7 @@ function update_main_screen() {
     $('#products_table').off('click', 'tbody td .select_product_cb');
     $(".remove_supplier_icon").off();
 
+    $(".order_name_container").text(order_doc._id);
     display_suppliers();
     display_products();
 
@@ -646,37 +676,23 @@ function update_order_selection_screen() {
     $(".order_pill").off();
 
     let existing_orders_container = $("#existing_orders");
-
     existing_orders_container.empty();
 
     dbc.allDocs({
         include_docs: true
     }).then(function (result) {
-        for (let row of result.rows) {
-            let template = $("#templates #order_pill_template");
+        if (result.rows.length === 0) {
+            existing_orders_container.append(`<i>Aucune commande en cours...</i>`);
+        } else {
+            for (let row of result.rows) {
+                let template = $("#templates #order_pill_template");
+                template.find(".pill_order_name").text(row.id);
+    
+                existing_orders_container.append(template.html());
+            }
 
-            template.find(".pill_order_name").text(row.id);
-
-            existing_orders_container.append(template.html());
+            $(".order_pill").on("click", order_pill_on_click);
         }
-
-        $(".order_pill").on("click", function() {
-            let order_name_container = $(this).find('.pill_order_name');
-            let doc_id = $(order_name_container).text();
-
-            dbc.get(doc_id).then((doc) => {
-                order_doc = doc;
-                products = order_doc.products;
-                selected_suppliers = order_doc.selected_suppliers;
-
-                update_main_screen();
-                switch_screen();
-            })
-                .catch(function (err) {
-                    alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
-                    console.log(err);
-                });
-        });
     })
         .catch(function (err) {
             alert('Erreur lors de la synchronisation des commandes. Vous pouvez créer une nouvelle commande.');
@@ -718,6 +734,65 @@ function switch_screen(direction = 'main_screen') {
 
 /* - ORDER */
 
+function goto_main_screen(doc) {
+    order_doc = doc;
+    products = order_doc.products;
+    selected_suppliers = order_doc.selected_suppliers;
+
+    update_order()
+    update_main_screen();
+    switch_screen();
+}
+
+function back() {
+    reset_data();
+    update_order_selection_screen();
+    switch_screen('order_selection');
+}
+	
+/**
+ * Event fct: on click on an order button 
+ */
+function order_pill_on_click() {
+    let order_name_container = $(this).find('.pill_order_name');
+    let doc_id = $(order_name_container).text();
+
+    dbc.get(doc_id).then((doc) => {
+        if (doc.last_update.fingerprint !== fingerprint) {
+            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date())
+            diff_str = ``
+
+            if (time_diff.days !== 0) {
+                diff_str += `${time_diff.days} jour(s), `
+            }
+            if (time_diff.hours !== 0) {
+                diff_str += `${time_diff.hours} heure(s), `
+            }
+            if (time_diff.min !== 0) {
+                diff_str += `${time_diff.min} min, `
+            }
+            diff_str += `${time_diff.sec}s`
+
+            let modal_order_access = $('#templates #modal_order_access');
+            modal_order_access.find(".order_last_update").text(diff_str);
+
+            openModal(
+                modal_order_access.html(),
+                () => {
+                    goto_main_screen(doc)
+                },
+                'Valider'
+            );
+        } else {
+            goto_main_screen(doc)
+        }
+    })
+    .catch(function (err) {
+        alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
+        console.log(err);
+    });
+}
+
 /**
  * Create an order in couchdb if the name doesn't exist
  */
@@ -739,11 +814,17 @@ function create_order() {
 }
 
 /**
- * Update an existing order in couchdb
+ * Update order data of an existing order in couchdb
  */
 function update_order() {
     order_doc.products = products;
     order_doc.selected_suppliers = selected_suppliers;
+
+    // Save that current user last updated the order
+    order_doc.last_update = {
+        timestamp: Date.now(),
+        fingerprint: fingerprint,
+    };
 
     dbc.put(order_doc, function callback(err, result) {
         if (!err && result !== undefined) {
@@ -757,6 +838,7 @@ function update_order() {
 
 
 $(document).ready(function() {
+    fingerprint = new Fingerprint({canvas: true}).get();
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     openModal();
@@ -770,10 +852,27 @@ $(document).ready(function() {
     });
 
     sync.on('change', function (info) {
-        console.log(info);
-        // TODO get current order new data (ou prévenir de changements ? -> pas changer les infos brutalement sans prévenir)
-        // TODO alert if current doc was deleted
+        if (info.direction === "pull") {
+            for (const doc of info.change.docs) {
+                // If current order was modified somewhere else
+                if (order_doc._id === doc._id && order_doc._rev !== doc._rev) {
+                    $.notify(
+                        "Un autre navigateur est en train de modifier cette commande !",
+                        {
+                            globalPosition:"top right",
+                            className: "error"
+                        }
+                    );
+                    back();
+                    break;
+                }
+            }
+        }
     }).on('error', function (err) {
+        if (err.status === 409) {
+            alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
+            back();
+        } 
         console.log('erreur sync');
         console.log(err);
     });
@@ -789,9 +888,7 @@ $(document).ready(function() {
     });
 
     $('#back_to_order_selection').on('click', function() {
-        reset_data();
-        update_order_selection_screen();
-        switch_screen('order_selection');
+        back();
     });
 
     // Order selection screen
