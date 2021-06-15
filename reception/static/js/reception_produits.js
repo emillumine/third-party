@@ -63,6 +63,8 @@ function searchUpdatedProduct() {
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
     try {
+
+        console.log("FLAG 1 !");
         if (editing_product == null) {
             let p = barcodes.get_corresponding_odoo_product(barcode);
 
@@ -81,7 +83,9 @@ function select_product_from_bc(barcode) {
                 }
             });
 
-            if (found.data != null) {
+            console.log(found.data);
+
+            if (found.data == null) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
                         found.data = e;
@@ -98,8 +102,7 @@ function select_product_from_bc(barcode) {
                     remove_from_toProcess(row, found.data);
                 } else {
                     let row = table_processed.row($('#'+found.data.product_id[0]));
-
-                    remove_from_processed(row, found.data);
+                    console.log("FLAG 2 !");
                 }
             }
         }
@@ -801,18 +804,27 @@ function editProductInfo (productToEdit, value = null) {
         var firstUpdate = false;
         let newValue = value;
 
+        var addition = false;
+
+
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
             newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
         }
 
+        $.each(list_processed, function(i, e) {
+            if (e.product_id[0] == productToEdit.product_id[0]) {
+                addition = true;
+                productToEdit = e;
+                newValue = newValue + productToEdit.product_qty;
+            }
+        });
         // If qty edition & Check if qty changed
         if (reception_status == "False" && productToEdit.product_qty != newValue) {
             if (index == -1) { // First update
                 productToEdit.old_qty = productToEdit.product_qty;
                 firstUpdate = true;
             }
-
             // Edit product info
             productToEdit.product_qty = newValue;
             /*
@@ -876,9 +888,13 @@ function editProductInfo (productToEdit, value = null) {
                 }
             }
         }
-
         // Update local storage of product order
         localStorage.setItem("order_" + productToEdit.id_po, JSON.stringify(orders[productToEdit.id_po]));
+
+        if(addition){
+            let row = table_processed.row($('#'+productToEdit.product_id[0]));
+            remove_from_processed(row, productToEdit);
+        }
 
         add_to_processed(productToEdit);
     } catch (e) {
