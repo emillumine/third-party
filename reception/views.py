@@ -357,7 +357,7 @@ def save_error_report(request):
 
 
             # Create report with data from steps 1 & 2
-            else:
+            elif data['update_type'] == 'br_valid':
                 for order in data['orders']:
                     # Read step 1 data from temp file
                     data_qties = {}

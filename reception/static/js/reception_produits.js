@@ -121,7 +121,6 @@ function select_product_from_bc(barcode) {
 function update_distant_order(order_id) {
     // TODO insert fingerprint & timestamp
 
-    console.log(order_id);
     dbc.put(orders[order_id], (err, result) => {
         if (!err && result !== undefined) {
             orders[order_id]._rev = result.rev;
@@ -1074,6 +1073,7 @@ function send() {
         // Loading on
         openModal();
 
+        /* Prepare data for orders update */
         // Only send to server the updated lines
         var update_data = {
             update_type: updateType,
@@ -1152,6 +1152,30 @@ function send() {
             update_data.orders[prod_order_id]['po'].push(updatedProducts[i]);
         }
 
+        /* Prepare data for error report */
+        // Send changes between items to process and processed items
+        var updates = {
+            'group_amount_total' : 0,
+            'update_type' : updateType,
+            'updated_products' : updatedProducts,
+            'user_comments': user_comments,
+            'orders' : []
+        };
+
+        for (i in orders) {
+            updates.group_amount_total += orders[i].amount_total;
+            updates.orders.push(orders[i]);
+        }
+
+        // TODO: (le vrai) step 1 : don't save report, just previous data
+        // step 2 : prepare data by concatening both steps updated data. Envoyer ça au serveur. Coté back, just read ça.
+        // on peut supprimer les données dans couchdb au retour de update_orders sans problème parce qu'on a déjà anvoyé les données à save_error_report (préparées ici)
+        // -> Code beaucoup plus simple côté back dans save error report! et probablement ok ici
+        // + àa permettra de personaliser le back dans update_orders : 
+        //      - si paramètre "reception_3_steps" activée, on fait rien tant que pas step 3
+        //      - on envoie toutes les updated_data concaténées après step 3
+
+        /* Update orders */
         $.ajax({
             type: "PUT",
             url: "../update_orders",
@@ -1163,8 +1187,9 @@ function send() {
                 closeModal();
 
                 try {
-                    // If step 1 (counting), open pop-up with procedure explanation
+                    // If step 1 (counting) 
                     if (reception_status == "False") {
+                        /* Open pop-up with procedure explanation */
                         var barcodes_to_print = false;
 
                         // Select products with local barcode and without barcode, when qty > 0
@@ -1226,6 +1251,24 @@ function send() {
                             true,
                             false
                         );
+
+                        /* Not last step: update distant data */
+                        for (let order_id in orders) {
+                            // Save current step updated data
+                            orders[order_id].previous_steps_data = {}
+                            orders[order_id].previous_steps_data[reception_status] = {
+                                updated_products: orders[order_id].updated_products
+                            }
+                            orders[order_id].reception_status = updateType;
+    
+                            // Delete temp data
+                            delete orders[order_id].valid_products;
+                            delete orders[order_id].updated_products;
+                        }
+
+                        dbc.bulkDocs(Object.values(orders)).catch((err) => {
+                            console.log(err);
+                        })
                     } else {
                         // Print etiquettes with new prices
                         if (updatedProducts.length > 0) {
@@ -1239,43 +1282,45 @@ function send() {
                             true,
                             false
                         );
+
+                        /* Last step: Clear distant data */
+                        // TODO test
+                        // Delete orders doc
+                        for (let order_id in orders) {
+                            orders[order_id]._deleted = true;
+                        }
+
+                        // Remove orders group
+                        dbc.get("grouped_orders").then((doc) => {
+                            let couchdb_update_data = Object.values(orders);
+
+                            // We're in a group, remove it & update groups doc
+                            if (Object.keys(orders).length > 1) {
+                                let groups_doc = doc;
+                                
+                                const first_order_id = Object.keys(orders)[0];
+                                for (let i in groups_doc.groups) {
+                                    if (groups_doc.groups[i].includes(first_order_id)) {
+                                        groups_doc.groups.splice(i, 1);
+                                        break;
+                                    }
+                                }
+
+                                couchdb_update_data.push(groups_doc);
+                            }
+
+                            return dbc.bulkDocs(couchdb_update_data);
+                        })
+                        .catch(function (err) {
+                            console.log(err)
+                        });
                     }
 
-                    // Go back to to_process list if modal closed
+                    // Back if modal closed
                     $('#modal_closebtn_top').on('click', back);
                     $('#modal_closebtn_bottom').on('click', back);
 
-                    // TODO data clearing.
-                    // according to process state:
-                    //      - step1 : clear only products related datar :valid_products, updated_products & save data from step 1
-                    //      - step2 : remove orders in couchdb & groups
-                    // -> server side ?
-
-                    // Clear local storage before leaving
-                    // for (order_id in orders) {
-                    //     localStorage.removeItem("order_" + order_id);
-                    // }
-
-                    // Delete group(s)
-                    // if (Object.keys(orders).length > 1) {
-                    //     var grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
-
-                    //     // Remove all groups containing these orders
-                    //     for (order_id in orders) {
-                    //         search:
-                    //         for (var h = 0; i < grouped_orders.length; h++) {
-                    //             for (var j = 0; j < grouped_orders[h].length; j++) {
-                    //                 if (grouped_orders[h][j] == order_id) {
-                    //                     grouped_orders.splice(h);
-                    //                     break search;
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-
-                    //     localStorage.setItem('grouped_orders', JSON.stringify(grouped_orders));
-                    // }
-
+                    // TODO ? Dans modal : "merci de patienter avant de quitter la page..." -> "vous pouvez quitter la page !"
                 } catch (ee) {
                     err = {msg: ee.name + ' : ' + ee.message, ctx: 'callback update_orders'};
                     console.error(err);
@@ -1289,21 +1334,7 @@ function send() {
         });
 
         // TODO : for step 1, instead of saving a temp report, save data in couchdb ?
-
-        // Send changes between items to process and processed items
-        var updates = {
-            'group_amount_total' : 0,
-            'update_type' : updateType,
-            'updated_products' : updatedProducts,
-            'user_comments': user_comments,
-            'orders' : []
-        };
-
-        for (i in orders) {
-            updates.group_amount_total += orders[i].amount_total;
-            updates.orders.push(orders[i]);
-        }
-
+        /* Create error report */
         $.ajax({
             type: "POST",
             url: "../save_error_report",

@@ -7,7 +7,7 @@ var orders = [],
     callback_report = false,
     selection_type = null,
     order_groups = {
-        _id: null,
+        _id: 'grouped_orders',
         groups: []
     },
     dbc = null,
@@ -34,7 +34,6 @@ function goto(id) {
  * @param {int} group_index index of group in groups array
  */
 function group_goto(group_index) {
-    console.log(order_groups.groups);
     // Make sure a couchdb document exists for all group's orders
     for (let i in order_groups.groups[group_index]) {
         let order_data = null;
@@ -215,6 +214,7 @@ function group_action() {
  */
 function display_grouped_orders() {
     if (table_orders !== null) {
+        $('#groups_items').empty();
         let groups_display_content = "<ul>";
 
         for (let group_index in order_groups.groups) {
@@ -270,6 +270,11 @@ function display_grouped_orders() {
  * Display the main orders table
  */
 function display_orders_table() {
+    if (table_orders) {
+        table_orders.clear().destroy();
+        $('#orders').empty();
+    }
+
     table_orders = $('#orders').DataTable({
         data: orders,
         columns:[
@@ -445,9 +450,45 @@ $(document).ready(function() {
         auto_compaction: false
     });
 
-    // TODO sync on change : get data, update data & dom
+    // On distant changes
     sync.on('change', function (info) {
-        console.log(info);
+        // If important data changed somewhere else, update local data 
+        let need_to_reload = false;
+        if (info.direction === "pull") {
+            for (let doc of info.change.docs) {
+                if (doc._id === "grouped_orders") {
+                    // If groups doc changed, update local groups
+                    need_to_reload = true;
+                    order_groups = doc;
+                } else if ("_deleted" in doc && doc._deleted === true) {
+                    // If order was deleted, delete it locally
+                    try {
+                        const deleted_order_id = parseInt(doc._id.split('_')[1]);
+                        let index = orders.findIndex(order => order.id == deleted_order_id);
+
+                        if (index !== -1) {
+                            orders.splice(index, 1);
+                            need_to_reload = true;
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+                } else {
+                    // Find updated order in local orders & update it if reception status changed
+                    let index = orders.findIndex(order => order.id == doc.id);
+                    if (index !== -1 && orders[index].reception_status !== doc.reception_status) {
+                        orders[index] = doc;
+                        need_to_reload = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (need_to_reload) {
+            display_orders_table();
+            display_grouped_orders();
+        }
     }).on('error', function (err) {
         console.log(err);
     });
