@@ -35,6 +35,15 @@ input[type="number"] {
   margin-bottom: 1em;
 }
 
+.order_last_update {
+  font-weight: bold;
+}
+
+.order_modified_msg {
+  font-size: 2rem;
+  color: #e62720;
+}
+
 /* PRODUITS */
 .page_body {
   height: 100%;

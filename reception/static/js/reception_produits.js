@@ -33,7 +33,8 @@ var reception_status = null,
     barcodes = null; // Barcodes stored locally
 
 var dbc = null,
-    sync = null;
+    sync = null,
+    fingerprint = null;
 
 /* UTILS */
 
@@ -119,7 +120,10 @@ function select_product_from_bc(barcode) {
  * @param {int} order_id
  */
 function update_distant_order(order_id) {
-    // TODO insert fingerprint & timestamp
+    orders[order_id].last_update = {
+        timestamp: Date.now(),
+        fingerprint: fingerprint,
+    };
 
     dbc.put(orders[order_id], (err, result) => {
         if (!err && result !== undefined) {
@@ -129,6 +133,30 @@ function update_distant_order(order_id) {
             console.log(err);
         }
     });
+}
+
+/**
+ * Update distant orders with local data
+ * @param {int} order_id
+ */
+ function update_distant_orders() {
+    for (let order_id in orders) {
+        orders[order_id].last_update = {
+            timestamp: Date.now(),
+            fingerprint: fingerprint,
+        };
+    }
+
+    dbc.bulkDocs(Object.values(orders)).then((response) => {
+        // Update rev of current orders after their update
+        for (let doc of response) {
+            let order_id = doc.id.split('_')[1];
+            orders[order_id]._rev = doc.rev
+        }
+    })
+    .catch((err) => {
+        console.log(err);
+    })
 }
 
 /* INIT */
@@ -1260,6 +1288,12 @@ function send() {
                                 updated_products: orders[order_id].updated_products
                             }
                             orders[order_id].reception_status = updateType;
+
+                            // Unlock order
+                            orders[order_id].last_update = {
+                                timestamp: null,
+                                fingerprint: null,
+                            }
     
                             // Delete temp data
                             delete orders[order_id].valid_products;
@@ -1333,7 +1367,6 @@ function send() {
             }
         });
 
-        // TODO : for step 1, instead of saving a temp report, save data in couchdb ?
         /* Create error report */
         $.ajax({
             type: "POST",
@@ -1434,6 +1467,24 @@ var get_barcodes = async function() {
  * @param {Array} partners_display_data
  */
 function init_dom(partners_display_data) {
+    // Back button
+    $('#back_button').on('click', function () {
+        // Liberate current orders
+        for (let order_id in orders) {
+            orders[order_id].last_update = {
+                timestamp: null,
+                fingerprint: null,
+            };
+        }
+    
+        dbc.bulkDocs(Object.values(orders)).then((response) => {
+            back();
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+    })
+
     // Grouped orders
     if (Object.keys(orders).length > 1) {
         $('#partner_name').html(Object.keys(orders).length + " commandes");
@@ -1493,7 +1544,7 @@ function init_dom(partners_display_data) {
 
         $("#modal_qtiesValidated").load("/reception/reception_qtiesValidated");
     } else {
-        // Extra security, shouldn't get in here
+        // Extra security, shouldn't get in here: reception status not valid
         back();
     }
 
@@ -1609,6 +1660,8 @@ function init_dom(partners_display_data) {
 
 $(document).ready(function() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+    
+    fingerprint = new Fingerprint({canvas: true}).get();
 
     // Load barcodes
     get_barcodes();
@@ -1625,14 +1678,24 @@ $(document).ready(function() {
         auto_compaction: false
     });
 
-    // TODO on sync change : redirect (cf order_helper)
-    sync.on('change', function (info) {
-        console.log(info);
+    sync.on('change', function (info) {        
+        if (info.direction === "pull") {
+            for (const doc of info.change.docs) {
+                // Redirect if one of the current order is being modified somewhere else
+                if (String(doc.id) in orders && orders[doc.id]._rev !== doc._rev) {
+                    alert("Un autre navigateur est en train de modifier cette commande ! Vous allez être redirigé.e.");
+                    back();
+                }
+            }
+        }
     }).on('error', function (err) {
+        if (err.status === 409) {
+            alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
+            back();
+        } 
+        console.log('erreur sync');
         console.log(err);
     });
-
-    // TODO insert fingerprint & timestamp on access to order
 
     // Disable alert errors from datatables
     $.fn.dataTable.ext.errMode = 'none';
@@ -1747,6 +1810,9 @@ $(document).ready(function() {
 
             // Load saved user comments, get it from first order
             user_comments = orders[Object.keys(orders)[0]].user_comments || "";
+
+            // Indicate that these orders are used in this navigator
+            update_distant_orders()
 
             // Fetch orders data
             fetch_data();

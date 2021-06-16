@@ -11,10 +11,36 @@ var orders = [],
         groups: []
     },
     dbc = null,
-    sync = null;
+    sync = null,
+    fingerprint = null;
 
 
 /* UTILS */
+
+/**
+ * Difference between two dates
+ * @param {Date} date1 
+ * @param {Date} date2 
+ * @returns difference object
+ */
+ function dates_diff(date1, date2) {
+    var diff = {}
+    var tmp = date2 - date1;
+ 
+    tmp = Math.floor(tmp/1000);
+    diff.sec = tmp % 60;
+ 
+    tmp = Math.floor((tmp-diff.sec)/60);
+    diff.min = tmp % 60;
+ 
+    tmp = Math.floor((tmp-diff.min)/60);
+    diff.hours = tmp % 24;
+     
+    tmp = Math.floor((tmp-diff.hours)/24);
+    diff.days = tmp;
+     
+    return diff;
+}
 
 /**
  * Wait for both ajax callbacks for reloading to avoid a js error
@@ -23,6 +49,48 @@ var orders = [],
 function reload() {
     if (callback_update && callback_report)
         document.location.reload();
+}
+
+/**
+ * Check for concurent access to same order before going to reception page.
+ * @param {Int} id 
+ */
+function check_before_goto(id) {
+    const order_doc_id = 'order_' + id;
+    dbc.get(order_doc_id).then((doc) => {
+        console.log(doc);
+        if (doc.last_update.fingerprint !== null && doc.last_update.fingerprint !== fingerprint) {
+            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date())
+            diff_str = ``
+
+            if (time_diff.days !== 0) {
+                diff_str += `${time_diff.days} jour(s), `
+            }
+            if (time_diff.hours !== 0) {
+                diff_str += `${time_diff.hours} heure(s), `
+            }
+            if (time_diff.min !== 0) {
+                diff_str += `${time_diff.min} min, `
+            }
+            diff_str += `${time_diff.sec}s`
+
+            let modal_order_access = $('#templates #modal_order_access');
+            modal_order_access.find(".order_last_update").text(diff_str);
+
+            openModal(
+                modal_order_access.html(),
+                () => {
+                    goto(id);
+                },
+                'Valider'
+            );
+        } else {
+            goto(id);
+        }
+    })
+    .catch((err) => {
+        console.log(err);
+    })
 }
 
 function goto(id) {
@@ -49,7 +117,7 @@ function group_goto(group_index) {
     }
 
     // go to first order
-    goto(order_groups.groups[group_index][0]);
+    check_before_goto(order_groups.groups[group_index][0]);
 }
 
 /**
@@ -62,7 +130,7 @@ function create_order_doc(order_data, go_to_order = false) {
 
     dbc.get(order_doc_id).then(() => {
         if (go_to_order === true) {
-            goto(order_data.id);
+            check_before_goto(order_data.id);
         }
     })
         .catch(function (err) {
@@ -71,21 +139,23 @@ function create_order_doc(order_data, go_to_order = false) {
                 let order_doc = { ...order_data };
 
                 order_doc._id = order_doc_id;
+                order_doc.last_update = {
+                    timestamp: Date.now(),
+                    fingerprint: fingerprint,
+                };
 
-                dbc.put(order_doc, (err) => {
-                    if (!err) {
-                        if (go_to_order === true) {
-                            goto(order_data.id);
-                        }
-                    } else {
-                        error = {
-                            msg: 'Erreur dans la creation de la commande dans couchdb',
-                            ctx: 'validatePrices',
-                            details: err
-                        };
-                        report_JS_error(error, 'reception');
-                        console.log(error);
+                dbc.put(order_doc).then(() => {
+                    if (go_to_order === true) {
+                        goto(order_data.id);
                     }
+                }).catch((err) => {
+                    error = {
+                        msg: 'Erreur dans la creation de la commande dans couchdb',
+                        ctx: 'validatePrices',
+                        details: err
+                    };
+                    report_JS_error(error, 'reception');
+                    console.log(error);
                 });
             }
         });
@@ -184,6 +254,8 @@ function group_action() {
 
             // Create doc for each group order if doesn't exist
             create_order_doc(selected_data[i]);
+
+            // TODO (en dernier): ask before grouping if at least one of the orders is being updated somewhere else
         }
 
         group_ids.sort();
@@ -442,6 +514,8 @@ $(document).ready(function() {
     openModal();
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
+    fingerprint = new Fingerprint({canvas: true}).get();
+    
     // Init couchdb
     dbc = new PouchDB(couchdb_dbname),
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
@@ -492,8 +566,6 @@ $(document).ready(function() {
     }).on('error', function (err) {
         console.log(err);
     });
-
-    // TODO on button click to access order: verif fingerprint & timestamp
 
     // Get or create order groups doc
     dbc.get("grouped_orders").then((doc) => {
