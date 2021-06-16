@@ -19,26 +19,26 @@ var orders = [],
 
 /**
  * Difference between two dates
- * @param {Date} date1 
- * @param {Date} date2 
+ * @param {Date} date1
+ * @param {Date} date2
  * @returns difference object
  */
- function dates_diff(date1, date2) {
-    var diff = {}
+function dates_diff(date1, date2) {
+    var diff = {};
     var tmp = date2 - date1;
- 
+
     tmp = Math.floor(tmp/1000);
     diff.sec = tmp % 60;
- 
+
     tmp = Math.floor((tmp-diff.sec)/60);
     diff.min = tmp % 60;
- 
+
     tmp = Math.floor((tmp-diff.min)/60);
     diff.hours = tmp % 24;
-     
+
     tmp = Math.floor((tmp-diff.hours)/24);
     diff.days = tmp;
-     
+
     return diff;
 }
 
@@ -53,27 +53,29 @@ function reload() {
 
 /**
  * Check for concurent access to same order before going to reception page.
- * @param {Int} id 
+ * @param {Int} id
  */
 function check_before_goto(id) {
     const order_doc_id = 'order_' + id;
+
     dbc.get(order_doc_id).then((doc) => {
         if (doc.last_update.fingerprint !== null && doc.last_update.fingerprint !== fingerprint) {
-            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date())
-            diff_str = ``
+            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
+            diff_str = ``;
 
             if (time_diff.days !== 0) {
-                diff_str += `${time_diff.days} jour(s), `
+                diff_str += `${time_diff.days} jour(s), `;
             }
             if (time_diff.hours !== 0) {
-                diff_str += `${time_diff.hours} heure(s), `
+                diff_str += `${time_diff.hours} heure(s), `;
             }
             if (time_diff.min !== 0) {
-                diff_str += `${time_diff.min} min, `
+                diff_str += `${time_diff.min} min, `;
             }
-            diff_str += `${time_diff.sec}s`
+            diff_str += `${time_diff.sec}s`;
 
             let modal_order_access = $('#templates #modal_order_access');
+
             modal_order_access.find(".order_last_update").text(diff_str);
 
             openModal(
@@ -87,9 +89,9 @@ function check_before_goto(id) {
             goto(id);
         }
     })
-    .catch((err) => {
-        console.log(err);
-    })
+        .catch((err) => {
+            console.log(err);
+        });
 }
 
 function goto(id) {
@@ -140,22 +142,23 @@ function create_order_doc(order_data, go_to_order = false) {
                 order_doc._id = order_doc_id;
                 order_doc.last_update = {
                     timestamp: Date.now(),
-                    fingerprint: fingerprint,
+                    fingerprint: fingerprint
                 };
 
                 dbc.put(order_doc).then(() => {
                     if (go_to_order === true) {
                         goto(order_data.id);
                     }
-                }).catch((err) => {
-                    error = {
-                        msg: 'Erreur dans la creation de la commande dans couchdb',
-                        ctx: 'create_order_doc',
-                        details: err
-                    };
-                    report_JS_error(error, 'reception');
-                    console.log(error);
-                });
+                })
+                    .catch((err) => {
+                        error = {
+                            msg: 'Erreur dans la creation de la commande dans couchdb',
+                            ctx: 'create_order_doc',
+                            details: err
+                        };
+                        report_JS_error(error, 'reception');
+                        console.log(error);
+                    });
             }
         });
 }
@@ -523,8 +526,9 @@ $(document).ready(function() {
 
     // On distant changes
     sync.on('change', function (info) {
-        // If important data changed somewhere else, update local data 
+        // If important data changed somewhere else, update local data
         let need_to_reload = false;
+
         if (info.direction === "pull") {
             for (let doc of info.change.docs) {
                 if (doc._id === "grouped_orders") {
@@ -547,6 +551,7 @@ $(document).ready(function() {
                 } else {
                     // Find updated order in local orders & update it if reception status changed
                     let index = orders.findIndex(order => order.id == doc.id);
+
                     if (index !== -1 && orders[index].reception_status !== doc.reception_status) {
                         orders[index] = doc;
                         need_to_reload = true;

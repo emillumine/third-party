@@ -122,7 +122,7 @@ function select_product_from_bc(barcode) {
 function update_distant_order(order_id) {
     orders[order_id].last_update = {
         timestamp: Date.now(),
-        fingerprint: fingerprint,
+        fingerprint: fingerprint
     };
 
     dbc.put(orders[order_id], (err, result) => {
@@ -139,11 +139,11 @@ function update_distant_order(order_id) {
  * Update distant orders with local data
  * @param {int} order_id
  */
- function update_distant_orders() {
+function update_distant_orders() {
     for (let order_id in orders) {
         orders[order_id].last_update = {
             timestamp: Date.now(),
-            fingerprint: fingerprint,
+            fingerprint: fingerprint
         };
     }
 
@@ -151,12 +151,13 @@ function update_distant_order(order_id) {
         // Update rev of current orders after their update
         for (let doc of response) {
             let order_id = doc.id.split('_')[1];
-            orders[order_id]._rev = doc.rev
+
+            orders[order_id]._rev = doc.rev;
         }
     })
-    .catch((err) => {
-        console.log(err);
-    })
+        .catch((err) => {
+            console.log(err);
+        });
 }
 
 /* INIT */
@@ -846,12 +847,12 @@ function clearLineEdition() {
     document.getElementById('product_uom').innerHTML = '';
 }
 
- /**
+/**
   * Update a product info : qty or unit price
-  * @param {Object} productToEdit 
+  * @param {Object} productToEdit
   * @param {Float} value if set, use it as new value
   * @param {Boolean} batch if true, don't update couchdb data here
-  * @returns 
+  * @returns
   */
 function editProductInfo (productToEdit, value = null, batch = false) {
     try {
@@ -975,7 +976,7 @@ function setAllQties() {
         .draw();
 
     // Batch update orders
-    update_distant_orders()
+    update_distant_orders();
 }
 
 /* ACTIONS */
@@ -1230,7 +1231,7 @@ function send() {
                 closeModal();
 
                 try {
-                    // If step 1 (counting) 
+                    // If step 1 (counting)
                     if (reception_status == "False") {
                         /* Open pop-up with procedure explanation */
                         var barcodes_to_print = false;
@@ -1298,18 +1299,18 @@ function send() {
                         /* Not last step: update distant data */
                         for (let order_id in orders) {
                             // Save current step updated data
-                            orders[order_id].previous_steps_data = {}
+                            orders[order_id].previous_steps_data = {};
                             orders[order_id].previous_steps_data[reception_status] = {
                                 updated_products: orders[order_id].updated_products || []
-                            }
+                            };
                             orders[order_id].reception_status = updateType;
 
                             // Unlock order
                             orders[order_id].last_update = {
                                 timestamp: null,
-                                fingerprint: null,
-                            }
-    
+                                fingerprint: null
+                            };
+
                             // Delete temp data
                             delete orders[order_id].valid_products;
                             delete orders[order_id].updated_products;
@@ -1317,7 +1318,7 @@ function send() {
 
                         dbc.bulkDocs(Object.values(orders)).catch((err) => {
                             console.log(err);
-                        })
+                        });
                     } else {
                         // Print etiquettes with new prices
                         if (updatedProducts.length > 0) {
@@ -1345,8 +1346,9 @@ function send() {
                             // We're in a group, remove it & update groups doc
                             if (Object.keys(orders).length > 1) {
                                 let groups_doc = doc;
-                                
+
                                 let first_order_id = parseInt(Object.keys(orders)[0]);
+
                                 for (let i in groups_doc.groups) {
                                     if (groups_doc.groups[i].includes(first_order_id)) {
                                         groups_doc.groups.splice(i, 1);
@@ -1359,9 +1361,9 @@ function send() {
 
                             return dbc.bulkDocs(couchdb_update_data);
                         })
-                        .catch(function (err) {
-                            console.log(err)
-                        });
+                            .catch(function (err) {
+                                console.log(err);
+                            });
                     }
 
                     // Back if modal closed
@@ -1414,7 +1416,7 @@ function confirm_all_left_is_good() {
         .draw();
 
     // Batch update orders
-    update_distant_orders()
+    update_distant_orders();
     closeModal();
 }
 
@@ -1473,17 +1475,17 @@ function init_dom(partners_display_data) {
         for (let order_id in orders) {
             orders[order_id].last_update = {
                 timestamp: null,
-                fingerprint: null,
+                fingerprint: null
             };
         }
-    
+
         dbc.bulkDocs(Object.values(orders)).then((response) => {
             back();
         })
-        .catch((err) => {
-            console.log(err);
-        })
-    })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
 
     // Grouped orders
     if (Object.keys(orders).length > 1) {
@@ -1660,7 +1662,7 @@ function init_dom(partners_display_data) {
 
 $(document).ready(function() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-    
+
     fingerprint = new Fingerprint({canvas: true}).get();
 
     // Load barcodes
@@ -1678,7 +1680,7 @@ $(document).ready(function() {
         auto_compaction: false
     });
 
-    sync.on('change', function (info) {        
+    sync.on('change', function (info) {
         if (info.direction === "pull") {
             for (const doc of info.change.docs) {
                 // Redirect if one of the current order is being modified somewhere else
@@ -1692,7 +1694,7 @@ $(document).ready(function() {
         if (err.status === 409) {
             alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
             back();
-        } 
+        }
         console.log('erreur sync');
         console.log(err);
     });
@@ -1812,7 +1814,7 @@ $(document).ready(function() {
             user_comments = orders[Object.keys(orders)[0]].user_comments || "";
 
             // Indicate that these orders are used in this navigator
-            update_distant_orders()
+            update_distant_orders();
 
             // Fetch orders data
             fetch_data();
