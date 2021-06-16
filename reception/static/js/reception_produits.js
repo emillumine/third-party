@@ -846,11 +846,14 @@ function clearLineEdition() {
     document.getElementById('product_uom').innerHTML = '';
 }
 
-/**
+ /**
   * Update a product info : qty or unit price
-  * If 'value' is set, use it as new value
+  * @param {Object} productToEdit 
+  * @param {Float} value if set, use it as new value
+  * @param {Boolean} batch if true, don't update couchdb data here
+  * @returns 
   */
-function editProductInfo (productToEdit, value = null) {
+function editProductInfo (productToEdit, value = null, batch = false) {
     try {
     // Check if the product is already in the 'updated' list
         var index = searchUpdatedProduct();
@@ -917,7 +920,7 @@ function editProductInfo (productToEdit, value = null) {
             orders[productToEdit.id_po]['updated_products'].push(productToEdit);
 
             // May have been directly validated then updated from processed list
-            //  -> then: remove from 'valid_products' list
+            //  -> remove from 'valid_products' list
             for (i in orders[productToEdit.id_po]['valid_products']) {
                 if (orders[productToEdit.id_po]['valid_products'][i] == productToEdit['id']) {
                     orders[productToEdit.id_po]['valid_products'].splice(i, 1);
@@ -933,8 +936,10 @@ function editProductInfo (productToEdit, value = null) {
             }
         }
 
-        // Update product order
-        update_distant_order(productToEdit.id_po);
+        if (batch === false) {
+            // Update product order
+            update_distant_order(productToEdit.id_po);
+        }
 
         add_to_processed(productToEdit);
     } catch (e) {
@@ -961,13 +966,16 @@ function setAllQties() {
     table_to_process.rows().every(function () {
         var data = this.data();
 
-        editProductInfo(data, 0);
+        editProductInfo(data, 0, true);
 
         return true;
     });
     list_to_process = [];
     table_to_process.rows().remove()
         .draw();
+
+    // Batch update orders
+    update_distant_orders()
 }
 
 /* ACTIONS */
@@ -1180,9 +1188,9 @@ function send() {
             update_data.orders[prod_order_id]['po'].push(updatedProducts[i]);
         }
 
-        /* Prepare data for error report */
+        /* Create the error report */
         // Send changes between items to process and processed items
-        var updates = {
+        var error_report_data = {
             'group_amount_total' : 0,
             'update_type' : updateType,
             'updated_products' : updatedProducts,
@@ -1190,18 +1198,25 @@ function send() {
             'orders' : []
         };
 
-        for (i in orders) {
-            updates.group_amount_total += orders[i].amount_total;
-            updates.orders.push(orders[i]);
+        for (let i in orders) {
+            error_report_data.group_amount_total += orders[i].amount_total;
+            error_report_data.orders.push(orders[i]);
         }
 
-        // TODO: (le vrai) step 1 : don't save report, just previous data
-        // step 2 : prepare data by concatening both steps updated data. Envoyer ça au serveur. Coté back, just read ça.
-        // on peut supprimer les données dans couchdb au retour de update_orders sans problème parce qu'on a déjà anvoyé les données à save_error_report (préparées ici)
-        // -> Code beaucoup plus simple côté back dans save error report! et probablement ok ici
-        // + àa permettra de personaliser le back dans update_orders : 
-        //      - si paramètre "reception_3_steps" activée, on fait rien tant que pas step 3
-        //      - on envoie toutes les updated_data concaténées après step 3
+        // Send request for error report
+        $.ajax({
+            type: "POST",
+            url: "../save_error_report",
+            dataType: "json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(error_report_data),
+            success: function() {},
+            error: function() {
+                closeModal();
+                alert('Erreur dans l\'envoi du rapport.');
+            }
+        });
 
         /* Update orders */
         $.ajax({
@@ -1285,7 +1300,7 @@ function send() {
                             // Save current step updated data
                             orders[order_id].previous_steps_data = {}
                             orders[order_id].previous_steps_data[reception_status] = {
-                                updated_products: orders[order_id].updated_products
+                                updated_products: orders[order_id].updated_products || []
                             }
                             orders[order_id].reception_status = updateType;
 
@@ -1318,7 +1333,6 @@ function send() {
                         );
 
                         /* Last step: Clear distant data */
-                        // TODO test
                         // Delete orders doc
                         for (let order_id in orders) {
                             orders[order_id]._deleted = true;
@@ -1332,7 +1346,7 @@ function send() {
                             if (Object.keys(orders).length > 1) {
                                 let groups_doc = doc;
                                 
-                                const first_order_id = Object.keys(orders)[0];
+                                let first_order_id = parseInt(Object.keys(orders)[0]);
                                 for (let i in groups_doc.groups) {
                                     if (groups_doc.groups[i].includes(first_order_id)) {
                                         groups_doc.groups.splice(i, 1);
@@ -1353,8 +1367,6 @@ function send() {
                     // Back if modal closed
                     $('#modal_closebtn_top').on('click', back);
                     $('#modal_closebtn_bottom').on('click', back);
-
-                    // TODO ? Dans modal : "merci de patienter avant de quitter la page..." -> "vous pouvez quitter la page !"
                 } catch (ee) {
                     err = {msg: ee.name + ' : ' + ee.message, ctx: 'callback update_orders'};
                     console.error(err);
@@ -1364,21 +1376,6 @@ function send() {
             error: function() {
                 closeModal();
                 alert('Erreur lors de la sauvegarde des données.');
-            }
-        });
-
-        /* Create error report */
-        $.ajax({
-            type: "POST",
-            url: "../save_error_report",
-            dataType: "json",
-            traditional: true,
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(updates),
-            success: function() {},
-            error: function() {
-                closeModal();
-                alert('Erreur dans l\'envoi du rapport.');
             }
         });
     } catch (e) {
@@ -1408,13 +1405,16 @@ function confirm_all_left_is_good() {
         } else {
             value = data.price_unit;
         }
-        editProductInfo(data, value);
+        editProductInfo(data, value, true);
 
         return true;
     });
     list_to_process = [];
     table_to_process.rows().remove()
         .draw();
+
+    // Batch update orders
+    update_distant_orders()
     closeModal();
 }
 
@@ -1792,7 +1792,7 @@ $(document).ready(function() {
 
                 orders[order_id] = order;
 
-                //Add each order's already updated and validated products to common list
+                // Add each order's already updated and validated products to common list
                 if (order["updated_products"]) {
                     updatedProducts = updatedProducts.concat(order["updated_products"]);
                 }

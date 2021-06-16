@@ -58,7 +58,6 @@ function reload() {
 function check_before_goto(id) {
     const order_doc_id = 'order_' + id;
     dbc.get(order_doc_id).then((doc) => {
-        console.log(doc);
         if (doc.last_update.fingerprint !== null && doc.last_update.fingerprint !== fingerprint) {
             time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date())
             diff_str = ``
@@ -151,7 +150,7 @@ function create_order_doc(order_data, go_to_order = false) {
                 }).catch((err) => {
                     error = {
                         msg: 'Erreur dans la creation de la commande dans couchdb',
-                        ctx: 'validatePrices',
+                        ctx: 'create_order_doc',
                         details: err
                     };
                     report_JS_error(error, 'reception');
@@ -254,8 +253,6 @@ function group_action() {
 
             // Create doc for each group order if doesn't exist
             create_order_doc(selected_data[i]);
-
-            // TODO (en dernier): ask before grouping if at least one of the orders is being updated somewhere else
         }
 
         group_ids.sort();
@@ -515,7 +512,7 @@ $(document).ready(function() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     fingerprint = new Fingerprint({canvas: true}).get();
-    
+
     // Init couchdb
     dbc = new PouchDB(couchdb_dbname),
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {

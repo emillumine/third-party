@@ -247,7 +247,7 @@ def update_orders(request):
 #    """ Method used for tests purposes: Reset an order status """
 #    m = CagetteReception(id_po)
 #    m.update_order_status(id_po, False)
-#
+
 #    return JsonResponse({'id_po': id_po})
 
 def save_error_report(request):
@@ -471,8 +471,6 @@ def save_error_report(request):
                         error_total_abs += abs(item['error_line'])
 
                         data_full.append(item)
-
-                    # For an eventual step 3, save data_full
 
                     # Sort by error amount
                     def sortByError(e):
