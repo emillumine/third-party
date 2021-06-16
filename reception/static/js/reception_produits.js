@@ -64,7 +64,6 @@ function searchUpdatedProduct() {
 function select_product_from_bc(barcode) {
     try {
 
-        console.log("FLAG 1 !");
         if (editing_product == null) {
             let p = barcodes.get_corresponding_odoo_product(barcode);
 
@@ -100,9 +99,6 @@ function select_product_from_bc(barcode) {
                     let row = table_to_process.row($('#'+found.data.product_id[0]));
 
                     remove_from_toProcess(row, found.data);
-                } else {
-                    let row = table_processed.row($('#'+found.data.product_id[0]));
-                    console.log("FLAG 2 !");
                 }
             }
         }
