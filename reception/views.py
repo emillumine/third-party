@@ -76,7 +76,9 @@ def get_list_orders(request):
 def produits(request, id):
     """ Gets Order details """
     context = {'title': 'Réception des produits',
-               "TOOLS_SERVER": settings.TOOLS_SERVER}
+               "TOOLS_SERVER": settings.TOOLS_SERVER,
+               "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
+               }
     fixed_barcode_prefix = '0490'
 
     if hasattr(settings, 'RECEPTION_PB'):
