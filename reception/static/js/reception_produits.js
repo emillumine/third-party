@@ -87,7 +87,7 @@ function select_product_from_bc(barcode) {
             if (found.data == null) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
-                        found.data = e;
+                        found.data =  JSON.parse(JSON.stringify(e));
                         found.place = 'processed';
                     }
                 });
