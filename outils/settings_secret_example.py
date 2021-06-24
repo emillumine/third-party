@@ -20,7 +20,8 @@ COUCHDB = {
               'inventory': 'inventory',
               'envelops': 'envelop',
               'shop': 'shopping_carts',
-              'orders': 'orders_test'
+              'orders': 'orders_test',
+              'reception': 'reception_test',
             }
 }
 

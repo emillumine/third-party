@@ -27,17 +27,12 @@ def as_text(value):
 def home(request):
     """Page de selection de la commande suivant un fournisseurs"""
 
-    # Get grouped orders stored on the server
-    try:
-        with open('temp/grouped_order.json', 'r') as json_file:
-            saved_groups = json.load(json_file)
-    except Exception:
-        saved_groups = []
-
     context = {
         'title': 'Reception',
         'merge_orders_pswd': settings.RECEPTION_MERGE_ORDERS_PSWD,
-        'server_stored_groups' : saved_groups
+        'couchdb_server': settings.COUCHDB['url'],
+        'db': settings.COUCHDB['dbs']['reception'],
+        'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', '')
     }
     template = loader.get_template('reception/index.html')
 
@@ -75,10 +70,14 @@ def get_list_orders(request):
 
 def produits(request, id):
     """ Gets Order details """
-    context = {'title': 'Réception des produits',
-               "TOOLS_SERVER": settings.TOOLS_SERVER,
-               "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
-               }
+    context = {
+        'title': 'Réception des produits',
+        "TOOLS_SERVER": settings.TOOLS_SERVER,
+        'couchdb_server': settings.COUCHDB['url'],
+        'db': settings.COUCHDB['dbs']['reception'],
+        'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
+        "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
+    }
     fixed_barcode_prefix = '0490'
 
     if hasattr(settings, 'RECEPTION_PB'):
@@ -132,40 +131,6 @@ def data_validation(request):
     except Exception as e:
         coop_logger.error("Orders data validation : %s", str(e))
         return JsonResponse({'error': str(e)}, status=500)
-
-def save_order_group(request):
-    """
-        When an order group is created, save it to force group these orders later.
-        Raise an error if one of the orders is already in a group.
-    """
-
-    order_ids = json.loads(request.body.decode())
-
-    try:
-        try:
-            # Check if any of the orders attempted to be grouped is already in a group
-            with open('temp/grouped_order.json', 'r') as json_file:
-                saved_groups = json.load(json_file)
-
-                for order_id in order_ids:
-                    for group in saved_groups:
-                        if order_id in group:
-                            # Found in a group, stop
-                            msg = 'One of the orders is already in a group'
-                            return JsonResponse({'message': msg}, status=409)
-        except Exception:
-            saved_groups = []
-
-        # All good, save group
-        with open('temp/grouped_order.json', 'w+') as json_file:
-            saved_groups.append(order_ids)
-            json.dump(saved_groups, json_file)
-
-        msg = 'Group saved'
-        return JsonResponse({'message': msg})
-    except Exception as e:
-        print(str(e))
-        return JsonResponse({'message': str(e)}, status=500)
 
 def update_orders(request):
     """Update orders lines: quantity and unit prices"""
@@ -257,6 +222,7 @@ def update_orders(request):
 
                         # Remove order's group
                         try:
+                            # TODO remove from couchdb orders & group (here?)
                             if os.path.exists('temp/grouped_order.json'):
                                 with open('temp/grouped_order.json', 'r') as json_file:
                                     saved_groups = json.load(json_file)
@@ -272,6 +238,7 @@ def update_orders(request):
                         except Exception as e:
                             # no saved groups
                             print(str(e))
+                    # TODO else if first step, save first step data (here?)
                 else:
                     coop_logger.error("update_orders errors : %s", str(errors))
             rep = JsonResponse(answer_data, safe=False)
@@ -281,7 +248,7 @@ def update_orders(request):
 #    """ Method used for tests purposes: Reset an order status """
 #    m = CagetteReception(id_po)
 #    m.update_order_status(id_po, False)
-#
+
 #    return JsonResponse({'id_po': id_po})
 
 def save_error_report(request):
@@ -300,7 +267,7 @@ def save_error_report(request):
             orders_partner = ""
             group_ids = []
             for i, order in enumerate(data['orders']) :
-                # list of temp files: 1 report per reception
+                # list of temp files: 1 report per order & group
                 data['orders'][i]['temp_file_name'] = "temp/" + order['name'] + "_rapport-reception_temp.xlsx"
 
                 group_ids.append(order['id'])
@@ -391,7 +358,7 @@ def save_error_report(request):
 
 
             # Create report with data from steps 1 & 2
-            else:
+            elif data['update_type'] == 'br_valid':
                 for order in data['orders']:
                     # Read step 1 data from temp file
                     data_qties = {}
@@ -423,7 +390,8 @@ def save_error_report(request):
                         # Clear step 1 temp file
                         os.remove(order['temp_file_name'])
                     except:
-                        data_comment_s1 = "Rapport de la première étape absent !"
+                        data_comment_s1 = "Données de la première étape absentes !"
+
                     # Add data from step 2
                     data_full = []
                     error_total = 0
@@ -484,6 +452,7 @@ def save_error_report(request):
                         # no updated products, do nothing
                         print("Error while updating products")
                         print(exp)
+
                     # Add remaining products, the ones edited only in step 1
                     for product in data_qties.values():
                         item = {
