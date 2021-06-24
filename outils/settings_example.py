@@ -99,6 +99,7 @@ STATICFILES_DIRS = (
     "website/static",
     "shop/static",
     "shelfs/static",
+    "orders/static",
     # "tests/static"
 
 )

@@ -268,3 +268,15 @@ class Orders(models.Model):
             coop_logger.error('Orders get_custom_barcode_labels_to_print(oids) : %s', str(e))
 
         return labels_data
+
+class CagetteSuppliers(models.Model):
+
+    @staticmethod
+    def get_suppliers():
+        api = OdooAPI()
+
+        f = ['id', 'name', 'display_name']
+        c = [['supplier', '=', 1], ['parent_id', '=', False]]
+        res = api.search_read('res.partner', c, f)
+
+        return res

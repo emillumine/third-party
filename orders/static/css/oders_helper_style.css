@@ -1,0 +1,140 @@
+.page_body{
+    position: relative;
+}
+
+.page_content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+/* - Common */
+
+.pill {
+    border-radius: 30px;
+    min-width: 200px;
+    min-height: 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 15px 8px 15px;
+    margin: 0 10px 5px 0;
+}
+
+.disabled {
+    background-color: #c9cbce;
+}
+
+.disabled:hover {
+    background-color: #a1a2a3;
+}
+
+/* - Order selection screen */
+#new_order_area {
+    margin-bottom: 40px;
+}
+
+#new_order_form {
+    margin-top: 20px;
+}
+
+#existing_orders {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 80%;
+    margin: 0 auto;
+    padding-top: 15px;
+}
+
+.order_last_update {
+    font-weight: bold;
+}
+
+.order_modified_msg {
+    font-size: 2rem;
+    color: #e62720;
+}
+
+/* - Main screen */
+
+/* -- Top action button(s) */
+#back_to_order_selection {
+    position: absolute;
+}
+
+#actions_buttons_area {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* -- Supplier form */
+#supplier_form_container {
+    margin-top: 30px;
+}
+
+#supplier_input {
+    width: 500px;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+/* -- Table */
+#products_table_filter{
+    text-align: right !important;
+}
+
+#products_table_filter input{
+    height: 40px;
+}
+
+#table_header_select_all{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#table_header_select_all input{
+    margin-left: 5px;
+}
+
+.product_qty_input {
+    width: 100px;
+}
+
+.product_not_from_supplier {
+    background-color: #e7e9ed;
+    cursor: pointer;
+}
+
+.product_name, .supplier_name {
+    font-weight: bold;
+}
+
+.select_product_cb {
+    cursor: pointer;
+}
+
+/* -- Suppliers list */
+#suppliers_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; 
+    margin: 20px 0 20px 0;
+}
+
+.supplier_pill {
+    background-color: #e7e9ed;
+}
+
+.remove_supplier_icon {
+    color: red;
+    margin-left: 5px;
+    cursor: pointer;
+}

@@ -6,6 +6,7 @@ from outils.common import OdooAPI
 import csv
 import tempfile
 import pymysql.cursors
+import datetime
 
 vcats = []
 
@@ -124,6 +125,27 @@ class CagetteProduct(models.Model):
             'date_start' : date_start,
         }
         res = api.create('product.supplier.shortage', f)
+        return res
+
+    @staticmethod
+    def associate_supplier_to_product(product_tmpl_id, partner_id):
+        api = OdooAPI()
+
+        f = ["id", "standard_price", "purchase_ok"]
+        c = [['product_tmpl_id', '=', product_tmpl_id]]
+        res_products = api.search_read('product.product', c, f)
+        product = res_products[0]
+
+        f = {
+            'product_tmpl_id' : product_tmpl_id,
+            'product_id' : product["id"],
+            'name' : partner_id,
+            'product_purchase_ok': product["purchase_ok"],
+            'price': product["standard_price"],     # By default, use product price
+            'base_price': product["standard_price"],
+        }
+        res = api.create('product.supplierinfo', f)
+
         return res
 
 class CagetteProducts(models.Model):
@@ -386,6 +408,43 @@ class CagetteProducts(models.Model):
             if found is False:
                 bc_map[bc] = bc
         return bc_map
+
+    @staticmethod
+    def get_products_by_supplier(supplier_id):
+        api = OdooAPI()
+        res = {}
+
+        # todo : try with no result
+        try:
+            today = datetime.date.today().strftime("%Y-%m-%d")
+
+            # Get products/supplier relation
+            f = ["product_tmpl_id", 'date_start', 'date_end']
+            c = [['name', '=', int(supplier_id)]]
+            psi = api.search_read('product.supplierinfo', c, f)
+
+            # Filter valid data
+            ptids = []
+            for p in psi:
+                if (p["product_tmpl_id"] is not False 
+                    and (p["date_start"] is False or p["date_end"] is not False and p["date_start"] <= today) 
+                    and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
+                    ptids.append(p["product_tmpl_id"][0])
+
+            # Get products templates
+            f = ["id", "state", "name", "default_code", "qty_available", "incoming_qty", "uom_id"]
+            c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
+            products_t = api.search_read('product.template', c, f)
+            filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
+
+            # Note: if product.product is needed, get "product_variant_ids" from product template
+
+            res["products"] = filtered_products_t
+        except Exception as e:
+            print(str(e))
+            res["error"] = str(e)
+
+        return res
 
 class OFF(models.Model):
     """OpenFoodFact restricted DB queries."""

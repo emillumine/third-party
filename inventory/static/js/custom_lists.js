@@ -4,6 +4,13 @@ var shelfs_table = null,
 
 
 function init_datatable() {
+    // For a smooth migration...
+    for (const i in lists) {
+        if (('partners' in lists[i]) === false) {
+            lists[i]['partners'] = [lists[i]['partner']]
+        }
+    }
+    
     return $('#lists').DataTable({
         data: lists, // data passed at page loading
         rowId: 'id',
@@ -17,8 +24,15 @@ function init_datatable() {
                 }
             },
             {
-                data:"partner",
-                title:"Fournisseur"
+                data:"partners",
+                title:"Fournisseur(s)",
+                render: function (data) {
+                    res = "";
+                    for (const i in data) {
+                        res += `${data[i]}<br/>`;
+                    }
+                    return res;
+                }
             },
             {
                 data:"order",

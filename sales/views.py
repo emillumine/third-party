@@ -10,10 +10,6 @@ def index(request):
     context = {'title': 'Export de ventes'}
     template = loader.get_template('sales/index.html')
 
-    # m = CagetteSales()
-    # sales = m.get_sales()
-    # print(sales)
-
     return HttpResponse(template.render(context, request))
 
 def get_sales(request):
