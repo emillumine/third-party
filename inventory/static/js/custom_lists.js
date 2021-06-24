@@ -7,10 +7,10 @@ function init_datatable() {
     // For a smooth migration...
     for (const i in lists) {
         if (('partners' in lists[i]) === false) {
-            lists[i]['partners'] = [lists[i]['partner']]
+            lists[i]['partners'] = [lists[i]['partner']];
         }
     }
-    
+
     return $('#lists').DataTable({
         data: lists, // data passed at page loading
         rowId: 'id',
@@ -31,6 +31,7 @@ function init_datatable() {
                     for (const i in data) {
                         res += `${data[i]}<br/>`;
                     }
+
                     return res;
                 }
             },

@@ -376,34 +376,34 @@ $(document).ready(function() {
                 render: function (data) {
 
                     switch (data) {
-                        case 'qty_valid':
-                            return "<span class='btn--success'>Mettre à jour les prix</span>";
-                        case 'br_valid':
-                            return "<span class='btn'><i class='far fa-check-circle'></i> Réception OK</span>";
-                        case 'False':
-                            return "<span class='btn--primary'>Compter les produits</span>";
+                    case 'qty_valid':
+                        return "<span class='btn--success'>Mettre à jour les prix</span>";
+                    case 'br_valid':
+                        return "<span class='btn'><i class='far fa-check-circle'></i> Réception OK</span>";
+                    case 'False':
+                        return "<span class='btn--primary'>Compter les produits</span>";
 
-                        case 'done':
-                            return "<span class='btn'><i class='far fa-check-circle'></i> Terminé</span>";
-                        case 'uprice_valid':
-                            return "<span class='btn--primary'>Mise à jour du prix OK</span>";
-                        case "valid_pending":
-                            return "<span class='btn--info'>En attente de validation</span>";
+                    case 'done':
+                        return "<span class='btn'><i class='far fa-check-circle'></i> Terminé</span>";
+                    case 'uprice_valid':
+                        return "<span class='btn--primary'>Mise à jour du prix OK</span>";
+                    case "valid_pending":
+                        return "<span class='btn--info'>En attente de validation</span>";
 
-                        case 'legacy':
-                            return "<span class='btn--success'>Legacy</span>";
-                        case 'error_pack_op':
-                            return "<span class='btn--danger'>Erreur pack operations</span>";
+                    case 'legacy':
+                        return "<span class='btn--success'>Legacy</span>";
+                    case 'error_pack_op':
+                        return "<span class='btn--danger'>Erreur pack operations</span>";
 
-                        case 'error_transfer':
-                            return "<span class='btn--danger'>Erreur de transfert</span>";
-                        case 'error_picking':
-                            return "<span class='btn--danger'>Erreur validation quantité</span>";
-                        case '/error_uprice':
-                            return "<span class='btn--danger'>Erreur mise à jour du prix</span>";
+                    case 'error_transfer':
+                        return "<span class='btn--danger'>Erreur de transfert</span>";
+                    case 'error_picking':
+                        return "<span class='btn--danger'>Erreur validation quantité</span>";
+                    case '/error_uprice':
+                        return "<span class='btn--danger'>Erreur mise à jour du prix</span>";
 
-                        default:
-                            return "<span class='btn--warning'>Status inconnu : " + data + "</span>";
+                    default:
+                        return "<span class='btn--warning'>Status inconnu : " + data + "</span>";
                     }
                 },
                 width: "20%"

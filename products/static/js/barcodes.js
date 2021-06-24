@@ -37,6 +37,7 @@ IFCBarcodes = {
 
         try {
             let price = parseFloat(value);
+
             if (currency == 'FF')
                 price = price / 6.55957;
 
@@ -131,6 +132,7 @@ IFCBarcodes = {
         if (product_data !== null) {
             p_uom = (this.uoms)[product_data[this.keys.uom_id]];
             let qty = 1;
+
             if (encoded_value.length > 0 && !isNaN(encoded_value)) {
                 qty = 0; //if no rule is found it will advise user that there is a problem
                 /*
@@ -149,7 +151,8 @@ IFCBarcodes = {
                         } else {
                             let list_price = product_data[this.keys.list_price];
                             let currency = null;
-                            if (pattern_type == 'FF_price_to_weight') currency = 'FF'
+
+                            if (pattern_type == 'FF_price_to_weight') currency = 'FF';
 
                             qty = parseFloat(this.get_quantity_eq_to_encoded_price(encoded_value, list_price, currency));
                         }

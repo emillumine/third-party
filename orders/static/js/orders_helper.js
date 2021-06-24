@@ -9,7 +9,7 @@ var suppliers_list = [],
         _id: null,
         last_update : {
             timestamp: null,
-            fingerprint: null,
+            fingerprint: null
         },
         products: [],
         selected_suppliers: [],
@@ -31,7 +31,7 @@ function reset_data() {
         _id: null,
         last_update : {
             timestamp: null,
-            fingerprint: null,
+            fingerprint: null
         },
         products: [],
         selected_suppliers: []
@@ -40,26 +40,26 @@ function reset_data() {
 
 /**
  * Difference between two dates
- * @param {Date} date1 
- * @param {Date} date2 
+ * @param {Date} date1
+ * @param {Date} date2
  * @returns difference object
  */
 function dates_diff(date1, date2) {
-    var diff = {}
+    var diff = {};
     var tmp = date2 - date1;
- 
+
     tmp = Math.floor(tmp/1000);
     diff.sec = tmp % 60;
- 
+
     tmp = Math.floor((tmp-diff.sec)/60);
     diff.min = tmp % 60;
- 
+
     tmp = Math.floor((tmp-diff.min)/60);
     diff.hours = tmp % 24;
-     
+
     tmp = Math.floor((tmp-diff.hours)/24);
     diff.days = tmp;
-     
+
     return diff;
 }
 
@@ -676,6 +676,7 @@ function update_order_selection_screen() {
     $(".order_pill").off();
 
     let existing_orders_container = $("#existing_orders");
+
     existing_orders_container.empty();
 
     dbc.allDocs({
@@ -686,8 +687,9 @@ function update_order_selection_screen() {
         } else {
             for (let row of result.rows) {
                 let template = $("#templates #order_pill_template");
+
                 template.find(".pill_order_name").text(row.id);
-    
+
                 existing_orders_container.append(template.html());
             }
 
@@ -739,7 +741,7 @@ function goto_main_screen(doc) {
     products = order_doc.products;
     selected_suppliers = order_doc.selected_suppliers;
 
-    update_order()
+    update_order();
     update_main_screen();
     switch_screen();
 }
@@ -749,9 +751,9 @@ function back() {
     update_order_selection_screen();
     switch_screen('order_selection');
 }
-	
+
 /**
- * Event fct: on click on an order button 
+ * Event fct: on click on an order button
  */
 function order_pill_on_click() {
     let order_name_container = $(this).find('.pill_order_name');
@@ -759,38 +761,39 @@ function order_pill_on_click() {
 
     dbc.get(doc_id).then((doc) => {
         if (doc.last_update.fingerprint !== fingerprint) {
-            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date())
-            diff_str = ``
+            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
+            diff_str = ``;
 
             if (time_diff.days !== 0) {
-                diff_str += `${time_diff.days} jour(s), `
+                diff_str += `${time_diff.days} jour(s), `;
             }
             if (time_diff.hours !== 0) {
-                diff_str += `${time_diff.hours} heure(s), `
+                diff_str += `${time_diff.hours} heure(s), `;
             }
             if (time_diff.min !== 0) {
-                diff_str += `${time_diff.min} min, `
+                diff_str += `${time_diff.min} min, `;
             }
-            diff_str += `${time_diff.sec}s`
+            diff_str += `${time_diff.sec}s`;
 
             let modal_order_access = $('#templates #modal_order_access');
+
             modal_order_access.find(".order_last_update").text(diff_str);
 
             openModal(
                 modal_order_access.html(),
                 () => {
-                    goto_main_screen(doc)
+                    goto_main_screen(doc);
                 },
                 'Valider'
             );
         } else {
-            goto_main_screen(doc)
+            goto_main_screen(doc);
         }
     })
-    .catch(function (err) {
-        alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
-        console.log(err);
-    });
+        .catch(function (err) {
+            alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
+            console.log(err);
+        });
 }
 
 /**
@@ -823,7 +826,7 @@ function update_order() {
     // Save that current user last updated the order
     order_doc.last_update = {
         timestamp: Date.now(),
-        fingerprint: fingerprint,
+        fingerprint: fingerprint
     };
 
     dbc.put(order_doc, function callback(err, result) {
@@ -872,7 +875,7 @@ $(document).ready(function() {
         if (err.status === 409) {
             alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
             back();
-        } 
+        }
         console.log('erreur sync');
         console.log(err);
     });

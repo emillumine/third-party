@@ -258,21 +258,21 @@ function save_current_coop(callback) {
             sex_error = false;
 
         if (/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/.exec(birthdate)) {
-            try{
+            try {
                 var jj = RegExp.$1,
-                mm = RegExp.$2,
-                aaaa = RegExp.$3;
+                    mm = RegExp.$2,
+                    aaaa = RegExp.$3;
 
                 let tmp_date = aaaa + "-" + mm + "-" + jj;
                 // try to create a date object
+
                 date_test = new Date(tmp_date);
                 // if date is invalid a correction is apply in date object. Check it
                 // january start at 0, so we add + 1 for the month
-                if ((date_test.getDate() !== parseInt(jj)) || ((date_test.getMonth()+1) !== parseInt(mm)) || (date_test.getFullYear() !== parseInt(aaaa)) || !date_test.isValid())
-                {
+                if ((date_test.getDate() !== parseInt(jj)) || ((date_test.getMonth()+1) !== parseInt(mm)) || (date_test.getFullYear() !== parseInt(aaaa)) || !date_test.isValid()) {
                     birthdate_error = true;
                 }
-            }catch(Exception){
+            } catch (Exception) {
                 birthdate_error = true;
             }
 

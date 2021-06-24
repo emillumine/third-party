@@ -330,8 +330,13 @@ function initLists() {
                     className:"dt-head-center dt-body-center",
                     visible: (reception_status == "False"),
                     render: function (data, type, full) {
-                        let disp = [full.product_qty, (full.old_qty !== undefined)?full.old_qty:full.product_qty].join("/");
-                        return  disp;
+                        let disp = [
+                            full.product_qty,
+                            (full.old_qty !== undefined)?full.old_qty:full.product_qty
+                        ].join("/");
+
+
+                        return disp;
                     },
                     orderable: false
                 },
@@ -1346,6 +1351,7 @@ function openErrorReport() {
     // this is necessary because default behavior is overwritten by the listener defined in jquery.pos.js;
     $("#error_report").keypress(function(e) {
         var key = e.keyCode;
+
         if (key === 13) {
             this.value += "\n";
         }
