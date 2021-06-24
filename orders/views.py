@@ -1,8 +1,8 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
 
-from orders.models import Order, Orders
-from products.models import CagetteProduct
+from orders.models import Order, Orders, CagetteSuppliers
+from products.models import CagetteProduct, CagetteProducts
 
 from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
@@ -12,6 +12,52 @@ def as_text(value): return str(value) if value is not None else ""
 
 def index(request):
 	return HttpResponse('Orders')
+
+def helper(request):
+    context = {
+        'title': 'Aide à la commande',
+        'couchdb_server': settings.COUCHDB['url'],
+        'db': settings.COUCHDB['dbs']['orders']
+    }
+
+    template = loader.get_template('orders/helper.html')
+
+    return HttpResponse(template.render(context, request))
+
+def get_suppliers(request):
+    """ Get suppliers list """
+    res = {}
+
+    try:
+        res = CagetteSuppliers.get_suppliers()
+    except Exception as e:
+        res["error"] = str(e)
+        return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
+
+def get_supplier_products(request):
+    """ Get supplier products """
+
+    sid = request.GET.get('sid', '')
+    res = CagetteProducts.get_products_by_supplier(sid)
+    
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+def associate_supplier_to_product(request):
+    """ This product is now supplied by this supplier """
+    res = {}
+    try:
+        data = json.loads(request.body.decode())
+        res = CagetteProduct.associate_supplier_to_product(data["product_tmpl_id"], data["supplier_id"])
+    except Exception as e:
+        res["error"] = str(e)
+        return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
 
 def export_one(request, oid):
     msg = ''

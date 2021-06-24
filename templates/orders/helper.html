@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/oders_helper_style.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+    <div id="select_order_content" class="page_content txtcenter">
+        <div id="new_order_area">
+            <h2>Créer une nouvelle commande</h2>
+            <form id="new_order_form">
+                <input type="text" id="new_order_name" placeholder="Nom de la commande...">
+                <button type="submit" class="btn btn--primary">Valider</button>
+            </form>
+        </div>
+        <div id="existing_orders_area">
+            <h2>Ou, continuer une commande existante</h2>
+            <div id="existing_orders"></div>
+        </div>
+    </div>
+
+    <div id="main_content" class="page_content" style="display:none;">
+        <div id="back_to_order_selection">
+            <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+        </div>
+        <div id="actions_buttons_area">
+            <button type="button" class='btn--primary' id="do_inventory">Faire un inventaire</button>
+        </div>
+    
+        <div class="header txtcenter">
+            <h1>Aide à la commande</h1>
+            <i>Commande : <span class="order_name_container"></span></i>
+        </div>
+    
+        <div class="txtcenter" id="supplier_form_container">
+            <form action="javascript:;" id="supplier_form">
+                <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
+                <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
+            </form>
+        </div>
+    
+        <div class="txtcenter" id="suppliers_container"></div>
+    
+        <div class="main" style="display:none;">
+            <div class="table_area">
+                <table id="products_table" class="display" cellspacing="0" width="100%"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="templates" style="display:none;">
+        <div id="supplier_pill_template">
+            <div class="pill supplier_pill">
+                <div class="supplier_name_container">
+                    <span class="pill_supplier_name"></span>
+                    <i class="fas fa-times remove_supplier_icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="order_pill_template">
+            <div class="pill order_pill btn btn--primary">
+                <span class="pill_order_name"></span>
+            </div>
+        </div>
+
+        <div id="modal_order_access">
+            <h3>Attention !</h3>
+            <br/>
+            <p class="order_modified_msg"> 
+                Un autre navigateur a modifié cette commande il y a <span class="order_last_update"></span>.
+            </p><br/>
+            <p>
+                Si quelqu'un d'autre que vous est à l'origine de la modification et que celle-ci est récente,
+                nous conseillons fortement de ne pas accéder à la commande afin d'éviter les conflits.
+            </p><br/>
+            <p>Voulez-vous quand même y accéder ?</p>
+            <hr/>
+        </div>
+    
+        <div id="modal_remove_supplier">
+            <h3>Attention !</h3>
+            <p>
+                Vous vous apprêtez à supprimer le fournisseur <span class="supplier_name"></span> de la sélection.<br/>
+                Les produits associés uniquement à ce fournisseur seront supprimés du tableau.<br/>
+                Les données renseignées dans la colonne de ce fournisseur seront perdues.
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
+    
+        <div id="modal_attach_product_to_supplier">
+            <h3>Attention !</h3>
+            <p> 
+                Vous vous apprêtez à associer le produit <span class="product_name"></span> au fournisseur <span class="supplier_name"></span>.<br/>
+                L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
+    
+        <div id="modal_create_inventory">
+            <p> 
+                Vous vous apprêtez à créer un inventaire de <span class="inventory_products_count"></span> produits.
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
+    </div>
+</div>
+
+
+<script src="{% static "js/pouchdb.min.js" %}"></script>
+<script type="text/javascript">
+    var couchdb_dbname = '{{db}}';
+    var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script type="text/javascript" src="{% static 'js/orders_helper.js' %}?v="></script>
+{% endblock %}

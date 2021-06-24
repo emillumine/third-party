@@ -52,7 +52,7 @@ class CagetteInventory(models.Model):
                         file_data = json.load(json_file)
 
                     date_time = datetime.fromtimestamp(int(filename))
-                    d = date_time.strftime("%m/%d/%Y, %H:%M")
+                    d = date_time.strftime("%d/%m/%Y, %H:%M")
 
                     file_data['id'] = int(filename)
                     file_data['datetime_created'] = d
@@ -113,7 +113,7 @@ class CagetteInventory(models.Model):
         return file_data['inventory_status']
 
     @staticmethod
-    def create_custom_inv_file(line_ids, line_type):
+    def create_custom_inv_file(line_ids, line_type, default_partners_id=[]):
         res = {}
 
         try:
@@ -127,36 +127,54 @@ class CagetteInventory(models.Model):
             api = OdooAPI()
             ids = []
             order = ['', '']
-            user = partner = ''
-            fields = ['create_uid', 'product_id', 'partner_id']
-            cond = [['id', 'in', line_ids]]
-            if (line_type == 'cpo'):
-                model = 'computed.purchase.order.line'
-                fields += ['computed_purchase_order_id']
+            user = ''
+            partners = []
+            if len(default_partners_id) > 0:
+                f = ['name']
+                c = [['id', 'in', default_partners_id]]
+                partners_name = api.search_read('res.partner', c, f)
+                for p in partners_name:
+                    partners.append(p['name'])
+
+            if line_type == 'product_templates':
+                fields = ['id']
+                cond = [['product_tmpl_id', 'in', line_ids]]
+                model = 'product.product'
+
+                user="api"
             else:
-                model = 'purchase.order.line'
-                fields += ['order_id']
+                fields = ['create_uid', 'product_id', 'partner_id']
+                cond = [['id', 'in', line_ids]]
+                if (line_type == 'cpo'):
+                    model = 'computed.purchase.order.line'
+                    fields += ['computed_purchase_order_id']
+                else:
+                    model = 'purchase.order.line'
+                    fields += ['order_id']
             lines = api.search_read(model, cond, fields)
             if len(lines) == len(line_ids):
                 for l in lines:
-                    ids.append(l['product_id'][0])
-                    user = l['create_uid'][1]
-                    if (line_type == 'cpo'):
-                        order = l['computed_purchase_order_id']
+                    if line_type == 'product_templates':
+                        ids.append(l['id'])
                     else:
-                        order = l['order_id']
-                        partner = l['partner_id'][1]
+                        ids.append(l['product_id'][0])
+                        user = l['create_uid'][1]
+                        if (line_type == 'cpo'):
+                            order = l['computed_purchase_order_id']
+                        else:
+                            order = l['order_id']
+                            partners.append(l['partner_id'][1])
                 if (line_type == 'cpo'):
                     # partner_id isn't defined
                     f = ['partner_id']
                     c = [['id', '=', int(order[0])]]
                     cpo = api.search_read('computed.purchase.order', c, f)
                     if len(cpo) > 0:
-                        partner = cpo[0]['partner_id'][1]
+                        partners.append(cpo[0]['partner_id'][1])
             file_data = {
                 'order': order[1],
                 'user': user,
-                'partner': partner,
+                'partners': partners,
                 'inventory_status': '',
                 'products': ids
             }
