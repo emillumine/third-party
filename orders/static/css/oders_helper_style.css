@@ -99,6 +99,11 @@
     flex-wrap: wrap;
 }
 
+.select_all_text {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 #table_header_select_all input{
     margin-left: 5px;
 }
@@ -112,11 +117,11 @@
     cursor: pointer;
 }
 
-.product_name, .supplier_name {
+.product_name, .supplier_name, .product_npa {
     font-weight: bold;
 }
 
-.select_product_cb {
+.select_product_cb, .product_npa_cb {
     cursor: pointer;
 }
 

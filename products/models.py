@@ -148,6 +148,23 @@ class CagetteProduct(models.Model):
 
         return res
 
+    @staticmethod
+    def update_product_purchase_ok(product_tmpl_id, purchase_ok):
+        api = OdooAPI()
+        res = {}
+
+        f = {
+            'purchase_ok': purchase_ok
+        }
+
+        try:
+            res["update"] = api.update('product.template', product_tmpl_id, f)
+        except Exception as e:
+            res["error"] = str(e)
+            print(str(e))
+
+        return res
+
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
 
@@ -432,7 +449,8 @@ class CagetteProducts(models.Model):
                     ptids.append(p["product_tmpl_id"][0])
 
             # Get products templates
-            f = ["id", "state", "name", "default_code", "qty_available", "incoming_qty", "uom_id"]
+            f = ["id", "state", "name", "default_code", "qty_available", "incoming_qty", "uom_id", "purchase_ok"]
+            # TODO fetch only 'purchase_ok' products ?
             c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]

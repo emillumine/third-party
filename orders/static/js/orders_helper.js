@@ -255,6 +255,55 @@ function is_product_related_to_supplier(product, supplier) {
     return product.suppliers.find(s => s.id === supplier.id) !== undefined;
 }
 
+/* - PRODUCT */
+
+/**
+ * Update 'purchase_ok' of a product
+ * 
+ 
+ * @param {int} p_id product id 
+ * @param {Boolean} npa value to set purchase_ok to
+ */
+function set_product_npa(p_id, npa) {
+    openModal();
+
+    const data = {
+        product_tmpl_id: p_id,
+        purchase_ok: !npa
+    };
+
+    // Fetch supplier products
+    $.ajax({
+        type: "POST",
+        url: "/products/update_product_purchase_ok",
+        dataType: "json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(data),
+        success: () => {
+            const index = products.findIndex(p => p.id == p_id);
+            products[index].purchase_ok = data["purchase_ok"];
+            update_order();
+
+            closeModal();
+        },
+        error: function(data) {
+            let msg = "erreur serveur lors de la sauvegarde du NPA".
+                msg += ` (product_tmpl_id: ${p_id})`;
+
+            err = {msg: msg, ctx: 'set_product_npa'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'orders');
+
+            closeModal();
+            alert('Erreur lors de la sauvegarde de la donnée. Veuillez ré-essayer plus tard.');
+            update_main_screen();
+        }
+    });
+}
+
 /* - INVENTORY */
 
 /**
@@ -331,13 +380,130 @@ function generate_inventory() {
     }
 }
 
+/* - ORDER */
+
+function goto_main_screen(doc) {
+    order_doc = doc;
+    products = order_doc.products;
+    selected_suppliers = order_doc.selected_suppliers;
+
+    update_order();
+    update_main_screen();
+    switch_screen();
+}
+
+function back() {
+    reset_data();
+    update_order_selection_screen();
+    switch_screen('order_selection');
+}
+
+/**
+ * Event fct: on click on an order button
+ */
+function order_pill_on_click() {
+    let order_name_container = $(this).find('.pill_order_name');
+    let doc_id = $(order_name_container).text();
+
+    dbc.get(doc_id).then((doc) => {
+        if (doc.last_update.fingerprint !== fingerprint) {
+            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
+            diff_str = ``;
+
+            if (time_diff.days !== 0) {
+                diff_str += `${time_diff.days} jour(s), `;
+            }
+            if (time_diff.hours !== 0) {
+                diff_str += `${time_diff.hours} heure(s), `;
+            }
+            if (time_diff.min !== 0) {
+                diff_str += `${time_diff.min} min, `;
+            }
+            diff_str += `${time_diff.sec}s`;
+
+            let modal_order_access = $('#templates #modal_order_access');
+
+            modal_order_access.find(".order_last_update").text(diff_str);
+
+            openModal(
+                modal_order_access.html(),
+                () => {
+                    goto_main_screen(doc);
+                },
+                'Valider'
+            );
+        } else {
+            goto_main_screen(doc);
+        }
+    })
+        .catch(function (err) {
+            if (err.status == 404) {
+                $.notify(
+                    "Cette commande n'existe plus.",
+                    {
+                        globalPosition:"top right",
+                        className: "error"
+                    }
+                );
+                update_order_selection_screen()
+            } else {
+                alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
+            }
+            console.log(err);
+        });
+}
+
+/**
+ * Create an order in couchdb if the name doesn't exist
+ */
+function create_order() {
+    const order_name = $("#new_order_name").val();
+
+    order_doc._id = order_name;
+    dbc.put(order_doc, function callback(err, result) {
+        if (!err) {
+            order_doc._rev = result.rev;
+            switch_screen();
+        } else {
+            if (err.status == 409) {
+                alert("Une commande porte déjà ce nom !");
+            }
+            console.log(err);
+        }
+    });
+}
+
+/**
+ * Update order data of an existing order in couchdb
+ */
+function update_order() {
+    order_doc.products = products;
+    order_doc.selected_suppliers = selected_suppliers;
+
+    // Save that current user last updated the order
+    order_doc.last_update = {
+        timestamp: Date.now(),
+        fingerprint: fingerprint
+    };
+
+    dbc.put(order_doc, function callback(err, result) {
+        if (!err && result !== undefined) {
+            order_doc._rev = result.rev;
+        } else {
+            alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
+            console.log(err);
+        }
+    });
+}
+
+
 /* - DISPLAY */
 
 /**
  * Create a string to represent a supplier column in product data
  * @returns String
  */
-function supplier_column_name(supplier) {
+ function supplier_column_name(supplier) {
     return `qty_supplier_${supplier.id}`;
 }
 
@@ -397,8 +563,9 @@ function prepare_datatable_data(product_ids = []) {
             id: product.id,
             name: product.name,
             default_code: product.default_code,
-            incoming_qty: +parseFloat(product.incoming_qty).toFixed(3), // + sign removes unecessary zeroes at the end
+            incoming_qty: +parseFloat(product.incoming_qty).toFixed(3), // '+' removes unecessary zeroes at the end
             qty_available: +parseFloat(product.qty_available).toFixed(3),
+            purchase_ok: product.purchase_ok,
             uom: product.uom_id[1]
         };
 
@@ -426,11 +593,12 @@ function prepare_datatable_columns() {
     columns = [
         {
             data: "id",
-            title:` <div id="table_header_select_all">
-                        Tout 
-                        <input type="checkbox" class="select_product_cb" id="select_all_products_cb" value="all">
+            title: `<div id="table_header_select_all" class="txtcenter">
+                        <span class="select_all_text">Sélectionner</span>
+                        <label for="select_all_products_cb">- Tout</label>
+                        <input type="checkbox" class="select_product_cb" id="select_all_products_cb" name="select_all_products_cb" value="all">
                     </div>`,
-            className:"dt-body-center",
+            className: "dt-body-center",
             orderable: false,
             render: function (data) {
                 return `<input type="checkbox" class="select_product_cb" id="select_product_${data}" value="${data}">`;
@@ -448,6 +616,16 @@ function prepare_datatable_columns() {
         {
             data: "name",
             title: "Produit"
+        },
+        {
+            data: "purchase_ok",
+            title: `NPA`,
+            className: "dt-body-center",
+            orderable: false,
+            render: function (data) {
+                return `<input type="checkbox" class="product_npa_cb" value="purchase_ok" ${data ? '' : 'checked'}>`;
+            },
+            width: "4%"
         },
         {
             data: "qty_available",
@@ -607,7 +785,7 @@ function display_products() {
             .toggleClass('selected');
 
         // Save / unsave selected row
-        p_id = products_table.row($(this).closest('tr')).data().id;
+        const p_id = products_table.row($(this).closest('tr')).data().id;
         if (this.checked) {
             selected_rows.push(p_id);
         } else {
@@ -615,6 +793,33 @@ function display_products() {
 
             selected_rows.splice(i, 1);
         }
+    });
+
+    // Set product is NPA (Ne Pas Acheter)
+    $('#products_table').on('click', 'tbody td .product_npa_cb', function () {
+        // Save / unsave selected row
+        const p_id = products_table.row($(this).closest('tr')).data().id;
+        const npa = this.checked;
+
+        const product = products.find(p => p.id == p_id);
+
+        let modal_product_npa = $('#templates #modal_product_npa');
+
+        modal_product_npa.find(".product_name").text(product.name);
+        modal_product_npa.find(".product_npa").text(npa ? 'Ne Pas Acheter' : 'Peut Être Acheté');
+
+        openModal(
+            modal_product_npa.html(),
+            () => {
+                set_product_npa(p_id, npa);
+            },
+            'Valider',
+            false,
+            true,
+            () => {
+                this.checked = !this.checked;
+            }
+        );
     });
 
     return 0;
@@ -732,111 +937,6 @@ function switch_screen(direction = 'main_screen') {
     });
     // Slide new box to regular place
     newBox.animate({ "left": "", "right": "" }, 800);
-}
-
-/* - ORDER */
-
-function goto_main_screen(doc) {
-    order_doc = doc;
-    products = order_doc.products;
-    selected_suppliers = order_doc.selected_suppliers;
-
-    update_order();
-    update_main_screen();
-    switch_screen();
-}
-
-function back() {
-    reset_data();
-    update_order_selection_screen();
-    switch_screen('order_selection');
-}
-
-/**
- * Event fct: on click on an order button
- */
-function order_pill_on_click() {
-    let order_name_container = $(this).find('.pill_order_name');
-    let doc_id = $(order_name_container).text();
-
-    dbc.get(doc_id).then((doc) => {
-        if (doc.last_update.fingerprint !== fingerprint) {
-            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
-            diff_str = ``;
-
-            if (time_diff.days !== 0) {
-                diff_str += `${time_diff.days} jour(s), `;
-            }
-            if (time_diff.hours !== 0) {
-                diff_str += `${time_diff.hours} heure(s), `;
-            }
-            if (time_diff.min !== 0) {
-                diff_str += `${time_diff.min} min, `;
-            }
-            diff_str += `${time_diff.sec}s`;
-
-            let modal_order_access = $('#templates #modal_order_access');
-
-            modal_order_access.find(".order_last_update").text(diff_str);
-
-            openModal(
-                modal_order_access.html(),
-                () => {
-                    goto_main_screen(doc);
-                },
-                'Valider'
-            );
-        } else {
-            goto_main_screen(doc);
-        }
-    })
-        .catch(function (err) {
-            alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
-            console.log(err);
-        });
-}
-
-/**
- * Create an order in couchdb if the name doesn't exist
- */
-function create_order() {
-    const order_name = $("#new_order_name").val();
-
-    order_doc._id = order_name;
-    dbc.put(order_doc, function callback(err, result) {
-        if (!err) {
-            order_doc._rev = result.rev;
-            switch_screen();
-        } else {
-            if (err.status == 409) {
-                alert("Une commande porte déjà ce nom !");
-            }
-            console.log(err);
-        }
-    });
-}
-
-/**
- * Update order data of an existing order in couchdb
- */
-function update_order() {
-    order_doc.products = products;
-    order_doc.selected_suppliers = selected_suppliers;
-
-    // Save that current user last updated the order
-    order_doc.last_update = {
-        timestamp: Date.now(),
-        fingerprint: fingerprint
-    };
-
-    dbc.put(order_doc, function callback(err, result) {
-        if (!err && result !== undefined) {
-            order_doc._rev = result.rev;
-        } else {
-            alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
-            console.log(err);
-        }
-    });
 }
 
 
