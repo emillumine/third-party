@@ -260,7 +260,6 @@ function is_product_related_to_supplier(product, supplier) {
 /**
  * Update 'purchase_ok' of a product
  * 
- 
  * @param {int} p_id product id 
  * @param {Boolean} npa value to set purchase_ok to
  */
@@ -382,22 +381,6 @@ function generate_inventory() {
 
 /* - ORDER */
 
-function goto_main_screen(doc) {
-    order_doc = doc;
-    products = order_doc.products;
-    selected_suppliers = order_doc.selected_suppliers;
-
-    update_order();
-    update_main_screen();
-    switch_screen();
-}
-
-function back() {
-    reset_data();
-    update_order_selection_screen();
-    switch_screen('order_selection');
-}
-
 /**
  * Event fct: on click on an order button
  */
@@ -499,6 +482,22 @@ function update_order() {
 
 /* - DISPLAY */
 
+function goto_main_screen(doc) {
+    order_doc = doc;
+    products = order_doc.products;
+    selected_suppliers = order_doc.selected_suppliers;
+
+    update_order();
+    update_main_screen();
+    switch_screen();
+}
+
+function back() {
+    reset_data();
+    update_order_selection_screen();
+    switch_screen('order_selection');
+}
+
 /**
  * Create a string to represent a supplier column in product data
  * @returns String
@@ -559,6 +558,9 @@ function prepare_datatable_data(product_ids = []) {
     }
 
     for (product of products_to_format) {
+        // Calculate product's total qty to buy
+        let qty_to_buy = 0;
+
         let item = {
             id: product.id,
             name: product.name,
@@ -569,17 +571,26 @@ function prepare_datatable_data(product_ids = []) {
             uom: product.uom_id[1]
         };
 
-        // If product not related to supplier : false ; else null (qty to be set) or qty
+        // If product related to supplier: qty or null (qty to be set)
         for (product_supplier of product.suppliers) {
-            item[supplier_column_name(product_supplier)] = ("qty" in product_supplier) ? product_supplier.qty : null;
+            let supplier_qty = ("qty" in product_supplier) ? product_supplier.qty : null;
+            item[supplier_column_name(product_supplier)] = supplier_qty;
+
+            // Update product's total qty to buy if qty set for this supplier 
+            if (supplier_qty !== null) {
+                // TODO calculate according to package_qty
+                qty_to_buy += supplier_qty;
+            }
         }
 
+        // If product not related to supplier: false;
         for (supplier of selected_suppliers) {
             if (!is_product_related_to_supplier(product, supplier)) {
                 item[supplier_column_name(supplier)] = false;
             }
         }
 
+        item.qty_to_buy = qty_to_buy;
         data.push(item);
     }
 
@@ -590,7 +601,7 @@ function prepare_datatable_data(product_ids = []) {
  * @returns Array of formatted data for datatable columns setup
  */
 function prepare_datatable_columns() {
-    columns = [
+    let columns = [
         {
             data: "id",
             title: `<div id="table_header_select_all" class="txtcenter">
@@ -630,11 +641,13 @@ function prepare_datatable_columns() {
         {
             data: "qty_available",
             title: "Stock",
+            className: "dt-body-center",
             width: "4%"
         },
         {
             data: "incoming_qty",
             title: "Quantité entrante",
+            className: "dt-body-center",
             width: "4%"
         }
     ];
@@ -662,6 +675,14 @@ function prepare_datatable_columns() {
     columns.push({
         data: "uom",
         title: "UDM",
+        className: "dt-body-center",
+        width: "4%"
+    });
+
+    columns.push({
+        data: "qty_to_buy",
+        title: "Qté Achat",
+        className: "dt-body-center",
         width: "4%"
     });
 
@@ -716,7 +737,7 @@ function display_products() {
 
     $('.main').show();
 
-    // Save value on inputs change
+    // On inputs change
     $('#products_table').on('input', 'tbody td .product_qty_input', function () {
         let val = parseFloat($(this).val());
 
@@ -727,7 +748,14 @@ function display_products() {
             const prod_id = id_split[1];
             const supplier_id = id_split[3];
 
+            // Save value
             save_product_supplier_qty(prod_id, supplier_id, val);
+            
+            // Update row
+            const product = products.find(p => p.id == prod_id);
+            const new_row_data = prepare_datatable_data([product.id])[0];
+            products_table.row($(this).closest('tr')).data(new_row_data).draw();
+
             update_order();
         }
     });

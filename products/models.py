@@ -436,7 +436,7 @@ class CagetteProducts(models.Model):
             today = datetime.date.today().strftime("%Y-%m-%d")
 
             # Get products/supplier relation
-            f = ["product_tmpl_id", 'date_start', 'date_end']
+            f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty']
             c = [['name', '=', int(supplier_id)]]
             psi = api.search_read('product.supplierinfo', c, f)
 
@@ -454,6 +454,14 @@ class CagetteProducts(models.Model):
             c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
+
+            # Add package qty to product data
+            for i, fp in enumerate(filtered_products_t):
+                psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
+                filtered_products_t[i]['supplierinfo'] = {
+                    'supplier_id': supplier_id,
+                    'package_qty': psi_item["package_qty"]
+                }
 
             # Note: if product.product is needed, get "product_variant_ids" from product template
 
