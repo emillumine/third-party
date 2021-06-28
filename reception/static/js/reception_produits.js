@@ -82,7 +82,6 @@ function select_product_from_bc(barcode) {
                 }
             });
 
-            console.log(found.data);
 
             if (found.data == null) {
                 $.each(list_processed, function(i, e) {
@@ -884,6 +883,7 @@ function editProductInfo (productToEdit, value = null) {
                 }
             }
         }
+
         // Update local storage of product order
         localStorage.setItem("order_" + productToEdit.id_po, JSON.stringify(orders[productToEdit.id_po]));
 
