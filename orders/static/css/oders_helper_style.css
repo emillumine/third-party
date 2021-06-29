@@ -72,14 +72,20 @@
     right: 0;
 }
 
-/* -- Supplier form */
-#supplier_form_container {
+/* -- Order data */
+#order_data_container {
     margin-top: 30px;
+    display: flex;  
+    justify-content: space-evenly;
 }
 
 #supplier_input {
-    width: 500px;
-    margin-right: 10px;
+    width: 350px;
+    border-radius: 5px;
+}
+
+#date_planned_input {
+    margin-left: 40px;
     border-radius: 5px;
 }
 
@@ -89,7 +95,9 @@
 }
 
 #products_table_filter input{
-    height: 40px;
+    height: 35px;
+    width: 300px;
+    border-radius: 10px;
 }
 
 #table_header_select_all{
@@ -125,6 +133,14 @@
     cursor: pointer;
 }
 
+/* -- Bottom action button */
+
+#orders_creation_area {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0 35px 0;
+}
+
 /* -- Suppliers list */
 #suppliers_container {
     display: flex;
@@ -142,4 +158,55 @@
     color: red;
     margin-left: 5px;
     cursor: pointer;
+}
+
+/* - Orders created screen */
+
+.order_created_header {
+    margin-top: 15px;
+    margin-bottom: 40px;
+}
+
+#created_orders_area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.new_order_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.download_order_file {
+    margin-top: 10px;
+}
+
+.download_order_file_button:hover {
+    text-decoration: none;
+    color: white;
+}
+
+#recap_delivery_date {
+    font-weight: bold;
+}
+
+.mail_example_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+    margin: 0 auto;
+}
+
+.mail_type_text {
+    width: 100%;
+}
+
+.mail_example {
+    background-color: #e7e9ed;
+    width: 100%;
+    padding: 15px;
 }
