@@ -816,6 +816,7 @@ function editProductInfo (productToEdit, value = null) {
                 productToEdit.old_qty = productToEdit.product_qty;
                 firstUpdate = true;
             }
+
             // Edit product info
             productToEdit.product_qty = newValue;
             /*
