@@ -61,7 +61,14 @@
         </div>
 
         <div id="orders_creation_area">
-            <div class="add_product_container"></div>
+            <div class="add_product_container">
+                <div id="product_form_container">
+                    <form action="javascript:;" id="product_form">
+                        <input type="text" name="article" id="product_input" placeholder="Rechercher un article">
+                        <button type="submit" class='btn--primary'>Ajouter l'article</button>
+                    </form>
+                </div>
+            </div>
             <button type="button" class='btn--primary' id="create_orders" style="display:none;">
                 Générer les commandes
             </button>

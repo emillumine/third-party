@@ -1,4 +1,5 @@
 var suppliers_list = [],
+    products_list = [],
     products_table = null,
     products = [],
     selected_suppliers = [],
@@ -66,6 +67,67 @@ function dates_diff(date1, date2) {
 
     return diff;
 }
+
+/* - PRODUCTS */
+
+/**
+ * Add a product.
+ *
+ * @returns -1 if validation failed, 0 otherwise
+ */
+function add_product() {
+    const user_input = $("#product_input").val();
+
+    // Check if user input is a valid article
+    const product = products_list.find(s => s.display_name === user_input);
+
+    if (product === undefined) {
+        alert("L'article renseigné n'est pas valide.\n"
+        + "Veuillez sélectionner un article dans la liste déroulante.");
+
+        return -1;
+    }
+
+    const product_exists = products.findIndex(p => p.name === user_input);
+
+    if (product_exists !== -1) {
+        alert("Cet article est déjà dans le tableau.");
+        $("#product_input").val('');
+
+        return -1;
+    }
+
+    $.ajax({
+        type: 'GET',
+        url: '/products/get_product_for_help_order_line/' + product.tpl_id,
+        dataType:"json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+            if (typeof data.id != "undefined") {
+                data.suppliersinfo = [];
+                data.default_code = ' ';
+                products.unshift(data);
+                update_main_screen({'sort_order_dir':'desc'});
+                update_cdb_order();
+            } else {
+                alert("L'article n'a pas toutes les caractéristiques pour être ajouté.")
+            }
+            $("#product_input").val('');
+        },
+        error: function(data) {
+            err = {msg: "erreur serveur lors de la récupération des données liées à l'article", ctx: 'get_product_for_help_order_line'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'orders');
+            alert('Erreur lors de la récupération des informations, réessayer plus tard.');
+        }
+    });
+    
+    return 0;
+}
+
 
 /* - SUPPLIERS */
 
@@ -842,7 +904,7 @@ function prepare_datatable_columns() {
 /**
  * Display the Datatable containing the products
  */
-function display_products() {
+function display_products(params) {
     if (products.length == 0) {
         $('.main').hide();
         $('#create_orders').hide();
@@ -859,14 +921,17 @@ function display_products() {
 
     const data = prepare_datatable_data();
     const columns = prepare_datatable_columns();
-
+    let sort_order_dir = "asc";
+    if (params != undefined && typeof params.sort_order_dir != "undefined") {
+        sort_order_dir = params.sort_order_dir;
+    }
     products_table = $('#products_table').DataTable({
         data: data,
         columns: columns,
         order: [
             [
-                5, // Order by default by first supplier
-                "asc"
+                6, // Order by default by first supplier
+                sort_order_dir
             ]
         ],
         stripeClasses: [], // Remove datatable cells coloring
@@ -1027,7 +1092,7 @@ function unselect_all_rows() {
 /**
  * Update DOM display on main screen
  */
-function update_main_screen() {
+function update_main_screen(params) {
     // Remove listener before recreating them
     $('#products_table').off('input', 'tbody td .product_qty_input');
     $('#products_table').off('click', 'tbody .product_not_from_supplier');
@@ -1037,7 +1102,7 @@ function update_main_screen() {
 
     $(".order_name_container").text(order_doc._id);
     display_suppliers();
-    display_products();
+    display_products(params);
 
     // Re-select previously selected rows
     if (selected_rows.length > 0) {
@@ -1192,6 +1257,11 @@ $(document).ready(function() {
         add_supplier();
     });
 
+    $("#product_form").on("submit", function(e) {
+        e.preventDefault();
+        add_product();
+    });
+
     $("#do_inventory").on("click", function() {
         generate_inventory();
     });
@@ -1304,7 +1374,7 @@ $(document).ready(function() {
                 source: suppliers_list.map(a => a.display_name)
             });
 
-            closeModal();
+            
         },
         error: function(data) {
             err = {msg: "erreur serveur lors de la récupération des fournisseurs", ctx: 'get_suppliers'};
@@ -1315,6 +1385,64 @@ $(document).ready(function() {
 
             closeModal();
             alert('Erreur lors de la récupération des fournisseurs, rechargez la page plus tard');
+        }
+    });
+
+    //Get products
+    var accentMap = {
+      "á": "a",
+      "à": "a",
+      "â": "a",
+      "é": "e",
+      "è": "e",
+      "ê": "e",
+      "ë": "e",
+      "ç": "c",
+      "ù": "u",
+      "ü": "u",
+      "ö": "o"
+    };
+
+    var normalize = function( term ) {
+      var ret = "";
+      for ( var i = 0; i < term.length; i++ ) {
+        ret += accentMap[ term.charAt(i) ] || term.charAt(i);
+      }
+      return ret;
+    };
+
+    $.ajax({
+        type: 'GET',
+        url: "/products/simple_list",
+        dataType:"json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+            products_list = data.list;
+
+            // Set up autocomplete on product input
+            $("#product_input").autocomplete({
+                source: function( request, response ) {
+                    var matcher = new RegExp( $.ui.autocomplete.escapeRegex( request.term ), "i" );
+                    response( $.grep( products_list.map(a => a.display_name), function( value ) {
+                      value = value.label || value.value || value;
+                      return matcher.test( value ) || matcher.test( normalize( value ) );
+                    }) );
+                },
+                position: {collision: "flip" }
+            });
+
+            closeModal();
+        },
+        error: function(data) {
+            err = {msg: "erreur serveur lors de la récupération des articles", ctx: 'get_products'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'orders');
+
+            closeModal();
+            alert('Erreur lors de la récupération des articles, rechargez la page plus tard');
         }
     });
 });
