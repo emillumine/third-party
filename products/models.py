@@ -165,8 +165,32 @@ class CagetteProduct(models.Model):
 
         return res
 
+    @staticmethod
+    def get_product_for_help_order_line(product_tmpl_id):
+        api = OdooAPI()
+        res = []
+        try:
+            f = ["id", "state", "name", "default_code", "qty_available", "incoming_qty", "uom_id", "purchase_ok"]
+            # TODO fetch only 'purchase_ok' products ?
+            c = [['id', '=', product_tmpl_id], ['purchase_ok', '=', True]]
+            products_t = api.search_read('product.template', c, f)
+            res = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
+        except Exception as e:
+            coop_logger.error("Odoo API get_product_for_help_order_line (tpl_id = %s) : %s", str(product_tmpl_id), str(e))
+        return res
+
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
+
+    @staticmethod
+    def get_simple_list():
+        res = []
+        api = OdooAPI()
+        try:
+            res = api.execute('lacagette.products', 'get_simple_list', {'only_purchase_ok': True})
+        except Exception as e:
+            coop_logger.error("Odoo api products simple list : %s", str(e))
+        return res
 
     @staticmethod
     def __unique_product_list(plist):

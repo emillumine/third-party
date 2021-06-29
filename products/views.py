@@ -26,6 +26,33 @@ def home(request):
 
     return HttpResponse(template.render(context, request))
 
+def get_simple_list(request):
+    res = {}
+    try:
+        res = CagetteProducts.get_simple_list()
+    except Exception as e:
+        coop_logger.error("Get products simple list : %s", str(e))
+        res['error'] = str(e)
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse(res, safe=False)
+
+
+def get_product_for_help_order_line(request, tpl_id):
+    res = {}
+    try:
+        result = CagetteProduct.get_product_for_help_order_line(tpl_id)
+        if len(result) == 1:
+            res = result[0]
+    except Exception as e:
+        coop_logger.error("get_product_for_help_order_line : %s", str(e))
+        res['error'] = str(e)
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse(res, safe=False)
+
 def get_product_data(request):
     barcode = request.GET['barcode']
     res = CagetteProduct.get_product_from_barcode(barcode)
