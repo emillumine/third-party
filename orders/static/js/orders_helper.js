@@ -285,6 +285,7 @@ function save_supplier_product_association(product, supplier, cell) {
             products_table.row(row).data(new_row_data)
                 .draw();
 
+            update_cdb_order();
             closeModal();
         },
         error: function(data) {
@@ -318,8 +319,13 @@ function save_supplier_products(supplier, new_products) {
         if (index === -1) {
             products.push(np);
         } else {
-            np_supplierinfo = np.suppliersinfo[0];
-            products[index].suppliersinfo.push(np_supplierinfo);
+            // Prevent adding ducplicate supplierinfo
+            let index_existing_supplierinfo = products[index].suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+
+            if (index_existing_supplierinfo === -1) {
+                np_supplierinfo = np.suppliersinfo[0];
+                products[index].suppliersinfo.push(np_supplierinfo);
+            }
         }
     }
 }
@@ -803,9 +809,6 @@ function prepare_datatable_data(product_ids = []) {
     }
 
     for (product of products_to_format) {
-        // Calculate product's total qty to buy
-        let qty_to_buy = 0;
-
         let item = {
             id: product.id,
             name: product.name,
@@ -815,18 +818,23 @@ function prepare_datatable_data(product_ids = []) {
             purchase_ok: product.purchase_ok,
             uom: product.uom_id[1]
         };
-
-        // If product related to supplier: qty or null (qty to be set)
-        for (product_supplier of product.suppliersinfo) {
-            let supplier_qty = ("qty" in product_supplier) ? product_supplier.qty : null;
-            item[supplier_column_name(product_supplier)] = supplier_qty;
+        
+        let qty_to_buy = 0;  // Calculate product's total qty to buy
+        let p_package_qties = [];  // Look for differences in package qties
+        for (product_supplierinfo of product.suppliersinfo) {
+            // Set qty for input if product related to supplier: qty or null (qty to be set)
+            let supplier_qty = ("qty" in product_supplierinfo) ? product_supplierinfo.qty : null;
+            item[supplier_column_name(product_supplierinfo)] = supplier_qty;
 
             // Update product's total qty to buy if qty set for this supplier 
             if (supplier_qty !== null) {
-                // TODO calculate according to package_qty
-                qty_to_buy += supplier_qty;
+                qty_to_buy += supplier_qty * product_supplierinfo.package_qty;
             }
+
+            p_package_qties.push(product_supplierinfo.package_qty)
         }
+
+        item.qty_to_buy = qty_to_buy;
 
         // If product not related to supplier: false;
         for (supplier of selected_suppliers) {
@@ -835,7 +843,14 @@ function prepare_datatable_data(product_ids = []) {
             }
         }
 
-        item.qty_to_buy = qty_to_buy;
+        if (p_package_qties.every( (val, i, arr) => val === arr[0] )) {
+            // If all package qties are all equals, ok
+            item.package_qty = p_package_qties[0];
+        } else {
+            // Else display an X
+            item.package_qty = 'X'
+        }
+        
         data.push(item);
     }
 
@@ -909,13 +924,38 @@ function prepare_datatable_columns() {
                 if (data === false) {
                     return `<div id="${base_id}_cell_content" class="cell_content">X</div>`;
                 } else {
-                    return `<div id="${base_id}_cell_content" class="cell_content">
-                                <input type="number" class="product_qty_input" id="${base_id}_qty_input" value=${data}>
-                            </div>`;
+                    let content =   `<div id="${base_id}_cell_content" class="cell_content">
+                                        <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="0" value=${data}>`;
+
+                    if (full.package_qty === 'X') {
+                        let product_data = products.find(p => p.id == full.id);
+                        if (product_data !== undefined) {
+                            let supplierinfo = product_data.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+                            content += `<span class="supplier_package_qty">Colisage : ${supplierinfo.package_qty}</span>`;
+                        }
+                    }
+
+                    content += `</div>`
+                    return content;
                 }
             }
         });
     }
+
+    columns.push({
+        data: "package_qty",
+        title: "Colisage",
+        className: "dt-body-center",
+        render: (data, type, full) => {
+            if (full.package_qty === 'X') {
+                return '<div class="tooltip">' + data + ' <span class="tooltiptext tt_twolines">Colisages différents !</span></div>'
+            } else {
+                return data;
+            }
+
+        },
+        width: "4%"
+    });
 
     columns.push({
         data: "uom",
@@ -990,11 +1030,11 @@ function display_products(params) {
     $('#do_inventory').show();
 
     // On inputs change
-    $('#products_table').on('input', 'tbody td .product_qty_input', function () {
+    $('#products_table').on('change', 'tbody td .product_qty_input', function () {
         let val = parseFloat($(this).val());
 
         // If value is a number
-        if (!isNaN(val)) {
+        if (!isNaN(val) && val >= 0) {
             const id_split = $(this).attr('id')
                 .split('_');
             const prod_id = id_split[1];
@@ -1009,6 +1049,8 @@ function display_products(params) {
             products_table.row($(this).closest('tr')).data(new_row_data).draw();
 
             update_cdb_order();
+        } else {
+            $(this).val('');
         }
     });
 
@@ -1041,18 +1083,22 @@ function display_products(params) {
 
         // Find existing price in another supplierinfo 
         let default_price = null;
+        let default_package_qty = 1;  // Default package qty is 1
         for (let psi of product.suppliersinfo) {
             if ('price' in psi && psi.price !== null) {
                 default_price = psi.price;
-                break;
+            }
+
+            if ('package_qty' in psi && psi.package_qty !== null) {
+                default_package_qty = psi.package_qty;
             }
         }
 
         // Set default value for price & package qty for new supplierinfo
-        $(".new_product_supplier_package_pty").val(1);  // Default package qty is 1
-        $(".new_product_supplier_price").val(default_price);    // Default price is existing price for other supplier
+        $(".new_product_supplier_package_pty").val(default_package_qty); 
+        $(".new_product_supplier_price").val(default_price);  // Default price is existing price for other supplier, or none if no other
         new_product_supplier_association = {
-            package_qty: 1,
+            package_qty: default_package_qty,
             price: default_price
         }
         
@@ -1150,7 +1196,7 @@ function unselect_all_rows() {
  */
 function update_main_screen(params) {
     // Remove listener before recreating them
-    $('#products_table').off('input', 'tbody td .product_qty_input');
+    $('#products_table').off('change', 'tbody td .product_qty_input');
     $('#products_table').off('click', 'tbody .product_not_from_supplier');
     $('#products_table').off('click', 'thead th #select_all_products_cb');
     $('#products_table').off('click', 'tbody td .select_product_cb');

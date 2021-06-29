@@ -120,6 +120,11 @@
     width: 100px;
 }
 
+.supplier_package_qty {
+    font-style: italic;
+    font-size: 1.3rem;
+}
+
 .product_not_from_supplier {
     background-color: #e7e9ed;
     cursor: pointer;
