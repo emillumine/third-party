@@ -54,7 +54,7 @@ def associate_supplier_to_product(request):
     res = {}
     try:
         data = json.loads(request.body.decode())
-        res = CagetteProduct.associate_supplier_to_product(data["product_tmpl_id"], data["supplier_id"])
+        res = CagetteProduct.associate_supplier_to_product(data)
     except Exception as e:
         res["error"] = str(e)
         return JsonResponse(res, status=500)

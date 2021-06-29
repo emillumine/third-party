@@ -19,7 +19,11 @@ var suppliers_list = [],
     },
     fingerprint = null,
     date_format = "dd/mm/yy"
-    product_orders = [];
+    product_orders = [],
+    new_product_supplier_association = {
+        package_qty: null,
+        price: null
+    };
 
 
 /* - UTILS */
@@ -28,9 +32,10 @@ var suppliers_list = [],
  * Reset data that changes between screens
  */
 function reset_data() {
-    products = [],
-    selected_suppliers = [],
-    selected_rows = [],
+    products = [];
+    selected_suppliers = [];
+    selected_rows = [];
+    product_orders = [];
     order_doc = {
         _id: null,
         date_planned: null,
@@ -40,6 +45,10 @@ function reset_data() {
         },
         products: [],
         selected_suppliers: []
+    };
+    new_product_supplier_association = {
+        package_qty: null,
+        price: null
     };
 }
 
@@ -225,9 +234,24 @@ function remove_supplier(supplier_id) {
 function save_supplier_product_association(product, supplier, cell) {
     openModal();
 
+    $('.new_product_supplier_price').off();
+    $('.new_product_supplier_package_pty').off();
+
+    const package_qty = parseFloat(new_product_supplier_association.package_qty);
+    const price = parseFloat(new_product_supplier_association.price);
+
+    // If value is a number
+    if (isNaN(package_qty) || isNaN(price)) {
+        closeModal();
+        alert(`Les champs "Prix" et "Colisage" doivent être remplis et valides. L'association n'a pas été sauvegardée.`)
+        return -1;
+    }
+
     const data = {
         product_tmpl_id: product.id,
-        supplier_id: supplier.id
+        supplier_id: supplier.id,
+        package_qty: package_qty,
+        price: price,
     };
 
     // Send request to create association
@@ -239,8 +263,18 @@ function save_supplier_product_association(product, supplier, cell) {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
         success: () => {
+            // Save supplierinfo in product
+            if (!'suppliersinfo' in product) {
+                product.suppliersinfo = []
+            }
+            
+            product.suppliersinfo.push({
+                supplier_id: supplier.id,
+                package_qty: package_qty,
+                price: price
+            })
+
             // Save relation locally
-            // TODO: save supplierinfo in product
             save_supplier_products(supplier, [product]);
 
             // Update table
@@ -674,8 +708,7 @@ function get_order_attachments() {
                 $('#created_orders_area .download_order_file_loading').hide()
                 $('#created_orders_area .download_order_file_button').show()
             },
-            error: function(data) {
-                console.log(data);
+            error: function() {
                 $.notify(
                     "Échec de la récupération du lien de téléchargement des fichiers. Nouvelle tentative dans 10s.",
                     {
@@ -907,7 +940,7 @@ function prepare_datatable_columns() {
 function display_products(params) {
     if (products.length == 0) {
         $('.main').hide();
-        $('#create_orders').hide();
+        $('#main_content_footer').hide();
         $('#do_inventory').hide();
 
         return -1;
@@ -953,7 +986,7 @@ function display_products(params) {
     });
 
     $('.main').show();
-    $('#create_orders').show();
+    $('#main_content_footer').show();
     $('#do_inventory').show();
 
     // On inputs change
@@ -1005,8 +1038,31 @@ function display_products(params) {
             'Valider',
             false
         );
-    });
 
+        // Find existing price in another supplierinfo 
+        let default_price = null;
+        for (let psi of product.suppliersinfo) {
+            if ('price' in psi && psi.price !== null) {
+                default_price = psi.price;
+                break;
+            }
+        }
+
+        // Set default value for price & package qty for new supplierinfo
+        $(".new_product_supplier_package_pty").val(1);  // Default package qty is 1
+        $(".new_product_supplier_price").val(default_price);    // Default price is existing price for other supplier
+        new_product_supplier_association = {
+            package_qty: 1,
+            price: default_price
+        }
+        
+        $('.new_product_supplier_price').on('input', function () {
+            new_product_supplier_association.price = $(this).val();
+        });
+        $('.new_product_supplier_package_pty').on('input', function () {
+            new_product_supplier_association.package_qty = $(this).val();
+        });
+    });
     // Select row(s) on checkbox change
     $(products_table.table().header()).on('click', 'th #select_all_products_cb', function () {
         if (this.checked) {

@@ -128,8 +128,13 @@ class CagetteProduct(models.Model):
         return res
 
     @staticmethod
-    def associate_supplier_to_product(product_tmpl_id, partner_id):
+    def associate_supplier_to_product(data):
         api = OdooAPI()
+
+        product_tmpl_id = data["product_tmpl_id"]
+        partner_id = data["supplier_id"]
+        package_qty = data["package_qty"]
+        price = data["price"]
 
         f = ["id", "standard_price", "purchase_ok"]
         c = [['product_tmpl_id', '=', product_tmpl_id]]
@@ -141,8 +146,9 @@ class CagetteProduct(models.Model):
             'product_id' : product["id"],
             'name' : partner_id,
             'product_purchase_ok': product["purchase_ok"],
-            'price': product["standard_price"],     # By default, use product price
-            'base_price': product["standard_price"],
+            'price': price,
+            'base_price': price,
+            'package_qty': package_qty
         }
         res = api.create('product.supplierinfo', f)
 

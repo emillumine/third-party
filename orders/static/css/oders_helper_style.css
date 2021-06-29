@@ -135,7 +135,7 @@
 
 /* -- Bottom action button */
 
-#orders_creation_area {
+#main_content_footer {
     display: flex;
     justify-content: space-between;
     margin: 15px 0 35px 0;
@@ -158,6 +158,25 @@
     color: red;
     margin-left: 5px;
     cursor: pointer;
+}
+
+/* -- Attach product to supplier modal */
+.new_product_supplier_input_area {
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.new_product_supplier_input, .new_product_supplier_label {
+    width:50%;
+    margin: 0 15px 0 15px;
+}
+
+.new_product_supplier_label {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
 /* - Orders created screen */
