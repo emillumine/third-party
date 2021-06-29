@@ -63,7 +63,6 @@ function searchUpdatedProduct() {
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
     try {
-
         if (editing_product == null) {
             let p = barcodes.get_corresponding_odoo_product(barcode);
 
@@ -82,11 +81,10 @@ function select_product_from_bc(barcode) {
                 }
             });
 
-
             if (found.data == null) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
-                        found.data =  JSON.parse(JSON.stringify(e));
+                        found.data = JSON.parse(JSON.stringify(e));
                         found.place = 'processed';
                     }
                 });
@@ -798,9 +796,7 @@ function editProductInfo (productToEdit, value = null) {
         var index = searchUpdatedProduct();
         var firstUpdate = false;
         let newValue = value;
-
         var addition = false;
-
 
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
