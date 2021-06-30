@@ -39,12 +39,11 @@ def get_simple_list(request):
         return JsonResponse(res, safe=False)
 
 
-def get_product_for_order_helper(request, tpl_id):
+def get_product_for_order_helper(request):
     res = {}
     try:
-        result = CagetteProducts.get_products_for_order_helper(None, [int(tpl_id)])
-        if len(result["products"]) == 1:
-            res = result["products"][0]
+        pids = json.loads(request.body.decode())
+        res = CagetteProducts.get_products_for_order_helper(None, pids)
     except Exception as e:
         coop_logger.error("get_product_for_help_order_line : %s", str(e))
         res['error'] = str(e)
