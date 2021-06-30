@@ -457,6 +457,17 @@ class CagetteProducts(models.Model):
         return bc_map
 
     @staticmethod
+    def get_template_products_sales_average(params={}):
+        api = OdooAPI()
+        res = {}
+        try:
+            res = api.execute('lacagette.products', 'get_template_products_sales_average', params)
+        except Exception as e:
+            coop_logger.error('get_template_products_sales_average %s (%s)', str(e), str(params))
+            res["error"] = str(e)
+        return res
+
+    @staticmethod
     def get_products_by_supplier(supplier_id):
         api = OdooAPI()
         res = {}
@@ -494,7 +505,13 @@ class CagetteProducts(models.Model):
             c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
-
+            # sales = CagetteProducts.get_template_products_sales_average({'ids': ptids, 'from': '2020-06-10', 'to': '2020-08-10'})
+            sales = CagetteProducts.get_template_products_sales_average({'ids': ptids})
+            if 'list' in sales and len(sales['list']) > 0:
+                sales = sales['list']
+            else:
+                sales = []
+            
             # Add supplier data to product data
             for i, fp in enumerate(filtered_products_t):
                 psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
@@ -503,10 +520,13 @@ class CagetteProducts(models.Model):
                     'package_qty': psi_item["package_qty"],
                     'price': psi_item["price"]
                 }]
+                for s in sales:
+                    if s["id"] == fp["id"]:
+                        filtered_products_t[i]['per_day_qty'] = s["average_qty"]
 
             res["products"] = filtered_products_t
         except Exception as e:
-            print(str(e))
+            coop_logger.error('get_products_by_supplier %s (%s)', str(e), str(supplier_id))
             res["error"] = str(e)
 
         return res
