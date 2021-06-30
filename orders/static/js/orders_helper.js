@@ -904,7 +904,8 @@ function prepare_datatable_data(product_ids = []) {
             qty_available: +parseFloat(product.qty_available).toFixed(3),
             daily_conso: product.daily_conso,
             purchase_ok: product.purchase_ok,
-            uom: product.uom_id[1]
+            uom: product.uom_id[1],
+            stats: "Ecart type: " + product.sigma + ", % jours sans vente = " + (product.vpc) * 100
         };
 
         const computed_data = _compute_product_data(product);
@@ -973,6 +974,9 @@ function prepare_datatable_columns() {
         {
             data: "daily_conso",
             title: "Conso moy /jour",
+            render: function (data, type, full) {
+                return '<div class="help" title="' + full.stats+ '">' + data + '</div>';
+            },
             className: "dt-body-center",
             width: "6%"
         }

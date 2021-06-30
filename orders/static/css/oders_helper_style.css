@@ -98,7 +98,7 @@
     width: 300px;
     border-radius: 10px;
 }
-
+#products_table .help {cursor: help;}
 #table_header_select_all{
     display: flex;
     align-content: center;
