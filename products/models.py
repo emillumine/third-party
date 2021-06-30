@@ -507,9 +507,7 @@ class CagetteProducts(models.Model):
                 #'to': '2019-08-10',
             }
             sales = CagetteProducts.get_template_products_sales_average(sales_average_params)
-            print('---- ptids')
-            print(ptids)
-            
+
             if 'list' in sales and len(sales['list']) > 0:
                 sales = sales['list']
             else:
