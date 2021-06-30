@@ -111,7 +111,7 @@ function add_product() {
 
     $.ajax({
         type: 'GET',
-        url: '/products/get_product_for_help_order_line/' + product.tpl_id,
+        url: '/products/get_product_for_order_helper/' + product.tpl_id,
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -123,7 +123,7 @@ function add_product() {
                 update_main_screen({'sort_order_dir':'desc'});
                 update_cdb_order();
             } else {
-                alert("L'article n'a pas toutes les caractéristiques pour être ajouté.")
+                alert("L'article n'a pas toutes les caractéristiques pour être ajouté.");
             }
             $("#product_input").val('');
         },
@@ -136,7 +136,7 @@ function add_product() {
             alert('Erreur lors de la récupération des informations, réessayer plus tard.');
         }
     });
-    
+
     return 0;
 }
 
@@ -145,13 +145,17 @@ function add_product() {
  * Set the computed qty for the first supplier only.
  */
 function compute_products_coverage_qties() {
-    for (const [key, product] of Object.entries(products)) {
+    for (const [
+        key,
+        product
+    ] of Object.entries(products)) {
         let purchase_qty_for_coverage = null;
 
         // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
         const stock = product.qty_available;
         const incoming_qty = product.incoming_qty;
         const daily_conso = product.daily_conso;
+
         purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
         purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
 
@@ -204,6 +208,7 @@ function add_supplier() {
     selected_suppliers.push(supplier);
 
     let url = "/orders/get_supplier_products";
+
     url += "?sid=" + encodeURIComponent(supplier.id);
 
     // Fetch supplier products
@@ -276,7 +281,8 @@ function save_supplier_product_association(product, supplier, cell) {
     // If value is a number
     if (isNaN(package_qty) || isNaN(price)) {
         closeModal();
-        alert(`Les champs "Prix" et "Colisage" doivent être remplis et valides. L'association n'a pas été sauvegardée.`)
+        alert(`Les champs "Prix" et "Colisage" doivent être remplis et valides. L'association n'a pas été sauvegardée.`);
+
         return -1;
     }
 
@@ -284,7 +290,7 @@ function save_supplier_product_association(product, supplier, cell) {
         product_tmpl_id: product.id,
         supplier_id: supplier.id,
         package_qty: package_qty,
-        price: price,
+        price: price
     };
 
     // Send request to create association
@@ -297,15 +303,15 @@ function save_supplier_product_association(product, supplier, cell) {
         data: JSON.stringify(data),
         success: () => {
             // Save supplierinfo in product
-            if (!'suppliersinfo' in product) {
-                product.suppliersinfo = []
+            if (!('suppliersinfo' in product)) {
+                product.suppliersinfo = [];
             }
-            
+
             product.suppliersinfo.push({
                 supplier_id: supplier.id,
                 package_qty: package_qty,
                 price: price
-            })
+            });
 
             // Save relation locally
             save_supplier_products(supplier, [product]);
@@ -335,6 +341,8 @@ function save_supplier_product_association(product, supplier, cell) {
             alert('Erreur lors de la sauvegarde de l\'association. Veuillez ré-essayer plus tard.');
         }
     });
+
+    return 0;
 }
 
 /**
@@ -398,8 +406,8 @@ function is_product_related_to_supplier(product, supplier) {
 
 /**
  * Update 'purchase_ok' of a product
- * 
- * @param {int} p_id product id 
+ *
+ * @param {int} p_id product id
  * @param {Boolean} npa value to set purchase_ok to
  */
 function set_product_npa(p_id, npa) {
@@ -420,6 +428,7 @@ function set_product_npa(p_id, npa) {
         data: JSON.stringify(data),
         success: () => {
             const index = products.findIndex(p => p.id == p_id);
+
             products[index].purchase_ok = data["purchase_ok"];
             update_cdb_order();
 
@@ -567,7 +576,7 @@ function order_pill_on_click() {
                         className: "error"
                     }
                 );
-                update_order_selection_screen()
+                update_order_selection_screen();
             } else {
                 alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
             }
@@ -656,7 +665,7 @@ function create_orders() {
                     'price_unit': p_supplierinfo.price,
                     'supplier_taxes_id': p.supplier_taxes_id,
                     'product_variant_ids': p.product_variant_ids
-                })
+                });
             }
         }
     }
@@ -664,6 +673,7 @@ function create_orders() {
     if (Object.keys(orders_data.suppliers_data).length === 0) {
         closeModal();
         alert("Commande non créée : vous n'avez rentré aucune quantité !");
+
         return -1;
     }
 
@@ -685,9 +695,10 @@ function create_orders() {
                     'id': new_order.id_po,
                     'supplier_id': new_order.supplier_id,
                     'supplier_name': supplier_name
-                })
+                });
 
                 let new_order_template = $("#templates #new_order_item_template");
+
                 new_order_template.find(".new_order_supplier_name").text(supplier_name);
                 new_order_template.find(".new_order_po").text(`PO${new_order.id_po}`);
                 new_order_template.find(".download_order_file_button").attr('id', `download_attachment_${new_order.id_po}`);
@@ -708,7 +719,8 @@ function create_orders() {
             closeModal();
         },
         error: function(data) {
-            let msg = "erreur serveur lors de la création des product orders"
+            let msg = "erreur serveur lors de la création des product orders";
+
             err = {msg: msg, ctx: 'save_supplier_product_association', data: orders_data};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
@@ -719,6 +731,8 @@ function create_orders() {
             alert('Erreur lors de la création des commandes. Veuillez ré-essayer plus tard.');
         }
     });
+
+    return 0;
 }
 
 /**
@@ -741,11 +755,11 @@ function get_order_attachments() {
             contentType: "application/json; charset=utf-8",
             success: function(data) {
                 for (let res_po of data.res) {
-                    $(`#download_attachment_${res_po.id_po}`).attr('href', `${odoo_server}/web/content/${res_po.id_attachment}?download=true`)
+                    $(`#download_attachment_${res_po.id_po}`).attr('href', `${odoo_server}/web/content/${res_po.id_attachment}?download=true`);
                 }
 
-                $('#created_orders_area .download_order_file_loading').hide()
-                $('#created_orders_area .download_order_file_button').show()
+                $('#created_orders_area .download_order_file_loading').hide();
+                $('#created_orders_area .download_order_file_button').show();
             },
             error: function() {
                 $.notify(
@@ -755,7 +769,7 @@ function get_order_attachments() {
                         className: "error"
                     }
                 );
-                
+
                 setTimeout(get_order_attachments, 10000);
             }
         });
@@ -787,8 +801,10 @@ function back() {
  * Create a string to represent a supplier column in product data
  * @returns String
  */
- function supplier_column_name(supplier) {
-    const supplier_id = ('supplier_id' in supplier) ? supplier.supplier_id : supplier.id
+function supplier_column_name(supplier) {
+    const supplier_id = ('supplier_id' in supplier) ? supplier.supplier_id : supplier.id;
+
+
     return `qty_supplier_${supplier_id}`;
 }
 
@@ -833,15 +849,16 @@ function _compute_product_data(product) {
     let item = {};
 
     /* Supplier related data */
-    let purchase_qty = 0;  // Calculate product's total purchase qty
-    let p_package_qties = [];  // Look for differences in package qties
+    let purchase_qty = 0; // Calculate product's total purchase qty
+    let p_package_qties = []; // Look for differences in package qties
 
     for (let p_supplierinfo of product.suppliersinfo) {
         // Preset qty for input if product related to supplier: existing qty or null (null -> qty to be set, display an empty input)
         let supplier_qty = ("qty" in p_supplierinfo) ? p_supplierinfo.qty : null;
+
         item[supplier_column_name(p_supplierinfo)] = supplier_qty;
 
-        // Update product's total qty to buy if qty set for this supplier 
+        // Update product's total qty to buy if qty set for this supplier
         if (supplier_qty !== null) {
             purchase_qty += +parseFloat(supplier_qty * p_supplierinfo.package_qty).toFixed(2);
         }
@@ -859,26 +876,27 @@ function _compute_product_data(product) {
         }
     }
 
-    if (p_package_qties.every( (val, i, arr) => val === arr[0] )) {
+    if (p_package_qties.length == 0 || !p_package_qties.every((val, i, arr) => val === arr[0])) {
+        // Don't display package qty if no supplierinf or if not all package qties are equals,
+        item.package_qty = 'X';
+    } else {
         // If all package qties are equals, display it
         item.package_qty = p_package_qties[0];
-    } else {
-        // Else display an X
-        item.package_qty = 'X';
     }
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
         let unmet_needs = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+
         unmet_needs = -Math.round(unmet_needs);
         unmet_needs = (unmet_needs > 0) ? 0 : unmet_needs;
-    
+
         item.unmet_needs = unmet_needs;
     } else {
         item.unmet_needs = 'X';
     }
 
-    return item
+    return item;
 }
 
 /**
@@ -992,20 +1010,23 @@ function prepare_datatable_columns() {
                 const base_id = `product_${full.id}_supplier_${supplier.id}`;
 
                 if (data === false) {
-                    return `<div id="${base_id}_cell_content" class="cell_content">X</div>`;
+                    return `<div id="${base_id}_cell_content" class="custom_cell_content">X</div>`;
                 } else {
-                    let content =   `<div id="${base_id}_cell_content" class="cell_content">
+                    let content = `<div id="${base_id}_cell_content" class="custom_cell_content">
                                         <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="0" value=${data}>`;
 
                     if (full.package_qty === 'X') {
                         let product_data = products.find(p => p.id == full.id);
+
                         if (product_data !== undefined) {
                             let supplierinfo = product_data.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+
                             content += `<span class="supplier_package_qty">Colisage : ${supplierinfo.package_qty}</span>`;
                         }
                     }
 
-                    content += `</div>`
+                    content += `</div>`;
+
                     return content;
                 }
             }
@@ -1016,14 +1037,6 @@ function prepare_datatable_columns() {
         data: "package_qty",
         title: "Colisage",
         className: "dt-body-center",
-        render: (data, type, full) => {
-            if (full.package_qty === 'X') {
-                return '<div class="tooltip">' + data + ' <span class="tooltiptext tt_twolines">Colisages différents !</span></div>'
-            } else {
-                return data;
-            }
-
-        },
         width: "4%"
     });
 
@@ -1072,6 +1085,7 @@ function display_products(params) {
     const data = prepare_datatable_data();
     const columns = prepare_datatable_columns();
     let sort_order_dir = "asc";
+
     if (params != undefined && typeof params.sort_order_dir != "undefined") {
         sort_order_dir = params.sort_order_dir;
     }
@@ -1109,6 +1123,7 @@ function display_products(params) {
     // On inputs change
     $('#products_table').on('change', 'tbody td .product_qty_input', function () {
         let val = ($(this).val() == '') ? 0 : $(this).val();
+
         val = parseFloat(val);
 
         // If value is a number
@@ -1120,11 +1135,13 @@ function display_products(params) {
 
             // Save value
             save_product_supplier_qty(prod_id, supplier_id, val);
-            
+
             // Update row
             const product = products.find(p => p.id == prod_id);
             const new_row_data = prepare_datatable_data([product.id])[0];
-            products_table.row($(this).closest('tr')).data(new_row_data).draw();
+
+            products_table.row($(this).closest('tr')).data(new_row_data)
+                .draw();
 
             update_cdb_order();
         } else {
@@ -1159,9 +1176,10 @@ function display_products(params) {
             false
         );
 
-        // Find existing price in another supplierinfo 
+        // Find existing price in another supplierinfo
         let default_price = null;
-        let default_package_qty = 1;  // Default package qty is 1
+        let default_package_qty = 1; // Default package qty is 1
+
         for (let psi of product.suppliersinfo) {
             if ('price' in psi && psi.price !== null) {
                 default_price = psi.price;
@@ -1173,13 +1191,13 @@ function display_products(params) {
         }
 
         // Set default value for price & package qty for new supplierinfo
-        $(".new_product_supplier_package_pty").val(default_package_qty); 
-        $(".new_product_supplier_price").val(default_price);  // Default price is existing price for other supplier, or none if no other
+        $(".new_product_supplier_package_pty").val(default_package_qty);
+        $(".new_product_supplier_price").val(default_price); // Default price is existing price for other supplier, or none if no other
         new_product_supplier_association = {
             package_qty: default_package_qty,
             price: default_price
-        }
-        
+        };
+
         $('.new_product_supplier_price').on('input', function () {
             new_product_supplier_association.price = $(this).val();
         });
@@ -1213,6 +1231,7 @@ function display_products(params) {
 
         // Save / unsave selected row
         const p_id = products_table.row($(this).closest('tr')).data().id;
+
         if (this.checked) {
             selected_rows.push(p_id);
         } else {
@@ -1302,7 +1321,9 @@ function update_main_screen(params) {
     if (order_doc.date_planned !== null) {
         // Switch format from yy-mm-dd hh:mm:ss to readable dd/mm/yy
         let date_to_format = order_doc.date_planned.split(' ')[0];
-        let readable_date = date_to_format.split('-').reverse().join('/');
+        let readable_date = date_to_format.split('-').reverse()
+            .join('/');
+
         $("#date_planned_input").val(readable_date);
     } else {
         $("#date_planned_input").val('');
@@ -1363,11 +1384,11 @@ function switch_screen(direction = 'main_screen', from = 'main_screen') {
         let oldBox = null;
         let newBox = null;
         let outerWidth = null;
-    
+
         if (direction === 'main_screen') {
             oldBox = $("#select_order_content");
             newBox = $("#main_content");
-    
+
             outerWidth = oldBox.outerWidth(true);
         } else {
             if (from === 'orders_created') {
@@ -1375,12 +1396,12 @@ function switch_screen(direction = 'main_screen', from = 'main_screen') {
             } else {
                 oldBox = $("#main_content");
             }
-            
+
             newBox = $("#select_order_content");
-    
+
             outerWidth = - oldBox.outerWidth(true);
         }
-    
+
         // Display the new box and place it on the right of the screen
         newBox.css({ "left": outerWidth + "px", "right": -outerWidth + "px", "display": "" });
         // Make the old content slide to the left
@@ -1441,6 +1462,7 @@ $(document).ready(function() {
     $("#coverage_form").on("submit", function(e) {
         e.preventDefault();
         let val = $("#coverage_days_input").val();
+
         val = parseInt(val);
 
         if (!isNaN(val)) {
@@ -1450,7 +1472,7 @@ $(document).ready(function() {
             update_main_screen();
         } else {
             $("#coverage_days_input").val(order_doc.coverage_days);
-            alert(`Valeur non valide pour le nombre de jours de couverture !`)
+            alert(`Valeur non valide pour le nombre de jours de couverture !`);
         }
     });
 
@@ -1474,8 +1496,9 @@ $(document).ready(function() {
 
     $('#create_orders').on('click', function() {
         if (order_doc.date_planned === null) {
-            alert("Veuillez rentrer une date de livraison prévue.")
-            return -1
+            alert("Veuillez rentrer une date de livraison prévue.");
+
+            return -1;
         }
 
         let modal_create_order = $('#templates #modal_create_order');
@@ -1488,6 +1511,8 @@ $(document).ready(function() {
             'Valider',
             false
         );
+
+        return 0;
     });
 
     $.datepicker.regional['fr'] = {
@@ -1514,12 +1539,13 @@ $(document).ready(function() {
             'Ve',
             'Sa'
         ],
-        dateFormat: date_format,
+        dateFormat: date_format
     };
     $.datepicker.setDefaults($.datepicker.regional['fr']);
 
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrow = new Date();
+
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
     $("#date_planned_input")
         .datepicker({
@@ -1531,9 +1557,12 @@ $(document).ready(function() {
                 // When date input changes, try to read date
                 $.datepicker.parseDate(date_format, $(this).val());
 
-                // No exception raised: date is valid. 
+                // No exception raised: date is valid.
                 // Change format from readable (dd/mm/yy) to ISO (yy-mm-dd)
-                let formatted_date = $(this).val().split('/').reverse().join('-') + ' 00:00:00';
+                let formatted_date = $(this).val()
+                    .split('/')
+                    .reverse()
+                    .join('-') + ' 00:00:00';
 
                 // Update doc if changed
                 if (formatted_date !== order_doc.date_planned) {
@@ -1576,7 +1605,7 @@ $(document).ready(function() {
                 source: suppliers_list.map(a => a.display_name)
             });
 
-            
+
         },
         error: function(data) {
             err = {msg: "erreur serveur lors de la récupération des fournisseurs", ctx: 'get_suppliers'};
@@ -1592,25 +1621,27 @@ $(document).ready(function() {
 
     //Get products
     var accentMap = {
-      "á": "a",
-      "à": "a",
-      "â": "a",
-      "é": "e",
-      "è": "e",
-      "ê": "e",
-      "ë": "e",
-      "ç": "c",
-      "ù": "u",
-      "ü": "u",
-      "ö": "o"
+        "á": "a",
+        "à": "a",
+        "â": "a",
+        "é": "e",
+        "è": "e",
+        "ê": "e",
+        "ë": "e",
+        "ç": "c",
+        "ù": "u",
+        "ü": "u",
+        "ö": "o"
     };
 
-    var normalize = function( term ) {
-      var ret = "";
-      for ( var i = 0; i < term.length; i++ ) {
-        ret += accentMap[ term.charAt(i) ] || term.charAt(i);
-      }
-      return ret;
+    var normalize = function(term) {
+        var ret = "";
+
+        for (var i = 0; i < term.length; i++) {
+            ret += accentMap[ term.charAt(i) ] || term.charAt(i);
+        }
+
+        return ret;
     };
 
     $.ajax({
@@ -1624,12 +1655,14 @@ $(document).ready(function() {
 
             // Set up autocomplete on product input
             $("#product_input").autocomplete({
-                source: function( request, response ) {
-                    var matcher = new RegExp( $.ui.autocomplete.escapeRegex( request.term ), "i" );
-                    response( $.grep( products_list.map(a => a.display_name), function( value ) {
-                      value = value.label || value.value || value;
-                      return matcher.test( value ) || matcher.test( normalize( value ) );
-                    }) );
+                source: function(request, response) {
+                    var matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
+
+                    response($.grep(products_list.map(a => a.display_name), function(value) {
+                        value = value.label || value.value || value;
+
+                        return matcher.test(value) || matcher.test(normalize(value));
+                    }));
                 },
                 position: {collision: "flip" }
             });

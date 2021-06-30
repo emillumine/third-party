@@ -42,7 +42,7 @@ def get_supplier_products(request):
     """ Get supplier products """
 
     sid = request.GET.get('sid', '')
-    res = CagetteProducts.get_products_by_supplier(sid)
+    res = CagetteProducts.get_products_for_order_helper(sid)
     
     if 'error' in res:
         return JsonResponse(res, status=500)

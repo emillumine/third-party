@@ -115,6 +115,13 @@
     margin-left: 5px;
 }
 
+.custom_cell_content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .product_qty_input {
     width: 100px;
 }

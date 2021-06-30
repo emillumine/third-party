@@ -171,19 +171,6 @@ class CagetteProduct(models.Model):
 
         return res
 
-    @staticmethod
-    def get_product_for_help_order_line(product_tmpl_id):
-        api = OdooAPI()
-        res = []
-        try:
-            f = ["id", "state", "name", "default_code", "qty_available", "incoming_qty", "uom_id", "purchase_ok"]
-            # TODO fetch only 'purchase_ok' products ?
-            c = [['id', '=', product_tmpl_id], ['purchase_ok', '=', True]]
-            products_t = api.search_read('product.template', c, f)
-            res = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
-        except Exception as e:
-            coop_logger.error("Odoo API get_product_for_help_order_line (tpl_id = %s) : %s", str(product_tmpl_id), str(e))
-        return res
 
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
@@ -468,7 +455,12 @@ class CagetteProducts(models.Model):
         return res
 
     @staticmethod
-    def get_products_by_supplier(supplier_id):
+    def get_products_for_order_helper(supplier_id, pids = []):
+        """ 
+            One of the two parameters must be set.
+            Get products by supplier if a supplier_id is set. 
+            If supplier_id is None, get products specified in pids.
+        """
         api = OdooAPI()
         res = {}
 
@@ -476,18 +468,21 @@ class CagetteProducts(models.Model):
         try:
             today = datetime.date.today().strftime("%Y-%m-%d")
 
-            # Get products/supplier relation
-            f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price']
-            c = [['name', '=', int(supplier_id)]]
-            psi = api.search_read('product.supplierinfo', c, f)
+            if supplier_id is not None:
+                # Get products/supplier relation
+                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price']
+                c = [['name', '=', int(supplier_id)]]
+                psi = api.search_read('product.supplierinfo', c, f)
 
-            # Filter valid data
-            ptids = []
-            for p in psi:
-                if (p["product_tmpl_id"] is not False 
-                    and (p["date_start"] is False or p["date_end"] is not False and p["date_start"] <= today) 
-                    and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
-                    ptids.append(p["product_tmpl_id"][0])
+                # Filter valid data
+                ptids = []
+                for p in psi:
+                    if (p["product_tmpl_id"] is not False 
+                        and (p["date_start"] is False or p["date_end"] is not False and p["date_start"] <= today) 
+                        and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
+                        ptids.append(p["product_tmpl_id"][0])
+            else:
+                ptids = pids
 
             # Get products templates
             f = [
@@ -506,10 +501,11 @@ class CagetteProducts(models.Model):
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
 
-            sales_average_params = {'ids': ptids, 
-                                    #'from': '2019-06-10', 
-                                    #'to': '2019-08-10',
-                                    }
+            sales_average_params = {
+                'ids': ptids, 
+                #'from': '2019-06-10', 
+                #'to': '2019-08-10',
+            }
             sales = CagetteProducts.get_template_products_sales_average(sales_average_params)
 
             if 'list' in sales and len(sales['list']) > 0:
@@ -519,12 +515,13 @@ class CagetteProducts(models.Model):
             
             # Add supplier data to product data
             for i, fp in enumerate(filtered_products_t):
-                psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
-                filtered_products_t[i]['suppliersinfo'] = [{
-                    'supplier_id': int(supplier_id),
-                    'package_qty': psi_item["package_qty"],
-                    'price': psi_item["price"]
-                }]
+                if supplier_id is not None:
+                    psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
+                    filtered_products_t[i]['suppliersinfo'] = [{
+                        'supplier_id': int(supplier_id),
+                        'package_qty': psi_item["package_qty"],
+                        'price': psi_item["price"]
+                    }]
 
                 for s in sales:
                     if s["id"] == fp["id"]:
@@ -534,7 +531,7 @@ class CagetteProducts(models.Model):
 
             res["products"] = filtered_products_t
         except Exception as e:
-            coop_logger.error('get_products_by_supplier %s (%s)', str(e), str(supplier_id))
+            coop_logger.error('get_products_for_order_helper %s (%s)', str(e), str(supplier_id))
             res["error"] = str(e)
 
         return res
