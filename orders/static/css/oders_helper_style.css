@@ -66,10 +66,20 @@
     position: absolute;
 }
 
-#actions_buttons_area {
+#main_content .actions_buttons_area {
     position: absolute;
+    width: 100%;
     top: 0;
-    right: 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+#orders_created .actions_buttons_area {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    display: flex;
+    justify-content: flex-start;
 }
 
 /* -- Order data */
@@ -193,7 +203,6 @@
 /* - Orders created screen */
 
 .order_created_header {
-    margin-top: 15px;
     margin-bottom: 40px;
 }
 

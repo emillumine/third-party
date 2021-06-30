@@ -482,7 +482,7 @@ class CagetteProducts(models.Model):
                         and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
                         ptids.append(p["product_tmpl_id"][0])
             else:
-                ptids = pids
+                ptids = [ int(x) for x in pids ]
 
             # Get products templates
             f = [

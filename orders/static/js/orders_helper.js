@@ -27,6 +27,8 @@ var dbc = null,
     },
     fingerprint = null;
 
+var clicked_order_pill = null;
+
 
 /* - UTILS */
 
@@ -53,6 +55,7 @@ function reset_data() {
         package_qty: null,
         price: null
     };
+    clicked_order_pill = null;
 }
 
 /**
@@ -109,17 +112,32 @@ function add_product() {
         return -1;
     }
 
+    /* 
+    onst product_ids = products.map(p => p.id);
+
+        if (product_ids.length > 0) {
+            clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+
+            $.ajax({
+                type: 'POST',
+                url: '/products/get_product_for_order_helper',
+                data: JSON.stringify(product_ids),
+                dataType:"json",
+    */
+
     $.ajax({
-        type: 'GET',
-        url: '/products/get_product_for_order_helper/' + product.tpl_id,
+        type: 'POST',
+        url: '/products/get_product_for_order_helper',
+        data: JSON.stringify([product.tpl_id]),
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
-            if (typeof data.id != "undefined") {
-                data.suppliersinfo = [];
-                data.default_code = ' ';
-                products.unshift(data);
+            let res = data.products[0];
+            if (typeof res.id != "undefined") {
+                res.suppliersinfo = [];
+                res.default_code = ' ';
+                products.unshift(res);
                 update_main_screen({'sort_order_dir':'desc'});
                 update_cdb_order();
             } else {
@@ -172,6 +190,51 @@ function compute_products_coverage_qties() {
         // Set qty to purchase for first supplier only
         products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
     }
+}
+
+/**
+ * Update order products data in case they have changed.
+ */
+function check_products_data() {
+    return new Promise((resolve, reject) => {
+        const product_ids = products.map(p => p.id);
+
+        if (product_ids.length > 0) {
+            clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+
+            $.ajax({
+                type: 'POST',
+                url: '/products/get_product_for_order_helper',
+                data: JSON.stringify(product_ids),
+                dataType:"json",
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                success: function(data) {
+                    for (let product of data.products) {
+                        const p_index = products.findIndex(p => p.id == product.id);
+
+                        // Override products data with new data
+                        products[p_index] = { ...products[p_index], ...product };
+                    }
+
+                    resolve();
+                },
+                error: function(data) {
+                    err = {msg: "erreur serveur lors de la vérification des données des articles", ctx: 'check_products_data'};
+                    if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                        err.msg += ' : ' + data.responseJSON.error;
+                    }
+                    report_JS_error(err, 'orders');
+                    alert(`Erreur lors de la vérification des données des articles. Certaines données peuvent être erronées`);
+
+                    // Don't block process if this call fails
+                    resolve();
+                }
+            });
+        } else {
+            resolve();
+        }
+    });
 }
 
 
@@ -533,7 +596,8 @@ function generate_inventory() {
  * Event fct: on click on an order button
  */
 function order_pill_on_click() {
-    let order_name_container = $(this).find('.pill_order_name');
+    clicked_order_pill = $(this);
+    let order_name_container = clicked_order_pill.find('.pill_order_name');
     let doc_id = $(order_name_container).text();
 
     dbc.get(doc_id).then((doc) => {
@@ -784,11 +848,12 @@ function goto_main_screen(doc) {
     products = order_doc.products;
     selected_suppliers = order_doc.selected_suppliers;
 
-    // TODO update products moving data (stock, qté entrante, conso moy/jour)
-
-    update_cdb_order();
-    update_main_screen();
-    switch_screen();
+    check_products_data()
+        .then(() => {
+            update_cdb_order();
+            update_main_screen();
+            switch_screen();
+        })
 }
 
 function back() {
@@ -1344,8 +1409,8 @@ function update_order_selection_screen() {
     $(".order_pill").off();
 
     let existing_orders_container = $("#existing_orders");
-
     existing_orders_container.empty();
+    $('#new_order_name').val('');
 
     dbc.allDocs({
         include_docs: true
