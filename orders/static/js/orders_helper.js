@@ -111,7 +111,7 @@ function add_product() {
 
     $.ajax({
         type: 'GET',
-        url: '/products/get_product_for_help_order_line/' + product.tpl_id,
+        url: '/products/get_product_for_order_helper/' + product.tpl_id,
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -567,7 +567,7 @@ function order_pill_on_click() {
                         className: "error"
                     }
                 );
-                update_order_selection_screen()
+                update_order_selection_screen();
             } else {
                 alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
             }
@@ -859,13 +859,13 @@ function _compute_product_data(product) {
         }
     }
 
-    if (p_package_qties.every( (val, i, arr) => val === arr[0] )) {
+    if (p_package_qties.length == 0 || !p_package_qties.every( (val, i, arr) => val === arr[0] )) {
+        // Don't display package qty if no supplierinf or if not all package qties are equals,
+        item.package_qty = 'X';
+    } else {
         // If all package qties are equals, display it
         item.package_qty = p_package_qties[0];
-    } else {
-        // Else display an X
-        item.package_qty = 'X';
-    }
+    } 
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
@@ -988,9 +988,9 @@ function prepare_datatable_columns() {
                 const base_id = `product_${full.id}_supplier_${supplier.id}`;
 
                 if (data === false) {
-                    return `<div id="${base_id}_cell_content" class="cell_content">X</div>`;
+                    return `<div id="${base_id}_cell_content" class="custom_cell_content">X</div>`;
                 } else {
-                    let content =   `<div id="${base_id}_cell_content" class="cell_content">
+                    let content =   `<div id="${base_id}_cell_content" class="custom_cell_content">
                                         <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="0" value=${data}>`;
 
                     if (full.package_qty === 'X') {
@@ -1012,14 +1012,6 @@ function prepare_datatable_columns() {
         data: "package_qty",
         title: "Colisage",
         className: "dt-body-center",
-        render: (data, type, full) => {
-            if (full.package_qty === 'X') {
-                return '<div class="tooltip">' + data + ' <span class="tooltiptext tt_twolines">Colisages différents !</span></div>'
-            } else {
-                return data;
-            }
-
-        },
         width: "4%"
     });
 
