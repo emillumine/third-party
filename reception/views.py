@@ -26,17 +26,19 @@ def as_text(value):
 
 def home(request):
     """Page de selection de la commande suivant un fournisseurs"""
+    if 'reception' in settings.COUCHDB['dbs']:
+        context = {
+            'title': 'Reception',
+            'merge_orders_pswd': getattr(settings, 'RECEPTION_MERGE_ORDERS_PSWD', 'makeastop'),
+            'couchdb_server': settings.COUCHDB['url'],
+            'db': settings.COUCHDB['dbs']['reception'],
+            'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', '')
+        }
+        template = loader.get_template('reception/index.html')
 
-    context = {
-        'title': 'Reception',
-        'merge_orders_pswd': settings.RECEPTION_MERGE_ORDERS_PSWD,
-        'couchdb_server': settings.COUCHDB['url'],
-        'db': settings.COUCHDB['dbs']['reception'],
-        'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', '')
-    }
-    template = loader.get_template('reception/index.html')
-
-    return HttpResponse(template.render(context, request))
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponse("Need to configure reception couchdb db in settings_secret.py")
 
 
 def get_list_orders(request):
