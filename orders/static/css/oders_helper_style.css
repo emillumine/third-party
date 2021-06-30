@@ -81,12 +81,11 @@
 
 #supplier_input {
     width: 350px;
-    border-radius: 5px;
+    border-radius: 8px;
 }
 
-#date_planned_input {
-    margin-left: 40px;
-    border-radius: 5px;
+#date_planned_input, #coverage_days_input {
+    border-radius: 8px;
 }
 
 /* -- Table */

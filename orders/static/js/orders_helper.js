@@ -1,14 +1,22 @@
 var suppliers_list = [],
-    products_list = [],
-    products_table = null,
-    products = [],
     selected_suppliers = [],
+    products_list = [],
+    products = [],
+    products_table = null,
     selected_rows = [],
-    dbc = null,
+    product_orders = [],
+    date_format = "dd/mm/yy",
+    new_product_supplier_association = {
+        package_qty: null,
+        price: null
+    };
+
+var dbc = null,
     sync = null,
     order_doc = {
         _id: null,
         date_planned: null,
+        coverage_days: null,
         last_update: {
             timestamp: null,
             fingerprint: null
@@ -17,13 +25,7 @@ var suppliers_list = [],
         selected_suppliers: [],
         selected_rows: []
     },
-    fingerprint = null,
-    date_format = "dd/mm/yy"
-    product_orders = [],
-    new_product_supplier_association = {
-        package_qty: null,
-        price: null
-    };
+    fingerprint = null;
 
 
 /* - UTILS */
@@ -39,6 +41,7 @@ function reset_data() {
     order_doc = {
         _id: null,
         date_planned: null,
+        coverage_days: null,
         last_update : {
             timestamp: null,
             fingerprint: null
@@ -135,6 +138,36 @@ function add_product() {
     });
     
     return 0;
+}
+
+/**
+ * Compute the qty to buy for each product, depending the coverage days.
+ * Set the computed qty for the first supplier only.
+ */
+function compute_products_coverage_qties() {
+    for (const [key, product] of Object.entries(products)) {
+        let purchase_qty_for_coverage = null;
+
+        // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
+        const stock = product.qty_available;
+        const incoming_qty = product.incoming_qty;
+        const daily_conso = product.daily_conso;
+        purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
+        purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+
+        // Reduce to nb of packages to purchase
+        purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+
+        // Round according to uom
+        if (product.uom_id[0] == 1 || product.uom_id[0] == 20) {
+            purchase_package_qty_for_coverage = parseFloat(purchase_package_qty_for_coverage).toFixed(0);
+        } else {
+            purchase_package_qty_for_coverage = parseFloat(purchase_package_qty_for_coverage).toFixed(2);
+        }
+
+        // Set qty to purchase for first supplier only
+        products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
+    }
 }
 
 
@@ -737,6 +770,8 @@ function goto_main_screen(doc) {
     products = order_doc.products;
     selected_suppliers = order_doc.selected_suppliers;
 
+    // TODO update products moving data (stock, qté entrante, conso moy/jour)
+
     update_cdb_order();
     update_main_screen();
     switch_screen();
@@ -794,6 +829,58 @@ function display_suppliers() {
     });
 }
 
+function _compute_product_data(product) {
+    let item = {};
+
+    /* Supplier related data */
+    let purchase_qty = 0;  // Calculate product's total purchase qty
+    let p_package_qties = [];  // Look for differences in package qties
+
+    for (let p_supplierinfo of product.suppliersinfo) {
+        // Preset qty for input if product related to supplier: existing qty or null (null -> qty to be set, display an empty input)
+        let supplier_qty = ("qty" in p_supplierinfo) ? p_supplierinfo.qty : null;
+        item[supplier_column_name(p_supplierinfo)] = supplier_qty;
+
+        // Update product's total qty to buy if qty set for this supplier 
+        if (supplier_qty !== null) {
+            purchase_qty += +parseFloat(supplier_qty * p_supplierinfo.package_qty).toFixed(2);
+        }
+
+        // Store temporarily product package qties
+        p_package_qties.push(p_supplierinfo.package_qty);
+    }
+
+    item.purchase_qty = purchase_qty;
+
+    // If product not related to supplier, set qty for this supplier to false (false -> don't display any input)
+    for (supplier of selected_suppliers) {
+        if (!is_product_related_to_supplier(product, supplier)) {
+            item[supplier_column_name(supplier)] = false;
+        }
+    }
+
+    if (p_package_qties.every( (val, i, arr) => val === arr[0] )) {
+        // If all package qties are equals, display it
+        item.package_qty = p_package_qties[0];
+    } else {
+        // Else display an X
+        item.package_qty = 'X';
+    }
+
+    /* Coverage related data */
+    if (order_doc.coverage_days !== null) {
+        let unmet_needs = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+        unmet_needs = -Math.round(unmet_needs);
+        unmet_needs = (unmet_needs > 0) ? 0 : unmet_needs;
+    
+        item.unmet_needs = unmet_needs;
+    } else {
+        item.unmet_needs = 'X';
+    }
+
+    return item
+}
+
 /**
  * @param {array} product_ids if set, return formatted data for these products only
  * @returns Array of formatted data for datatable data setup
@@ -809,49 +896,22 @@ function prepare_datatable_data(product_ids = []) {
     }
 
     for (product of products_to_format) {
-        let item = {
+        const item = {
             id: product.id,
             name: product.name,
             default_code: product.default_code,
             incoming_qty: +parseFloat(product.incoming_qty).toFixed(3), // '+' removes unecessary zeroes at the end
             qty_available: +parseFloat(product.qty_available).toFixed(3),
+            daily_conso: product.daily_conso,
             purchase_ok: product.purchase_ok,
             uom: product.uom_id[1]
         };
-        
-        let qty_to_buy = 0;  // Calculate product's total qty to buy
-        let p_package_qties = [];  // Look for differences in package qties
-        for (product_supplierinfo of product.suppliersinfo) {
-            // Set qty for input if product related to supplier: qty or null (qty to be set)
-            let supplier_qty = ("qty" in product_supplierinfo) ? product_supplierinfo.qty : null;
-            item[supplier_column_name(product_supplierinfo)] = supplier_qty;
 
-            // Update product's total qty to buy if qty set for this supplier 
-            if (supplier_qty !== null) {
-                qty_to_buy += supplier_qty * product_supplierinfo.package_qty;
-            }
+        const computed_data = _compute_product_data(product);
 
-            p_package_qties.push(product_supplierinfo.package_qty)
-        }
+        const full_item = { ...item, ...computed_data };
 
-        item.qty_to_buy = qty_to_buy;
-
-        // If product not related to supplier: false;
-        for (supplier of selected_suppliers) {
-            if (!is_product_related_to_supplier(product, supplier)) {
-                item[supplier_column_name(supplier)] = false;
-            }
-        }
-
-        if (p_package_qties.every( (val, i, arr) => val === arr[0] )) {
-            // If all package qties are all equals, ok
-            item.package_qty = p_package_qties[0];
-        } else {
-            // Else display an X
-            item.package_qty = 'X'
-        }
-        
-        data.push(item);
+        data.push(full_item);
     }
 
     return data;
@@ -909,6 +969,12 @@ function prepare_datatable_columns() {
             title: "Quantité entrante",
             className: "dt-body-center",
             width: "4%"
+        },
+        {
+            data: "daily_conso",
+            title: "Conso moy /jour",
+            className: "dt-body-center",
+            width: "6%"
         }
     ];
 
@@ -965,8 +1031,15 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
-        data: "qty_to_buy",
+        data: "purchase_qty",
         title: "Qté Achat",
+        className: "dt-body-center",
+        width: "4%"
+    });
+
+    columns.push({
+        data: "unmet_needs",
+        title: "Besoin non couvert",
         className: "dt-body-center",
         width: "4%"
     });
@@ -1031,10 +1104,11 @@ function display_products(params) {
 
     // On inputs change
     $('#products_table').on('change', 'tbody td .product_qty_input', function () {
-        let val = parseFloat($(this).val());
+        let val = ($(this).val() == '') ? 0 : $(this).val();
+        val = parseFloat(val);
 
         // If value is a number
-        if (!isNaN(val) && val >= 0) {
+        if (!isNaN(val)) {
             const id_split = $(this).attr('id')
                 .split('_');
             const prod_id = id_split[1];
@@ -1229,6 +1303,12 @@ function update_main_screen(params) {
     } else {
         $("#date_planned_input").val('');
     }
+
+    if (order_doc.coverage_days !== null) {
+        $("#coverage_days_input").val(order_doc.coverage_days);
+    } else {
+        $("#coverage_days_input").val('');
+    }
 }
 
 /**
@@ -1354,6 +1434,22 @@ $(document).ready(function() {
     });
 
     // Main screen
+    $("#coverage_form").on("submit", function(e) {
+        e.preventDefault();
+        let val = $("#coverage_days_input").val();
+        val = parseInt(val);
+
+        if (!isNaN(val)) {
+            order_doc.coverage_days = val;
+            compute_products_coverage_qties();
+            update_cdb_order();
+            update_main_screen();
+        } else {
+            $("#coverage_days_input").val(order_doc.coverage_days);
+            alert(`Valeur non valide pour le nombre de jours de couverture !`)
+        }
+    });
+
     $("#supplier_form").on("submit", function(e) {
         e.preventDefault();
         add_supplier();

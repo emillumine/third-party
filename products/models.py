@@ -505,8 +505,9 @@ class CagetteProducts(models.Model):
             c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
-            # sales = CagetteProducts.get_template_products_sales_average({'ids': ptids, 'from': '2020-06-10', 'to': '2020-08-10'})
-            sales = CagetteProducts.get_template_products_sales_average({'ids': ptids})
+
+            sales = CagetteProducts.get_template_products_sales_average({'ids': ptids, 'from': '2019-06-10', 'to': '2020-08-10'})
+            # sales = CagetteProducts.get_template_products_sales_average({'ids': ptids})
             if 'list' in sales and len(sales['list']) > 0:
                 sales = sales['list']
             else:
@@ -520,9 +521,13 @@ class CagetteProducts(models.Model):
                     'package_qty': psi_item["package_qty"],
                     'price': psi_item["price"]
                 }]
+
                 for s in sales:
                     if s["id"] == fp["id"]:
-                        filtered_products_t[i]['per_day_qty'] = s["average_qty"]
+                        filtered_products_t[i]['daily_conso'] = s["average_qty"]
+
+                if not 'daily_conso' in filtered_products_t[i]:
+                    filtered_products_t[i]['daily_conso'] = 0
 
             res["products"] = filtered_products_t
         except Exception as e:
