@@ -882,7 +882,7 @@ function display_suppliers() {
     $("#suppliers_container").empty();
     $(".remove_supplier_icon").off();
 
-    for (supplier of selected_suppliers) {
+    for (let supplier of selected_suppliers) {
         let template = $("#templates #supplier_pill_template");
 
         template.find(".pill_supplier_name").text(supplier.display_name);
@@ -895,10 +895,10 @@ function display_suppliers() {
         const el_id = $(this).attr('id')
             .split('_');
         const supplier_id = el_id[el_id.length-1];
+        const clicked_supplier = selected_suppliers.find(s => s.id == supplier_id);
 
         let modal_remove_supplier = $('#templates #modal_remove_supplier');
-
-        modal_remove_supplier.find(".supplier_name").text(supplier.display_name);
+        modal_remove_supplier.find(".supplier_name").text(clicked_supplier.display_name);
 
         openModal(
             modal_remove_supplier.html(),
