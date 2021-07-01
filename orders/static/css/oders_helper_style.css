@@ -91,11 +91,11 @@
 
 #supplier_input {
     width: 350px;
-    border-radius: 8px;
+    border-radius: 3px;
 }
 
 #date_planned_input, #coverage_days_input {
-    border-radius: 8px;
+    border-radius: 3px;
 }
 
 /* -- Table */
@@ -106,7 +106,7 @@
 #products_table_filter input{
     height: 35px;
     width: 300px;
-    border-radius: 10px;
+    border-radius: 3px;
 }
 #products_table .help {cursor: help;}
 #table_header_select_all{

@@ -167,28 +167,26 @@ function compute_products_coverage_qties() {
         key,
         product
     ] of Object.entries(products)) {
-        let purchase_qty_for_coverage = null;
-
-        // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
-        const stock = product.qty_available;
-        const incoming_qty = product.incoming_qty;
-        const daily_conso = product.daily_conso;
-
-        purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
-        purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-
-        // Reduce to nb of packages to purchase
-        purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-
-        // Round according to uom
-        if (product.uom_id[0] == 1 || product.uom_id[0] == 20) {
-            purchase_package_qty_for_coverage = parseFloat(purchase_package_qty_for_coverage).toFixed(0);
-        } else {
-            purchase_package_qty_for_coverage = parseFloat(purchase_package_qty_for_coverage).toFixed(2);
+        if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
+            let purchase_qty_for_coverage = null;
+    
+            // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
+            const stock = product.qty_available;
+            const incoming_qty = product.incoming_qty;
+            const daily_conso = product.daily_conso;
+    
+            purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
+            purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+    
+            // Reduce to nb of packages to purchase
+            purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+    
+            // Round up to unit for all products
+            purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
+    
+            // Set qty to purchase for first supplier only
+            products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
         }
-
-        // Set qty to purchase for first supplier only
-        products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
     }
 }
 
@@ -200,6 +198,14 @@ function check_products_data() {
         const product_ids = products.map(p => p.id);
 
         if (product_ids.length > 0) {
+            $.notify(
+                "Vérfication des informations produits...",
+                {
+                    globalPosition:"top left",
+                    className: "warning"
+                }
+            );
+
             clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
 
             $.ajax({
@@ -217,6 +223,7 @@ function check_products_data() {
                         products[p_index] = { ...products[p_index], ...product };
                     }
 
+                    $('.notifyjs-wrapper').trigger('notify-hide');
                     resolve();
                 },
                 error: function(data) {
@@ -227,6 +234,7 @@ function check_products_data() {
                     report_JS_error(err, 'orders');
                     alert(`Erreur lors de la vérification des données des articles. Certaines données peuvent être erronées`);
 
+                    $('.notifyjs-wrapper').trigger('notify-hide');
                     // Don't block process if this call fails
                     resolve();
                 }
@@ -992,7 +1000,7 @@ function prepare_datatable_data(product_ids = []) {
             daily_conso: product.daily_conso,
             purchase_ok: product.purchase_ok,
             uom: product.uom_id[1],
-            stats: "Ecart type: " + product.sigma + ", % jours sans vente = " + (product.vpc) * 100
+            stats: `Ecart type: ${product.sigma} / Jours sans vente: ${(product.vpc) * 100}%`
         };
 
         const computed_data = _compute_product_data(product);
@@ -1026,7 +1034,7 @@ function prepare_datatable_columns() {
         },
         {
             data: "default_code",
-            title: "Référence Produit",
+            title: "Ref",
             width: "8%",
             render: function (data) {
                 return (data === false) ? "" : data;
@@ -1115,7 +1123,7 @@ function prepare_datatable_columns() {
 
     columns.push({
         data: "days_not_covered",
-        title: "Besoin non couvert",
+        title: "Besoin non couvert (jours)",
         className: "dt-body-center",
         width: "4%"
     });
