@@ -1034,16 +1034,6 @@ function prepare_datatable_columns() {
             title: "Produit"
         },
         {
-            data: "purchase_ok",
-            title: `NPA`,
-            className: "dt-body-center",
-            orderable: false,
-            render: function (data) {
-                return `<input type="checkbox" class="product_npa_cb" value="purchase_ok" ${data ? '' : 'checked'}>`;
-            },
-            width: "4%"
-        },
-        {
             data: "qty_available",
             title: "Stock",
             className: "dt-body-center",
@@ -1127,6 +1117,17 @@ function prepare_datatable_columns() {
         width: "4%"
     });
 
+    columns.push({
+        data: "purchase_ok",
+        title: `NPA`,
+        className: "dt-body-center",
+        orderable: false,
+        render: function (data) {
+            return `<input type="checkbox" class="product_npa_cb" value="purchase_ok" ${data ? '' : 'checked'}>`;
+        },
+        width: "4%"
+    });
+        
     return columns;
 }
 
