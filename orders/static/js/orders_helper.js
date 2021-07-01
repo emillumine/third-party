@@ -951,15 +951,15 @@ function _compute_product_data(product) {
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
-        let unmet_needs = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-        // TODO diviser tout ça par la conso moyenne pour avoir nb de jours
+        let qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+        let days_not_covered = qty_not_covered / product.daily_conso;  // get unmet needs in nb of days
 
-        unmet_needs = -Math.round(unmet_needs);
-        unmet_needs = (unmet_needs > 0) ? 0 : unmet_needs;
+        days_not_covered = -Math.ceil(days_not_covered);  // round up, so if a day is not fully covered display it
+        days_not_covered = (days_not_covered > 0) ? 0 : days_not_covered;
 
-        item.unmet_needs = unmet_needs;
+        item.days_not_covered = days_not_covered;
     } else {
-        item.unmet_needs = 'X';
+        item.days_not_covered = 'X';
     }
 
     return item;
@@ -1121,7 +1121,7 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
-        data: "unmet_needs",
+        data: "days_not_covered",
         title: "Besoin non couvert",
         className: "dt-body-center",
         width: "4%"
