@@ -1167,7 +1167,11 @@ function display_products(params) {
         ],
         stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
-        iDisplayLength: 100,
+        aLengthMenu: [
+            [25, 50, 100, 200, -1],
+            [25, 50, 100, 200, "Tout"]
+        ],
+        iDisplayLength: -1,
         scrollX: true,
         language: {url : '/static/js/datatables/french.json'},
         createdRow: function(row) {
