@@ -424,7 +424,7 @@ function save_supplier_products(supplier, new_products) {
             products.push(np);
         } else {
             // Prevent adding ducplicate supplierinfo
-            let index_existing_supplierinfo = products[index].suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+            let index_existing_supplierinfo = products[index].suppliersinfo.findIndex(psi => psi.supplier_id == supplier.id);
 
             if (index_existing_supplierinfo === -1) {
                 np_supplierinfo = np.suppliersinfo[0];
@@ -952,6 +952,7 @@ function _compute_product_data(product) {
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
         let unmet_needs = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+        // TODO diviser tout ça par la conso moyenne pour avoir nb de jours
 
         unmet_needs = -Math.round(unmet_needs);
         unmet_needs = (unmet_needs > 0) ? 0 : unmet_needs;
