@@ -951,11 +951,14 @@ function _compute_product_data(product) {
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
-        let qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-        let days_not_covered = qty_not_covered / product.daily_conso;  // get unmet needs in nb of days
-
-        days_not_covered = -Math.ceil(days_not_covered);  // round up, so if a day is not fully covered display it
-        days_not_covered = (days_not_covered > 0) ? 0 : days_not_covered;
+        let days_not_covered = 0;
+        if (product.daily_conso !== 0) {
+            let qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+            days_not_covered = qty_not_covered / product.daily_conso;  // get unmet needs in nb of days
+    
+            days_not_covered = -Math.ceil(days_not_covered);  // round up, so if a day is not fully covered display it
+            days_not_covered = (days_not_covered > 0) ? 0 : days_not_covered;
+        }
 
         item.days_not_covered = days_not_covered;
     } else {
