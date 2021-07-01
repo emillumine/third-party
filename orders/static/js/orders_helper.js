@@ -500,7 +500,20 @@ function set_product_npa(p_id, npa) {
         success: () => {
             const index = products.findIndex(p => p.id == p_id);
 
-            products[index].purchase_ok = data["purchase_ok"];
+            // Give time for modal to fade
+            setTimeout(function() {
+                $.notify(
+                    "Produit passé en NPA !",
+                    {
+                        globalPosition:"top right",
+                        className: "success"
+                    }
+                );
+            }, 500);
+
+            // Remove NPA products
+            products.splice(index, 1);
+            update_main_screen();
             update_cdb_order();
 
             closeModal();
@@ -1000,7 +1013,7 @@ function prepare_datatable_data(product_ids = []) {
             daily_conso: product.daily_conso,
             purchase_ok: product.purchase_ok,
             uom: product.uom_id[1],
-            stats: `Ecart type: ${product.sigma} / Jours sans vente: ${(product.vpc) * 100}%`
+            stats: `Ecart type: ${product.sigma} / Jours sans vente: ${Math.round((product.vpc) * 100)}%`
         };
 
         const computed_data = _compute_product_data(product);
