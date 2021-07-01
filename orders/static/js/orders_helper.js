@@ -179,7 +179,7 @@ function compute_products_coverage_qties() {
  * Update order products data in case they have changed.
  */
 function check_products_data() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const suppliers_id = selected_suppliers.map(s => s.id);
 
         if (suppliers_id.length > 0) {
@@ -702,13 +702,19 @@ function update_cdb_order() {
         fingerprint: fingerprint
     };
 
-    dbc.put(order_doc, function callback(err, result) {
-        if (!err && result !== undefined) {
-            order_doc._rev = result.rev;
-        } else {
-            alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
-            console.log(err);
-        }
+    return new Promise((resolve) => {
+        dbc.put(order_doc, function callback(err, result) {
+            if (!err && result !== undefined) {
+                order_doc._rev = result.rev;
+
+                resolve();
+            } else {
+                alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
+                console.log(err);
+
+                resolve();
+            }
+        });
     });
 }
 
@@ -815,10 +821,10 @@ function create_orders() {
 
             // Clear data
             order_doc._deleted = true;
-            update_cdb_order();
+            update_cdb_order().then(() => {
+                update_order_selection_screen();
+            })
             reset_data();
-            update_order_selection_screen();
-
             switch_screen('orders_created');
             closeModal();
         },
@@ -1458,7 +1464,6 @@ function update_order_selection_screen() {
         } else {
             for (let row of result.rows) {
                 let template = $("#templates #order_pill_template");
-
                 template.find(".pill_order_name").text(row.id);
 
                 existing_orders_container.append(template.html());
@@ -1518,13 +1523,10 @@ function switch_screen(direction = 'main_screen', from = 'main_screen') {
 }
 
 
-$(document).ready(function() {
-    fingerprint = new Fingerprint({canvas: true}).get();
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-
-    openModal();
-
-    // Init CouchDB
+/**
+ * Init the PouchDB local database & sync
+ */
+function init_pouchdb_sync() {
     dbc = new PouchDB(couchdb_dbname);
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
         live: true,
@@ -1544,13 +1546,12 @@ $(document).ready(function() {
                             className: "error"
                         }
                     );
-                    update_order_selection_screen();
                     back();
                     break;
-                } else if (doc._deleted === true) {
-                    update_order_selection_screen();
                 }
             }
+
+            update_order_selection_screen();
         }
     }).on('error', function (err) {
         if (err.status === 409) {
@@ -1560,6 +1561,16 @@ $(document).ready(function() {
         console.log('erreur sync');
         console.log(err);
     });
+}
+
+
+$(document).ready(function() {
+    fingerprint = new Fingerprint({canvas: true}).get();
+    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
+    openModal();
+
+    init_pouchdb_sync();
 
     // Main screen
     $("#coverage_form").on("submit", function(e) {
