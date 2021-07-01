@@ -292,7 +292,9 @@ class Order(models.Model):
 
         res = {
             'id_po': id_po,
-            'confirm_po': True
+            'confirm_po': True,
+            'supplier_id': supplier_id,
+            'date_planned': date_planned
         }
 
         return res

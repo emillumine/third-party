@@ -15,7 +15,6 @@ var dbc = null,
     sync = null,
     order_doc = {
         _id: null,
-        date_planned: null,
         coverage_days: null,
         last_update: {
             timestamp: null,
@@ -42,7 +41,6 @@ function reset_data() {
     product_orders = [];
     order_doc = {
         _id: null,
-        date_planned: null,
         coverage_days: null,
         last_update : {
             timestamp: null,
@@ -718,12 +716,43 @@ function update_cdb_order() {
  * Create the Product Orders in Odoo
  */
 function create_orders() {
-    openModal();
-
     let orders_data = {
-        "date_planned": order_doc.date_planned,
         "suppliers_data": {}
     };
+
+    // Get planned delivery date for each supplier before hiding the modal
+    for (let supplier of selected_suppliers) {
+        // Get planned date from modal
+        let supplier_date_planned = $(`#date_planned_supplier_${supplier.id}`).val();
+        let formatted_date = null;
+
+        if (supplier_date_planned !== '') {
+            if (date_format === "dd/mm/yy") {
+                // Change format [dd/mm/yy] to ISO [yy-mm-dd]
+                formatted_date = supplier_date_planned
+                    .split('/')
+                    .reverse()
+                    .join('-') + ' 00:00:00';
+            } else {
+                formatted_date = supplier_date_planned + ' 00:00:00';
+            }
+        } else {
+            // Default date : tomorrow
+            let date_object = new Date();
+            date_object.setDate(date_object.getDate() + 1);
+
+            // Get ISO format bare string
+            formatted_date = date_object.toISOString().replace('T', ' ').split('.')[0];
+        }
+
+        // Create an entry for this supplier
+        orders_data.suppliers_data[supplier.id] = {
+            date_planned: formatted_date,
+            lines: []
+        }
+    }
+
+    openModal();
 
     // Prepare data: get products where a qty is set
     for (let p of products) {
@@ -732,12 +761,7 @@ function create_orders() {
             if ('qty' in p_supplierinfo) {
                 const supplier_id = p_supplierinfo.supplier_id;
 
-                // Create entry for this supplier in data object if doesn't exist
-                if (orders_data.suppliers_data[supplier_id] === undefined) {
-                    orders_data.suppliers_data[supplier_id] = [];
-                }
-
-                orders_data.suppliers_data[supplier_id].push({
+                orders_data.suppliers_data[supplier_id].lines.push({
                     'package_qty': p_supplierinfo.package_qty,
                     'product_id': p.id,
                     'name': p.name,
@@ -752,13 +776,6 @@ function create_orders() {
         }
     }
 
-    if (Object.keys(orders_data.suppliers_data).length === 0) {
-        closeModal();
-        alert("Commande non créée : vous n'avez rentré aucune quantité !");
-
-        return -1;
-    }
-
     $.ajax({
         type: "POST",
         url: "/orders/create_orders",
@@ -767,11 +784,15 @@ function create_orders() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(orders_data),
         success: (result) => {
-            $('#recap_delivery_date').text($('#date_planned_input').val());
-
             // Display new orders
             for (let new_order of result.res.created) {
                 const supplier_name = suppliers_list.find(s => s.id == new_order.supplier_id).display_name;
+
+                const date_planned = new_order.date_planned
+                    .split(' ')[0]
+                    .split('-')
+                    .reverse()
+                    .join('/');
 
                 product_orders.push({
                     'id': new_order.id_po,
@@ -783,6 +804,7 @@ function create_orders() {
 
                 new_order_template.find(".new_order_supplier_name").text(supplier_name);
                 new_order_template.find(".new_order_po").text(`PO${new_order.id_po}`);
+                new_order_template.find(".new_order_date_planned").text(`Date de livraison prévue: ${date_planned}`);
                 new_order_template.find(".download_order_file_button").attr('id', `download_attachment_${new_order.id_po}`);
 
                 $('#created_orders_area').append(new_order_template.html());
@@ -1410,17 +1432,6 @@ function update_main_screen(params) {
         });
     }
 
-    if (order_doc.date_planned !== null) {
-        // Switch format from yy-mm-dd hh:mm:ss to readable dd/mm/yy
-        let date_to_format = order_doc.date_planned.split(' ')[0];
-        let readable_date = date_to_format.split('-').reverse()
-            .join('/');
-
-        $("#date_planned_input").val(readable_date);
-    } else {
-        $("#date_planned_input").val('');
-    }
-
     if (order_doc.coverage_days !== null) {
         $("#coverage_days_input").val(order_doc.coverage_days);
     } else {
@@ -1587,13 +1598,18 @@ $(document).ready(function() {
     });
 
     $('#create_orders').on('click', function() {
-        if (order_doc.date_planned === null) {
-            alert("Veuillez rentrer une date de livraison prévue.");
+        let modal_create_order = $('#templates #modal_create_order');
+        modal_create_order.find('.suppliers_date_planned_area').empty();
 
-            return -1;
+        for (let supplier of selected_suppliers) {
+            let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
+    
+            supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
+            supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
+            
+            modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
         }
 
-        let modal_create_order = $('#templates #modal_create_order');
 
         openModal(
             modal_create_order.html(),
@@ -1604,6 +1620,26 @@ $(document).ready(function() {
             false
         );
 
+        // Add id to input once modal is displayed
+        for (let supplier of selected_suppliers) {
+            $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
+        }
+
+        $("#modal .supplier_date_planned")
+            .datepicker({
+                defaultDate: "+1d",
+                minDate: new Date()
+            })
+            .on('change', function() {
+                try {
+                    // When date input changes, try to read date
+                    $.datepicker.parseDate(date_format, $(this).val());
+                } catch {
+                    alert('Date invalide');
+                    $(this).val('');
+                }
+            });
+            
         return 0;
     });
 
@@ -1634,40 +1670,6 @@ $(document).ready(function() {
         dateFormat: date_format
     };
     $.datepicker.setDefaults($.datepicker.regional['fr']);
-
-    const tomorrow = new Date();
-
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    $("#date_planned_input")
-        .datepicker({
-            defaultDate: "+1d",
-            minDate: tomorrow
-        })
-        .on('change', function() {
-            try {
-                // When date input changes, try to read date
-                $.datepicker.parseDate(date_format, $(this).val());
-
-                // No exception raised: date is valid.
-                // Change format from readable (dd/mm/yy) to ISO (yy-mm-dd)
-                let formatted_date = $(this).val()
-                    .split('/')
-                    .reverse()
-                    .join('-') + ' 00:00:00';
-
-                // Update doc if changed
-                if (formatted_date !== order_doc.date_planned) {
-                    order_doc.date_planned = formatted_date;
-                    update_cdb_order();
-                }
-            } catch (error) {
-                alert('Date invalide');
-                $(this).val('');
-                order_doc.date_planned = null;
-                update_cdb_order();
-            }
-        });
 
     // Order selection screen
     update_order_selection_screen();

@@ -182,27 +182,32 @@
 }
 
 /* -- Attach product to supplier modal */
-.new_product_supplier_input_area {
+.modal_input_area {
     margin-bottom: 15px;
     width: 100%;
     display: flex;
     justify-content: center;
 }
 
-.new_product_supplier_input, .new_product_supplier_label {
+.modal_input_container, .modal_input_label {
     width:50%;
     margin: 0 15px 0 15px;
 }
 
-.new_product_supplier_label {
+.modal_input_label {
     display: flex;
     justify-content: flex-end;
     align-items: center;
 }
 
+.modal_input {
+    width: 90%;
+}
+
 /* - Orders created screen */
 
 .order_created_header {
+    margin-top: 5px;
     margin-bottom: 40px;
 }
 
@@ -224,6 +229,14 @@
 }
 
 .download_order_file_button:hover {
+    text-decoration: none;
+    color: white;
+}
+.download_order_file_button:active {
+    text-decoration: none;
+    color: white;
+}
+.download_order_file_button:focus {
     text-decoration: none;
     color: white;
 }

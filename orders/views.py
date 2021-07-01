@@ -69,8 +69,13 @@ def create_orders(request):
 
         # suppliers id are keys in request data
         for supplier_id in data["suppliers_data"].keys():
-            res_created = Order.create(supplier_id, data["date_planned"], data["suppliers_data"][supplier_id])
-            res_created["supplier_id"] = supplier_id
+            supplier_data = data["suppliers_data"][supplier_id]
+
+            res_created = Order.create(
+                supplier_id, 
+                supplier_data["date_planned"], 
+                supplier_data["lines"]
+            )
             res["created"].append(res_created)
             
     except Exception as e:

@@ -53,7 +53,6 @@
                 <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
                 <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
             </form>
-            <input type="text" name="date_planned" id="date_planned_input" placeholder="Date de livraison souhaitée">
         </div>
     
         <div class="txtcenter" id="suppliers_container"></div>
@@ -87,9 +86,6 @@
         </div>
         <div class="order_created_header txtcenter">
             <h2>Commandes créées !</h2>
-        </div>
-        <div class="txtcenter">
-            Livraison prévue le : <span id="recap_delivery_date">XX/XX/XX</span> 
         </div>
         <div id="created_orders_area"></div>
         <br/><br/><hr/><br/>
@@ -128,6 +124,7 @@
             <div class="new_order_item">
                 <h3 class="new_order_supplier_name"></h3>
                 <h3 class="new_order_po"></h3>
+                <h4 class="new_order_date_planned"></h4>
                 <div class='download_order_file'>
                     <i class="fas fa-spinner fa-spin download_order_file_loading"></i>
                     <a class='btn--success download_order_file_button' style="display:none;" href="#">
@@ -168,13 +165,17 @@
                 Vous vous apprêtez à associer le produit <span class="product_name"></span> au fournisseur <span class="supplier_name"></span>.<br/>
             </p>
             <br/>
-            <div class="new_product_supplier_input_area">
-                <span class="new_product_supplier_label">Prix du produit chez ce fournisseur: </span>
-                <input type="number" class="new_product_supplier_input new_product_supplier_price" >
+            <div class="modal_input_area">
+                <span class="modal_input_label">Prix du produit chez ce fournisseur: </span>
+                <div class="modal_input_container">
+                    <input type="number" class="modal_input new_product_supplier_price" >
+                </div>
             </div>
-            <div class="new_product_supplier_input_area">
-                <span class="new_product_supplier_label">Colisage chez ce fournisseur: </span>
-                <input type="number" class="new_product_supplier_input new_product_supplier_package_pty">
+            <div class="modal_input_area">
+                <span class="modal_input_label">Colisage chez ce fournisseur: </span>
+                <div class="modal_input_container">
+                    <input type="number" class="modal_input new_product_supplier_package_pty">
+                </div>
             </div>
             <br/>
             <p> 
@@ -203,12 +204,28 @@
         </div>
 
         <div id="modal_create_order">
-            <h3>Attention !</h3>
+            <h3>Dernière étape...</h3>
+            <br/>
+
             <p>
                 Vous vous apprêtez à générer les commandes à partir des données rentrées dans le tableau.
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>
+                Vous pouvez rentrer une date de livraison prévue pour chaque fournisseur (optionnel, la date par défaut sera celle de demain).
+            </p>
+            <br/>
+            <div class="suppliers_date_planned_area"></div>
+            <br/>
             <hr/>
+        </div>
+
+        <div id="modal_create_order__supplier_date_planned">
+            <div class="modal_input_area">
+                <span class="modal_input_label supplier_name"></span>
+                <div class="modal_input_container">
+                    <input type="text" class="modal_input supplier_date_planned" placeholder="Date de livraison prévue">
+                </div>
+            </div>
         </div>
     </div>
 </div>
