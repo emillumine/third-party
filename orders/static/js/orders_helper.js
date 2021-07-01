@@ -424,7 +424,7 @@ function save_supplier_products(supplier, new_products) {
             products.push(np);
         } else {
             // Prevent adding ducplicate supplierinfo
-            let index_existing_supplierinfo = products[index].suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+            let index_existing_supplierinfo = products[index].suppliersinfo.findIndex(psi => psi.supplier_id == supplier.id);
 
             if (index_existing_supplierinfo === -1) {
                 np_supplierinfo = np.suppliersinfo[0];
@@ -882,7 +882,7 @@ function display_suppliers() {
     $("#suppliers_container").empty();
     $(".remove_supplier_icon").off();
 
-    for (supplier of selected_suppliers) {
+    for (let supplier of selected_suppliers) {
         let template = $("#templates #supplier_pill_template");
 
         template.find(".pill_supplier_name").text(supplier.display_name);
@@ -895,10 +895,10 @@ function display_suppliers() {
         const el_id = $(this).attr('id')
             .split('_');
         const supplier_id = el_id[el_id.length-1];
+        const clicked_supplier = selected_suppliers.find(s => s.id == supplier_id);
 
         let modal_remove_supplier = $('#templates #modal_remove_supplier');
-
-        modal_remove_supplier.find(".supplier_name").text(supplier.display_name);
+        modal_remove_supplier.find(".supplier_name").text(clicked_supplier.display_name);
 
         openModal(
             modal_remove_supplier.html(),
@@ -951,14 +951,18 @@ function _compute_product_data(product) {
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
-        let unmet_needs = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+        let days_not_covered = 0;
+        if (product.daily_conso !== 0) {
+            let qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+            days_not_covered = qty_not_covered / product.daily_conso;  // get unmet needs in nb of days
+    
+            days_not_covered = -Math.ceil(days_not_covered);  // round up, so if a day is not fully covered display it
+            days_not_covered = (days_not_covered > 0) ? 0 : days_not_covered;
+        }
 
-        unmet_needs = -Math.round(unmet_needs);
-        unmet_needs = (unmet_needs > 0) ? 0 : unmet_needs;
-
-        item.unmet_needs = unmet_needs;
+        item.days_not_covered = days_not_covered;
     } else {
-        item.unmet_needs = 'X';
+        item.days_not_covered = 'X';
     }
 
     return item;
@@ -1031,16 +1035,6 @@ function prepare_datatable_columns() {
         {
             data: "name",
             title: "Produit"
-        },
-        {
-            data: "purchase_ok",
-            title: `NPA`,
-            className: "dt-body-center",
-            orderable: false,
-            render: function (data) {
-                return `<input type="checkbox" class="product_npa_cb" value="purchase_ok" ${data ? '' : 'checked'}>`;
-            },
-            width: "4%"
         },
         {
             data: "qty_available",
@@ -1120,12 +1114,23 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
-        data: "unmet_needs",
+        data: "days_not_covered",
         title: "Besoin non couvert",
         className: "dt-body-center",
         width: "4%"
     });
 
+    columns.push({
+        data: "purchase_ok",
+        title: `NPA`,
+        className: "dt-body-center",
+        orderable: false,
+        render: function (data) {
+            return `<input type="checkbox" class="product_npa_cb" value="purchase_ok" ${data ? '' : 'checked'}>`;
+        },
+        width: "4%"
+    });
+        
     return columns;
 }
 
@@ -1165,7 +1170,11 @@ function display_products(params) {
         ],
         stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
-        iDisplayLength: 100,
+        aLengthMenu: [
+            [25, 50, 100, 200, -1],
+            [25, 50, 100, 200, "Tout"]
+        ],
+        iDisplayLength: -1,
         scrollX: true,
         language: {url : '/static/js/datatables/french.json'},
         createdRow: function(row) {
