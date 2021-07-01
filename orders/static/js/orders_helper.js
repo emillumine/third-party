@@ -586,6 +586,7 @@ function generate_inventory() {
             openModal(
                 modal_create_inventory.html(),
                 () => {
+                    $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
                     $.ajax({
                         type: "POST",
                         url: "/inventory/generate_inventory_list",
@@ -595,9 +596,10 @@ function generate_inventory() {
                         data: JSON.stringify(data),
                         success: () => {
                             unselect_all_rows();
-
+                            
                             // Give time for modal to fade
                             setTimeout(function() {
+                                $('#do_inventory').empty().append(`Faire un inventaire`);
                                 $('#do_inventory').notify(
                                     "Inventaire créé !",
                                     {
@@ -605,9 +607,10 @@ function generate_inventory() {
                                         className: "success"
                                     }
                                 );
-                            }, 500);
+                            }, 200);
                         },
                         error: function(data) {
+                            $('#do_inventory').empty().append(`Faire un inventaire`);
                             let msg = "erreur serveur lors de la création de l'inventaire".
                                 err = {msg: msg, ctx: 'generate_inventory'};
 
@@ -1478,6 +1481,7 @@ function update_main_screen(params) {
             return 0;
         });
     }
+    $("#select_all_products_cb").prop("checked", false);
 
     if (order_doc.coverage_days !== null) {
         $("#coverage_days_input").val(order_doc.coverage_days);
