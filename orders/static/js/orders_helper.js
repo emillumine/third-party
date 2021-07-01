@@ -253,7 +253,7 @@ function add_supplier() {
     const user_input = $("#supplier_input").val();
 
     // Check if user input is a valid supplier
-    const supplier = suppliers_list.find(s => s.display_name === user_input);
+    let supplier = suppliers_list.find(s => s.display_name === user_input);
 
     if (supplier === undefined) {
         alert("Le fournisseur renseigné n'est pas valide.\n"
@@ -272,6 +272,7 @@ function add_supplier() {
 
     openModal();
 
+    supplier.total_value = 0;
     selected_suppliers.push(supplier);
 
     let url = "/orders/get_supplier_products";
@@ -466,6 +467,25 @@ function save_product_supplier_qty(prod_id, supplier_id, val) {
  */
 function is_product_related_to_supplier(product, supplier) {
     return product.suppliersinfo.find(s => s.supplier_id === supplier.id) !== undefined;
+}
+
+/**
+ * Calculate the total value purchased for all supplier
+ */
+function _compute_total_values_by_supplier() {
+    // Reinit
+    for (let s of selected_suppliers) {
+        s.total_value = 0;
+    }
+
+    for (let p of products) {
+        for (let supinfo of p.suppliersinfo) {
+            let supplier_index = selected_suppliers.findIndex(s => s.id == supinfo.supplier_id);
+
+            let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.price : 0;
+            selected_suppliers[supplier_index].total_value += product_supplier_value;
+        }
+    }
 }
 
 /* - PRODUCT */
@@ -1264,6 +1284,7 @@ function display_products(params) {
                 .draw();
 
             update_cdb_order();
+            display_total_values();
         } else {
             $(this).val('');
         }
@@ -1409,6 +1430,25 @@ function unselect_all_rows() {
 }
 
 /**
+ * Display the total values for each supplier & the global total value
+ */
+function display_total_values() {
+    _compute_total_values_by_supplier();
+
+    $('#suppliers_total_values_container').empty();
+
+    let total_values_content = '<ul>';
+    let order_total_value = 0;
+    for (let supplier of selected_suppliers) {
+        total_values_content += `<li>${supplier.display_name} : ${supplier.total_value}€</li>`;
+        order_total_value += supplier.total_value;
+    }
+    total_values_content += '</ul>';
+    $('#suppliers_total_values_container').append(total_values_content);
+    $('#order_total_value').text(`${order_total_value}€`);
+}
+
+/**
  * Update DOM display on main screen
  */
 function update_main_screen(params) {
@@ -1422,6 +1462,7 @@ function update_main_screen(params) {
     $(".order_name_container").text(order_doc._id);
     display_suppliers();
     display_products(params);
+    display_total_values();
 
     // Re-select previously selected rows
     if (selected_rows.length > 0) {

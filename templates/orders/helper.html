@@ -64,18 +64,28 @@
         </div>
 
         <div id="main_content_footer" style="display:none;">
-            <div class="add_product_container">
-                <div id="product_form_container">
-                    <form action="javascript:;" id="product_form">
-                        <input type="text" name="article" id="product_input" placeholder="Rechercher un article">
-                        <button type="submit" class='btn--primary'>Ajouter l'article</button>
-                    </form>
+            <div id="footer_orders_recap">
+                <div id="suppliers_total_values">
+                    <h4>Total /fournisseur : </h4><div id="suppliers_total_values_container"></div>
+                </div>
+                <div id="order_total_value_container">
+                    <h4>Total : <span id="order_total_value"></span></h4>
                 </div>
             </div>
-            <button type="button" class='btn--primary' id="create_orders">
-                Générer les commandes
-            </button>
-        </div>
+            <div id="footer_actions">
+                <div class="add_product_container">
+                    <div id="product_form_container">
+                        <form action="javascript:;" id="product_form">
+                            <input type="text" name="article" id="product_input" placeholder="Rechercher un article">
+                            <button type="submit" class='btn--primary'>Ajouter l'article</button>
+                        </form>
+                    </div>
+                </div>
+                <button type="button" class='btn--primary' id="create_orders">
+                    Générer les commandes
+                </button>
+            </div>
+            </div>
     </div>
 
     <div id="orders_created" class="page_content" style="display:none;">
