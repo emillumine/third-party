@@ -455,11 +455,11 @@ class CagetteProducts(models.Model):
         return res
 
     @staticmethod
-    def get_products_for_order_helper(supplier_id, pids = []):
+    def get_products_for_order_helper(supplier_ids, pids = []):
         """ 
-            One of the two parameters must be set.
-            Get products by supplier if a supplier_id is set. 
-            If supplier_id is None, get products specified in pids.
+            One of the two parameters must be not empty.
+            Get products by supplier if one or more supplier_id is set. 
+            If supplier_ids is empty, get products specified in pids. In this case, suppliers info won't be fetched.
         """
         api = OdooAPI()
         res = {}
@@ -468,10 +468,10 @@ class CagetteProducts(models.Model):
         try:
             today = datetime.date.today().strftime("%Y-%m-%d")
 
-            if supplier_id is not None:
+            if len(supplier_ids) > 0:
                 # Get products/supplier relation
-                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price']
-                c = [['name', '=', int(supplier_id)]]
+                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name']
+                c = [['name', 'in', [ int(x) for x in supplier_ids]]]
                 psi = api.search_read('product.supplierinfo', c, f)
 
                 # Filter valid data
@@ -503,8 +503,8 @@ class CagetteProducts(models.Model):
 
             sales_average_params = {
                 'ids': ptids, 
-                # 'from': '2019-06-10', 
-                # 'to': '2019-08-10',
+                'from': '2019-04-10', 
+                'to': '2019-08-10',
             }
             sales = CagetteProducts.get_template_products_sales_average(sales_average_params)
 
@@ -515,10 +515,10 @@ class CagetteProducts(models.Model):
             
             # Add supplier data to product data
             for i, fp in enumerate(filtered_products_t):
-                if supplier_id is not None:
+                if len(supplier_ids) > 0:
                     psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
                     filtered_products_t[i]['suppliersinfo'] = [{
-                        'supplier_id': int(supplier_id),
+                        'supplier_id': int(psi_item["name"][0]),
                         'package_qty': psi_item["package_qty"],
                         'price': psi_item["price"]
                     }]
@@ -531,7 +531,7 @@ class CagetteProducts(models.Model):
 
             res["products"] = filtered_products_t
         except Exception as e:
-            coop_logger.error('get_products_for_order_helper %s (%s)', str(e), str(supplier_id))
+            coop_logger.error('get_products_for_order_helper %s (%s)', str(e))
             res["error"] = str(e)
 
         return res

@@ -15,7 +15,6 @@ var dbc = null,
     sync = null,
     order_doc = {
         _id: null,
-        date_planned: null,
         coverage_days: null,
         last_update: {
             timestamp: null,
@@ -42,7 +41,6 @@ function reset_data() {
     product_orders = [];
     order_doc = {
         _id: null,
-        date_planned: null,
         coverage_days: null,
         last_update : {
             timestamp: null,
@@ -112,19 +110,6 @@ function add_product() {
         return -1;
     }
 
-    /* 
-    onst product_ids = products.map(p => p.id);
-
-        if (product_ids.length > 0) {
-            clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
-
-            $.ajax({
-                type: 'POST',
-                url: '/products/get_product_for_order_helper',
-                data: JSON.stringify(product_ids),
-                dataType:"json",
-    */
-
     $.ajax({
         type: 'POST',
         url: '/products/get_product_for_order_helper',
@@ -167,28 +152,26 @@ function compute_products_coverage_qties() {
         key,
         product
     ] of Object.entries(products)) {
-        let purchase_qty_for_coverage = null;
-
-        // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
-        const stock = product.qty_available;
-        const incoming_qty = product.incoming_qty;
-        const daily_conso = product.daily_conso;
-
-        purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
-        purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-
-        // Reduce to nb of packages to purchase
-        purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-
-        // Round according to uom
-        if (product.uom_id[0] == 1 || product.uom_id[0] == 20) {
-            purchase_package_qty_for_coverage = parseFloat(purchase_package_qty_for_coverage).toFixed(0);
-        } else {
-            purchase_package_qty_for_coverage = parseFloat(purchase_package_qty_for_coverage).toFixed(2);
+        if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
+            let purchase_qty_for_coverage = null;
+    
+            // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
+            const stock = product.qty_available;
+            const incoming_qty = product.incoming_qty;
+            const daily_conso = product.daily_conso;
+    
+            purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
+            purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+    
+            // Reduce to nb of packages to purchase
+            purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+    
+            // Round up to unit for all products
+            purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
+    
+            // Set qty to purchase for first supplier only
+            products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
         }
-
-        // Set qty to purchase for first supplier only
-        products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
     }
 }
 
@@ -196,27 +179,47 @@ function compute_products_coverage_qties() {
  * Update order products data in case they have changed.
  */
 function check_products_data() {
-    return new Promise((resolve, reject) => {
-        const product_ids = products.map(p => p.id);
+    return new Promise((resolve) => {
+        const suppliers_id = selected_suppliers.map(s => s.id);
 
-        if (product_ids.length > 0) {
+        if (suppliers_id.length > 0) {
+            $.notify(
+                "Vérfication des informations produits...",
+                {
+                    globalPosition:"top left",
+                    className: "warning"
+                }
+            );
+
             clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
 
             $.ajax({
-                type: 'POST',
-                url: '/products/get_product_for_order_helper',
-                data: JSON.stringify(product_ids),
+                type: 'GET',
+                url: '/orders/get_supplier_products',
+                data: {
+                    sids: suppliers_id
+                },
                 dataType:"json",
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
                 success: function(data) {
-                    for (let product of data.products) {
+                    for (let product of data.res.products) {
                         const p_index = products.findIndex(p => p.id == product.id);
 
-                        // Override products data with new data
+                        // Override products data with new data (without suppliersinfo so we don't override qty)
+                        const updated_suppliersinfo = product.suppliersinfo;
+                        delete product.suppliersinfo;
                         products[p_index] = { ...products[p_index], ...product };
+
+                        // Update suppliers info 
+                        for (let psi_index in products[p_index].suppliersinfo) {
+                            const updated_psi = updated_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
+                            products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
+                            products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                        }
                     }
 
+                    $('.notifyjs-wrapper').trigger('notify-hide');
                     resolve();
                 },
                 error: function(data) {
@@ -227,6 +230,7 @@ function check_products_data() {
                     report_JS_error(err, 'orders');
                     alert(`Erreur lors de la vérification des données des articles. Certaines données peuvent être erronées`);
 
+                    $('.notifyjs-wrapper').trigger('notify-hide');
                     // Don't block process if this call fails
                     resolve();
                 }
@@ -249,7 +253,7 @@ function add_supplier() {
     const user_input = $("#supplier_input").val();
 
     // Check if user input is a valid supplier
-    const supplier = suppliers_list.find(s => s.display_name === user_input);
+    let supplier = suppliers_list.find(s => s.display_name === user_input);
 
     if (supplier === undefined) {
         alert("Le fournisseur renseigné n'est pas valide.\n"
@@ -268,11 +272,11 @@ function add_supplier() {
 
     openModal();
 
+    supplier.total_value = 0;
     selected_suppliers.push(supplier);
 
     let url = "/orders/get_supplier_products";
-
-    url += "?sid=" + encodeURIComponent(supplier.id);
+    url += "?sids=" + encodeURIComponent(supplier.id);
 
     // Fetch supplier products
     $.ajax({
@@ -465,6 +469,25 @@ function is_product_related_to_supplier(product, supplier) {
     return product.suppliersinfo.find(s => s.supplier_id === supplier.id) !== undefined;
 }
 
+/**
+ * Calculate the total value purchased for all supplier
+ */
+function _compute_total_values_by_supplier() {
+    // Reinit
+    for (let s of selected_suppliers) {
+        s.total_value = 0;
+    }
+
+    for (let p of products) {
+        for (let supinfo of p.suppliersinfo) {
+            let supplier_index = selected_suppliers.findIndex(s => s.id == supinfo.supplier_id);
+
+            let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.price : 0;
+            selected_suppliers[supplier_index].total_value += product_supplier_value;
+        }
+    }
+}
+
 /* - PRODUCT */
 
 /**
@@ -492,7 +515,20 @@ function set_product_npa(p_id, npa) {
         success: () => {
             const index = products.findIndex(p => p.id == p_id);
 
-            products[index].purchase_ok = data["purchase_ok"];
+            // Give time for modal to fade
+            setTimeout(function() {
+                $.notify(
+                    "Produit passé en NPA !",
+                    {
+                        globalPosition:"top right",
+                        className: "success"
+                    }
+                );
+            }, 500);
+
+            // Remove NPA products
+            products.splice(index, 1);
+            update_main_screen();
             update_cdb_order();
 
             closeModal();
@@ -550,6 +586,7 @@ function generate_inventory() {
             openModal(
                 modal_create_inventory.html(),
                 () => {
+                    $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
                     $.ajax({
                         type: "POST",
                         url: "/inventory/generate_inventory_list",
@@ -559,9 +596,10 @@ function generate_inventory() {
                         data: JSON.stringify(data),
                         success: () => {
                             unselect_all_rows();
-
+                            
                             // Give time for modal to fade
                             setTimeout(function() {
+                                $('#do_inventory').empty().append(`Faire un inventaire`);
                                 $('#do_inventory').notify(
                                     "Inventaire créé !",
                                     {
@@ -569,9 +607,10 @@ function generate_inventory() {
                                         className: "success"
                                     }
                                 );
-                            }, 500);
+                            }, 200);
                         },
                         error: function(data) {
+                            $('#do_inventory').empty().append(`Faire un inventaire`);
                             let msg = "erreur serveur lors de la création de l'inventaire".
                                 err = {msg: msg, ctx: 'generate_inventory'};
 
@@ -686,13 +725,19 @@ function update_cdb_order() {
         fingerprint: fingerprint
     };
 
-    dbc.put(order_doc, function callback(err, result) {
-        if (!err && result !== undefined) {
-            order_doc._rev = result.rev;
-        } else {
-            alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
-            console.log(err);
-        }
+    return new Promise((resolve) => {
+        dbc.put(order_doc, function callback(err, result) {
+            if (!err && result !== undefined) {
+                order_doc._rev = result.rev;
+
+                resolve();
+            } else {
+                alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
+                console.log(err);
+
+                resolve();
+            }
+        });
     });
 }
 
@@ -700,12 +745,43 @@ function update_cdb_order() {
  * Create the Product Orders in Odoo
  */
 function create_orders() {
-    openModal();
-
     let orders_data = {
-        "date_planned": order_doc.date_planned,
         "suppliers_data": {}
     };
+
+    // Get planned delivery date for each supplier before hiding the modal
+    for (let supplier of selected_suppliers) {
+        // Get planned date from modal
+        let supplier_date_planned = $(`#date_planned_supplier_${supplier.id}`).val();
+        let formatted_date = null;
+
+        if (supplier_date_planned !== '') {
+            if (date_format === "dd/mm/yy") {
+                // Change format [dd/mm/yy] to ISO [yy-mm-dd]
+                formatted_date = supplier_date_planned
+                    .split('/')
+                    .reverse()
+                    .join('-') + ' 00:00:00';
+            } else {
+                formatted_date = supplier_date_planned + ' 00:00:00';
+            }
+        } else {
+            // Default date : tomorrow
+            let date_object = new Date();
+            date_object.setDate(date_object.getDate() + 1);
+
+            // Get ISO format bare string
+            formatted_date = date_object.toISOString().replace('T', ' ').split('.')[0];
+        }
+
+        // Create an entry for this supplier
+        orders_data.suppliers_data[supplier.id] = {
+            date_planned: formatted_date,
+            lines: []
+        }
+    }
+
+    openModal();
 
     // Prepare data: get products where a qty is set
     for (let p of products) {
@@ -714,12 +790,7 @@ function create_orders() {
             if ('qty' in p_supplierinfo) {
                 const supplier_id = p_supplierinfo.supplier_id;
 
-                // Create entry for this supplier in data object if doesn't exist
-                if (orders_data.suppliers_data[supplier_id] === undefined) {
-                    orders_data.suppliers_data[supplier_id] = [];
-                }
-
-                orders_data.suppliers_data[supplier_id].push({
+                orders_data.suppliers_data[supplier_id].lines.push({
                     'package_qty': p_supplierinfo.package_qty,
                     'product_id': p.id,
                     'name': p.name,
@@ -734,13 +805,6 @@ function create_orders() {
         }
     }
 
-    if (Object.keys(orders_data.suppliers_data).length === 0) {
-        closeModal();
-        alert("Commande non créée : vous n'avez rentré aucune quantité !");
-
-        return -1;
-    }
-
     $.ajax({
         type: "POST",
         url: "/orders/create_orders",
@@ -749,11 +813,15 @@ function create_orders() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(orders_data),
         success: (result) => {
-            $('#recap_delivery_date').text($('#date_planned_input').val());
-
             // Display new orders
             for (let new_order of result.res.created) {
                 const supplier_name = suppliers_list.find(s => s.id == new_order.supplier_id).display_name;
+
+                const date_planned = new_order.date_planned
+                    .split(' ')[0]
+                    .split('-')
+                    .reverse()
+                    .join('/');
 
                 product_orders.push({
                     'id': new_order.id_po,
@@ -765,6 +833,7 @@ function create_orders() {
 
                 new_order_template.find(".new_order_supplier_name").text(supplier_name);
                 new_order_template.find(".new_order_po").text(`PO${new_order.id_po}`);
+                new_order_template.find(".new_order_date_planned").text(`Date de livraison prévue: ${date_planned}`);
                 new_order_template.find(".download_order_file_button").attr('id', `download_attachment_${new_order.id_po}`);
 
                 $('#created_orders_area').append(new_order_template.html());
@@ -775,10 +844,10 @@ function create_orders() {
 
             // Clear data
             order_doc._deleted = true;
-            update_cdb_order();
+            update_cdb_order().then(() => {
+                update_order_selection_screen();
+            })
             reset_data();
-            update_order_selection_screen();
-
             switch_screen('orders_created');
             closeModal();
         },
@@ -992,7 +1061,7 @@ function prepare_datatable_data(product_ids = []) {
             daily_conso: product.daily_conso,
             purchase_ok: product.purchase_ok,
             uom: product.uom_id[1],
-            stats: "Ecart type: " + product.sigma + ", % jours sans vente = " + (product.vpc) * 100
+            stats: `Ecart type: ${product.sigma} / Jours sans vente: ${Math.round((product.vpc) * 100)}%`
         };
 
         const computed_data = _compute_product_data(product);
@@ -1026,7 +1095,7 @@ function prepare_datatable_columns() {
         },
         {
             data: "default_code",
-            title: "Référence Produit",
+            title: "Ref",
             width: "8%",
             render: function (data) {
                 return (data === false) ? "" : data;
@@ -1115,7 +1184,7 @@ function prepare_datatable_columns() {
 
     columns.push({
         data: "days_not_covered",
-        title: "Besoin non couvert",
+        title: "Besoin non couvert (jours)",
         className: "dt-body-center",
         width: "4%"
     });
@@ -1218,6 +1287,7 @@ function display_products(params) {
                 .draw();
 
             update_cdb_order();
+            display_total_values();
         } else {
             $(this).val('');
         }
@@ -1363,6 +1433,25 @@ function unselect_all_rows() {
 }
 
 /**
+ * Display the total values for each supplier & the global total value
+ */
+function display_total_values() {
+    _compute_total_values_by_supplier();
+
+    $('#suppliers_total_values_container').empty();
+
+    let total_values_content = '<ul>';
+    let order_total_value = 0;
+    for (let supplier of selected_suppliers) {
+        total_values_content += `<li>${supplier.display_name} : ${supplier.total_value}€</li>`;
+        order_total_value += supplier.total_value;
+    }
+    total_values_content += '</ul>';
+    $('#suppliers_total_values_container').append(total_values_content);
+    $('#order_total_value').text(`${order_total_value}€`);
+}
+
+/**
  * Update DOM display on main screen
  */
 function update_main_screen(params) {
@@ -1376,6 +1465,7 @@ function update_main_screen(params) {
     $(".order_name_container").text(order_doc._id);
     display_suppliers();
     display_products(params);
+    display_total_values();
 
     // Re-select previously selected rows
     if (selected_rows.length > 0) {
@@ -1391,17 +1481,7 @@ function update_main_screen(params) {
             return 0;
         });
     }
-
-    if (order_doc.date_planned !== null) {
-        // Switch format from yy-mm-dd hh:mm:ss to readable dd/mm/yy
-        let date_to_format = order_doc.date_planned.split(' ')[0];
-        let readable_date = date_to_format.split('-').reverse()
-            .join('/');
-
-        $("#date_planned_input").val(readable_date);
-    } else {
-        $("#date_planned_input").val('');
-    }
+    $("#select_all_products_cb").prop("checked", false);
 
     if (order_doc.coverage_days !== null) {
         $("#coverage_days_input").val(order_doc.coverage_days);
@@ -1429,7 +1509,6 @@ function update_order_selection_screen() {
         } else {
             for (let row of result.rows) {
                 let template = $("#templates #order_pill_template");
-
                 template.find(".pill_order_name").text(row.id);
 
                 existing_orders_container.append(template.html());
@@ -1489,13 +1568,10 @@ function switch_screen(direction = 'main_screen', from = 'main_screen') {
 }
 
 
-$(document).ready(function() {
-    fingerprint = new Fingerprint({canvas: true}).get();
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-
-    openModal();
-
-    // Init CouchDB
+/**
+ * Init the PouchDB local database & sync
+ */
+function init_pouchdb_sync() {
     dbc = new PouchDB(couchdb_dbname);
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
         live: true,
@@ -1515,13 +1591,12 @@ $(document).ready(function() {
                             className: "error"
                         }
                     );
-                    update_order_selection_screen();
                     back();
                     break;
-                } else if (doc._deleted === true) {
-                    update_order_selection_screen();
                 }
             }
+
+            update_order_selection_screen();
         }
     }).on('error', function (err) {
         if (err.status === 409) {
@@ -1531,6 +1606,16 @@ $(document).ready(function() {
         console.log('erreur sync');
         console.log(err);
     });
+}
+
+
+$(document).ready(function() {
+    fingerprint = new Fingerprint({canvas: true}).get();
+    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
+    openModal();
+
+    init_pouchdb_sync();
 
     // Main screen
     $("#coverage_form").on("submit", function(e) {
@@ -1569,13 +1654,18 @@ $(document).ready(function() {
     });
 
     $('#create_orders').on('click', function() {
-        if (order_doc.date_planned === null) {
-            alert("Veuillez rentrer une date de livraison prévue.");
+        let modal_create_order = $('#templates #modal_create_order');
+        modal_create_order.find('.suppliers_date_planned_area').empty();
 
-            return -1;
+        for (let supplier of selected_suppliers) {
+            let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
+    
+            supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
+            supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
+            
+            modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
         }
 
-        let modal_create_order = $('#templates #modal_create_order');
 
         openModal(
             modal_create_order.html(),
@@ -1586,6 +1676,26 @@ $(document).ready(function() {
             false
         );
 
+        // Add id to input once modal is displayed
+        for (let supplier of selected_suppliers) {
+            $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
+        }
+
+        $("#modal .supplier_date_planned")
+            .datepicker({
+                defaultDate: "+1d",
+                minDate: new Date()
+            })
+            .on('change', function() {
+                try {
+                    // When date input changes, try to read date
+                    $.datepicker.parseDate(date_format, $(this).val());
+                } catch {
+                    alert('Date invalide');
+                    $(this).val('');
+                }
+            });
+            
         return 0;
     });
 
@@ -1616,40 +1726,6 @@ $(document).ready(function() {
         dateFormat: date_format
     };
     $.datepicker.setDefaults($.datepicker.regional['fr']);
-
-    const tomorrow = new Date();
-
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    $("#date_planned_input")
-        .datepicker({
-            defaultDate: "+1d",
-            minDate: tomorrow
-        })
-        .on('change', function() {
-            try {
-                // When date input changes, try to read date
-                $.datepicker.parseDate(date_format, $(this).val());
-
-                // No exception raised: date is valid.
-                // Change format from readable (dd/mm/yy) to ISO (yy-mm-dd)
-                let formatted_date = $(this).val()
-                    .split('/')
-                    .reverse()
-                    .join('-') + ' 00:00:00';
-
-                // Update doc if changed
-                if (formatted_date !== order_doc.date_planned) {
-                    order_doc.date_planned = formatted_date;
-                    update_cdb_order();
-                }
-            } catch (error) {
-                alert('Date invalide');
-                $(this).val('');
-                order_doc.date_planned = null;
-                update_cdb_order();
-            }
-        });
 
     // Order selection screen
     update_order_selection_screen();
