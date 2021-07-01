@@ -112,19 +112,6 @@ function add_product() {
         return -1;
     }
 
-    /* 
-    onst product_ids = products.map(p => p.id);
-
-        if (product_ids.length > 0) {
-            clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
-
-            $.ajax({
-                type: 'POST',
-                url: '/products/get_product_for_order_helper',
-                data: JSON.stringify(product_ids),
-                dataType:"json",
-    */
-
     $.ajax({
         type: 'POST',
         url: '/products/get_product_for_order_helper',
@@ -195,9 +182,9 @@ function compute_products_coverage_qties() {
  */
 function check_products_data() {
     return new Promise((resolve, reject) => {
-        const product_ids = products.map(p => p.id);
+        const suppliers_id = selected_suppliers.map(s => s.id);
 
-        if (product_ids.length > 0) {
+        if (suppliers_id.length > 0) {
             $.notify(
                 "Vérfication des informations produits...",
                 {
@@ -209,18 +196,29 @@ function check_products_data() {
             clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
 
             $.ajax({
-                type: 'POST',
-                url: '/products/get_product_for_order_helper',
-                data: JSON.stringify(product_ids),
+                type: 'GET',
+                url: '/orders/get_supplier_products',
+                data: {
+                    sids: suppliers_id
+                },
                 dataType:"json",
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
                 success: function(data) {
-                    for (let product of data.products) {
+                    for (let product of data.res.products) {
                         const p_index = products.findIndex(p => p.id == product.id);
 
-                        // Override products data with new data
+                        // Override products data with new data (without suppliersinfo so we don't override qty)
+                        const updated_suppliersinfo = product.suppliersinfo;
+                        delete product.suppliersinfo;
                         products[p_index] = { ...products[p_index], ...product };
+
+                        // Update suppliers info 
+                        for (let psi_index in products[p_index].suppliersinfo) {
+                            const updated_psi = updated_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
+                            products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
+                            products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                        }
                     }
 
                     $('.notifyjs-wrapper').trigger('notify-hide');
@@ -279,8 +277,7 @@ function add_supplier() {
     selected_suppliers.push(supplier);
 
     let url = "/orders/get_supplier_products";
-
-    url += "?sid=" + encodeURIComponent(supplier.id);
+    url += "?sids=" + encodeURIComponent(supplier.id);
 
     // Fetch supplier products
     $.ajax({

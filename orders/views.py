@@ -41,8 +41,8 @@ def get_suppliers(request):
 def get_supplier_products(request):
     """ Get supplier products """
 
-    sid = request.GET.get('sid', '')
-    res = CagetteProducts.get_products_for_order_helper(sid)
+    suppliers_id = request.GET.getlist('sids', '')
+    res = CagetteProducts.get_products_for_order_helper(suppliers_id)
     
     if 'error' in res:
         return JsonResponse(res, status=500)
