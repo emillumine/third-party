@@ -214,8 +214,11 @@ function check_products_data() {
                         // Update suppliers info 
                         for (let psi_index in products[p_index].suppliersinfo) {
                             const updated_psi = updated_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
-                            products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
-                            products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                            if (updated_psi !== undefined) {
+                                products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
+                                products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                            }
+
                         }
                     }
 
@@ -958,6 +961,7 @@ function display_suppliers() {
         let template = $("#templates #supplier_pill_template");
 
         template.find(".pill_supplier_name").text(supplier.display_name);
+        template.find(".supplier_pill").attr('id', `pill_supplier_${supplier.id}`);
         template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`);
 
         supplier_container.append(template.html());
@@ -1441,17 +1445,14 @@ function unselect_all_rows() {
 function display_total_values() {
     _compute_total_values_by_supplier();
 
-    $('#suppliers_total_values_container').empty();
-
-    let total_values_content = '<ul>';
     let order_total_value = 0;
     for (let supplier of selected_suppliers) {
-        total_values_content += `<li>${supplier.display_name} : ${supplier.total_value}€</li>`;
+        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(supplier.total_value);
         order_total_value += supplier.total_value;
     }
-    total_values_content += '</ul>';
-    $('#suppliers_total_values_container').append(total_values_content);
-    $('#order_total_value').text(`${order_total_value}€`);
+
+    order_total_value = parseFloat(order_total_value).toFixed(2);
+    $('#order_total_value').text(order_total_value);
 }
 
 /**
