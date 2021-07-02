@@ -635,56 +635,59 @@ function generate_inventory() {
  * Event fct: on click on an order button
  */
 function order_pill_on_click() {
-    clicked_order_pill = $(this);
-    let order_name_container = clicked_order_pill.find('.pill_order_name');
-    let doc_id = $(order_name_container).text();
-
-    dbc.get(doc_id).then((doc) => {
-        if (doc.last_update.fingerprint !== fingerprint) {
-            time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
-            diff_str = ``;
-
-            if (time_diff.days !== 0) {
-                diff_str += `${time_diff.days} jour(s), `;
-            }
-            if (time_diff.hours !== 0) {
-                diff_str += `${time_diff.hours} heure(s), `;
-            }
-            if (time_diff.min !== 0) {
-                diff_str += `${time_diff.min} min, `;
-            }
-            diff_str += `${time_diff.sec}s`;
-
-            let modal_order_access = $('#templates #modal_order_access');
-
-            modal_order_access.find(".order_last_update").text(diff_str);
-
-            openModal(
-                modal_order_access.html(),
-                () => {
-                    goto_main_screen(doc);
-                },
-                'Valider'
-            );
-        } else {
-            goto_main_screen(doc);
-        }
-    })
-        .catch(function (err) {
-            if (err.status == 404) {
-                $.notify(
-                    "Cette commande n'existe plus.",
-                    {
-                        globalPosition:"top right",
-                        className: "error"
-                    }
+    if (is_time_to('order_pill_on_click')) {
+        clicked_order_pill = $(this);
+        let order_name_container = clicked_order_pill.find('.pill_order_name');
+        let doc_id = $(order_name_container).text();
+    
+        dbc.get(doc_id).then((doc) => {
+            if (doc.last_update.fingerprint !== fingerprint) {
+                time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
+                diff_str = ``;
+    
+                if (time_diff.days !== 0) {
+                    diff_str += `${time_diff.days} jour(s), `;
+                }
+                if (time_diff.hours !== 0) {
+                    diff_str += `${time_diff.hours} heure(s), `;
+                }
+                if (time_diff.min !== 0) {
+                    diff_str += `${time_diff.min} min, `;
+                }
+                diff_str += `${time_diff.sec}s`;
+    
+                let modal_order_access = $('#templates #modal_order_access');
+    
+                modal_order_access.find(".order_last_update").text(diff_str);
+    
+                openModal(
+                    modal_order_access.html(),
+                    () => {
+                        goto_main_screen(doc);
+                    },
+                    'Valider'
                 );
-                update_order_selection_screen();
             } else {
-                alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
+                goto_main_screen(doc);
             }
-            console.log(err);
-        });
+        })
+            .catch(function (err) {
+                if (err.status == 404) {
+                    $.notify(
+                        "Cette commande n'existe plus.",
+                        {
+                            globalPosition:"top right",
+                            className: "error"
+                        }
+                    );
+                    update_order_selection_screen();
+                } else {
+                    alert('Erreur lors de la récupération de la commande. Si l\'erreur persiste, contactez un administrateur svp.');
+                }
+                console.log(err);
+            });
+    }
+
 }
 
 /**
@@ -1494,16 +1497,16 @@ function update_main_screen(params) {
  * Update DOM display on the order selection screen
  */
 function update_order_selection_screen() {
-    // Remove listener before recreating them
-    $(".order_pill").off();
-
-    let existing_orders_container = $("#existing_orders");
-    existing_orders_container.empty();
-    $('#new_order_name').val('');
-
     dbc.allDocs({
         include_docs: true
     }).then(function (result) {
+        // Remove listener before recreating them
+        $(".order_pill").off();
+    
+        let existing_orders_container = $("#existing_orders");
+        existing_orders_container.empty();
+        $('#new_order_name').val('');
+
         if (result.rows.length === 0) {
             existing_orders_container.append(`<i>Aucune commande en cours...</i>`);
         } else {
@@ -1576,7 +1579,8 @@ function init_pouchdb_sync() {
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
         live: true,
         retry: true,
-        auto_compaction: true
+        auto_compaction: true,
+        revs_limit: 1
     });
 
     sync.on('change', function (info) {
@@ -1620,81 +1624,94 @@ $(document).ready(function() {
     // Main screen
     $("#coverage_form").on("submit", function(e) {
         e.preventDefault();
-        let val = $("#coverage_days_input").val();
-
-        val = parseInt(val);
-
-        if (!isNaN(val)) {
-            order_doc.coverage_days = val;
-            compute_products_coverage_qties();
-            update_cdb_order();
-            update_main_screen();
-        } else {
-            $("#coverage_days_input").val(order_doc.coverage_days);
-            alert(`Valeur non valide pour le nombre de jours de couverture !`);
+        if (is_time_to('submit_coverage_form')) {
+            let val = $("#coverage_days_input").val();
+    
+            val = parseInt(val);
+    
+            if (!isNaN(val)) {
+                order_doc.coverage_days = val;
+                compute_products_coverage_qties();
+                update_cdb_order();
+                update_main_screen();
+            } else {
+                $("#coverage_days_input").val(order_doc.coverage_days);
+                alert(`Valeur non valide pour le nombre de jours de couverture !`);
+            }
         }
     });
 
+
     $("#supplier_form").on("submit", function(e) {
         e.preventDefault();
-        add_supplier();
+        if (is_time_to('add_product')) {
+            add_supplier();
+        }
     });
 
     $("#product_form").on("submit", function(e) {
         e.preventDefault();
-        add_product();
+        if (is_time_to('add_product')) {
+            add_product();
+        }
     });
 
     $("#do_inventory").on("click", function() {
-        generate_inventory();
+        if (is_time_to('generate_inventory')) {
+            generate_inventory();
+        }
     });
 
     $('#back_to_order_selection_from_main').on('click', function() {
-        back();
+        if (is_time_to('back_to_order_selection_from_main')) {
+            back();
+        }
     });
 
     $('#create_orders').on('click', function() {
-        let modal_create_order = $('#templates #modal_create_order');
-        modal_create_order.find('.suppliers_date_planned_area').empty();
-
-        for (let supplier of selected_suppliers) {
-            let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
+        if (is_time_to('create_orders')) {
+            let modal_create_order = $('#templates #modal_create_order');
+            modal_create_order.find('.suppliers_date_planned_area').empty();
     
-            supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
-            supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
-            
-            modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
+            for (let supplier of selected_suppliers) {
+                let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
+        
+                supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
+                supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
+                
+                modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
+            }
+    
+    
+            openModal(
+                modal_create_order.html(),
+                () => {
+                    create_orders();
+                },
+                'Valider',
+                false
+            );
+    
+            // Add id to input once modal is displayed
+            for (let supplier of selected_suppliers) {
+                $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
+            }
+    
+            $("#modal .supplier_date_planned")
+                .datepicker({
+                    defaultDate: "+1d",
+                    minDate: new Date()
+                })
+                .on('change', function() {
+                    try {
+                        // When date input changes, try to read date
+                        $.datepicker.parseDate(date_format, $(this).val());
+                    } catch {
+                        alert('Date invalide');
+                        $(this).val('');
+                    }
+                });
         }
-
-
-        openModal(
-            modal_create_order.html(),
-            () => {
-                create_orders();
-            },
-            'Valider',
-            false
-        );
-
-        // Add id to input once modal is displayed
-        for (let supplier of selected_suppliers) {
-            $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
-        }
-
-        $("#modal .supplier_date_planned")
-            .datepicker({
-                defaultDate: "+1d",
-                minDate: new Date()
-            })
-            .on('change', function() {
-                try {
-                    // When date input changes, try to read date
-                    $.datepicker.parseDate(date_format, $(this).val());
-                } catch {
-                    alert('Date invalide');
-                    $(this).val('');
-                }
-            });
             
         return 0;
     });
@@ -1732,12 +1749,16 @@ $(document).ready(function() {
 
     $("#new_order_form").on("submit", function(e) {
         e.preventDefault();
-        create_cdb_order();
+        if (is_time_to('submit_new_order_form', 1000)) {
+            create_cdb_order();
+        }
     });
 
     // Orders created screen
     $('#back_to_order_selection_from_orders_created').on('click', function() {
-        switch_screen('order_selection', 'orders_created');
+        if (is_time_to('back_to_order_selection_from_orders_created')) {
+            switch_screen('order_selection', 'orders_created');
+        }
     });
 
     // Get suppliers
