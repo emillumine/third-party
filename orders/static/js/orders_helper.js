@@ -214,8 +214,11 @@ function check_products_data() {
                         // Update suppliers info 
                         for (let psi_index in products[p_index].suppliersinfo) {
                             const updated_psi = updated_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
-                            products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
-                            products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                            if (updated_psi !== undefined) {
+                                products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
+                                products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                            }
+
                         }
                     }
 
@@ -482,7 +485,7 @@ function _compute_total_values_by_supplier() {
         for (let supinfo of p.suppliersinfo) {
             let supplier_index = selected_suppliers.findIndex(s => s.id == supinfo.supplier_id);
 
-            let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.price : 0;
+            let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.package_qty * supinfo.price : 0;
             selected_suppliers[supplier_index].total_value += product_supplier_value;
         }
     }
@@ -586,42 +589,44 @@ function generate_inventory() {
             openModal(
                 modal_create_inventory.html(),
                 () => {
-                    $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
-                    $.ajax({
-                        type: "POST",
-                        url: "/inventory/generate_inventory_list",
-                        dataType: "json",
-                        traditional: true,
-                        contentType: "application/json; charset=utf-8",
-                        data: JSON.stringify(data),
-                        success: () => {
-                            unselect_all_rows();
-                            
-                            // Give time for modal to fade
-                            setTimeout(function() {
+                    if (is_time_to('validate_generate_inventory')) {
+                        $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+                        $.ajax({
+                            type: "POST",
+                            url: "/inventory/generate_inventory_list",
+                            dataType: "json",
+                            traditional: true,
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify(data),
+                            success: () => {
+                                unselect_all_rows();
+                                
+                                // Give time for modal to fade
+                                setTimeout(function() {
+                                    $('#do_inventory').empty().append(`Faire un inventaire`);
+                                    $('#do_inventory').notify(
+                                        "Inventaire créé !",
+                                        {
+                                            globalPosition:"bottom center",
+                                            className: "success"
+                                        }
+                                    );
+                                }, 200);
+                            },
+                            error: function(data) {
                                 $('#do_inventory').empty().append(`Faire un inventaire`);
-                                $('#do_inventory').notify(
-                                    "Inventaire créé !",
-                                    {
-                                        globalPosition:"bottom center",
-                                        className: "success"
-                                    }
-                                );
-                            }, 200);
-                        },
-                        error: function(data) {
-                            $('#do_inventory').empty().append(`Faire un inventaire`);
-                            let msg = "erreur serveur lors de la création de l'inventaire".
-                                err = {msg: msg, ctx: 'generate_inventory'};
-
-                            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                                err.msg += ' : ' + data.responseJSON.error;
+                                let msg = "erreur serveur lors de la création de l'inventaire".
+                                    err = {msg: msg, ctx: 'generate_inventory'};
+    
+                                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                                    err.msg += ' : ' + data.responseJSON.error;
+                                }
+                                report_JS_error(err, 'orders');
+    
+                                alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
                             }
-                            report_JS_error(err, 'orders');
-
-                            alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
-                        }
-                    });
+                        });
+                    }
                 },
                 'Valider'
             );
@@ -635,7 +640,7 @@ function generate_inventory() {
  * Event fct: on click on an order button
  */
 function order_pill_on_click() {
-    if (is_time_to('order_pill_on_click')) {
+    if (is_time_to('order_pill_on_click', 1000)) {
         clicked_order_pill = $(this);
         let order_name_container = clicked_order_pill.find('.pill_order_name');
         let doc_id = $(order_name_container).text();
@@ -663,7 +668,9 @@ function order_pill_on_click() {
                 openModal(
                     modal_order_access.html(),
                     () => {
-                        goto_main_screen(doc);
+                        if (is_time_to('validate_access_order')) {
+                            goto_main_screen(doc);
+                        }
                     },
                     'Valider'
                 );
@@ -790,7 +797,7 @@ function create_orders() {
     for (let p of products) {
         for (let p_supplierinfo of p.suppliersinfo) {
             // If a qty is set for a supplier for a product
-            if ('qty' in p_supplierinfo) {
+            if ('qty' in p_supplierinfo && p_supplierinfo.qty != 0) {
                 const supplier_id = p_supplierinfo.supplier_id;
 
                 orders_data.suppliers_data[supplier_id].lines.push({
@@ -958,6 +965,7 @@ function display_suppliers() {
         let template = $("#templates #supplier_pill_template");
 
         template.find(".pill_supplier_name").text(supplier.display_name);
+        template.find(".supplier_pill").attr('id', `pill_supplier_${supplier.id}`);
         template.find(".remove_supplier_icon").attr('id', `remove_supplier_${supplier.id}`);
 
         supplier_container.append(template.html());
@@ -975,7 +983,9 @@ function display_suppliers() {
         openModal(
             modal_remove_supplier.html(),
             () => {
-                remove_supplier(supplier_id);
+                if (is_time_to('validate_remove_supplier')) {
+                    remove_supplier(supplier_id);
+                }
             },
             'Valider'
         );
@@ -1023,18 +1033,23 @@ function _compute_product_data(product) {
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
-        let days_not_covered = 0;
+        let qty_not_covered = 0;
+        let days_covered = 0;
         if (product.daily_conso !== 0) {
-            let qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-            days_not_covered = qty_not_covered / product.daily_conso;  // get unmet needs in nb of days
+            qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+            days_covered = qty_not_covered / product.daily_conso;
     
-            days_not_covered = -Math.ceil(days_not_covered);  // round up, so if a day is not fully covered display it
-            days_not_covered = (days_not_covered > 0) ? 0 : days_not_covered;
+            qty_not_covered = -Math.ceil(qty_not_covered);  // round up, so if a value is not fully covered display it
+            qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
+
+            days_covered = -Math.ceil(days_covered);
         }
 
-        item.days_not_covered = days_not_covered;
+        item.qty_not_covered = qty_not_covered;
+        item.days_covered = days_covered;
     } else {
-        item.days_not_covered = 'X';
+        item.qty_not_covered = 'X';
+        item.days_covered = 'X';
     }
 
     return item;
@@ -1099,7 +1114,7 @@ function prepare_datatable_columns() {
         {
             data: "default_code",
             title: "Ref",
-            width: "8%",
+            width: "6%",
             render: function (data) {
                 return (data === false) ? "" : data;
             }
@@ -1186,8 +1201,15 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
-        data: "days_not_covered",
-        title: "Besoin non couvert (jours)",
+        data: "qty_not_covered",
+        title: "Besoin non couvert (qté)",
+        className: "dt-body-center",
+        width: "4%"
+    });
+
+    columns.push({
+        data: "days_covered",
+        title: "Jours de couverture",
         className: "dt-body-center",
         width: "4%"
     });
@@ -1317,7 +1339,9 @@ function display_products(params) {
         openModal(
             modal_attach_product_to_supplier.html(),
             () => {
-                save_supplier_product_association(product, supplier, this);
+                if (is_time_to('validate_save_supplier_product_association')) {
+                    save_supplier_product_association(product, supplier, this);
+                }
             },
             'Valider',
             false
@@ -1404,7 +1428,9 @@ function display_products(params) {
         openModal(
             modal_product_npa.html(),
             () => {
-                set_product_npa(p_id, npa);
+                if (is_time_to('validate_set_product_npa')) {
+                    set_product_npa(p_id, npa);
+                }
             },
             'Valider',
             false,
@@ -1441,17 +1467,14 @@ function unselect_all_rows() {
 function display_total_values() {
     _compute_total_values_by_supplier();
 
-    $('#suppliers_total_values_container').empty();
-
-    let total_values_content = '<ul>';
     let order_total_value = 0;
     for (let supplier of selected_suppliers) {
-        total_values_content += `<li>${supplier.display_name} : ${supplier.total_value}€</li>`;
+        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(supplier.total_value);
         order_total_value += supplier.total_value;
     }
-    total_values_content += '</ul>';
-    $('#suppliers_total_values_container').append(total_values_content);
-    $('#order_total_value').text(`${order_total_value}€`);
+
+    order_total_value = parseFloat(order_total_value).toFixed(2);
+    $('#order_total_value').text(order_total_value);
 }
 
 /**
@@ -1624,7 +1647,7 @@ $(document).ready(function() {
     // Main screen
     $("#coverage_form").on("submit", function(e) {
         e.preventDefault();
-        if (is_time_to('submit_coverage_form')) {
+        if (is_time_to('submit_coverage_form', 1000)) {
             let val = $("#coverage_days_input").val();
     
             val = parseInt(val);
@@ -1644,32 +1667,32 @@ $(document).ready(function() {
 
     $("#supplier_form").on("submit", function(e) {
         e.preventDefault();
-        if (is_time_to('add_product')) {
+        if (is_time_to('add_product', 1000)) {
             add_supplier();
         }
     });
 
     $("#product_form").on("submit", function(e) {
         e.preventDefault();
-        if (is_time_to('add_product')) {
+        if (is_time_to('add_product', 1000)) {
             add_product();
         }
     });
 
     $("#do_inventory").on("click", function() {
-        if (is_time_to('generate_inventory')) {
+        if (is_time_to('generate_inventory', 1000)) {
             generate_inventory();
         }
     });
 
     $('#back_to_order_selection_from_main').on('click', function() {
-        if (is_time_to('back_to_order_selection_from_main')) {
+        if (is_time_to('back_to_order_selection_from_main', 1000)) {
             back();
         }
     });
 
     $('#create_orders').on('click', function() {
-        if (is_time_to('create_orders')) {
+        if (is_time_to('create_orders', 1000)) {
             let modal_create_order = $('#templates #modal_create_order');
             modal_create_order.find('.suppliers_date_planned_area').empty();
     
@@ -1686,7 +1709,9 @@ $(document).ready(function() {
             openModal(
                 modal_create_order.html(),
                 () => {
-                    create_orders();
+                    if (is_time_to('validate_create_orders')) {
+                        create_orders();
+                    }
                 },
                 'Valider',
                 false
@@ -1756,7 +1781,7 @@ $(document).ready(function() {
 
     // Orders created screen
     $('#back_to_order_selection_from_orders_created').on('click', function() {
-        if (is_time_to('back_to_order_selection_from_orders_created')) {
+        if (is_time_to('back_to_order_selection_from_orders_created', 1000)) {
             switch_screen('order_selection', 'orders_created');
         }
     });
