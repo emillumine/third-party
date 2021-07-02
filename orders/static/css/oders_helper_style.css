@@ -2,7 +2,7 @@
     position: relative;
 }
 
-.page_content {
+.page_content, .login_area {
     position: absolute;
     top: 0;
     left: 0;
