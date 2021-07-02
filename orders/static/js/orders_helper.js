@@ -187,7 +187,7 @@ function check_products_data() {
                 "Vérfication des informations produits...",
                 {
                     globalPosition:"top left",
-                    className: "warning"
+                    className: "info"
                 }
             );
 
@@ -823,6 +823,8 @@ function create_orders() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(orders_data),
         success: (result) => {
+            $('#created_orders_area').empty();
+
             // Display new orders
             for (let new_order of result.res.created) {
                 const supplier_name = suppliers_list.find(s => s.id == new_order.supplier_id).display_name;
@@ -1037,12 +1039,11 @@ function _compute_product_data(product) {
         let days_covered = 0;
         if (product.daily_conso !== 0) {
             qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-            days_covered = qty_not_covered / product.daily_conso;
-    
             qty_not_covered = -Math.ceil(qty_not_covered);  // round up, so if a value is not fully covered display it
             qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
-
-            days_covered = -Math.ceil(days_covered);
+            
+            days_covered = (product.qty_available + product.incoming_qty + purchase_qty) / product.daily_conso;
+            days_covered = Math.floor(days_covered);
         }
 
         item.qty_not_covered = qty_not_covered;
@@ -1469,7 +1470,7 @@ function display_total_values() {
 
     let order_total_value = 0;
     for (let supplier of selected_suppliers) {
-        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(supplier.total_value);
+        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(parseFloat(supplier.total_value).toFixed(2));
         order_total_value += supplier.total_value;
     }
 

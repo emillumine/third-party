@@ -154,6 +154,10 @@
     cursor: pointer;
 }
 
+.product_not_from_supplier:hover {
+    background-color: #c7cace;
+}
+
 .product_name, .supplier_name, .product_npa {
     font-weight: bold;
 }
