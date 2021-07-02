@@ -228,6 +228,10 @@
 
 - ENTRANCE_SERVICE_BTN = "…faire <b>mon service 🤝"
 
+- ENTRANCE_EXTRA_BUTTONS_DISPLAY = False (no button is shown above shift coop. list) (True if not set)
+
+- ENTRANCE_EASY_SHIFT_VALIDATE = False (default value) When set to True allow coop to identify and have 1 point (only if FTOP)
+
 ### Member space
 
 - EM_URL = ''

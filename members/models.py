@@ -22,7 +22,7 @@ class CagetteMember(models.Model):
     """Class to handle cagette Odoo member."""
     m_default_fields = ['name', 'sex', 'image_medium', 'active',
                         'barcode_base', 'barcode', 'in_ftop_team',
-                        'is_associated_people', 'is_member',
+                        'is_associated_people', 'is_member', 'shift_type',
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
 
