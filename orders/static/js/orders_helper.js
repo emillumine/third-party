@@ -1576,7 +1576,7 @@ function init_pouchdb_sync() {
     sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
         live: true,
         retry: true,
-        auto_compaction: false
+        auto_compaction: true
     });
 
     sync.on('change', function (info) {
