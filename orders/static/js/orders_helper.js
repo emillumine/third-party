@@ -187,7 +187,7 @@ function check_products_data() {
                 "Vérfication des informations produits...",
                 {
                     globalPosition:"top left",
-                    className: "warning"
+                    className: "info"
                 }
             );
 
@@ -823,6 +823,8 @@ function create_orders() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(orders_data),
         success: (result) => {
+            $('#created_orders_area').empty();
+
             // Display new orders
             for (let new_order of result.res.created) {
                 const supplier_name = suppliers_list.find(s => s.id == new_order.supplier_id).display_name;
@@ -1037,12 +1039,11 @@ function _compute_product_data(product) {
         let days_covered = 0;
         if (product.daily_conso !== 0) {
             qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-            days_covered = qty_not_covered / product.daily_conso;
-    
             qty_not_covered = -Math.ceil(qty_not_covered);  // round up, so if a value is not fully covered display it
             qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
-
-            days_covered = -Math.ceil(days_covered);
+            
+            days_covered = (product.qty_available + product.incoming_qty + purchase_qty) / product.daily_conso;
+            days_covered = Math.floor(days_covered);
         }
 
         item.qty_not_covered = qty_not_covered;
@@ -1469,7 +1470,7 @@ function display_total_values() {
 
     let order_total_value = 0;
     for (let supplier of selected_suppliers) {
-        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(supplier.total_value);
+        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(parseFloat(supplier.total_value).toFixed(2));
         order_total_value += supplier.total_value;
     }
 
@@ -1637,243 +1638,250 @@ function init_pouchdb_sync() {
 
 
 $(document).ready(function() {
-    fingerprint = new Fingerprint({canvas: true}).get();
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+    if (coop_is_connected()) {
+        $('#new_order_form').show();
+        $('#existing_orders_area').show();
 
-    openModal();
+        fingerprint = new Fingerprint({canvas: true}).get();
+        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
-    init_pouchdb_sync();
+        openModal();
 
-    // Main screen
-    $("#coverage_form").on("submit", function(e) {
-        e.preventDefault();
-        if (is_time_to('submit_coverage_form', 1000)) {
-            let val = $("#coverage_days_input").val();
-    
-            val = parseInt(val);
-    
-            if (!isNaN(val)) {
-                order_doc.coverage_days = val;
-                compute_products_coverage_qties();
-                update_cdb_order();
-                update_main_screen();
-            } else {
-                $("#coverage_days_input").val(order_doc.coverage_days);
-                alert(`Valeur non valide pour le nombre de jours de couverture !`);
-            }
-        }
-    });
+        init_pouchdb_sync();
 
-
-    $("#supplier_form").on("submit", function(e) {
-        e.preventDefault();
-        if (is_time_to('add_product', 1000)) {
-            add_supplier();
-        }
-    });
-
-    $("#product_form").on("submit", function(e) {
-        e.preventDefault();
-        if (is_time_to('add_product', 1000)) {
-            add_product();
-        }
-    });
-
-    $("#do_inventory").on("click", function() {
-        if (is_time_to('generate_inventory', 1000)) {
-            generate_inventory();
-        }
-    });
-
-    $('#back_to_order_selection_from_main').on('click', function() {
-        if (is_time_to('back_to_order_selection_from_main', 1000)) {
-            back();
-        }
-    });
-
-    $('#create_orders').on('click', function() {
-        if (is_time_to('create_orders', 1000)) {
-            let modal_create_order = $('#templates #modal_create_order');
-            modal_create_order.find('.suppliers_date_planned_area').empty();
-    
-            for (let supplier of selected_suppliers) {
-                let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
+        // Main screen
+        $("#coverage_form").on("submit", function(e) {
+            e.preventDefault();
+            if (is_time_to('submit_coverage_form', 1000)) {
+                let val = $("#coverage_days_input").val();
         
-                supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
-                supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
-                
-                modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
+                val = parseInt(val);
+        
+                if (!isNaN(val)) {
+                    order_doc.coverage_days = val;
+                    compute_products_coverage_qties();
+                    update_cdb_order();
+                    update_main_screen();
+                } else {
+                    $("#coverage_days_input").val(order_doc.coverage_days);
+                    alert(`Valeur non valide pour le nombre de jours de couverture !`);
+                }
             }
-    
-    
-            openModal(
-                modal_create_order.html(),
-                () => {
-                    if (is_time_to('validate_create_orders')) {
-                        create_orders();
-                    }
-                },
-                'Valider',
-                false
-            );
-    
-            // Add id to input once modal is displayed
-            for (let supplier of selected_suppliers) {
-                $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
+        });
+
+
+        $("#supplier_form").on("submit", function(e) {
+            e.preventDefault();
+            if (is_time_to('add_product', 1000)) {
+                add_supplier();
             }
-    
-            $("#modal .supplier_date_planned")
-                .datepicker({
-                    defaultDate: "+1d",
-                    minDate: new Date()
-                })
-                .on('change', function() {
-                    try {
-                        // When date input changes, try to read date
-                        $.datepicker.parseDate(date_format, $(this).val());
-                    } catch {
-                        alert('Date invalide');
-                        $(this).val('');
-                    }
-                });
-        }
+        });
+
+        $("#product_form").on("submit", function(e) {
+            e.preventDefault();
+            if (is_time_to('add_product', 1000)) {
+                add_product();
+            }
+        });
+
+        $("#do_inventory").on("click", function() {
+            if (is_time_to('generate_inventory', 1000)) {
+                generate_inventory();
+            }
+        });
+
+        $('#back_to_order_selection_from_main').on('click', function() {
+            if (is_time_to('back_to_order_selection_from_main', 1000)) {
+                back();
+            }
+        });
+
+        $('#create_orders').on('click', function() {
+            if (is_time_to('create_orders', 1000)) {
+                let modal_create_order = $('#templates #modal_create_order');
+                modal_create_order.find('.suppliers_date_planned_area').empty();
+        
+                for (let supplier of selected_suppliers) {
+                    let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
             
-        return 0;
-    });
-
-    $.datepicker.regional['fr'] = {
-        monthNames: [
-            'Janvier',
-            'Fevrier',
-            'Mars',
-            'Avril',
-            'Mai',
-            'Juin',
-            'Juillet',
-            'Aout',
-            'Septembre',
-            'Octobre',
-            'Novembre',
-            'Decembre'
-        ],
-        dayNamesMin: [
-            'Di',
-            'Lu',
-            'Ma',
-            'Me',
-            'Je',
-            'Ve',
-            'Sa'
-        ],
-        dateFormat: date_format
-    };
-    $.datepicker.setDefaults($.datepicker.regional['fr']);
-
-    // Order selection screen
-    update_order_selection_screen();
-
-    $("#new_order_form").on("submit", function(e) {
-        e.preventDefault();
-        if (is_time_to('submit_new_order_form', 1000)) {
-            create_cdb_order();
-        }
-    });
-
-    // Orders created screen
-    $('#back_to_order_selection_from_orders_created').on('click', function() {
-        if (is_time_to('back_to_order_selection_from_orders_created', 1000)) {
-            switch_screen('order_selection', 'orders_created');
-        }
-    });
-
-    // Get suppliers
-    $.ajax({
-        type: 'GET',
-        url: "/orders/get_suppliers",
-        dataType:"json",
-        traditional: true,
-        contentType: "application/json; charset=utf-8",
-        success: function(data) {
-            suppliers_list = data.res;
-
-            // Set up autocomplete on supplier input
-            $("#supplier_input").autocomplete({
-                source: suppliers_list.map(a => a.display_name)
-            });
-
-
-        },
-        error: function(data) {
-            err = {msg: "erreur serveur lors de la récupération des fournisseurs", ctx: 'get_suppliers'};
-            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                err.msg += ' : ' + data.responseJSON.error;
+                    supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
+                    supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
+                    
+                    modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
+                }
+        
+        
+                openModal(
+                    modal_create_order.html(),
+                    () => {
+                        if (is_time_to('validate_create_orders')) {
+                            create_orders();
+                        }
+                    },
+                    'Valider',
+                    false
+                );
+        
+                // Add id to input once modal is displayed
+                for (let supplier of selected_suppliers) {
+                    $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
+                }
+        
+                $("#modal .supplier_date_planned")
+                    .datepicker({
+                        defaultDate: "+1d",
+                        minDate: new Date()
+                    })
+                    .on('change', function() {
+                        try {
+                            // When date input changes, try to read date
+                            $.datepicker.parseDate(date_format, $(this).val());
+                        } catch {
+                            alert('Date invalide');
+                            $(this).val('');
+                        }
+                    });
             }
-            report_JS_error(err, 'orders');
+                
+            return 0;
+        });
 
-            closeModal();
-            alert('Erreur lors de la récupération des fournisseurs, rechargez la page plus tard');
-        }
-    });
+        $.datepicker.regional['fr'] = {
+            monthNames: [
+                'Janvier',
+                'Fevrier',
+                'Mars',
+                'Avril',
+                'Mai',
+                'Juin',
+                'Juillet',
+                'Aout',
+                'Septembre',
+                'Octobre',
+                'Novembre',
+                'Decembre'
+            ],
+            dayNamesMin: [
+                'Di',
+                'Lu',
+                'Ma',
+                'Me',
+                'Je',
+                'Ve',
+                'Sa'
+            ],
+            dateFormat: date_format
+        };
+        $.datepicker.setDefaults($.datepicker.regional['fr']);
 
-    //Get products
-    var accentMap = {
-        "á": "a",
-        "à": "a",
-        "â": "a",
-        "é": "e",
-        "è": "e",
-        "ê": "e",
-        "ë": "e",
-        "ç": "c",
-        "ù": "u",
-        "ü": "u",
-        "ö": "o"
-    };
+        // Order selection screen
+        update_order_selection_screen();
 
-    var normalize = function(term) {
-        var ret = "";
-
-        for (var i = 0; i < term.length; i++) {
-            ret += accentMap[ term.charAt(i) ] || term.charAt(i);
-        }
-
-        return ret;
-    };
-
-    $.ajax({
-        type: 'GET',
-        url: "/products/simple_list",
-        dataType:"json",
-        traditional: true,
-        contentType: "application/json; charset=utf-8",
-        success: function(data) {
-            products_list = data.list;
-
-            // Set up autocomplete on product input
-            $("#product_input").autocomplete({
-                source: function(request, response) {
-                    var matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
-
-                    response($.grep(products_list.map(a => a.display_name), function(value) {
-                        value = value.label || value.value || value;
-
-                        return matcher.test(value) || matcher.test(normalize(value));
-                    }));
-                },
-                position: {collision: "flip" }
-            });
-
-            closeModal();
-        },
-        error: function(data) {
-            err = {msg: "erreur serveur lors de la récupération des articles", ctx: 'get_products'};
-            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                err.msg += ' : ' + data.responseJSON.error;
+        $("#new_order_form").on("submit", function(e) {
+            e.preventDefault();
+            if (is_time_to('submit_new_order_form', 1000)) {
+                create_cdb_order();
             }
-            report_JS_error(err, 'orders');
+        });
 
-            closeModal();
-            alert('Erreur lors de la récupération des articles, rechargez la page plus tard');
-        }
-    });
+        // Orders created screen
+        $('#back_to_order_selection_from_orders_created').on('click', function() {
+            if (is_time_to('back_to_order_selection_from_orders_created', 1000)) {
+                switch_screen('order_selection', 'orders_created');
+            }
+        });
+
+        // Get suppliers
+        $.ajax({
+            type: 'GET',
+            url: "/orders/get_suppliers",
+            dataType:"json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                suppliers_list = data.res;
+
+                // Set up autocomplete on supplier input
+                $("#supplier_input").autocomplete({
+                    source: suppliers_list.map(a => a.display_name)
+                });
+
+
+            },
+            error: function(data) {
+                err = {msg: "erreur serveur lors de la récupération des fournisseurs", ctx: 'get_suppliers'};
+                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                    err.msg += ' : ' + data.responseJSON.error;
+                }
+                report_JS_error(err, 'orders');
+
+                closeModal();
+                alert('Erreur lors de la récupération des fournisseurs, rechargez la page plus tard');
+            }
+        });
+
+        //Get products
+        var accentMap = {
+            "á": "a",
+            "à": "a",
+            "â": "a",
+            "é": "e",
+            "è": "e",
+            "ê": "e",
+            "ë": "e",
+            "ç": "c",
+            "ù": "u",
+            "ü": "u",
+            "ö": "o"
+        };
+
+        var normalize = function(term) {
+            var ret = "";
+
+            for (var i = 0; i < term.length; i++) {
+                ret += accentMap[ term.charAt(i) ] || term.charAt(i);
+            }
+
+            return ret;
+        };
+
+        $.ajax({
+            type: 'GET',
+            url: "/products/simple_list",
+            dataType:"json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                products_list = data.list;
+
+                // Set up autocomplete on product input
+                $("#product_input").autocomplete({
+                    source: function(request, response) {
+                        var matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
+
+                        response($.grep(products_list.map(a => a.display_name), function(value) {
+                            value = value.label || value.value || value;
+
+                            return matcher.test(value) || matcher.test(normalize(value));
+                        }));
+                    },
+                    position: {collision: "flip" }
+                });
+
+                closeModal();
+            },
+            error: function(data) {
+                err = {msg: "erreur serveur lors de la récupération des articles", ctx: 'get_products'};
+                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                    err.msg += ' : ' + data.responseJSON.error;
+                }
+                report_JS_error(err, 'orders');
+
+                closeModal();
+                alert('Erreur lors de la récupération des articles, rechargez la page plus tard');
+            }
+        });
+    } else {
+        $('#not_connected_content').show();
+    }
 });

@@ -148,7 +148,8 @@ class CagetteProduct(models.Model):
             'product_purchase_ok': product["purchase_ok"],
             'price': price,
             'base_price': price,
-            'package_qty': package_qty
+            'package_qty': package_qty,
+            'sequence': 1000  # lowest priority for the new suppliers
         }
         res = api.create('product.supplierinfo', f)
 
@@ -503,8 +504,8 @@ class CagetteProducts(models.Model):
 
             sales_average_params = {
                 'ids': ptids, 
-                # 'from': '2019-04-10', 
-                # 'to': '2019-08-10',
+                'from': '2019-04-10', 
+                'to': '2019-08-10',
             }
             sales = CagetteProducts.get_template_products_sales_average(sales_average_params)
 

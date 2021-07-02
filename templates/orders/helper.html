@@ -16,14 +16,20 @@
 {% block content %}
 <div class="page_body">
     <div id="select_order_content" class="page_content txtcenter">
+        <div class="login_area">
+            {% include "common/conn_admin.html" %}
+        </div>
         <div id="new_order_area">
             <h2>Créer une nouvelle commande</h2>
-            <form id="new_order_form">
+            <div class="txtcenter" id="not_connected_content" style="display:none;">
+                <p>Vous devez vous connecter avec un compte Odoo pour accéder au module d'aide à la commande.</p>
+            </div>
+            <form id="new_order_form" style="display:none;">
                 <input type="text" id="new_order_name" placeholder="Nom de la commande...">
-                <button type="submit" class="btn btn--primary">Valider</button>
+                <button type="submit" class="btn btn--primary">C'est parti !</button>
             </form>
         </div>
-        <div id="existing_orders_area">
+        <div id="existing_orders_area" style="display:none;">
             <h2>Ou, continuer une commande en cours de création</h2>
             <div id="existing_orders"></div>
         </div>
@@ -34,9 +40,11 @@
             <button type="button" class="btn--danger" id="back_to_order_selection_from_main">
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
-            <button type="button" class='btn--primary' id="do_inventory" style="display:none;">
-                Faire un inventaire
-            </button>
+            <div class="rights_buttons">
+                <button type="button" class='btn--primary' id="do_inventory" style="display:none;">
+                    Faire un inventaire
+                </button>
+            </div>
         </div>
     
         <div class="header txtcenter">

@@ -2,7 +2,7 @@
     position: relative;
 }
 
-.page_content {
+.page_content, .login_area {
     position: absolute;
     top: 0;
     left: 0;
@@ -152,6 +152,10 @@
 .product_not_from_supplier {
     background-color: #e7e9ed;
     cursor: pointer;
+}
+
+.product_not_from_supplier:hover {
+    background-color: #c7cace;
 }
 
 .product_name, .supplier_name, .product_npa {
