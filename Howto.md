@@ -9,9 +9,9 @@
 
 - In the JS code, use the following pattern (for example) :
 ```
-$(document).ready(function() {
-    if (coop_is_connected()) {
-     .....
+    $(document).ready(function() {
+        if (coop_is_connected()) {
+          show content
+        }
     }
-}
 ```
