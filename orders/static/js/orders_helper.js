@@ -485,7 +485,7 @@ function _compute_total_values_by_supplier() {
         for (let supinfo of p.suppliersinfo) {
             let supplier_index = selected_suppliers.findIndex(s => s.id == supinfo.supplier_id);
 
-            let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.price : 0;
+            let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.package_qty * supinfo.price : 0;
             selected_suppliers[supplier_index].total_value += product_supplier_value;
         }
     }
@@ -589,42 +589,44 @@ function generate_inventory() {
             openModal(
                 modal_create_inventory.html(),
                 () => {
-                    $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
-                    $.ajax({
-                        type: "POST",
-                        url: "/inventory/generate_inventory_list",
-                        dataType: "json",
-                        traditional: true,
-                        contentType: "application/json; charset=utf-8",
-                        data: JSON.stringify(data),
-                        success: () => {
-                            unselect_all_rows();
-                            
-                            // Give time for modal to fade
-                            setTimeout(function() {
+                    if (is_time_to('validate_generate_inventory')) {
+                        $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+                        $.ajax({
+                            type: "POST",
+                            url: "/inventory/generate_inventory_list",
+                            dataType: "json",
+                            traditional: true,
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify(data),
+                            success: () => {
+                                unselect_all_rows();
+                                
+                                // Give time for modal to fade
+                                setTimeout(function() {
+                                    $('#do_inventory').empty().append(`Faire un inventaire`);
+                                    $('#do_inventory').notify(
+                                        "Inventaire créé !",
+                                        {
+                                            globalPosition:"bottom center",
+                                            className: "success"
+                                        }
+                                    );
+                                }, 200);
+                            },
+                            error: function(data) {
                                 $('#do_inventory').empty().append(`Faire un inventaire`);
-                                $('#do_inventory').notify(
-                                    "Inventaire créé !",
-                                    {
-                                        globalPosition:"bottom center",
-                                        className: "success"
-                                    }
-                                );
-                            }, 200);
-                        },
-                        error: function(data) {
-                            $('#do_inventory').empty().append(`Faire un inventaire`);
-                            let msg = "erreur serveur lors de la création de l'inventaire".
-                                err = {msg: msg, ctx: 'generate_inventory'};
-
-                            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                                err.msg += ' : ' + data.responseJSON.error;
+                                let msg = "erreur serveur lors de la création de l'inventaire".
+                                    err = {msg: msg, ctx: 'generate_inventory'};
+    
+                                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                                    err.msg += ' : ' + data.responseJSON.error;
+                                }
+                                report_JS_error(err, 'orders');
+    
+                                alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
                             }
-                            report_JS_error(err, 'orders');
-
-                            alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
-                        }
-                    });
+                        });
+                    }
                 },
                 'Valider'
             );
@@ -638,7 +640,7 @@ function generate_inventory() {
  * Event fct: on click on an order button
  */
 function order_pill_on_click() {
-    if (is_time_to('order_pill_on_click')) {
+    if (is_time_to('order_pill_on_click', 1000)) {
         clicked_order_pill = $(this);
         let order_name_container = clicked_order_pill.find('.pill_order_name');
         let doc_id = $(order_name_container).text();
@@ -666,7 +668,9 @@ function order_pill_on_click() {
                 openModal(
                     modal_order_access.html(),
                     () => {
-                        goto_main_screen(doc);
+                        if (is_time_to('validate_access_order')) {
+                            goto_main_screen(doc);
+                        }
                     },
                     'Valider'
                 );
@@ -810,6 +814,9 @@ function create_orders() {
             }
         }
     }
+
+    console.log(orders_data);
+    // TODO 
 
     $.ajax({
         type: "POST",
@@ -979,7 +986,9 @@ function display_suppliers() {
         openModal(
             modal_remove_supplier.html(),
             () => {
-                remove_supplier(supplier_id);
+                if (is_time_to('validate_remove_supplier')) {
+                    remove_supplier(supplier_id);
+                }
             },
             'Valider'
         );
@@ -1321,7 +1330,9 @@ function display_products(params) {
         openModal(
             modal_attach_product_to_supplier.html(),
             () => {
-                save_supplier_product_association(product, supplier, this);
+                if (is_time_to('validate_save_supplier_product_association')) {
+                    save_supplier_product_association(product, supplier, this);
+                }
             },
             'Valider',
             false
@@ -1408,7 +1419,9 @@ function display_products(params) {
         openModal(
             modal_product_npa.html(),
             () => {
-                set_product_npa(p_id, npa);
+                if (is_time_to('validate_set_product_npa')) {
+                    set_product_npa(p_id, npa);
+                }
             },
             'Valider',
             false,
@@ -1625,7 +1638,7 @@ $(document).ready(function() {
     // Main screen
     $("#coverage_form").on("submit", function(e) {
         e.preventDefault();
-        if (is_time_to('submit_coverage_form')) {
+        if (is_time_to('submit_coverage_form', 1000)) {
             let val = $("#coverage_days_input").val();
     
             val = parseInt(val);
@@ -1645,32 +1658,32 @@ $(document).ready(function() {
 
     $("#supplier_form").on("submit", function(e) {
         e.preventDefault();
-        if (is_time_to('add_product')) {
+        if (is_time_to('add_product', 1000)) {
             add_supplier();
         }
     });
 
     $("#product_form").on("submit", function(e) {
         e.preventDefault();
-        if (is_time_to('add_product')) {
+        if (is_time_to('add_product', 1000)) {
             add_product();
         }
     });
 
     $("#do_inventory").on("click", function() {
-        if (is_time_to('generate_inventory')) {
+        if (is_time_to('generate_inventory', 1000)) {
             generate_inventory();
         }
     });
 
     $('#back_to_order_selection_from_main').on('click', function() {
-        if (is_time_to('back_to_order_selection_from_main')) {
+        if (is_time_to('back_to_order_selection_from_main', 1000)) {
             back();
         }
     });
 
     $('#create_orders').on('click', function() {
-        if (is_time_to('create_orders')) {
+        if (is_time_to('create_orders', 1000)) {
             let modal_create_order = $('#templates #modal_create_order');
             modal_create_order.find('.suppliers_date_planned_area').empty();
     
@@ -1687,7 +1700,9 @@ $(document).ready(function() {
             openModal(
                 modal_create_order.html(),
                 () => {
-                    create_orders();
+                    if (is_time_to('validate_create_orders')) {
+                        create_orders();
+                    }
                 },
                 'Valider',
                 false
@@ -1757,7 +1772,7 @@ $(document).ready(function() {
 
     // Orders created screen
     $('#back_to_order_selection_from_orders_created').on('click', function() {
-        if (is_time_to('back_to_order_selection_from_orders_created')) {
+        if (is_time_to('back_to_order_selection_from_orders_created', 1000)) {
             switch_screen('order_selection', 'orders_created');
         }
     });
