@@ -19,7 +19,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 8px 20px 8px 20px;
+    padding: 5px 30px 5px 30px;
     margin: 0 10px 5px 10px;
 }
 
@@ -188,9 +188,12 @@
     border: 1px solid black;
 }
 
+.pill_supplier_name {
+    font-weight: bold;
+}
+
 .supplier_total_value_container {
     font-size: 1.5rem;
-    font-style: italic;
 }
 
 .remove_supplier_icon {
