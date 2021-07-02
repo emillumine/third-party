@@ -797,7 +797,7 @@ function create_orders() {
     for (let p of products) {
         for (let p_supplierinfo of p.suppliersinfo) {
             // If a qty is set for a supplier for a product
-            if ('qty' in p_supplierinfo) {
+            if ('qty' in p_supplierinfo && p_supplierinfo.qty != 0) {
                 const supplier_id = p_supplierinfo.supplier_id;
 
                 orders_data.suppliers_data[supplier_id].lines.push({
@@ -814,9 +814,6 @@ function create_orders() {
             }
         }
     }
-
-    console.log(orders_data);
-    // TODO 
 
     $.ajax({
         type: "POST",
@@ -1036,18 +1033,23 @@ function _compute_product_data(product) {
 
     /* Coverage related data */
     if (order_doc.coverage_days !== null) {
-        let days_not_covered = 0;
+        let qty_not_covered = 0;
+        let days_covered = 0;
         if (product.daily_conso !== 0) {
-            let qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-            days_not_covered = qty_not_covered / product.daily_conso;  // get unmet needs in nb of days
+            qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+            days_covered = qty_not_covered / product.daily_conso;
     
-            days_not_covered = -Math.ceil(days_not_covered);  // round up, so if a day is not fully covered display it
-            days_not_covered = (days_not_covered > 0) ? 0 : days_not_covered;
+            qty_not_covered = -Math.ceil(qty_not_covered);  // round up, so if a value is not fully covered display it
+            qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
+
+            days_covered = -Math.ceil(days_covered);
         }
 
-        item.days_not_covered = days_not_covered;
+        item.qty_not_covered = qty_not_covered;
+        item.days_covered = days_covered;
     } else {
-        item.days_not_covered = 'X';
+        item.qty_not_covered = 'X';
+        item.days_covered = 'X';
     }
 
     return item;
@@ -1112,7 +1114,7 @@ function prepare_datatable_columns() {
         {
             data: "default_code",
             title: "Ref",
-            width: "8%",
+            width: "6%",
             render: function (data) {
                 return (data === false) ? "" : data;
             }
@@ -1199,8 +1201,15 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
-        data: "days_not_covered",
-        title: "Besoin non couvert (jours)",
+        data: "qty_not_covered",
+        title: "Besoin non couvert (qté)",
+        className: "dt-body-center",
+        width: "4%"
+    });
+
+    columns.push({
+        data: "days_covered",
+        title: "Jours de couverture",
         className: "dt-body-center",
         width: "4%"
     });
