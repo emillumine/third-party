@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^remove_data_from_couchdb$', views.remove_data_from_CouchDB),
     url(r'^image/([0-9]+)', views.getmemberimage),
     url(r'^add_pts_to_everybody/([0-9]+)/([a-zA-Z0-9_ ]+)$', admin.add_pts_to_everybody),
+    url(r'^easy_validate_shift_presence$', views.easy_validate_shift_presence),
     # conso / groupe recherche / socio
     url(r'^panel_get_purchases$', views.panel_get_purchases),
 ]

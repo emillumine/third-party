@@ -137,13 +137,16 @@
     <div class="col-1"></div>
     <div class="col-4">
         <h1 class="col-4 txtcenter">Qui es-tu ?</h1>
-        <section class="outside_list">
-        <a class="btn b_orange" data-next="rattrapage_1" data-type="rattrapage">Je viens faire un rattrapage</a>
-        {% if ftop_btn_display %}
-          <a class="btn b_yellow" data-next="rattrapage_1" data-type="volant">Je suis volant</a>
+        {% if extra_btns_display %}
+          <section class="outside_list">
+          <a class="btn b_orange" data-next="rattrapage_1" data-type="rattrapage">Je viens faire un rattrapage</a>
+          {% if ftop_btn_display %}
+            <a class="btn b_yellow" data-next="rattrapage_1" data-type="volant">Je suis volant</a>
+          {% endif %}
+          </section>
         {% endif %}
-        </section>
     </div>
+
     <div class="col-1"></div>
     <div class="col-1"></div>
     <section id="service_en_cours" class="col-4">
@@ -153,6 +156,12 @@
         <div id="current_shift_members">
         </div>
 
+        {% if easy_shift_validate %}
+          <div class="easy_shift_validate">
+          <p>Je valide mon service "Comité"</p>
+          {% include "members/member_selection.html" %}
+          </div>
+        {% endif %}
     </section>
 
 </section>
