@@ -240,6 +240,10 @@
 
         This message is dispayed when time to register is last
 
+- ENTRANCE_EASY_SHIFT_VALIDATE_MSG (default = 'Je valide mon service "Comité"')
+
+        (makes sens if ENTRANCE_EASY_SHIFT_VALIDATE is True)
+
 ### Member space
 
 - EM_URL = ''
