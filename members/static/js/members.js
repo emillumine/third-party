@@ -39,6 +39,8 @@ var photo_advice = $('#photo_advice');
 var photo_studio = $('#photo_studio');
 var coop_info = $('.coop-info');
 
+const missed_begin_msg = $('#missed_begin_msg').html();
+
 let no_pict_msg = $('#no-picture-msg');
 
 var pages = {
@@ -358,8 +360,8 @@ function get_service_entry_data() {
             page_title.text('Qui es-tu ?');
             try {
                 if (rData.res.length == 0) {
-                    info_place.text('La période pendant laquelle il est possible de s\'enregistrer est close.');
-                    page_title.text('');
+                    info_place.html(missed_begin_msg);
+                    page_title.html('');
 
                 } else {
                     if (rData.res.length > 1) {

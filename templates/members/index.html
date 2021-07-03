@@ -236,6 +236,9 @@
   <input type="text" placeholder="crop_height" id="img_crop_height" /><br />
   <button type="button" id="init_webcam">Cam</button>
 </section>
+<div style="display:none;">
+  <p id="missed_begin_msg">{{ENTRANCE_MISSED_SHIFT_BEGIN_MSG|safe}}</p>
+</div>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members.js" %}?v="></script>
 {% endblock %}

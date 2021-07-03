@@ -235,6 +235,11 @@
         When set to True allow coop to identify and have 1 point (only if FTOP)
 
 - ENTRANCE_ADD_PT_EVENT_NAME = 'Add 1 point name throught easy validate' (default : 'Validation service comité'')
+
+- ENTRANCE_MISSED_SHIFT_BEGIN_MSG (default :  "")
+
+        This message is dispayed when time to register is last
+
 ### Member space
 
 - EM_URL = ''
