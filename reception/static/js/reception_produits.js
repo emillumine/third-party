@@ -81,10 +81,10 @@ function select_product_from_bc(barcode) {
                 }
             });
 
-            if (found.data != null) {
+            if (found.data == null) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
-                        found.data = e;
+                        found.data = JSON.parse(JSON.stringify(e));
                         found.place = 'processed';
                     }
                 });
@@ -96,10 +96,6 @@ function select_product_from_bc(barcode) {
                     let row = table_to_process.row($('#'+found.data.product_id[0]));
 
                     remove_from_toProcess(row, found.data);
-                } else {
-                    let row = table_processed.row($('#'+found.data.product_id[0]));
-
-                    remove_from_processed(row, found.data);
                 }
             }
         }
@@ -800,12 +796,20 @@ function editProductInfo (productToEdit, value = null) {
         var index = searchUpdatedProduct();
         var firstUpdate = false;
         let newValue = value;
+        var addition = false;
 
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
             newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
         }
 
+        $.each(list_processed, function(i, e) {
+            if (e.product_id[0] == productToEdit.product_id[0]) {
+                addition = true;
+                productToEdit = e;
+                newValue = newValue + productToEdit.product_qty;
+            }
+        });
         // If qty edition & Check if qty changed
         if (reception_status == "False" && productToEdit.product_qty != newValue) {
             if (index == -1) { // First update
@@ -879,6 +883,11 @@ function editProductInfo (productToEdit, value = null) {
 
         // Update local storage of product order
         localStorage.setItem("order_" + productToEdit.id_po, JSON.stringify(orders[productToEdit.id_po]));
+
+        if(addition){
+            let row = table_processed.row($('#'+productToEdit.product_id[0]));
+            remove_from_processed(row, productToEdit);
+        }
 
         add_to_processed(productToEdit);
     } catch (e) {
