@@ -9,8 +9,8 @@
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "lint": "eslint . --max-warnings 362 '**/*.js'",
-        "lint-fix": "eslint . --fix --max-warnings 362 '**/*.js'"
+        "lint": "eslint . --max-warnings 326 '**/*.js'",
+        "lint-fix": "eslint . --fix --max-warnings 326 '**/*.js'"
     },
     "repository": {
         "type": "git",
