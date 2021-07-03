@@ -119,6 +119,7 @@ function add_product() {
         contentType: "application/json; charset=utf-8",
         success: function(data) {
             let res = data.products[0];
+
             if (typeof res.id != "undefined") {
                 res.suppliersinfo = [];
                 res.default_code = ' ';
@@ -154,21 +155,21 @@ function compute_products_coverage_qties() {
     ] of Object.entries(products)) {
         if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
             let purchase_qty_for_coverage = null;
-    
+
             // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
             const stock = product.qty_available;
             const incoming_qty = product.incoming_qty;
             const daily_conso = product.daily_conso;
-    
+
             purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
             purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-    
+
             // Reduce to nb of packages to purchase
             purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-    
+
             // Round up to unit for all products
             purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
-    
+
             // Set qty to purchase for first supplier only
             products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
         }
@@ -191,7 +192,8 @@ function check_products_data() {
                 }
             );
 
-            clicked_order_pill.find('.pill_order_name').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+            clicked_order_pill.find('.pill_order_name').empty()
+                .append(`<i class="fas fa-spinner fa-spin"></i>`);
 
             $.ajax({
                 type: 'GET',
@@ -208,12 +210,14 @@ function check_products_data() {
 
                         // Override products data with new data (without suppliersinfo so we don't override qty)
                         const updated_suppliersinfo = product.suppliersinfo;
+
                         delete product.suppliersinfo;
                         products[p_index] = { ...products[p_index], ...product };
 
-                        // Update suppliers info 
+                        // Update suppliers info
                         for (let psi_index in products[p_index].suppliersinfo) {
                             const updated_psi = updated_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
+
                             if (updated_psi !== undefined) {
                                 products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
                                 products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
@@ -279,6 +283,7 @@ function add_supplier() {
     selected_suppliers.push(supplier);
 
     let url = "/orders/get_supplier_products";
+
     url += "?sids=" + encodeURIComponent(supplier.id);
 
     // Fetch supplier products
@@ -486,6 +491,7 @@ function _compute_total_values_by_supplier() {
             let supplier_index = selected_suppliers.findIndex(s => s.id == supinfo.supplier_id);
 
             let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.package_qty * supinfo.price : 0;
+
             selected_suppliers[supplier_index].total_value += product_supplier_value;
         }
     }
@@ -590,7 +596,8 @@ function generate_inventory() {
                 modal_create_inventory.html(),
                 () => {
                     if (is_time_to('validate_generate_inventory')) {
-                        $('#do_inventory').empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+                        $('#do_inventory').empty()
+                            .append(`<i class="fas fa-spinner fa-spin"></i>`);
                         $.ajax({
                             type: "POST",
                             url: "/inventory/generate_inventory_list",
@@ -600,10 +607,11 @@ function generate_inventory() {
                             data: JSON.stringify(data),
                             success: () => {
                                 unselect_all_rows();
-                                
+
                                 // Give time for modal to fade
                                 setTimeout(function() {
-                                    $('#do_inventory').empty().append(`Faire un inventaire`);
+                                    $('#do_inventory').empty()
+                                        .append(`Faire un inventaire`);
                                     $('#do_inventory').notify(
                                         "Inventaire créé !",
                                         {
@@ -614,15 +622,16 @@ function generate_inventory() {
                                 }, 200);
                             },
                             error: function(data) {
-                                $('#do_inventory').empty().append(`Faire un inventaire`);
+                                $('#do_inventory').empty()
+                                    .append(`Faire un inventaire`);
                                 let msg = "erreur serveur lors de la création de l'inventaire".
                                     err = {msg: msg, ctx: 'generate_inventory'};
-    
+
                                 if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                                     err.msg += ' : ' + data.responseJSON.error;
                                 }
                                 report_JS_error(err, 'orders');
-    
+
                                 alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
                             }
                         });
@@ -644,12 +653,12 @@ function order_pill_on_click() {
         clicked_order_pill = $(this);
         let order_name_container = clicked_order_pill.find('.pill_order_name');
         let doc_id = $(order_name_container).text();
-    
+
         dbc.get(doc_id).then((doc) => {
             if (doc.last_update.fingerprint !== fingerprint) {
                 time_diff = dates_diff(new Date(doc.last_update.timestamp), new Date());
                 diff_str = ``;
-    
+
                 if (time_diff.days !== 0) {
                     diff_str += `${time_diff.days} jour(s), `;
                 }
@@ -660,11 +669,11 @@ function order_pill_on_click() {
                     diff_str += `${time_diff.min} min, `;
                 }
                 diff_str += `${time_diff.sec}s`;
-    
+
                 let modal_order_access = $('#templates #modal_order_access');
-    
+
                 modal_order_access.find(".order_last_update").text(diff_str);
-    
+
                 openModal(
                     modal_order_access.html(),
                     () => {
@@ -778,17 +787,19 @@ function create_orders() {
         } else {
             // Default date : tomorrow
             let date_object = new Date();
+
             date_object.setDate(date_object.getDate() + 1);
 
             // Get ISO format bare string
-            formatted_date = date_object.toISOString().replace('T', ' ').split('.')[0];
+            formatted_date = date_object.toISOString().replace('T', ' ')
+                .split('.')[0];
         }
 
         // Create an entry for this supplier
         orders_data.suppliers_data[supplier.id] = {
             date_planned: formatted_date,
             lines: []
-        }
+        };
     }
 
     openModal();
@@ -858,7 +869,7 @@ function create_orders() {
             order_doc._deleted = true;
             update_cdb_order().then(() => {
                 update_order_selection_screen();
-            })
+            });
             reset_data();
             switch_screen('orders_created');
             closeModal();
@@ -934,7 +945,7 @@ function goto_main_screen(doc) {
             update_cdb_order();
             update_main_screen();
             switch_screen();
-        })
+        });
 }
 
 function back() {
@@ -980,6 +991,7 @@ function display_suppliers() {
         const clicked_supplier = selected_suppliers.find(s => s.id == supplier_id);
 
         let modal_remove_supplier = $('#templates #modal_remove_supplier');
+
         modal_remove_supplier.find(".supplier_name").text(clicked_supplier.display_name);
 
         openModal(
@@ -1037,11 +1049,12 @@ function _compute_product_data(product) {
     if (order_doc.coverage_days !== null) {
         let qty_not_covered = 0;
         let days_covered = 0;
+
         if (product.daily_conso !== 0) {
             qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-            qty_not_covered = -Math.ceil(qty_not_covered);  // round up, so if a value is not fully covered display it
+            qty_not_covered = -Math.ceil(qty_not_covered); // round up, so if a value is not fully covered display it
             qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
-            
+
             days_covered = (product.qty_available + product.incoming_qty + purchase_qty) / product.daily_conso;
             days_covered = Math.floor(days_covered);
         }
@@ -1225,7 +1238,7 @@ function prepare_datatable_columns() {
         },
         width: "4%"
     });
-        
+
     return columns;
 }
 
@@ -1266,8 +1279,20 @@ function display_products(params) {
         stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
         aLengthMenu: [
-            [25, 50, 100, 200, -1],
-            [25, 50, 100, 200, "Tout"]
+            [
+                25,
+                50,
+                100,
+                200,
+                -1
+            ],
+            [
+                25,
+                50,
+                100,
+                200,
+                "Tout"
+            ]
         ],
         iDisplayLength: -1,
         scrollX: true,
@@ -1469,8 +1494,10 @@ function display_total_values() {
     _compute_total_values_by_supplier();
 
     let order_total_value = 0;
+
     for (let supplier of selected_suppliers) {
-        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value').text(parseFloat(supplier.total_value).toFixed(2));
+        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value')
+            .text(parseFloat(supplier.total_value).toFixed(2));
         order_total_value += supplier.total_value;
     }
 
@@ -1526,8 +1553,9 @@ function update_order_selection_screen() {
     }).then(function (result) {
         // Remove listener before recreating them
         $(".order_pill").off();
-    
+
         let existing_orders_container = $("#existing_orders");
+
         existing_orders_container.empty();
         $('#new_order_name').val('');
 
@@ -1536,6 +1564,7 @@ function update_order_selection_screen() {
         } else {
             for (let row of result.rows) {
                 let template = $("#templates #order_pill_template");
+
                 template.find(".pill_order_name").text(row.id);
 
                 existing_orders_container.append(template.html());
@@ -1654,9 +1683,9 @@ $(document).ready(function() {
             e.preventDefault();
             if (is_time_to('submit_coverage_form', 1000)) {
                 let val = $("#coverage_days_input").val();
-        
+
                 val = parseInt(val);
-        
+
                 if (!isNaN(val)) {
                     order_doc.coverage_days = val;
                     compute_products_coverage_qties();
@@ -1699,18 +1728,19 @@ $(document).ready(function() {
         $('#create_orders').on('click', function() {
             if (is_time_to('create_orders', 1000)) {
                 let modal_create_order = $('#templates #modal_create_order');
+
                 modal_create_order.find('.suppliers_date_planned_area').empty();
-        
+
                 for (let supplier of selected_suppliers) {
                     let supplier_date_planned_template = $('#templates #modal_create_order__supplier_date_planned');
-            
+
                     supplier_date_planned_template.find(".supplier_name").text(supplier.display_name);
                     supplier_date_planned_template.find(".modal_input_container").attr('id', `container_date_planned_supplier_${supplier.id}`);
-                    
+
                     modal_create_order.find('.suppliers_date_planned_area').append(supplier_date_planned_template.html());
                 }
-        
-        
+
+
                 openModal(
                     modal_create_order.html(),
                     () => {
@@ -1721,12 +1751,13 @@ $(document).ready(function() {
                     'Valider',
                     false
                 );
-        
+
                 // Add id to input once modal is displayed
                 for (let supplier of selected_suppliers) {
-                    $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned").attr('id', `date_planned_supplier_${supplier.id}`);
+                    $(`#modal #container_date_planned_supplier_${supplier.id}`).find(".supplier_date_planned")
+                        .attr('id', `date_planned_supplier_${supplier.id}`);
                 }
-        
+
                 $("#modal .supplier_date_planned")
                     .datepicker({
                         defaultDate: "+1d",
@@ -1742,7 +1773,7 @@ $(document).ready(function() {
                         }
                     });
             }
-                
+
             return 0;
         });
 

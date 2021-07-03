@@ -286,7 +286,20 @@ def record_service_presence(request):
     return JsonResponse({'res': res})
 
 def easy_validate_shift_presence(request):
-    return JsonResponse({})
+    """Add a presence point if the request is valid."""
+    res = {}
+    try:
+        coop_id = int(request.POST.get("coop_id", "nan"))
+        res = CagetteServices.easy_validate_shift_presence(coop_id)
+    except Exception as e:
+        res['error'] = str(e)
+    if 'error' in res:
+        if res['error'] == "One point has been added less then 24 hours ago":
+            #  TODO : use translation (all project wide)
+            res['error'] = "Vous ne pouvez pas valider plus d'un service par 24h"
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse(res, safe=False)
 
 def record_absences(request):
     return JsonResponse({'res': CagetteServices.record_absences()})

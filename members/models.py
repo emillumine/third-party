@@ -1176,6 +1176,44 @@ class CagetteServices(models.Model):
             result['service_found'] = False
         return result
 
+    @staticmethod
+    def easy_validate_shift_presence(coop_id):
+        """Add a presence point if the request is valid."""
+        res = {}
+        try:
+            api = OdooAPI()
+            # let verify coop_id is corresponding to a ftop subscriber
+            cond = [['id', '=', coop_id]]
+            fields = ['shift_type']
+            coop = api.search_read('res.partner', cond, fields)
+            if coop:
+                if coop[0]['shift_type'] == 'ftop':
+                    evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
+                    c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
+                    f = ['create_date']
+                    last_point_mvts = api.search_read('shift.counter.event', c, f,
+                                                      order ="create_date DESC", limit=1)
+                    ok_for_adding_pt = False
+                    if len(last_point_mvts):
+                        now = datetime.datetime.now()
+                        past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
+                                                           '%Y-%m-%d %H:%M:%S')
+                        if (now - past).total_seconds() >= 3600 * 24:
+                            ok_for_adding_pt = True
+                    else:
+                        ok_for_adding_pt = True
+                    if ok_for_adding_pt is True:
+                        res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
+                    else:
+                        res['error'] = "One point has been added less then 24 hours ago"
+                else:
+                    res['error'] = "Unallowed coop"
+            else:
+                res['error'] = "Invalid coop id"
+        except Exception as e:
+            coop_logger.error("easy_validate_shift_presence :  %s %s", str(coop_id), str(e))
+        return res
+
 class CagetteUser(models.Model):
 
     @staticmethod

@@ -24,6 +24,8 @@ var current_displayed_member = null,
     rattrapage_ou_volant = null,
     timeout_counter = null;
 var search_button = $('.btn--primary.search');
+var sm_search_member_button = $('#sm_search_member_button'),
+    sm_search_member_input = $('#sm_search_member_input');
 var loading2 = $('.loading2');
 var search_field = $('input[name="search_string"]');
 var shift_title = $('#current_shift_title');
@@ -163,7 +165,7 @@ function canSearch() {
 
 function search_member(force_search = false) {
     chars = []; // to prevent false "as barcode-reader" input
-    operator = null
+    operator = null;
     if (canSearch() || force_search) {
 
         html_elts.member_slide.hide();
@@ -281,11 +283,15 @@ function fill_service_entry(s) {
     rattrapage_wanted.show();
 }
 
-function clean_service_entry() {
+function clean_search_for_easy_validate_zone() {
     $('.search_member_results_area').hide();
     $('.search_member_results').empty();
-    $('#sm_search_member_input').val('');
-    operator = null
+    sm_search_member_input.val('');
+    operator = null;
+}
+
+function clean_service_entry() {
+    clean_search_for_easy_validate_zone();
     rattrapage_wanted.hide();
     shift_title.text('');
     shift_members.html('');
@@ -677,30 +683,30 @@ function ask_for_easy_shift_validation() {
     //alert("operator = " + JSON.stringify(operator))
     msg = "<p>Je suis bien " + operator.name + "<br/> et <br/>je valide mon service 'Comité' </p>";
     openModal(msg, function() {
-                    try {
-                         post_form(
-                            '/members/easy_validate_shift_presence',
-                            {
-                                coop_id: operator.id,
-
-                            },
-                            function(err, result) {
-                                console.log(result);
-                                if (!err) {
-                                    if (typeof(result.msg) != "undefined") {
-                                        alert(result.msg);
-                                    } else if (result.action === null) {
-                                        console.log('ok')
-                                    }
-                                    closeModal();
-                                } else {
-                                    console.log(err)
-                                }
-                            }
-                        );
-                    } catch (e) {
-                        console.log(e);
+        try {
+            post_form(
+                '/members/easy_validate_shift_presence',
+                {
+                    coop_id: operator.id
+                },
+                function(err, result) {
+                    if (!err) {
+                        alert("1 point volant vient d'être ajouté.");
+                        clean_search_for_easy_validate_zone();
+                        closeModal();
+                    } else {
+                        if (typeof (err.responseJSON) != "undefined"
+                                        && typeof (err.responseJSON.error) != "undefined") {
+                            alert(err.responseJSON.error);
+                        } else {
+                            console.log(err);
+                        }
                     }
+                }
+            );
+        } catch (e) {
+            console.log(e);
+        }
     }, 'Confirmer');
 }
 // Display the members from the search result (copied from stock_movements)
@@ -723,13 +729,11 @@ function display_possible_members() {
                           + '</button>';
 
             $('.search_member_results').append(member_button);
-
             // Set action on click on a member button
             $('.btn_member').on('click', function() {
                 for (member of members_search_results) {
                     if (member.id == $(this).attr('member_id')) {
                         operator = member;
-
                         // Enable validation button when operator is selected
                         ask_for_easy_shift_validation();
                         break;
@@ -784,37 +788,43 @@ $(document).ready(function() {
     });
 
     $('#sm_search_member_form').submit(function() {
-        let search_str = $('#sm_search_member_input').val();
-        $.ajax({
-            url: '/members/search/' + search_str,
-            dataType : 'json',
-            success: function(data) {
-                members_search_results = [];
-               
-                for (member of data.res) {
-                    console.log(member)
-                    if (member.shift_type == 'ftop') {
-                        members_search_results.push(member);
+        if (is_time_to('search_member', 1000)) {
+            sm_search_member_button.empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+            let search_str = sm_search_member_input.val();
+
+            $.ajax({
+                url: '/members/search/' + search_str,
+                dataType : 'json',
+                success: function(data) {
+                    members_search_results = [];
+
+                    for (member of data.res) {
+                        if (member.shift_type == 'ftop') {
+                            members_search_results.push(member);
+                        }
                     }
+
+                    display_possible_members();
+                },
+                error: function(data) {
+                    err = {
+                        msg: "erreur serveur lors de la recherche de membres",
+                        ctx: 'easy_validate.search_members'
+                    };
+                    report_JS_error(err, 'members');
+
+                    $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
+                        globalPosition:"top right",
+                        className: "error"
+                    });
+                },
+                complete: function() {
+                    sm_search_member_button.empty().append(`Recherche`);
                 }
+            });
+        }
+    });
 
-                display_possible_members();
-            },
-            error: function(data) {
-                err = {
-                    msg: "erreur serveur lors de la recherche de membres",
-                    ctx: 'easy_validate.search_members'
-                };
-                report_JS_error(err, 'members');
-
-                $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
-                    globalPosition:"top right",
-                    className: "error"
-                });
-            }
-        });
-    })
-    
 });
 
 Webcam.on('live', function() {
