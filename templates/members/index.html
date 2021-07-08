@@ -137,13 +137,16 @@
     <div class="col-1"></div>
     <div class="col-4">
         <h1 class="col-4 txtcenter">Qui es-tu ?</h1>
-        <section class="outside_list">
-        <a class="btn b_orange" data-next="rattrapage_1" data-type="rattrapage">Je viens faire un rattrapage</a>
-        {% if ftop_btn_display %}
-          <a class="btn b_yellow" data-next="rattrapage_1" data-type="volant">Je suis volant</a>
+        {% if extra_btns_display %}
+          <section class="outside_list">
+          <a class="btn b_orange" data-next="rattrapage_1" data-type="rattrapage">Je viens faire un rattrapage</a>
+          {% if ftop_btn_display %}
+            <a class="btn b_yellow" data-next="rattrapage_1" data-type="volant">Je suis volant</a>
+          {% endif %}
+          </section>
         {% endif %}
-        </section>
     </div>
+
     <div class="col-1"></div>
     <div class="col-1"></div>
     <section id="service_en_cours" class="col-4">
@@ -153,6 +156,12 @@
         <div id="current_shift_members">
         </div>
 
+        {% if easy_shift_validate %}
+          <div class="easy_shift_validate">
+          <p>{{ENTRANCE_EASY_SHIFT_VALIDATE_MSG|safe}}</p>
+          {% include "members/member_selection.html" %}
+          </div>
+        {% endif %}
     </section>
 
 </section>
@@ -227,6 +236,9 @@
   <input type="text" placeholder="crop_height" id="img_crop_height" /><br />
   <button type="button" id="init_webcam">Cam</button>
 </section>
+<div style="display:none;">
+  <p id="missed_begin_msg">{{ENTRANCE_MISSED_SHIFT_BEGIN_MSG|safe}}</p>
+</div>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members.js" %}?v="></script>
 {% endblock %}

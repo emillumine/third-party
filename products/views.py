@@ -26,6 +26,32 @@ def home(request):
 
     return HttpResponse(template.render(context, request))
 
+def get_simple_list(request):
+    res = {}
+    try:
+        res = CagetteProducts.get_simple_list()
+    except Exception as e:
+        coop_logger.error("Get products simple list : %s", str(e))
+        res['error'] = str(e)
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse(res, safe=False)
+
+
+def get_product_for_order_helper(request):
+    res = {}
+    try:
+        pids = json.loads(request.body.decode())
+        res = CagetteProducts.get_products_for_order_helper(None, pids)
+    except Exception as e:
+        coop_logger.error("get_product_for_help_order_line : %s", str(e))
+        res['error'] = str(e)
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse(res, safe=False)
+
 def get_product_data(request):
     barcode = request.GET['barcode']
     res = CagetteProduct.get_product_from_barcode(barcode)
@@ -75,6 +101,16 @@ def update_product_stock(request):
 
     return JsonResponse({"res": res})
 
+def update_product_purchase_ok(request):
+    res = {}
+    data = json.loads(request.body.decode())
+
+    res = CagetteProduct.update_product_purchase_ok(data["product_tmpl_id"], data["purchase_ok"])
+
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({"res": res})
 
 def labels_appli_csv(request, params):
     """Generate files to put in DAV directory to be retrieved by scales app."""

@@ -11,7 +11,6 @@
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/moment.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugin.moment_sorting.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v="></script>
 {% endblock %}
 
 {% block content %}
@@ -31,7 +30,6 @@
   <div id="groups_items"></div>
 </div>
 
-<br>
 <div id="grouped_action">
   <button type="button" class='btn--primary' id='group_action' onclick="group_action()" hidden>Compter les produits des commandes sélectionnées</button>
 </div>
@@ -48,13 +46,30 @@
     <p>Êtez-vous sûr ?</p>
     <hr />
   </div>
+
+  <div id="modal_order_access">
+    <h3>Attention !</h3>
+    <br/>
+    <p class="order_modified_msg"> 
+        Un autre navigateur a commencé à réceptionner cette commande il y a <span class="order_last_update"></span>.
+    </p><br/>
+    <p>
+        Si quelqu'un d'autre que vous est à l'origine de cette opération et que celle-ci est récente,
+        nous conseillons fortement de ne pas accéder à la commande afin d'éviter les conflits.
+    </p><br/>
+    <p>Voulez-vous quand même y accéder ?</p>
+    <hr/>
+</div>
+
 </div>
 <br/>
 
 <script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static 'js/pouchdb.min'|add:POUCHDB_VERSION|add:'.js' %}"></script>        
 <script type="text/javascript">
         var merge_orders_pswd = '{{merge_orders_pswd}}';
-        var server_stored_groups = {{server_stored_groups}};
+        var couchdb_dbname = '{{db}}';
+        var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
 </script>
-<script src="{% static "js/common.js" %}?v="></script>
+<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v="></script>
 {% endblock %}

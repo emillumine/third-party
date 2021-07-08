@@ -58,7 +58,8 @@ h1 .member_name {font-weight: bold;}
  #member_slide .btn[data-next]
   {margin-top: 35px; background: #449d44; color:#FFF;}
  [data-next="rattrapage_1"] {float:right;color:#171A17 !important; margin-top: 25px;}
- #service_en_cours .info a {line-height: 24px; font-size:18px; margin-top:15px;}
+ #service_en_cours .info {font-size: 26px;}
+ #service_en_cours .info a {line-height: 24px; font-size:14px; margin-top:15px;}
  .outside_list a {margin-left:15px;}
  #rattrapage_1 .advice {margin-top:15px;}
  .btn.present {background:#50C878;}
@@ -67,3 +68,5 @@ h1 .member_name {font-weight: bold;}
 .msg-big {font-size: xx-large; background: #fff; padding:25px; text-align: center;}
 
 #member_advice {background: #FFF; color: red;}
+
+.easy_shift_validate {text-align: center; margin-top: 3em;}

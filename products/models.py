@@ -6,6 +6,7 @@ from outils.common import OdooAPI
 import csv
 import tempfile
 import pymysql.cursors
+import datetime
 
 vcats = []
 
@@ -126,8 +127,64 @@ class CagetteProduct(models.Model):
         res = api.create('product.supplier.shortage', f)
         return res
 
+    @staticmethod
+    def associate_supplier_to_product(data):
+        api = OdooAPI()
+
+        product_tmpl_id = data["product_tmpl_id"]
+        partner_id = data["supplier_id"]
+        package_qty = data["package_qty"]
+        price = data["price"]
+
+        f = ["id", "standard_price", "purchase_ok"]
+        c = [['product_tmpl_id', '=', product_tmpl_id]]
+        res_products = api.search_read('product.product', c, f)
+        product = res_products[0]
+
+        f = {
+            'product_tmpl_id' : product_tmpl_id,
+            'product_id' : product["id"],
+            'name' : partner_id,
+            'product_purchase_ok': product["purchase_ok"],
+            'price': price,
+            'base_price': price,
+            'package_qty': package_qty,
+            'sequence': 1000  # lowest priority for the new suppliers
+        }
+        res = api.create('product.supplierinfo', f)
+
+        return res
+
+    @staticmethod
+    def update_product_purchase_ok(product_tmpl_id, purchase_ok):
+        api = OdooAPI()
+        res = {}
+
+        f = {
+            'purchase_ok': purchase_ok
+        }
+
+        try:
+            res["update"] = api.update('product.template', product_tmpl_id, f)
+        except Exception as e:
+            res["error"] = str(e)
+            print(str(e))
+
+        return res
+
+
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
+
+    @staticmethod
+    def get_simple_list():
+        res = []
+        api = OdooAPI()
+        try:
+            res = api.execute('lacagette.products', 'get_simple_list', {'only_purchase_ok': True})
+        except Exception as e:
+            coop_logger.error("Odoo api products simple list : %s", str(e))
+        return res
 
     @staticmethod
     def __unique_product_list(plist):
@@ -386,6 +443,99 @@ class CagetteProducts(models.Model):
             if found is False:
                 bc_map[bc] = bc
         return bc_map
+
+    @staticmethod
+    def get_template_products_sales_average(params={}):
+        api = OdooAPI()
+        res = {}
+        try:
+            res = api.execute('lacagette.products', 'get_template_products_sales_average', params)
+        except Exception as e:
+            coop_logger.error('get_template_products_sales_average %s (%s)', str(e), str(params))
+            res["error"] = str(e)
+        return res
+
+    @staticmethod
+    def get_products_for_order_helper(supplier_ids, pids = []):
+        """ 
+            One of the two parameters must be not empty.
+            Get products by supplier if one or more supplier_id is set. 
+            If supplier_ids is empty, get products specified in pids. In this case, suppliers info won't be fetched.
+        """
+        api = OdooAPI()
+        res = {}
+
+        # todo : try with no result
+        try:
+            today = datetime.date.today().strftime("%Y-%m-%d")
+
+            if supplier_ids is not None and len(supplier_ids) > 0:
+                # Get products/supplier relation
+                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name']
+                c = [['name', 'in', [ int(x) for x in supplier_ids]]]
+                psi = api.search_read('product.supplierinfo', c, f)
+
+                # Filter valid data
+                ptids = []
+                for p in psi:
+                    if (p["product_tmpl_id"] is not False 
+                        and (p["date_start"] is False or p["date_end"] is not False and p["date_start"] <= today) 
+                        and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
+                        ptids.append(p["product_tmpl_id"][0])
+            else:
+                ptids = [ int(x) for x in pids ]
+
+            # Get products templates
+            f = [
+                "id",
+                "state",
+                "name",
+                "default_code",
+                "qty_available",
+                "incoming_qty",
+                "uom_id",
+                "purchase_ok",
+                "supplier_taxes_id",
+                "product_variant_ids"
+            ]
+            c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
+            products_t = api.search_read('product.template', c, f)
+            filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
+
+            sales_average_params = {
+                'ids': ptids, 
+                # 'from': '2019-04-10', 
+                # 'to': '2019-08-10',
+            }
+            sales = CagetteProducts.get_template_products_sales_average(sales_average_params)
+
+            if 'list' in sales and len(sales['list']) > 0:
+                sales = sales['list']
+            else:
+                sales = []
+            
+            # Add supplier data to product data
+            for i, fp in enumerate(filtered_products_t):
+                if supplier_ids is not None and len(supplier_ids) > 0:
+                    psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
+                    filtered_products_t[i]['suppliersinfo'] = [{
+                        'supplier_id': int(psi_item["name"][0]),
+                        'package_qty': psi_item["package_qty"],
+                        'price': psi_item["price"]
+                    }]
+
+                for s in sales:
+                    if s["id"] == fp["id"]:
+                        filtered_products_t[i]['daily_conso'] = s["average_qty"]
+                        filtered_products_t[i]['sigma'] = s["sigma"]
+                        filtered_products_t[i]['vpc'] = s["vpc"]
+
+            res["products"] = filtered_products_t
+        except Exception as e:
+            coop_logger.error('get_products_for_order_helper %s (%s)', str(e))
+            res["error"] = str(e)
+
+        return res
 
 class OFF(models.Model):
     """OpenFoodFact restricted DB queries."""

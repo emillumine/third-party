@@ -318,6 +318,7 @@ function fetch_product_from_bc(barcode) {
 
     if (p_existing !== null) {
         without_consent_update_product(p_existing, product.qty);
+
         return 0;
     } else {
         add_product(product);

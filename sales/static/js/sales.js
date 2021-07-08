@@ -63,10 +63,12 @@ function display_orders(orders) {
                 orderable: false,
                 render: function (data) {
                     let res = '<ul>';
+
                     for (p of data) {
-                        res += `<li>${p.journal_id[1]} : ${p.amount} €</li>`
+                        res += `<li>${p.journal_id[1]} : ${p.amount} €</li>`;
                     }
-                    res += "</ul>"
+                    res += "</ul>";
+
                     return res;
                 }
             }
@@ -97,6 +99,7 @@ function get_sales() {
     openModal();
 
     var url = "/sales/get_sales";
+
     url += '?from=' + encodeURIComponent(from_datepicker.val());
     url += '&to=' + encodeURIComponent(to_datepicker.val());
 
@@ -189,7 +192,7 @@ $(document).ready(function() {
         enable_validation();
     });
 
-    $( "#sales_form" ).submit(function( event ) {
+    $("#sales_form").submit(function(event) {
         event.preventDefault();
         get_sales();
     });

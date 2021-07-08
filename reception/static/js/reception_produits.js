@@ -13,9 +13,9 @@ Sémantiquement, ici :
 * Associative array of current order(s)
 * If more than 1 element: group of orders
 * If 1 element: single order
+* -> check for Object.keys(orders).length to know if we're in a group case
 */
 var orders = {},
-    is_group = false,
     group_ids = [];
 
 var reception_status = null,
@@ -32,6 +32,9 @@ var reception_status = null,
     updateType = "", // step 1: qty_valid; step2: br_valid
     barcodes = null; // Barcodes stored locally
 
+var dbc = null,
+    sync = null,
+    fingerprint = null;
 
 /* UTILS */
 
@@ -108,12 +111,56 @@ function select_product_from_bc(barcode) {
     return 0;
 }
 
+/**
+ * Update couchdb order
+ * @param {int} order_id
+ */
+function update_distant_order(order_id) {
+    orders[order_id].last_update = {
+        timestamp: Date.now(),
+        fingerprint: fingerprint
+    };
+
+    dbc.put(orders[order_id], (err, result) => {
+        if (!err && result !== undefined) {
+            orders[order_id]._rev = result.rev;
+        } else {
+            alert("Erreur lors de la sauvegarde de la commande... Si l'erreur persiste contactez un administrateur svp.");
+            console.log(err);
+        }
+    });
+}
+
+/**
+ * Update distant orders with local data
+ * @param {int} order_id
+ */
+function update_distant_orders() {
+    for (let order_id in orders) {
+        orders[order_id].last_update = {
+            timestamp: Date.now(),
+            fingerprint: fingerprint
+        };
+    }
+
+    dbc.bulkDocs(Object.values(orders)).then((response) => {
+        // Update rev of current orders after their update
+        for (let doc of response) {
+            let order_id = doc.id.split('_')[1];
+
+            orders[order_id]._rev = doc.rev;
+        }
+    })
+        .catch((err) => {
+            console.log(err);
+        });
+}
+
 /* INIT */
 
 // Get order(s) data from server
 function fetch_data() {
     try {
-        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
         $.ajax({
             type: 'POST',
             url: '../get_orders_lines',
@@ -194,7 +241,7 @@ function initLists() {
             document.getElementById("valid_all_uprices").disabled = false;
         }
 
-        // Set lists with local storage content
+        // Set processed and to_process lists based on saved data
         for (var i = 0; i < updatedProducts.length; i++) {
             let product = updatedProducts[i];
 
@@ -271,7 +318,8 @@ function initLists() {
                     title:"Autres",
                     defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
                     className:"dt-body-center",
-                    orderable: false
+                    orderable: false,
+                    visible: display_autres === "True"
                 }
             ],
             rowId : "product_id.0",
@@ -287,7 +335,6 @@ function initLists() {
             dom: 'lrtip', // Remove the search input from that table
             language: {url : '/static/js/datatables/french.json'}
         });
-
         // Init table for processed content
         table_processed = $('#table_processed').DataTable({
             data: list_processed,
@@ -323,8 +370,18 @@ function initLists() {
                 {
                     data:"product_qty",
                     title:"Qté",
-                    className:"dt-body-center",
-                    visible: (reception_status == "False")
+                    className:"dt-head-center dt-body-center",
+                    visible: (reception_status == "False"),
+                    render: function (data, type, full) {
+                        let disp = [
+                            full.product_qty,
+                            (full.old_qty !== undefined)?full.old_qty:full.product_qty
+                        ].join("/");
+
+
+                        return disp;
+                    },
+                    orderable: false
                 },
                 {
                     data:"price_unit",
@@ -342,6 +399,7 @@ function initLists() {
                     title:"Autres",
                     className:"dt-body-center",
                     orderable: false,
+                    visible: display_autres === "True",
                     render: function (data, type, full) {
                         let disabled = (full.supplier_shortage) ? "disabled" : '';
 
@@ -376,17 +434,18 @@ function initLists() {
     $('#table_to_process tbody').on('click', 'a#toProcess_line_valid', function () {
         if (is_time_to('reception_direct_valid_order_line', 500)) {
             try {
-                var row = table_to_process.row($(this).parents('tr'));
-                var data = row.data();
+                let row = table_to_process.row($(this).parents('tr'));
+                let data = row.data();
 
                 add_to_processed(data);
                 remove_from_toProcess(row, data);
 
-                // Update local storage of product's order
-                if (!orders[data.id_po]['valid_products'])
+                // Update product's order
+                if (!orders[data.id_po]['valid_products']) {
                     orders[data.id_po]['valid_products'] = [];
+                }
                 orders[data.id_po]['valid_products'].push(data['id']);
-                localStorage.setItem("order_" + data.id_po, JSON.stringify(orders[data.id_po]));
+                update_distant_order(data.id_po);
 
                 // Reset search
                 document.getElementById('search_input').value = '';
@@ -711,8 +770,8 @@ function set_supplier_shortage(row, product, from_processed = false) {
         }
         add_to_processed(product);
 
-        // Update local storage of product's order
-        localStorage.setItem("order_" + product.id_po, JSON.stringify(orders[product.id_po]));
+        // Update product's order
+        update_distant_order(product.id_po);
 
         // Reset search
         document.getElementById('search_input').value = '';
@@ -788,9 +847,12 @@ function clearLineEdition() {
 
 /**
   * Update a product info : qty or unit price
-  * If 'value' is set, use it as new value
+  * @param {Object} productToEdit
+  * @param {Float} value if set, use it as new value
+  * @param {Boolean} batch if true, don't update couchdb data here
+  * @returns
   */
-function editProductInfo (productToEdit, value = null) {
+function editProductInfo (productToEdit, value = null, batch = false) {
     try {
     // Check if the product is already in the 'updated' list
         var index = searchUpdatedProduct();
@@ -856,16 +918,16 @@ function editProductInfo (productToEdit, value = null) {
         if (firstUpdate) {
             updatedProducts.push(productToEdit);
 
-            /* Update local storage of product order */
             // Create 'updated_products' list in order if not exists
-            if (!orders[productToEdit.id_po]['updated_products'])
+            if (!orders[productToEdit.id_po]['updated_products']) {
                 orders[productToEdit.id_po]['updated_products'] = [];
+            }
 
             // Add product to order's updated products if first update
             orders[productToEdit.id_po]['updated_products'].push(productToEdit);
 
             // May have been directly validated then updated from processed list
-            //  -> then: remove from 'valid_products' list
+            //  -> remove from 'valid_products' list
             for (i in orders[productToEdit.id_po]['valid_products']) {
                 if (orders[productToEdit.id_po]['valid_products'][i] == productToEdit['id']) {
                     orders[productToEdit.id_po]['valid_products'].splice(i, 1);
@@ -881,8 +943,10 @@ function editProductInfo (productToEdit, value = null) {
             }
         }
 
-        // Update local storage of product order
-        localStorage.setItem("order_" + productToEdit.id_po, JSON.stringify(orders[productToEdit.id_po]));
+        if (batch === false) {
+            // Update product order
+            update_distant_order(productToEdit.id_po);
+        }
 
         if(addition){
             let row = table_processed.row($('#'+productToEdit.product_id[0]));
@@ -914,16 +978,17 @@ function setAllQties() {
     table_to_process.rows().every(function () {
         var data = this.data();
 
-        editProductInfo(data, 0);
+        editProductInfo(data, 0, true);
 
         return true;
     });
     list_to_process = [];
     table_to_process.rows().remove()
         .draw();
+
+    // Batch update orders
+    update_distant_orders();
 }
-
-
 
 /* ACTIONS */
 
@@ -1015,7 +1080,6 @@ function pre_send(type) {
 function data_validation() {
     openModal();
 
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
     $.ajax({
         type: "POST",
         url: "../data_validation",
@@ -1057,6 +1121,7 @@ function send() {
         // Loading on
         openModal();
 
+        /* Prepare data for orders update */
         // Only send to server the updated lines
         var update_data = {
             update_type: updateType,
@@ -1070,7 +1135,8 @@ function send() {
 
         // for each updated product, add it to its order list
         for (i in updatedProducts) {
-            // if product was in different orders
+
+            /* ---> The following part concerns products found in different orders */
             if ('other_orders_data' in updatedProducts[i]) {
                 // for each other order of product
                 for (other_order_data of updatedProducts[i].other_orders_data) {
@@ -1127,13 +1193,44 @@ function send() {
                     orders[other_order_data.id_po]['updated_products'].push(product_copy);
                 }
             }
+            /* <--- */
 
             // Add product to order's prod list
             prod_order_id = updatedProducts[i].id_po;
             update_data.orders[prod_order_id]['po'].push(updatedProducts[i]);
         }
 
-        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+        /* Create the error report */
+        // Send changes between items to process and processed items
+        var error_report_data = {
+            'group_amount_total' : 0,
+            'update_type' : updateType,
+            'updated_products' : updatedProducts,
+            'user_comments': user_comments,
+            'orders' : []
+        };
+
+        for (let i in orders) {
+            error_report_data.group_amount_total += orders[i].amount_total;
+            error_report_data.orders.push(orders[i]);
+        }
+
+        // Send request for error report
+        $.ajax({
+            type: "POST",
+            url: "../save_error_report",
+            dataType: "json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(error_report_data),
+            success: function() {},
+            error: function() {
+                closeModal();
+                alert('Erreur dans l\'envoi du rapport.');
+            }
+        });
+
+        /* Update orders */
         $.ajax({
             type: "PUT",
             url: "../update_orders",
@@ -1145,8 +1242,9 @@ function send() {
                 closeModal();
 
                 try {
-                    // If step 1 (counting), open pop-up with procedure explanation
+                    // If step 1 (counting)
                     if (reception_status == "False") {
+                        /* Open pop-up with procedure explanation */
                         var barcodes_to_print = false;
 
                         // Select products with local barcode and without barcode, when qty > 0
@@ -1176,9 +1274,9 @@ function send() {
                         }
 
                         // Set order(s) name in popup DOM
-                        if (Object.keys(orders).length == 1) { // Single order
+                        if (Object.keys(orders).length === 1) { // Single order
                             document.getElementById("order_ref").innerHTML = orders[Object.keys(orders)[0]].name;
-                        } else {
+                        } else { // group
                             document.getElementById("success_order_name_container").hidden = true;
                             document.getElementById("success_orders_name_container").hidden = false;
 
@@ -1203,13 +1301,35 @@ function send() {
 
                         openModal(
                             $('#modal_qtiesValidated').html(),
-                            function() {
-                                document.location.href = "/reception";
-                            },
+                            back,
                             'Retour à la liste des commandes',
                             true,
                             false
                         );
+
+                        /* Not last step: update distant data */
+                        for (let order_id in orders) {
+                            // Save current step updated data
+                            orders[order_id].previous_steps_data = {};
+                            orders[order_id].previous_steps_data[reception_status] = {
+                                updated_products: orders[order_id].updated_products || []
+                            };
+                            orders[order_id].reception_status = updateType;
+
+                            // Unlock order
+                            orders[order_id].last_update = {
+                                timestamp: null,
+                                fingerprint: null
+                            };
+
+                            // Delete temp data
+                            delete orders[order_id].valid_products;
+                            delete orders[order_id].updated_products;
+                        }
+
+                        dbc.bulkDocs(Object.values(orders)).catch((err) => {
+                            console.log(err);
+                        });
                     } else {
                         // Print etiquettes with new prices
                         if (updatedProducts.length > 0) {
@@ -1218,49 +1338,48 @@ function send() {
 
                         openModal(
                             $('#templates #modal_pricesValidated').html(),
-                            function() {
-                                document.location.href = "/reception";
-                            },
+                            back,
                             'Retour à la liste des commandes',
                             true,
                             false
                         );
-                    }
 
-                    // Go back to to_process list if modal closed
-                    $('#modal_closebtn_top').on('click', function () {
-                        document.location.href = "/reception";
-                    });
-
-                    $('#modal_closebtn_bottom').on('click', function () {
-                        document.location.href = "/reception";
-                    });
-
-                    // Clear local storage before leaving
-                    for (order_id in orders) {
-                        localStorage.removeItem("order_" + order_id);
-                    }
-
-                    // Delete group(s)
-                    if (is_group) {
-                        var grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
-
-                        // Remove all groups containing these orders
-                        for (order_id in orders) {
-                            search:
-                            for (var h = 0; i < grouped_orders.length; h++) {
-                                for (var j = 0; j < grouped_orders[h].length; j++) {
-                                    if (grouped_orders[h][j] == order_id) {
-                                        grouped_orders.splice(h);
-                                        break search;
-                                    }
-                                }
-                            }
+                        /* Last step: Clear distant data */
+                        // Delete orders doc
+                        for (let order_id in orders) {
+                            orders[order_id]._deleted = true;
                         }
 
-                        localStorage.setItem('grouped_orders', JSON.stringify(grouped_orders));
+                        // Remove orders group
+                        dbc.get("grouped_orders").then((doc) => {
+                            let couchdb_update_data = Object.values(orders);
+
+                            // We're in a group, remove it & update groups doc
+                            if (Object.keys(orders).length > 1) {
+                                let groups_doc = doc;
+
+                                let first_order_id = parseInt(Object.keys(orders)[0]);
+
+                                for (let i in groups_doc.groups) {
+                                    if (groups_doc.groups[i].includes(first_order_id)) {
+                                        groups_doc.groups.splice(i, 1);
+                                        break;
+                                    }
+                                }
+
+                                couchdb_update_data.push(groups_doc);
+                            }
+
+                            return dbc.bulkDocs(couchdb_update_data);
+                        })
+                            .catch(function (err) {
+                                console.log(err);
+                            });
                     }
 
+                    // Back if modal closed
+                    $('#modal_closebtn_top').on('click', back);
+                    $('#modal_closebtn_bottom').on('click', back);
                 } catch (ee) {
                     err = {msg: ee.name + ' : ' + ee.message, ctx: 'callback update_orders'};
                     console.error(err);
@@ -1270,34 +1389,6 @@ function send() {
             error: function() {
                 closeModal();
                 alert('Erreur lors de la sauvegarde des données.');
-            }
-        });
-
-        // Send changes between items to process and processed items
-        var updates = {
-            'group_amount_total' : 0,
-            'update_type' : updateType,
-            'updated_products' : updatedProducts,
-            'user_comments': user_comments,
-            'orders' : []
-        };
-
-        for (i in orders) {
-            updates.group_amount_total += orders[i].amount_total;
-            updates.orders.push(orders[i]);
-        }
-
-        $.ajax({
-            type: "POST",
-            url: "../save_error_report",
-            dataType: "json",
-            traditional: true,
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(updates),
-            success: function(data) {},
-            error: function() {
-                closeModal();
-                alert('Erreur dans l\'envoi du rapport.');
             }
         });
     } catch (e) {
@@ -1327,17 +1418,19 @@ function confirm_all_left_is_good() {
         } else {
             value = data.price_unit;
         }
-        editProductInfo(data, value);
+        editProductInfo(data, value, true);
 
         return true;
     });
     list_to_process = [];
     table_to_process.rows().remove()
         .draw();
+
+    // Batch update orders
+    update_distant_orders();
     closeModal();
 }
-/* TODO: upgrade modal
--> disable background scrolling*/
+
 function openFAQ() {
     openModal($("div#modal_FAQ_content").html(), function() {}, 'Compris !', true, false);
 }
@@ -1349,6 +1442,7 @@ function openErrorReport() {
     // this is necessary because default behavior is overwritten by the listener defined in jquery.pos.js;
     $("#error_report").keypress(function(e) {
         var key = e.keyCode;
+
         if (key === 13) {
             this.value += "\n";
         }
@@ -1364,10 +1458,10 @@ function openErrorReport() {
 function saveErrorReport() {
     user_comments = document.getElementById("error_report").value;
 
-    // Save comment in local storage, in all orders
+    // Save comments in all orders
     for (order_id of Object.keys(orders)) {
         orders[order_id].user_comments = user_comments;
-        localStorage.setItem("order_" + order_id, JSON.stringify(orders[order_id]));
+        update_distant_order(order_id);
     }
 
     document.getElementById("search_input").focus();
@@ -1379,199 +1473,91 @@ var get_barcodes = async function() {
 };
 
 
-$(document).ready(function() {
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-    // Load barcodes
-    get_barcodes();
 
-    // Get Route parameter
-    var pathArray = window.location.pathname.split('/');
-    var id = pathArray[pathArray.length-1];
-
-    // Disable alert errors from datatables
-    $.fn.dataTable.ext.errMode = 'none';
-
-    // Listen for errors in tables with custom behavior
-    $('#table_to_process').on('error.dt', function (e, settings, techNote, message) {
-        var err_msg = message;
-
-        try {
-            var split = message.split(" ");
-            var row_number = null;
-
-            for (var i = 0; i < split.length; i++) {
-                if (split[i] == "row")
-                    row_number = split[i+1];
-            }
-
-            row_number = row_number.replace(',', '');
-            var row_data = $('#table_to_process').DataTable()
-                .row(row_number)
-                .data();
-
-            err_msg += " - Order id: " + row_data.id_po;
-            err_msg += " - Product: " + row_data.product_id[1];
-        } catch (e) {
-            console.log(e);
+/**
+ * Init the page according to order(s) data (texts, colors, events...)
+ *
+ * @param {Array} partners_display_data
+ */
+function init_dom(partners_display_data) {
+    // Back button
+    $('#back_button').on('click', function () {
+        // Liberate current orders
+        for (let order_id in orders) {
+            orders[order_id].last_update = {
+                timestamp: null,
+                fingerprint: null
+            };
         }
 
-        err = {msg: err_msg, ctx: 'datatable: table to_process'};
-        console.error(err);
-        report_JS_error(err, 'reception');
+        dbc.bulkDocs(Object.values(orders)).then((response) => {
+            back();
+        })
+            .catch((err) => {
+                console.log(err);
+            });
     });
 
-    $('#table_processed').on('error.dt', function (e, settings, techNote, message) {
-        var err_msg = message;
+    // Grouped orders
+    if (Object.keys(orders).length > 1) {
+        $('#partner_name').html(Object.keys(orders).length + " commandes");
 
-        try {
-            var split = message.split(" ");
-            var row_number = null;
+        // Display order data for each order
+        var msg = "";
 
-            for (var i = 0; i < split.length; i++) {
-                if (split[i] == "row")
-                    row_number = split[i+1];
+        for (display_partner_data of partners_display_data) {
+            if (msg != "") {
+                msg += ", ";
             }
-
-            row_number = row_number.replace(',', '');
-            var row_data = $('#table_processed').DataTable()
-                .row(row_number)
-                .data();
-
-            err_msg += " - Order id: " + row_data.id_po;
-            err_msg += " - Product: " + row_data.product_id[1];
-        } catch (e) {
-            console.log(e);
+            msg += display_partner_data;
         }
+        $('#container_multiple_partners').append('<h6> ' + msg + '</h6>');
+    } else {
+        $('#partner_name').html(orders[Object.keys(orders)[0]].partner);
+    }
 
-        err = {msg: err_msg, ctx: 'datatable: table processed'};
-        console.error(err);
-        report_JS_error(err, 'reception');
-    });
+    /* Set DOM according to reception status */
+    if (reception_status == "qty_valid") { // Step 2
+        // Header
+        document.getElementById('header_step_two').classList.add('step_two_active');
+        var check_icon = document.createElement('i');
 
-    try {
-    // Get order info from local storage (it should be there if process followed)
-        if (Modernizr.localstorage) {
-            // Look for current order in grouped orders in local storage
-            var grouped_orders = JSON.parse(localStorage.getItem('grouped_orders'));
+        check_icon.className = 'far fa-check-circle';
+        document.getElementById('header_step_one_content').appendChild(check_icon);
 
-            if (grouped_orders != null) {
-                for (group of grouped_orders) {
-                    for (group_element_id of group) {
-                        if (group_element_id == id) {
-                            // We're in a group!
-                            is_group = true;
-                            group_ids = group;
-                        }
-                    }
-                }
-            }
+        // Products lists containers
+        document.getElementById('container_left').style.border = "3px solid #0275D8"; // container qty_checked
+        document.getElementById('container_right').style.border = "3px solid #5CB85C"; // container processed items
+        document.getElementById('header_container_left').innerHTML = "Prix à mettre à jour";
+        document.getElementById('header_container_right').innerHTML = "Prix mis à jour";
 
-            // if not in group, add current order to group
-            if (group_ids.length == 0) {
-                group_ids.push(id);
-            }
+        // Edition
+        document.getElementById('edition_header').innerHTML = "Editer les prix";
+        document.getElementById('edition_input_label').innerHTML = "Prix unit.";
 
-            var stored_order = null;
-            var display_partners_name = [];
+        // Validation buttons
+        document.getElementById("valid_all").innerHTML = "<button class='btn--danger full_width_button' id='valid_all_uprices' onclick=\"openModal($('#templates #modal_no_prices').html(), confirmPricesAllValid, 'Confirmer', false);\" disabled>Pas de prix sur le bon de livraison</button>";
+        document.getElementById("validation_button").innerHTML = "<button class='btn--success full_width_button' id='valid_uprice' onclick=\"pre_send('br_valid')\" disabled>Valider la mise à jour des prix</button>";
 
-            // for each order in order group
-            for (order_id of group_ids) {
-                // Get order data from local storage
-                stored_order = JSON.parse(localStorage.getItem('order_' + order_id));
+        // Modal content after validation
+        $("#modal_pricesValidated").load("/reception/reception_pricesValidated");
+    } else if (reception_status == "False") { // Step 1
+        document.getElementById('header_step_one').classList.add('step_one_active');
 
-                // Add order to order list
-                if (stored_order != null) {
-                    orders[order_id] = stored_order;
+        document.getElementById('container_left').style.border = "3px solid #212529"; // container products to process
+        document.getElementById('container_right').style.border = "3px solid #0275D8"; // container qty_checked
+        document.getElementById('header_container_left').innerHTML = "Produits à compter";
+        document.getElementById('header_container_right').innerHTML = "Produits déjà comptés";
 
-                    //Add each order's already updated and validated products to common list
-                    if (stored_order["updated_products"])
-                        updatedProducts = updatedProducts.concat(stored_order["updated_products"]);
+        document.getElementById('edition_header').innerHTML = "Editer les quantités";
+        document.getElementById('edition_input_label').innerHTML = "Qté";
 
-                    if (stored_order["valid_products"])
-                        validProducts = validProducts.concat(stored_order["valid_products"]);
+        document.getElementById("valid_all").innerHTML = "<button class='btn--danger full_width_button' id='valid_all_qties' onclick=\"openModal($('#templates #modal_no_qties').html(), setAllQties, 'Confirmer');\" disabled>Il n'y a plus de produits à compter</button>";
+        document.getElementById("validation_button").innerHTML = "<button class='btn--primary full_width_button' id='valid_qty' onclick=\"pre_send('qty_valid')\" disabled>Valider le comptage des produits</button>";
 
-                    // Prepare data to display in 'partner name' area
-                    display_partners_name.push(stored_order['partner'] + ' du ' + stored_order['date_order']);
-                }
-            }
-
-            // Set current reception status: take first order's
-            reception_status = orders[Object.keys(orders)[0]].reception_status;
-
-            // Load user comments from local storage, get it from first order
-            user_comments = orders[Object.keys(orders)[0]].user_comments || "";
-        }
-
-        // Fetch orders data
-        fetch_data();
-
-        if (is_group) {
-            $('#partner_name').html(Object.keys(orders).length + " commandes");
-
-            // Display order data for each order
-            var msg = "";
-
-            for (display_partner_data of display_partners_name) {
-                if (msg != "") {
-                    msg += ", ";
-                }
-                msg += display_partner_data;
-            }
-            $('#container_multiple_partners').append('<h6> ' + msg + '</h6>');
-        } else {
-            $('#partner_name').html(orders[Object.keys(orders)[0]].partner);
-        }
-
-        /* Set DOM according to reception status */
-        if (reception_status == "qty_valid") { // Step 2
-            // Header
-            document.getElementById('header_step_two').classList.add('step_two_active');
-            var check_icon = document.createElement('i');
-
-            check_icon.className = 'far fa-check-circle';
-            document.getElementById('header_step_one_content').appendChild(check_icon);
-
-            // Products lists containers
-            document.getElementById('container_left').style.border = "3px solid #0275D8"; // container qty_checked
-            document.getElementById('container_right').style.border = "3px solid #5CB85C"; // container processed items
-            document.getElementById('header_container_left').innerHTML = "Prix à mettre à jour";
-            document.getElementById('header_container_right').innerHTML = "Prix mis à jour";
-
-            // Edition
-            document.getElementById('edition_header').innerHTML = "Editer les prix";
-            document.getElementById('edition_input_label').innerHTML = "Prix unit.";
-
-            // Validation buttons
-            document.getElementById("valid_all").innerHTML = "<button class='btn--danger full_width_button' id='valid_all_uprices' onclick=\"openModal($('#templates #modal_no_prices').html(), confirmPricesAllValid, 'Confirmer', false);\" disabled>Pas de prix sur le bon de livraison</button>";
-            document.getElementById("validation_button").innerHTML = "<button class='btn--success full_width_button' id='valid_uprice' onclick=\"pre_send('br_valid')\" disabled>Valider la mise à jour des prix</button>";
-
-            // Modal content after validation
-            $("#modal_pricesValidated").load("/reception/reception_pricesValidated");
-        } else if (reception_status == "False") { // Step 1
-            document.getElementById('header_step_one').classList.add('step_one_active');
-
-            document.getElementById('container_left').style.border = "3px solid #212529"; // container products to process
-            document.getElementById('container_right').style.border = "3px solid #0275D8"; // container qty_checked
-            document.getElementById('header_container_left').innerHTML = "Produits à compter";
-            document.getElementById('header_container_right').innerHTML = "Produits déjà comptés";
-
-            document.getElementById('edition_header').innerHTML = "Editer les quantités";
-            document.getElementById('edition_input_label').innerHTML = "Qté";
-
-            document.getElementById("valid_all").innerHTML = "<button class='btn--danger full_width_button' id='valid_all_qties' onclick=\"openModal($('#templates #modal_no_qties').html(), setAllQties, 'Confirmer');\" disabled>Il n'y a plus de produits à compter</button>";
-            document.getElementById("validation_button").innerHTML = "<button class='btn--primary full_width_button' id='valid_qty' onclick=\"pre_send('qty_valid')\" disabled>Valider le comptage des produits</button>";
-
-            $("#modal_qtiesValidated").load("/reception/reception_qtiesValidated");
-        } else {
-            // Extra security, shouldn't get in here
-            document.location.href = "/reception";
-        }
-    } catch (e) {
-        err = {msg: e.name + ' : ' + e.message, ctx: 'page init'};
-        console.error(err);
-        report_JS_error(err, 'reception');
-
-        alert("Erreur au chargement de cette commande. Vous allez être redirigé.");
+        $("#modal_qtiesValidated").load("/reception/reception_qtiesValidated");
+    } else {
+        // Extra security, shouldn't get in here: reception status not valid
         back();
     }
 
@@ -1594,16 +1580,6 @@ $(document).ready(function() {
     $('#edition_input').on('focus', function () {
         $(this).on('wheel.disableScroll', function (e) {
             e.preventDefault();
-            /*
-              Option to possibly enable page scrolling when mouse over the input, but :
-                - deltaY is not in pixels in Firefox
-                - movement not fluid on other browsers
-
-            var scrollTo = (e.originalEvent.deltaY) + $(document.documentElement).scrollTop();
-            $(document.documentElement).scrollTop(scrollTo);
-
-              -> other option to allow scrolling would be to loose input focus with blur(): not acceptable
-            */
         });
     })
         .on('blur', function () {
@@ -1692,4 +1668,191 @@ $(document).ready(function() {
             .draw();
         select_product_from_bc(barcode);
     });
+}
+
+
+$(document).ready(function() {
+    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
+    fingerprint = new Fingerprint({canvas: true}).get();
+
+    // Load barcodes
+    get_barcodes();
+
+    // Get Route parameter
+    let pathArray = window.location.pathname.split('/');
+    let id = pathArray[pathArray.length-1];
+
+    // Init couchdb
+    dbc = new PouchDB(couchdb_dbname),
+    sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
+        live: true,
+        retry: true,
+        auto_compaction: false
+    });
+
+    sync.on('change', function (info) {
+        if (info.direction === "pull") {
+            for (const doc of info.change.docs) {
+                // Redirect if one of the current order is being modified somewhere else
+                if (String(doc.id) in orders && orders[doc.id]._rev !== doc._rev) {
+                    alert("Un autre navigateur est en train de modifier cette commande ! Vous allez être redirigé.e.");
+                    back();
+                }
+            }
+        }
+    }).on('error', function (err) {
+        if (err.status === 409) {
+            alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
+            back();
+        }
+        console.log('erreur sync');
+        console.log(err);
+    });
+
+    // Disable alert errors from datatables
+    $.fn.dataTable.ext.errMode = 'none';
+
+    // Listen for errors in tables with custom behavior
+    $('#table_to_process').on('error.dt', function (e, settings, techNote, message) {
+        var err_msg = message;
+
+        try {
+            var split = message.split(" ");
+            var row_number = null;
+
+            for (var i = 0; i < split.length; i++) {
+                if (split[i] == "row")
+                    row_number = split[i+1];
+            }
+
+            row_number = row_number.replace(',', '');
+            var row_data = $('#table_to_process').DataTable()
+                .row(row_number)
+                .data();
+
+            err_msg += " - Order id: " + row_data.id_po;
+            err_msg += " - Product: " + row_data.product_id[1];
+        } catch (e) {
+            console.log(e);
+        }
+
+        err = {msg: err_msg, ctx: 'datatable: table to_process'};
+        console.error(err);
+        report_JS_error(err, 'reception');
+    });
+
+    $('#table_processed').on('error.dt', function (e, settings, techNote, message) {
+        var err_msg = message;
+
+        try {
+            var split = message.split(" ");
+            var row_number = null;
+
+            for (var i = 0; i < split.length; i++) {
+                if (split[i] == "row")
+                    row_number = split[i+1];
+            }
+
+            row_number = row_number.replace(',', '');
+            var row_data = $('#table_processed').DataTable()
+                .row(row_number)
+                .data();
+
+            err_msg += " - Order id: " + row_data.id_po;
+            err_msg += " - Product: " + row_data.product_id[1];
+        } catch (e) {
+            console.log(e);
+        }
+
+        err = {msg: err_msg, ctx: 'datatable: table processed'};
+        console.error(err);
+        report_JS_error(err, 'reception');
+    });
+
+    /* Get order info from couchdb */
+    // Get order groups
+    let order_groups = [];
+
+    dbc.get("grouped_orders").then((doc) => {
+        order_groups = doc.groups;
+
+        for (let group of order_groups) {
+            for (group_order_id of group) {
+                if (group_order_id == id) {
+                    // We're in a group!
+                    group_ids = group;
+                }
+            }
+        }
+
+        // if not in group, add current order to group
+        if (group_ids.length == 0) {
+            group_ids.push(id);
+        }
+
+        let partners_display_data = [];
+
+        dbc.allDocs({
+            include_docs: true
+        }).then(function (result) {
+            // for each order in the group
+            for (let order_id of group_ids) {
+                // find order
+                let order = result.rows.find(el => el.id == 'order_' + order_id);
+
+                order = order.doc;
+
+                orders[order_id] = order;
+
+                // Add each order's already updated and validated products to common list
+                if (order["updated_products"]) {
+                    updatedProducts = updatedProducts.concat(order["updated_products"]);
+                }
+
+                if (order["valid_products"]) {
+                    validProducts = validProducts.concat(order["valid_products"]);
+                }
+
+                // Prepare data to display in 'partner name' area
+                partners_display_data.push(order['partner'] + ' du ' + order['date_order']);
+            }
+
+            // Set current reception status: take first order's
+            reception_status = orders[Object.keys(orders)[0]].reception_status;
+
+            // Load saved user comments, get it from first order
+            user_comments = orders[Object.keys(orders)[0]].user_comments || "";
+
+            // Indicate that these orders are used in this navigator
+            update_distant_orders();
+
+            // Fetch orders data
+            fetch_data();
+
+            init_dom(partners_display_data);
+        })
+            .catch(function (e) {
+                let msg = ('message' in e && 'name' in e) ? e.name + ' : ' + e.message : '';
+
+                err = {msg, ctx: 'page init - get orders from couchdb', details: e};
+                console.error(err);
+                report_JS_error(err, 'reception');
+
+                // Should be there, redirect
+                alert("Erreur au chargement de cette commande. Vous allez être redirigé.");
+                back();
+            });
+    })
+        .catch(function (e) {
+            let msg = ('message' in e && 'name' in e) ? e.name + ' : ' + e.message : '';
+
+            err = {msg, ctx: 'page init - get grouped orders', details: e};
+            console.error(err);
+            report_JS_error(err, 'reception');
+
+            // Should be there, redirect
+            alert("Erreur au chargement de cette commande. Vous allez être redirigé.");
+            back();
+        });
 });

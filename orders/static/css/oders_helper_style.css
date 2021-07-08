@@ -1,0 +1,289 @@
+.page_body{
+    position: relative;
+}
+
+.page_content, .login_area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+/* - Common */
+
+.pill {
+    border-radius: 30px;
+    min-width: 200px;
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 30px 5px 30px;
+    margin: 0 10px 5px 10px;
+}
+
+.disabled {
+    background-color: #c9cbce;
+}
+
+.disabled:hover {
+    background-color: #a1a2a3;
+}
+
+/* - Order selection screen */
+#new_order_area {
+    margin-bottom: 40px;
+}
+
+#new_order_form {
+    margin-top: 20px;
+}
+
+#existing_orders {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 80%;
+    margin: 0 auto;
+    padding-top: 15px;
+}
+
+.order_last_update {
+    font-weight: bold;
+}
+
+.order_modified_msg {
+    font-size: 2rem;
+    color: #e62720;
+}
+
+/* - Main screen */
+
+/* -- Top action button(s) */
+#back_to_order_selection {
+    position: absolute;
+}
+
+#main_content .actions_buttons_area {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+#orders_created .actions_buttons_area {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* -- Order data */
+#order_data_container {
+    font-size: 1.8rem;
+}
+
+#order_data_separator {
+    margin: 0 10px 0 10px;
+}
+
+#order_forms_container {
+    margin-top: 30px;
+    display: flex;  
+    justify-content: space-evenly;
+}
+
+#supplier_input {
+    width: 350px;
+    border-radius: 3px;
+}
+
+#date_planned_input, #coverage_days_input {
+    border-radius: 3px;
+}
+
+/* -- Table */
+#products_table_filter{
+    text-align: right !important;
+}
+
+#products_table_filter input{
+    height: 35px;
+    width: 300px;
+    border-radius: 3px;
+}
+#products_table .help {cursor: help;}
+#table_header_select_all{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.select_all_text {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#table_header_select_all input{
+    margin-left: 5px;
+}
+
+.custom_cell_content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.product_qty_input {
+    width: 100px;
+}
+
+.supplier_package_qty {
+    font-style: italic;
+    font-size: 1.3rem;
+}
+
+.product_not_from_supplier {
+    background-color: #e7e9ed;
+    cursor: pointer;
+}
+
+.product_not_from_supplier:hover {
+    background-color: #c7cace;
+}
+
+.product_name, .supplier_name, .product_npa {
+    font-weight: bold;
+}
+
+.select_product_cb, .product_npa_cb {
+    cursor: pointer;
+}
+
+/* -- Footer */
+
+#main_content_footer {
+    margin: 20px 0 40px 0;
+}
+
+#footer_actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* -- Suppliers list */
+#suppliers_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; 
+    margin: 30px 0 20px 0;
+}
+
+.supplier_pill {
+    background-color: #e7e9edc5;
+    border: 1px solid black;
+}
+
+.pill_supplier_name {
+    font-weight: bold;
+}
+
+.supplier_total_value_container {
+    font-size: 1.5rem;
+}
+
+.remove_supplier_icon {
+    color: red;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+/* -- Attach product to supplier modal */
+.modal_input_area {
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.modal_input_container, .modal_input_label {
+    width:50%;
+    margin: 0 15px 0 15px;
+}
+
+.modal_input_label {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.modal_input {
+    width: 90%;
+}
+
+/* - Orders created screen */
+
+.order_created_header {
+    margin-top: 5px;
+    margin-bottom: 40px;
+}
+
+#created_orders_area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.new_order_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.download_order_file {
+    margin-top: 10px;
+}
+
+.download_order_file_button:hover {
+    text-decoration: none;
+    color: white;
+}
+.download_order_file_button:active {
+    text-decoration: none;
+    color: white;
+}
+.download_order_file_button:focus {
+    text-decoration: none;
+    color: white;
+}
+
+#recap_delivery_date {
+    font-weight: bold;
+}
+
+.mail_example_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+    margin: 0 auto;
+}
+
+.mail_type_text {
+    width: 100%;
+}
+
+.mail_example {
+    background-color: #e7e9ed;
+    width: 100%;
+    padding: 15px;
+}
