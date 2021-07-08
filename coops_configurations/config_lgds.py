@@ -92,3 +92,6 @@ ENTRANCE_FTOP_BUTTON_DISPLAY = False
 
 CUSTOM_CSS_FILES = {'all': ['common_lgds.css'],
                     'members': ['inscription_lgds.css','member_lgds.css']}
+
+# Should block service exchange if old service is happening in less than 24h
+BLOCK_SERVICE_EXCHANGE_24H_BEFORE = False

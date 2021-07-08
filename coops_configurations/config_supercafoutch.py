@@ -88,3 +88,6 @@ PROMOTE_SHELFS_IDS = []
 DISCOUNT_SHELFS_IDS = []
 FL_SHELFS = []
 VRAC_SHELFS = []
+
+# Should block service exchange if old service is happening in less than 24h
+BLOCK_SERVICE_EXCHANGE_24H_BEFORE = False

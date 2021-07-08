@@ -17,6 +17,19 @@ class CagetteShift(models.Model):
         self.tz = pytz.timezone("Europe/Paris")
         self.o_api = OdooAPI()
 
+    def get_shift(self, id):
+        """Get one shift by id"""
+        cond = [['id', '=', id]]
+
+        fields = ['date_begin_tz']
+        listService = self.o_api.search_read('shift.shift', cond, fields)
+
+        try:
+            return listService[0]
+        except Exception as e:
+            print(str(e))
+            return None
+
     def get_data_partner(self, id):
         """Retrieve partner data useful to make decision about shift options"""
         cond = [['id', '=', id]]

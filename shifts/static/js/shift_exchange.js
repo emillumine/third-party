@@ -133,9 +133,15 @@ function changeShift(idOldRegister, idNewShift) {
                     );
                 }
             },
-            error: function() {
+            error: function(error) {
                 closeModal();
-                alert('Une erreur est survenue. Il est néanmoins possible que la requête ait abouti, veuillez patienter quelques secondes puis vérifier vos services enregistrés.');
+
+                if (error.status === 400) {
+                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. Il n'est plus possible de l'échanger.`)
+
+                } else {
+                    alert('Une erreur est survenue. Il est néanmoins possible que la requête ait abouti, veuillez patienter quelques secondes puis vérifier vos services enregistrés.');
+                }
                 // Refectch shifts anyway:
                 //  in case an error rises but the registration/exchange was still succesful
                 setTimeout( // Due to chrome effect

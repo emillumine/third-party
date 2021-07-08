@@ -108,3 +108,6 @@ RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, 
 
 # display or not column "Autres" in reception process
 DISPLAY_COL_AUTRES = False
+
+# Should block service exchange if old service is happening in less than 24h
+BLOCK_SERVICE_EXCHANGE_24H_BEFORE = True

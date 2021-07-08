@@ -1,26 +1,17 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
-
-
+from outils.common import Verification
 
 from shifts.models import CagetteShift
 
-
-from outils.common import Verification
-
-
 # working_state = ['up_to_date', 'alert', 'exempted', 'delay', 'suspended']
-
-
 state_shift_allowed = ["up_to_date", "alert", "delay"]
-
 
 tz = pytz.timezone("Europe/Paris")
 
 def dateIsoUTC(myDate):
     tDate = tz.localize(datetime.datetime.strptime(myDate, '%Y-%m-%d %H:%M:%S'))
     return tDate.isoformat()
-
 
 def home(request, partner_id, hashed_date):
     import hashlib
@@ -170,7 +161,24 @@ def change_shift(request):
 
             if 'idNewShift' in request.POST and 'idOldShift' in request.POST:
                 idOldShift = request.POST['idOldShift']
-                data = {"idPartner": int(request.POST['idPartner']), "idShift":int(request.POST['idNewShift']), "in_ftop_team":request.POST['in_ftop_team']}
+                data = {
+                    "idPartner": int(request.POST['idPartner']),
+                    "idShift":int(request.POST['idNewShift']),
+                    "in_ftop_team":request.POST['in_ftop_team']
+                }
+                
+                should_block_service_exchange = getattr(settings, 'BLOCK_SERVICE_EXCHANGE_24H_BEFORE', False)
+                if should_block_service_exchange:
+                    # Block change if old shift is to happen in less than 24 hours
+                    now = datetime.datetime.now(tz)
+
+                    old_shift = cs.get_shift(idOldShift)
+                    day_before_old_shift_date_start = tz.localize(datetime.datetime.strptime(old_shift['date_begin_tz'], '%Y-%m-%d %H:%M:%S') - datetime.timedelta(hours=24))
+
+                    if now > day_before_old_shift_date_start:
+                        response = {'msg': "Old service in less than 24hours."}
+                        return JsonResponse(response, status=400)
+
                 st_r_id = False
                 #Insertion du nouveau shift
                 try:
@@ -179,7 +187,8 @@ def change_shift(request):
                     coop_logger.error("Change shift : %s, %s", str(e), str(data))
                 if st_r_id:
                     listRegister = [int(request.POST['idRegister'])]
-                # Annul l'ancien shift
+
+                    # Annule l'ancien shift
                     response = cs.cancel_shift(listRegister)
 
                     response = {'result': True}
