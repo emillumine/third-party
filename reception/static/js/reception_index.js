@@ -212,7 +212,7 @@ function validatePrices() {
 
     var updates = {
         'group_amount_total' : order['amount_total'],
-        'update_type' : 'br_vaid',
+        'update_type' : 'br_valid',
         'updated_products' : [],
         'user_comments': "",
         'orders' : [order]
