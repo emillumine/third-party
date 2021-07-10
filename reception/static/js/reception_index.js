@@ -285,7 +285,9 @@ function group_action() {
  * Remove the grouped orders from the order table to prevent grouping in multiple groups.
  */
 function display_grouped_orders() {
+
     if (table_orders !== null) {
+        var display_something = true;
         $('#groups_items').empty();
         let groups_display_content = "<ul>";
 
@@ -307,34 +309,39 @@ function display_grouped_orders() {
                     }
                 }
             }
+            if (group_orders.length > 0) {
+                // Display group
+                document.getElementById("container_groups").hidden = false;
+                let group_row = `<li class="group_line"> Commandes de `;
 
-            // Display group
-            document.getElementById("container_groups").hidden = false;
-            let group_row = `<li class="group_line"> Commandes de `;
-
-            for (let i in group_orders) {
-                if (i == group_orders.length-1) { // last element of list
-                    group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + " : ";
-                } else {
-                    group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + ", ";
+                for (let i in group_orders) {
+                    if (i == group_orders.length-1) { // last element of list
+                        group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + " : ";
+                    } else {
+                        group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + ", ";
+                    }
                 }
-            }
 
-            if (group_orders[0].reception_status == 'False') {
-                group_row += "<button class='btn--primary' onClick='group_goto("
-                    + group_index
-                    + ")'>Compter les produits</button>";
+                if (group_orders[0].reception_status == 'False') {
+                    group_row += "<button class='btn--primary' onClick='group_goto("
+                        + group_index
+                        + ")'>Compter les produits</button>";
+                } else {
+                    group_row += "<button class='btn--success' onClick='group_goto("
+                        + group_index
+                        + ")'>Mettre à jour les prix</button>";
+                }
+
+                group_row += "</li>";
+                groups_display_content += group_row;
             } else {
-                group_row += "<button class='btn--success' onClick='group_goto("
-                    + group_index
-                    + ")'>Mettre à jour les prix</button>";
+                display_something = false; // occured making test form local django and preprod (couchdb, odoo)
             }
-
-            group_row += "</li>";
-            groups_display_content += group_row;
         }
-        $('#container_groups').show();
-        $('#groups_items').append(groups_display_content);
+        if (display_something === true) {
+            $('#container_groups').show();
+            $('#groups_items').append(groups_display_content);
+        }
     }
 }
 
