@@ -1214,7 +1214,37 @@ function send() {
             error_report_data.group_amount_total += orders[i].amount_total;
             error_report_data.orders.push(orders[i]);
         }
-
+        
+        //Create list of articl with no barcode
+        no_barcode_list = [];
+        for (var i = 0; i < list_processed.length; i++) {
+            if (list_processed[i].product_qty != 0 && (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "")) {
+                no_barcode_list.push([list_processed[i]["product_id"][0], list_processed[i]["product_id"][1]]);
+            }
+        }
+        
+        data_send_no_barcode={
+            "order" : orders[order_data['id_po']],
+            "no_barcode_list" : no_barcode_list
+            }
+        
+        
+        // Send of articl with no barcode to mail send
+        if (no_barcode_list.length > 0){
+            $.ajax({
+                type: "POST",
+                url: "../send_mail_no_barcode",
+                dataType: "json",
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(data_send_no_barcode),
+                success: function() {},
+                error: function() {
+                    alert('Erreur dans l\'envoi des produite sont barre code.');
+                }
+            });
+        }
+        
         // Send request for error report
         $.ajax({
             type: "POST",
@@ -1257,7 +1287,7 @@ function send() {
                                     document.getElementById("nothingToDo").hidden = true;
 
                                     barcodes_to_print = true;
-                                } else if (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "") {
+                                } /* else if (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "") {
                                     // Products with no barcode
                                     var node = document.createElement('li');
                                     let textNode = document.createTextNode(list_processed[i]["product_id"][1]);
@@ -1269,7 +1299,19 @@ function send() {
                                         document.getElementById("barcodesEmpty").hidden = false;
                                         document.getElementById("nothingToDo").hidden = true;
                                     }
-                                }
+                                }*/
+                            }
+                        }
+                        
+                        for (var i = 0; i < no_barcode_list.length; i++) {
+                            var node = document.createElement('li');
+                            let textNode = document.createTextNode(no_barcode_list[i]);
+                            node.appendChild(textNode);
+                            document.getElementById('barcodesEmpty_list').appendChild(node);
+
+                            if (document.getElementById("barcodesEmpty").hidden) {
+                                document.getElementById("barcodesEmpty").hidden = false;
+                                document.getElementById("nothingToDo").hidden = true;
                             }
                         }
 
