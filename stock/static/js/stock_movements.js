@@ -170,7 +170,7 @@ function init_datatable() {
                 data.qty = validated_data;
                 row.remove().draw();
                 products_table.row.add(data).draw();
-            } 
+            }
             update_total_value();
         });
 
@@ -262,7 +262,7 @@ function get_stored_product_with_bc(barcode) {
 function fetch_product_from_bc(barcode) {
     //console.log(barcode)
 
-    if (barcode == '') {creation
+    if (barcode == '') {
         reset_focus();
 
         return -1;
