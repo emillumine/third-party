@@ -162,34 +162,15 @@ function init_datatable() {
         // Listener on inputs
         $('#products_table tbody').on('change', '.stock_edit_input', function () {
             let qty = $(this).val();
-
             let row = products_table.row($(this).parents('tr'));
             let data = row.data();
 
             let validated_data = qty_validation(qty, data.uom.id);
-
             if (validated_data >= 0) {
                 data.qty = validated_data;
                 row.remove().draw();
                 products_table.row.add(data).draw();
-            } else {
-                data.qty = null;
-                row.remove().draw();
-                products_table.row.add(data).draw();
-
-                if (validated_data == -2) {
-                    $.notify("Ce produit est vendu à l'unité : la valeur doit être un nombre entier !", {
-                        globalPosition:"top right",
-                        className: "error"
-                    });
-                } else if (validated_data == -1 || validated_data == -3) {
-                    $.notify("Valeur invalide.", {
-                        globalPosition:"top right",
-                        className: "error"
-                    });
-                }
             }
-
             update_total_value();
         });
 
@@ -441,20 +422,29 @@ var update_existing_product = function(product, added_qty, undo_option = false) 
  */
 function qty_validation(qty, uom_id) {
     if (qty == null || qty == '') {
+        $.notify("Il n'y a pas de quantité indiquée, ou ce n'est pas un nombre", {
+                        globalPosition:"top right",
+                        className: "error"});
         return -1;
     }
 
     if (uom_id == 1) {
-        if (qty/parseInt(qty) != 1 && qty != 0)
-            return -2;
+        if (qty/parseInt(qty) != 1 && qty != 0){
+            $.notify("Une quantité avec décimale est indiquée alors que c'est un article à l'unité", {
+                        globalPosition:"top right",
+                        className: "error"});
+            return -2;}
 
         qty = parseInt(qty); // product by unit
     } else {
         qty = parseFloat(qty).toFixed(2);
     }
 
-    if (isNaN(qty))
-        return -3;
+    if (isNaN(qty)){
+        $.notify("Une quantité n'est pas un nombre", {
+                        globalPosition:"top right",
+                        className: "error"});
+        return -3;}
 
     return qty;
 }
