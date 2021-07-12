@@ -170,6 +170,7 @@ def update_orders(request):
                 m = CagetteReception(order_id)
                 try:
                     for order_line in order['po']:
+                        print(order_line)
                         if order_line['indicative_package'] is False:
                             m.remove_package_restriction(order_line)
 
@@ -639,3 +640,39 @@ def reception_pricesValidated(request):
 def po_process_picking(request):
     res = CagetteReception.process_enqueued_po_to_finalyze()
     return JsonResponse(res, safe=False)
+
+
+def send_mail_no_barcode(request):
+    """
+        Receive json data with liste of product with no barcode
+        Send mail to order maker
+    """
+    from django.core.mail import send_mail
+
+    if request.method == 'POST':
+        data = None
+        try: 
+            myJson = request.body
+            data = json.loads(myJson.decode())
+            data_partner = CagetteReception.get_mail_create_po(int(data['order']['id']))
+          
+            msg = settings.NO_BARCODE_MAIL_MSG
+
+            
+            for barcode in data["no_barcode_list"]:
+                
+                msg = msg + '       -' + str(barcode[0]) + '---' + str(barcode[1])+ '\n'
+            
+            send_mail(settings.NO_BARCODE_MAIL_SUBJECT.format(data['order']['name']),
+                  msg.format(data_partner[0]['display_name'], data['order']['name'],data['order']['date_order'], data['order']['partner']),
+                  settings.DEFAULT_FROM_EMAIL,
+                  [data_partner[0]['email']],
+                  fail_silently=False,)
+            
+            
+        except Exception as e1:
+            coop_logger.error("Send_mail_no_barcode : Unable to load data %s (%s)", str(e1), str(myJson))
+            print(str(e1)+'\n'+ str(myJson))
+        
+        
+    return JsonResponse("ok", safe=False)

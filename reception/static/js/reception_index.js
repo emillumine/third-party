@@ -288,6 +288,7 @@ function display_grouped_orders() {
 
     if (table_orders !== null) {
         var display_something = true;
+
         $('#groups_items').empty();
         let groups_display_content = "<ul>";
 

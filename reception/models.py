@@ -31,12 +31,13 @@ class CagetteReception(models.Model):
                     pids.append(int(r['purchase_id'][0]))
 
             if len(pids):
-                f=["id","name","date_order", "partner_id", "date_planned", "amount_untaxed", "amount_total", "x_reception_status"]
+                f=["id","name","date_order", "partner_id", "date_planned", "amount_untaxed", "amount_total", "x_reception_status", 'create_uid']
 
                 # Only get orders that need to be treated in Reception
                 c = [['id', 'in', pids], ["x_reception_status", "in", [False, 'qty_valid', 'valid_pending', 'br_valid']]]
 
                 orders = api.search_read('purchase.order', c, f)
+                print(orders)
         except Exception as e:
             print(str(e))
         return orders
@@ -48,6 +49,25 @@ class CagetteReception(models.Model):
     def get_order_lines_by_po(id_po, nullQty=False):
         """Return all purchases order lines linked with purchase order id in Odoo."""
         return Order(id_po).get_lines(withNullQty=nullQty)
+        
+    def get_mail_create_po(id_po):
+        """Return name et email from id_po of order"""
+        try:
+            api = OdooAPI()
+            f = ["create_uid"] 
+            c = [['id', '=', id_po]]
+            
+            res = api.search_read('purchase.order', c, f)
+
+            f = ["email", "display_name"]
+            c = [['user_ids', '=', int(res[0]['create_uid'][0])]]
+            res = api.search_read('res.partner', c, f)
+
+
+        except Exception as e:
+            print(str(e))
+        
+        return res
 
     def implies_scale_file_generation(self):
         answer = False
