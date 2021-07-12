@@ -948,8 +948,9 @@ function editProductInfo (productToEdit, value = null, batch = false) {
             update_distant_order(productToEdit.id_po);
         }
 
-        if(addition){
+        if (addition) {
             let row = table_processed.row($('#'+productToEdit.product_id[0]));
+
             remove_from_processed(row, productToEdit);
         }
 
@@ -1214,23 +1215,26 @@ function send() {
             error_report_data.group_amount_total += orders[i].amount_total;
             error_report_data.orders.push(orders[i]);
         }
-        
+
         //Create list of articl with no barcode
         no_barcode_list = [];
         for (var i = 0; i < list_processed.length; i++) {
             if (list_processed[i].product_qty != 0 && (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "")) {
-                no_barcode_list.push([list_processed[i]["product_id"][0], list_processed[i]["product_id"][1]]);
+                no_barcode_list.push([
+                    list_processed[i]["product_id"][0],
+                    list_processed[i]["product_id"][1]
+                ]);
             }
         }
-        
+
         data_send_no_barcode={
             "order" : orders[order_data['id_po']],
             "no_barcode_list" : no_barcode_list
-            }
-        
-        
+        };
+
+
         // Send of articl with no barcode to mail send
-        if (no_barcode_list.length > 0){
+        if (no_barcode_list.length > 0) {
             $.ajax({
                 type: "POST",
                 url: "../send_mail_no_barcode",
@@ -1244,7 +1248,7 @@ function send() {
                 }
             });
         }
-        
+
         // Send request for error report
         $.ajax({
             type: "POST",
@@ -1302,10 +1306,11 @@ function send() {
                                 }*/
                             }
                         }
-                        
-                        for (var i = 0; i < no_barcode_list.length; i++) {
+
+                        for (let i = 0; i < no_barcode_list.length; i++) {
                             var node = document.createElement('li');
                             let textNode = document.createTextNode(no_barcode_list[i]);
+
                             node.appendChild(textNode);
                             document.getElementById('barcodesEmpty_list').appendChild(node);
 
