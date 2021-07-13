@@ -9,3 +9,4 @@ class TestUrls(SimpleTestCase):
     	response = c.get('/shelfs/')
     
     	assert type(response).__name__ != "HttpResponseNotFound", "Shelfs url is not resolved"
+

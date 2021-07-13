@@ -9,3 +9,4 @@ class TestUrls(SimpleTestCase):
 	    response = c.get('/orders/')
 
 	    assert type(response).__name__ != "HttpResponseNotFound", "Orders url is not resolved"
+
