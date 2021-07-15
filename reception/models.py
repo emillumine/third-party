@@ -37,7 +37,6 @@ class CagetteReception(models.Model):
                 c = [['id', 'in', pids], ["x_reception_status", "in", [False, 'qty_valid', 'valid_pending', 'br_valid']]]
 
                 orders = api.search_read('purchase.order', c, f)
-                print(orders)
         except Exception as e:
             print(str(e))
         return orders

@@ -170,7 +170,6 @@ def update_orders(request):
                 m = CagetteReception(order_id)
                 try:
                     for order_line in order['po']:
-                        print(order_line)
                         if order_line['indicative_package'] is False:
                             m.remove_package_restriction(order_line)
 
