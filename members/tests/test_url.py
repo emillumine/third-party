@@ -8,4 +8,4 @@ class TestUrls(SimpleTestCase):
         c = Client()
         response = c.get('/members/')
 
-        assert type(response).__name__ != "HttpResponseNotFound", "Members url is not resolved"
+        assert response.status_code == 200, "Members url is not resolved"

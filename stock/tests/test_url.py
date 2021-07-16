@@ -8,5 +8,5 @@ class TestUrls(SimpleTestCase):
 	    c = Client()
 	    response = c.get('/stock/')
 
-	    assert type(response).__name__ != "HttpResponseNotFound", "Stock url is not resolved"
+	    assert response.status_code == 200, "Stock url is not resolved"
 
