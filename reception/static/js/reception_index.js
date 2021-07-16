@@ -287,7 +287,7 @@ function group_action() {
 function display_grouped_orders() {
 
     if (table_orders !== null) {
-        var display_something = true;
+        var display_something = false;
 
         $('#groups_items').empty();
         let groups_display_content = "<ul>";
@@ -310,8 +310,10 @@ function display_grouped_orders() {
                     }
                 }
             }
+
             if (group_orders.length > 0) {
                 // Display group
+                display_something = true;
                 document.getElementById("container_groups").hidden = false;
                 let group_row = `<li class="group_line"> Commandes de `;
 
@@ -335,8 +337,6 @@ function display_grouped_orders() {
 
                 group_row += "</li>";
                 groups_display_content += group_row;
-            } else {
-                display_something = false; // occured making test form local django and preprod (couchdb, odoo)
             }
         }
         if (display_something === true) {
@@ -354,7 +354,9 @@ function display_orders_table() {
         table_orders.clear().destroy();
         $('#orders').empty();
     }
-
+    for (let j in orders) {
+        console.log(orders[j].id)
+    }
     table_orders = $('#orders').DataTable({
         data: orders,
         columns:[

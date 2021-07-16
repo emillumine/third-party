@@ -305,6 +305,8 @@ def save_error_report(request):
                     }
 
                     data['orders'].append(group_order)
+                else:
+                    coop_logger.info("data['orders'] is a single PO (not inside group)")
             except Exception as e2:
                 coop_logger.error("Save reception report : Error while create group_order %s", str(e2))
 
@@ -457,6 +459,8 @@ def save_error_report(request):
                                 error_total_abs += abs(item['error_line'])
 
                                 data_full.append(item)
+                        else:
+                            coop_logger.info("Save reception error doc : no 'updated_products' in order (%s)", str(order))
                     except Exception as e5:
                         coop_logger.error("Save reception report : Error while updating products %s", str(e5))
                         # no updated products, do nothing
@@ -592,8 +596,11 @@ def save_error_report(request):
                         else:
                             m = CagetteReception(order['id'])
                             m.attach_file(fileName)
+                            coop_logger.info("%s attached to order id %s", fileName, str(order['id']))
                     except Exception as e8:
                         coop_logger.error("PO save report Error while saving file %s (%s)", fileName, str(e8))
+            else:
+                coop_logger.error("Save reception error report : unknown state %s (%s) ", str(data['update_type']), str(data))
         else:
             coop_logger.error("Cant find 'orders' in data (%s)", str(data))
     else:
@@ -650,28 +657,28 @@ def send_mail_no_barcode(request):
 
     if request.method == 'POST':
         data = None
-        try: 
+        try:
             myJson = request.body
             data = json.loads(myJson.decode())
             data_partner = CagetteReception.get_mail_create_po(int(data['order']['id']))
-          
+
             msg = settings.NO_BARCODE_MAIL_MSG
 
-            
+
             for barcode in data["no_barcode_list"]:
-                
+
                 msg = msg + '       -' + str(barcode[0]) + '---' + str(barcode[1])+ '\n'
-            
+
             send_mail(settings.NO_BARCODE_MAIL_SUBJECT.format(data['order']['name']),
                   msg.format(data_partner[0]['display_name'], data['order']['name'],data['order']['date_order'], data['order']['partner']),
                   settings.DEFAULT_FROM_EMAIL,
                   [data_partner[0]['email']],
                   fail_silently=False,)
-            
-            
+
+
         except Exception as e1:
             coop_logger.error("Send_mail_no_barcode : Unable to load data %s (%s)", str(e1), str(myJson))
             print(str(e1)+'\n'+ str(myJson))
-        
-        
+
+
     return JsonResponse("ok", safe=False)
