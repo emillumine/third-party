@@ -9,3 +9,4 @@ class TestUrls(SimpleTestCase):
         response = c.get('/members/')
 
         assert response.status_code == 200, "Members url is not resolved"
+
