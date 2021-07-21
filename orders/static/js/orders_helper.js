@@ -1315,8 +1315,8 @@ function display_products(params) {
     $('#main_content_footer').show();
     $('#do_inventory').show();
 
-    // On inputs change
-    $('#products_table').on('change', 'tbody td .product_qty_input', function () {
+    // Manage data on inputs blur
+    $('#products_table').on('blur', 'tbody td .product_qty_input', function () {
         let val = ($(this).val() == '') ? 0 : $(this).val();
 
         val = parseFloat(val);
