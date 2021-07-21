@@ -1553,35 +1553,35 @@ function update_order_selection_screen() {
         dbc.allDocs({
             include_docs: true
         })
-        .then(function (result) {
+            .then(function (result) {
             // Remove listener before recreating them
-            $(".order_pill").off();
-    
-            let existing_orders_container = $("#existing_orders");
-    
-            existing_orders_container.empty();
-            $('#new_order_name').val('');
-    
-            if (result.rows.length === 0) {
-                existing_orders_container.append(`<i>Aucune commande en cours...</i>`);
-            } else {
-                for (let row of result.rows) {
-                    let template = $("#templates #order_pill_template");
-    
-                    template.find(".pill_order_name").text(row.id);
-    
-                    existing_orders_container.append(template.html());
-                }
-    
-                $(".order_pill").on("click", order_pill_on_click);
-            }
+                $(".order_pill").off();
 
-            resolve();
-        })
-        .catch(function (err) {
-            alert('Erreur lors de la synchronisation des commandes. Vous pouvez créer une nouvelle commande.');
-            console.log(err);
-        });
+                let existing_orders_container = $("#existing_orders");
+
+                existing_orders_container.empty();
+                $('#new_order_name').val('');
+
+                if (result.rows.length === 0) {
+                    existing_orders_container.append(`<i>Aucune commande en cours...</i>`);
+                } else {
+                    for (let row of result.rows) {
+                        let template = $("#templates #order_pill_template");
+
+                        template.find(".pill_order_name").text(row.id);
+
+                        existing_orders_container.append(template.html());
+                    }
+
+                    $(".order_pill").on("click", order_pill_on_click);
+                }
+
+                resolve();
+            })
+            .catch(function (err) {
+                alert('Erreur lors de la synchronisation des commandes. Vous pouvez créer une nouvelle commande.');
+                console.log(err);
+            });
     });
 }
 
