@@ -1260,8 +1260,11 @@ function display_products(params) {
         return -1;
     }
 
-    // Empty datatable if it already exists
+    // If datatable already exists, empty & clear events
     if (products_table) {
+        $(products_table.table().header()).off()
+        $('#products_table').off();
+
         products_table.clear().destroy();
         $('#products_table').empty();
     }
@@ -1340,7 +1343,6 @@ function display_products(params) {
             const product = products.find(p => p.id == prod_id);
             const new_row_data = prepare_datatable_data([product.id])[0];
 
-            // TODO erreur console après ajout d'un fournisseur
             products_table.row($(this).closest('tr')).data(new_row_data)
                 .draw();
 
