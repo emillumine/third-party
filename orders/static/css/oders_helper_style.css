@@ -92,9 +92,14 @@
 }
 
 #order_forms_container {
-    margin-top: 30px;
+    margin-top: 20px;
     display: flex;  
+    flex-wrap: wrap;
     justify-content: space-evenly;
+}
+
+.order_form_item {
+    margin-top: 10px;
 }
 
 #supplier_input {
@@ -102,7 +107,12 @@
     border-radius: 3px;
 }
 
-#date_planned_input, #coverage_days_input {
+#stats_date_period_select {
+    margin-left: 5px;
+    min-width: 200px;
+}
+
+#date_planned_input, #coverage_days_input, #stats_date_period_select {
     border-radius: 3px;
 }
 

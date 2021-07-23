@@ -57,13 +57,22 @@
         </div>
     
         <div class="txtcenter" id="order_forms_container">
-            <form action="javascript:;" id="coverage_form">
+            <form action="javascript:;" id="coverage_form" class="order_form_item">
                 <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
                 <button type="submit" class='btn--primary'>Calculer les besoins</button>
             </form>
-            <form action="javascript:;" id="supplier_form">
+            <form action="javascript:;" id="supplier_form" class="order_form_item">
                 <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
                 <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
+            </form>
+            <form action="javascript:;" id="stats_date_from_form" class="order_form_item">
+                <label for="stats_date_period_select">Période de calcul de la conso moyenne </label>
+
+                <select name="stats_date_period_select" id="stats_date_period_select">
+                    <option value="">Par défaut</option>
+                    <option value="1week">1 semaine</option>
+                    <option value="2weeks">2 semaines</option>
+                </select>
             </form>
         </div>
     

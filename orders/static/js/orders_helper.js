@@ -16,6 +16,7 @@ var dbc = null,
     order_doc = {
         _id: null,
         coverage_days: null,
+        stats_date_period: '',
         last_update: {
             timestamp: null,
             fingerprint: null
@@ -42,6 +43,7 @@ function reset_data() {
     order_doc = {
         _id: null,
         coverage_days: null,
+        stats_date_period: '',
         last_update : {
             timestamp: null,
             fingerprint: null
@@ -81,6 +83,37 @@ function dates_diff(date1, date2) {
     return diff;
 }
 
+/**
+ * Compute the date from which to calculate stats of sells,
+ *  depending on the selected parameter. 
+ * 
+ * @returns String value of the date, ISO format
+ */
+function _compute_stats_date_from() {
+    let val = '';
+    
+    if (order_doc.stats_date_period !== '') {
+        let date = new Date();
+
+        switch (order_doc.stats_date_period) {
+            case '1week':
+                date.setDate(date.getDate() - 7);
+                break;
+            case '2weeks':
+                date.setDate(date.getDate() - 14);
+                break;
+        }
+
+        let day = ("0" + date.getDate()).slice(-2);
+        let month = ("0" + (date.getMonth() +1)).slice(-2);
+        let year = date.getFullYear();
+
+        val = `${year}-${month}-${day}`;
+    } 
+
+    return val;
+}
+
 /* - PRODUCTS */
 
 /**
@@ -110,10 +143,15 @@ function add_product() {
         return -1;
     }
 
+    let data = {
+        pids: [product.tpl_id],
+        stats_from: _compute_stats_date_from()
+    }
+
     $.ajax({
         type: 'POST',
         url: '/products/get_product_for_order_helper',
-        data: JSON.stringify([product.tpl_id]),
+        data: JSON.stringify(data),
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -199,7 +237,8 @@ function check_products_data() {
                 type: 'GET',
                 url: '/orders/get_supplier_products',
                 data: {
-                    sids: suppliers_id
+                    sids: suppliers_id,
+                    stats_from: _compute_stats_date_from()
                 },
                 dataType:"json",
                 traditional: true,
@@ -285,14 +324,14 @@ function add_supplier() {
     supplier.total_value = 0;
     selected_suppliers.push(supplier);
 
-    let url = "/orders/get_supplier_products";
-
-    url += "?sids=" + encodeURIComponent(supplier.id);
-
     // Fetch supplier products
     $.ajax({
         type: 'GET',
-        url: url,
+        url: "/orders/get_supplier_products",
+        data: {
+            sids: [supplier.id],
+            stats_from: _compute_stats_date_from()
+        },
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -1384,7 +1423,6 @@ function display_products(params) {
         const prod_id = id_split[1];
         const supplier_id = id_split[3];
 
-        console.log(val);
         if (val == -1) {
             let modal_remove_supplier_product_association = $('#templates #modal_remove_supplier_product_association');
 
@@ -1640,6 +1678,12 @@ function update_main_screen(params) {
     } else {
         $("#coverage_days_input").val('');
     }
+
+    if (order_doc.stats_date_period !== undefined && order_doc.stats_date_period !== null) {
+        $("#stats_date_period_select").val(order_doc.stats_date_period);
+    } else {
+        $("#stats_date_period_select").val('');
+    }
 }
 
 /**
@@ -1813,6 +1857,22 @@ $(document).ready(function() {
             e.preventDefault();
             if (is_time_to('add_product', 1000)) {
                 add_product();
+            }
+        });
+
+        $("#stats_date_period_select").on("change", function(e) {
+            e.preventDefault();
+            if (is_time_to('change_stats_date_period', 1000)) {
+                openModal();
+
+                order_doc.stats_date_period = $(this).val();
+
+                check_products_data()
+                    .then(() => {
+                        update_cdb_order();
+                        update_main_screen();
+                        closeModal();
+                    });
             }
         });
 

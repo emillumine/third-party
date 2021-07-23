@@ -472,11 +472,11 @@ class CagetteProducts(models.Model):
         return res
 
     @staticmethod
-    def get_products_for_order_helper(supplier_ids, pids = []):
+    def get_products_for_order_helper(supplier_ids, pids = [], stats_from = None):
         """ 
-            One of the two parameters must be not empty.
-            Get products by supplier if one or more supplier_id is set. 
-            If supplier_ids is empty, get products specified in pids. In this case, suppliers info won't be fetched.
+            supplier_ids: Get products by supplier if one or more supplier id is set. If set, pids is ignored.
+            pids: If set & supplier_ids is None/empty, get products specified in pids. In this case, suppliers info won't be fetched.
+            stats_from: date from which we should calculate sells stats.
         """
         api = OdooAPI()
         res = {}
@@ -522,6 +522,10 @@ class CagetteProducts(models.Model):
                 # 'from': '2019-04-10', 
                 # 'to': '2019-08-10',
             }
+
+            if stats_from is not None and stats_from != '':
+                sales_average_params['from'] = stats_from
+
             sales = CagetteProducts.get_template_products_sales_average(sales_average_params)
 
             if 'list' in sales and len(sales['list']) > 0:
