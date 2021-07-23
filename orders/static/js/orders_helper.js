@@ -85,23 +85,25 @@ function dates_diff(date1, date2) {
 
 /**
  * Compute the date from which to calculate stats of sells,
- *  depending on the selected parameter. 
- * 
+ *  depending on the selected parameter.
+ *
  * @returns String value of the date, ISO format
  */
 function _compute_stats_date_from() {
     let val = '';
-    
+
     if (order_doc.stats_date_period !== '') {
         let date = new Date();
 
         switch (order_doc.stats_date_period) {
-            case '1week':
-                date.setDate(date.getDate() - 7);
-                break;
-            case '2weeks':
-                date.setDate(date.getDate() - 14);
-                break;
+        case '1week':
+            date.setDate(date.getDate() - 7);
+            break;
+        case '2weeks':
+            date.setDate(date.getDate() - 14);
+            break;
+        default:
+            break;
         }
 
         let day = ("0" + date.getDate()).slice(-2);
@@ -109,7 +111,7 @@ function _compute_stats_date_from() {
         let year = date.getFullYear();
 
         val = `${year}-${month}-${day}`;
-    } 
+    }
 
     return val;
 }
@@ -146,7 +148,7 @@ function add_product() {
     let data = {
         pids: [product.tpl_id],
         stats_from: _compute_stats_date_from()
-    }
+    };
 
     $.ajax({
         type: 'POST',
@@ -252,7 +254,7 @@ function check_products_data() {
                             products.push(product);
                         } else {
                             // Save old product suppliersinfo to keep user qty inputs
-                            const old_suppliersinfo = [ ...products[p_index].suppliersinfo ];
+                            const old_suppliersinfo = [...products[p_index].suppliersinfo];
 
                             // Update product data
                             products[p_index] = product;
@@ -260,7 +262,7 @@ function check_products_data() {
                             // Re-set qties
                             for (let psi_index in products[p_index].suppliersinfo) {
                                 const old_psi = old_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
-    
+
                                 if (old_psi !== undefined && old_psi.qty !== undefined) {
                                     products[p_index].suppliersinfo[psi_index].qty = old_psi.qty;
                                 }
@@ -468,7 +470,7 @@ function save_supplier_product_association(product, supplier, cell) {
  * @param {object} product
  * @param {object} supplier
  */
- function remove_supplier_product_association(product, supplier) {
+function remove_supplier_product_association(product, supplier) {
     openModal();
 
     const data = {
@@ -484,15 +486,16 @@ function save_supplier_product_association(product, supplier, cell) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
-        success: (res) => {
+        success: () => {
             // Remove relation locally
             let p_index = products.findIndex(p => p.id == product.id);
             let psi_index = product.suppliersinfo.findIndex(psi => psi.supplier_id == supplier.id);
+
             products[p_index].suppliersinfo.splice(psi_index, 1);
 
             // Update table
             display_products();
-            
+
             update_cdb_order();
             closeModal();
         },
@@ -1353,7 +1356,7 @@ function display_products(params) {
 
     // If datatable already exists, empty & clear events
     if (products_table) {
-        $(products_table.table().header()).off()
+        $(products_table.table().header()).off();
         $('#products_table').off();
 
         products_table.clear().destroy();
@@ -1427,8 +1430,10 @@ function display_products(params) {
             let modal_remove_supplier_product_association = $('#templates #modal_remove_supplier_product_association');
 
             const product = products.find(p => p.id == prod_id);
+
             modal_remove_supplier_product_association.find(".product_name").text(product.name);
             const supplier = selected_suppliers.find(s => s.id == supplier_id);
+
             modal_remove_supplier_product_association.find(".supplier_name").text(supplier.display_name);
 
             openModal(
@@ -1444,24 +1449,25 @@ function display_products(params) {
                 () => {
                     // Reset value in input on cancel
                     const psi = product.suppliersinfo.find(psi_item => psi_item.supplier_id == supplier_id);
+
                     $(this).val(psi.qty);
                 }
             );
         } else {
             val = parseFloat(val);
-    
+
             // If value is a number
-            if (!isNaN(val)) {    
+            if (!isNaN(val)) {
                 // Save value
                 save_product_supplier_qty(prod_id, supplier_id, val);
-    
+
                 // Update row
                 const product = products.find(p => p.id == prod_id);
                 const new_row_data = prepare_datatable_data([product.id])[0];
-    
+
                 products_table.row($(this).closest('tr')).data(new_row_data)
                     .draw();
-    
+
                 update_cdb_order();
                 display_total_values();
             } else {
@@ -1469,16 +1475,16 @@ function display_products(params) {
             }
         }
     })
-    .on('change', 'tbody td .product_qty_input', function () {
+        .on('change', 'tbody td .product_qty_input', function () {
         // Since data change is saved on blur, set focus on change in case of arrows pressed
-        $(this).focus();
-    })
-    .on('keypress', 'tbody td .product_qty_input', function(e) {
-        if (e.which == 13) {
+            $(this).focus();
+        })
+        .on('keypress', 'tbody td .product_qty_input', function(e) {
+            if (e.which == 13) {
             // Validate on Enter pressed
-            $(this).blur();
-        }
-    });;
+                $(this).blur();
+            }
+        });
 
     // Associate product to supplier on click on 'X' in the table
     $('#products_table').on('click', 'tbody .product_not_from_supplier', function () {
