@@ -424,6 +424,58 @@ function save_supplier_product_association(product, supplier, cell) {
 }
 
 /**
+ * Send to server the deletion of association product-supplier
+ *
+ * @param {object} product
+ * @param {object} supplier
+ */
+ function remove_supplier_product_association(product, supplier) {
+    openModal();
+
+    const data = {
+        product_tmpl_id: product.id,
+        supplier_id: supplier.id
+    };
+
+    // Send request to create association
+    $.ajax({
+        type: "POST",
+        url: "/orders/remove_supplier_product_association",
+        dataType: "json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(data),
+        success: (res) => {
+            // Remove relation locally
+            let p_index = products.findIndex(p => p.id == product.id);
+            let psi_index = product.suppliersinfo.findIndex(psi => psi.supplier_id == supplier.id);
+            products[p_index].suppliersinfo.splice(psi_index, 1);
+
+            // Update table
+            display_products();
+            
+            update_cdb_order();
+            closeModal();
+        },
+        error: function(data) {
+            let msg = "erreur serveur lors de la suppression de l'association product/supplier".
+                msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
+
+            err = {msg: msg, ctx: 'remove_supplier_product_association'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'orders');
+
+            closeModal();
+            alert('Erreur lors de la suppression de l\'association. Veuillez ré-essayer plus tard.');
+        }
+    });
+
+    return 0;
+}
+
+/**
  * When products are fetched, save them and the relation with the supplier.
  * If product already saved, add the supplier to its suppliers list.
  * Else, add product with supplier.
@@ -1179,7 +1231,7 @@ function prepare_datatable_columns() {
                     return `<div id="${base_id}_cell_content" class="custom_cell_content">X</div>`;
                 } else {
                     let content = `<div id="${base_id}_cell_content" class="custom_cell_content">
-                                        <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="0" value=${data}>`;
+                                        <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="-1" value=${data}>`;
 
                     if (full.package_qty === 'X') {
                         let product_data = products.find(p => p.id == full.id);
@@ -1327,31 +1379,68 @@ function display_products(params) {
     $('#products_table').on('blur', 'tbody td .product_qty_input', function () {
         let val = ($(this).val() == '') ? 0 : $(this).val();
 
-        val = parseFloat(val);
+        const id_split = $(this).attr('id')
+            .split('_');
+        const prod_id = id_split[1];
+        const supplier_id = id_split[3];
 
-        // If value is a number
-        if (!isNaN(val)) {
-            const id_split = $(this).attr('id')
-                .split('_');
-            const prod_id = id_split[1];
-            const supplier_id = id_split[3];
+        console.log(val);
+        if (val == -1) {
+            let modal_remove_supplier_product_association = $('#templates #modal_remove_supplier_product_association');
 
-            // Save value
-            save_product_supplier_qty(prod_id, supplier_id, val);
-
-            // Update row
             const product = products.find(p => p.id == prod_id);
-            const new_row_data = prepare_datatable_data([product.id])[0];
+            modal_remove_supplier_product_association.find(".product_name").text(product.name);
+            const supplier = selected_suppliers.find(s => s.id == supplier_id);
+            modal_remove_supplier_product_association.find(".supplier_name").text(supplier.display_name);
 
-            products_table.row($(this).closest('tr')).data(new_row_data)
-                .draw();
-
-            update_cdb_order();
-            display_total_values();
+            openModal(
+                modal_remove_supplier_product_association.html(),
+                () => {
+                    if (is_time_to('validate_remove_supplier_product_association')) {
+                        remove_supplier_product_association(product, supplier);
+                    }
+                },
+                'Valider',
+                false,
+                true,
+                () => {
+                    // Reset value in input on cancel
+                    const psi = product.suppliersinfo.find(psi_item => psi_item.supplier_id == supplier_id);
+                    $(this).val(psi.qty);
+                }
+            );
         } else {
-            $(this).val('');
+            val = parseFloat(val);
+    
+            // If value is a number
+            if (!isNaN(val)) {    
+                // Save value
+                save_product_supplier_qty(prod_id, supplier_id, val);
+    
+                // Update row
+                const product = products.find(p => p.id == prod_id);
+                const new_row_data = prepare_datatable_data([product.id])[0];
+    
+                products_table.row($(this).closest('tr')).data(new_row_data)
+                    .draw();
+    
+                update_cdb_order();
+                display_total_values();
+            } else {
+                $(this).val('');
+            }
         }
-    });
+    })
+    .on('change', 'tbody td .product_qty_input', function () {
+        // Since data change is saved on blur, set focus on change in case of arrows pressed
+        $(this).focus();
+    })
+    .on('keypress', 'tbody td .product_qty_input', function(e) {
+        if (e.which == 13) {
+            // Validate on Enter pressed
+            $(this).blur();
+        }
+    });;
 
     // Associate product to supplier on click on 'X' in the table
     $('#products_table').on('click', 'tbody .product_not_from_supplier', function () {

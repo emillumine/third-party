@@ -156,6 +156,22 @@ class CagetteProduct(models.Model):
         return res
 
     @staticmethod
+    def remove_supplier_product_association(data):
+        api = OdooAPI()
+
+        product_tmpl_id = data["product_tmpl_id"]
+        partner_id = data["supplier_id"]
+
+        f = ["id"]
+        c = [['product_tmpl_id', '=', product_tmpl_id], ['name', '=', partner_id]]
+        res_supplierinfo = api.search_read('product.supplierinfo', c, f)
+        psi_id = res_supplierinfo[0]['id']
+
+        res = api.execute('product.supplierinfo', 'unlink', [psi_id])
+
+        return res
+
+    @staticmethod
     def update_product_purchase_ok(product_tmpl_id, purchase_ok):
         api = OdooAPI()
         res = {}

@@ -61,6 +61,18 @@ def associate_supplier_to_product(request):
 
     return JsonResponse({'res': res})
 
+def remove_supplier_product_association(request):
+    """ This product is now unavailable from this supplier """
+    res = {}
+    try:
+        data = json.loads(request.body.decode())
+        res = CagetteProduct.remove_supplier_product_association(data)
+    except Exception as e:
+        res["error"] = str(e)
+        return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
+
 def create_orders(request):
     """ Create products orders """
     res = { "created": [] }
