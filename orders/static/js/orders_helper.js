@@ -208,21 +208,24 @@ function check_products_data() {
                     for (let product of data.res.products) {
                         const p_index = products.findIndex(p => p.id == product.id);
 
-                        // Override products data with new data (without suppliersinfo so we don't override qty)
-                        const updated_suppliersinfo = product.suppliersinfo;
+                        if (p_index === -1) {
+                            // Add product if it wasn't fetched before (made available since last access to order)
+                            products.push(product);
+                        } else {
+                            // Save old product suppliersinfo to keep user qty inputs
+                            const old_suppliersinfo = [ ...products[p_index].suppliersinfo ];
 
-                        delete product.suppliersinfo;
-                        products[p_index] = { ...products[p_index], ...product };
+                            // Update product data
+                            products[p_index] = product;
 
-                        // Update suppliers info
-                        for (let psi_index in products[p_index].suppliersinfo) {
-                            const updated_psi = updated_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
-
-                            if (updated_psi !== undefined) {
-                                products[p_index].suppliersinfo[psi_index].package_qty = updated_psi.package_qty;
-                                products[p_index].suppliersinfo[psi_index].price = updated_psi.price;
+                            // Re-set qties
+                            for (let psi_index in products[p_index].suppliersinfo) {
+                                const old_psi = old_suppliersinfo.find(psi => psi.supplier_id == products[p_index].suppliersinfo[psi_index].supplier_id);
+    
+                                if (old_psi !== undefined && old_psi.qty !== undefined) {
+                                    products[p_index].suppliersinfo[psi_index].qty = old_psi.qty;
+                                }
                             }
-
                         }
                     }
 
@@ -435,11 +438,13 @@ function save_supplier_products(supplier, new_products) {
         if (index === -1) {
             products.push(np);
         } else {
-            // Prevent adding ducplicate supplierinfo
+            // Prevent adding duplicate supplierinfo
             let index_existing_supplierinfo = products[index].suppliersinfo.findIndex(psi => psi.supplier_id == supplier.id);
 
             if (index_existing_supplierinfo === -1) {
-                np_supplierinfo = np.suppliersinfo[0];
+                // Find the right supplierinfo in new product
+                let np_supplierinfo = np.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+
                 products[index].suppliersinfo.push(np_supplierinfo);
             }
         }
@@ -1335,6 +1340,7 @@ function display_products(params) {
             const product = products.find(p => p.id == prod_id);
             const new_row_data = prepare_datatable_data([product.id])[0];
 
+            // TODO erreur console après ajout d'un fournisseur
             products_table.row($(this).closest('tr')).data(new_row_data)
                 .draw();
 

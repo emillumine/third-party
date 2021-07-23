@@ -465,7 +465,6 @@ class CagetteProducts(models.Model):
         api = OdooAPI()
         res = {}
 
-        # todo : try with no result
         try:
             today = datetime.date.today().strftime("%Y-%m-%d")
 
@@ -517,12 +516,15 @@ class CagetteProducts(models.Model):
             # Add supplier data to product data
             for i, fp in enumerate(filtered_products_t):
                 if supplier_ids is not None and len(supplier_ids) > 0:
-                    psi_item = next(item for item in psi if item["product_tmpl_id"] is not False and item["product_tmpl_id"][0] == fp["id"])
-                    filtered_products_t[i]['suppliersinfo'] = [{
-                        'supplier_id': int(psi_item["name"][0]),
-                        'package_qty': psi_item["package_qty"],
-                        'price': psi_item["price"]
-                    }]
+                    # Add all the product suppliersinfo (products from multiple suppliers into the suppliers list provided)
+                    filtered_products_t[i]['suppliersinfo'] = []
+                    for psi_item in psi: 
+                        if psi_item["product_tmpl_id"] is not False and psi_item ["product_tmpl_id"][0] == fp["id"]:
+                            filtered_products_t[i]['suppliersinfo'].append({
+                                'supplier_id': int(psi_item["name"][0]),
+                                'package_qty': psi_item["package_qty"],
+                                'price': psi_item["price"]
+                            })
 
                 for s in sales:
                     if s["id"] == fp["id"]:
