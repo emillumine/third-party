@@ -715,7 +715,7 @@ function generate_inventory() {
                                     $('#toggle_action_buttons').notify(
                                         "Inventaire créé !",
                                         {
-                                            elementPosition:"bottom right",
+                                            elementPosition:"bottom center",
                                             className: "success",
                                         }
                                     );
