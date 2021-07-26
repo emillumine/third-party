@@ -19,7 +19,8 @@ def helper(request):
         'title': 'Aide à la commande',
         'couchdb_server': settings.COUCHDB['url'],
         'db': settings.COUCHDB['dbs']['orders'],
-        'odoo_server': settings.ODOO['url']
+        'odoo_server': settings.ODOO['url'],
+        'metabase_url':  getattr(settings, 'ORDERS_HELPER_METABASE_URL', '')
     }
 
     template = loader.get_template('orders/helper.html')

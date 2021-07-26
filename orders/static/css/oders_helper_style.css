@@ -31,6 +31,26 @@
     background-color: #a1a2a3;
 }
 
+.link_as_button:hover {
+    text-decoration: none;
+    color: white;
+}
+.link_as_button:active {
+    text-decoration: none;
+    color: white;
+}
+.link_as_button:focus {
+    text-decoration: none;
+    color: white;
+}
+
+.remove_order_modal_text {
+    font-size: 2rem;
+}
+.remove_order_name {
+    font-weight: bold;
+}
+
 /* - Order selection screen */
 #new_order_area {
     margin-bottom: 40px;
@@ -59,17 +79,14 @@
 }
 .remove_order_icon {
     flex: 0 1 auto;
-    color: #B22222;
+    color: #912930;
     margin-left: 5px;
     cursor: pointer;
     z-index: 2;
+    transform: scale(1.2);
 }
 .remove_order_icon:hover {
-    color: #CD5C5C;
-}
-
-.remove_order_name {
-    font-weight: bold;
+    color: #e62720;
 }
 
 .order_last_update {
@@ -102,6 +119,47 @@
     top: 0;
     display: flex;
     justify-content: flex-start;
+}
+
+.right_action_buttons {
+    display: flex;
+}
+
+#actions_buttons_wrapper {
+    position: relative;
+    margin-left: 5px;
+}
+
+#toggle_action_buttons {
+    width: 250px;
+    border: 1px solid black;
+    position: relative;
+}
+#toggle_action_buttons:hover {
+    background-color: #c7cace;
+}
+
+.toggle_action_buttons_icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 15px;
+}
+
+#actions_buttons_container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    display: none;
+}
+
+.action_button {
+    width: 100%;
+    min-height: 45px;
+    border-color: black;
+    border-style: solid;
+    border-width: 0 1px 1px 1px;
 }
 
 /* -- Order data */
@@ -283,19 +341,6 @@
 
 .download_order_file {
     margin-top: 10px;
-}
-
-.download_order_file_button:hover {
-    text-decoration: none;
-    color: white;
-}
-.download_order_file_button:active {
-    text-decoration: none;
-    color: white;
-}
-.download_order_file_button:focus {
-    text-decoration: none;
-    color: white;
 }
 
 #recap_delivery_date {

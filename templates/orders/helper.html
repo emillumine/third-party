@@ -40,13 +40,26 @@
             <button type="button" class="btn--danger" id="back_to_order_selection_from_main">
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
-            <div class="rights_buttons">
-                <button type="button" class='btn--danger' id="delete_order_button">
-                    Supprimer la commande
-                </button>
-                <button type="button" class='btn--primary' id="do_inventory" style="display:none;">
-                    Faire un inventaire
-                </button>
+            <div class="right_action_buttons">
+                <a class='btn--success link_as_button' id="access_metabase" style="display:none;" href="{{metabase_url}}" target="_blank">
+                    Stats Métabase
+                </a>
+                <div id="actions_buttons_wrapper">
+                    <button type="button" class='btn' id="toggle_action_buttons">
+                        <span class="button_content">
+                            Actions
+                        </span>
+                        <i class="fas fa-chevron-down toggle_action_buttons_icon"></i>
+                    </button>
+                    <div id="actions_buttons_container">
+                        <button type="button" class='btn--primary action_button' id="do_inventory" style="display:none;">
+                            Faire un inventaire
+                        </button>
+                        <button type="button" class='btn--danger action_button' id="delete_order_button">
+                            Supprimer la commande
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     
@@ -157,7 +170,7 @@
                 <h4 class="new_order_date_planned"></h4>
                 <div class='download_order_file'>
                     <i class="fas fa-spinner fa-spin download_order_file_loading"></i>
-                    <a class='btn--success download_order_file_button' style="display:none;" href="#">
+                    <a class='btn--success download_order_file_button link_as_button' style="display:none;" href="#">
                         Télécharger le fichier de commande
                     </a>
                 </div>
@@ -180,8 +193,8 @@
 
         <div id="modal_remove_order">
             <h3>Attention !</h3>
-            <p>
-                Vous vous apprêtez à supprimer cette commande en cours : <span class="remove_order_name"></span>.<br/>
+            <p class="remove_order_modal_text">
+                Vous vous apprêtez à <b style="color: #d9534f;">supprimer</b> cette commande en cours : <span class="remove_order_name"></span>.<br/>
             </p>
             <p>Êtez-vous sûr ?</p>
             <hr/>
@@ -287,6 +300,7 @@
     var couchdb_dbname = '{{db}}';
     var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
     var odoo_server = '{{odoo_server}}';
+    var metabase_url = '{{metabase_url}}';
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script type="text/javascript" src="{% static 'js/orders_helper.js' %}?v="></script>

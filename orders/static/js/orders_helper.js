@@ -625,10 +625,10 @@ function set_product_npa(p_id, npa) {
 
             // Give time for modal to fade
             setTimeout(function() {
-                $(".actions_buttons_area .rights_buttons").notify(
+                $(".actions_buttons_area .right_action_buttons").notify(
                     "Produit passé en NPA !",
                     {
-                        position:"bottom right",
+                        elementPosition:"bottom right",
                         className: "success",
                         arrowShow: false
                     }
@@ -696,7 +696,7 @@ function generate_inventory() {
                 modal_create_inventory.html(),
                 () => {
                     if (is_time_to('validate_generate_inventory')) {
-                        $('#do_inventory').empty()
+                        $('#toggle_action_buttons .button_content').empty()
                             .append(`<i class="fas fa-spinner fa-spin"></i>`);
                         $.ajax({
                             type: "POST",
@@ -710,13 +710,13 @@ function generate_inventory() {
 
                                 // Give time for modal to fade
                                 setTimeout(function() {
-                                    $('#do_inventory').empty()
-                                        .append(`Faire un inventaire`);
-                                    $('#do_inventory').notify(
+                                    $('#toggle_action_buttons .button_content').empty()
+                                        .append(`Actions`);
+                                    $('#toggle_action_buttons').notify(
                                         "Inventaire créé !",
                                         {
-                                            globalPosition:"bottom center",
-                                            className: "success"
+                                            elementPosition:"bottom right",
+                                            className: "success",
                                         }
                                     );
                                 }, 200);
@@ -1641,6 +1641,8 @@ function display_products(params) {
  * Unselect all rows from datatable.
  */
 function unselect_all_rows() {
+    $("#select_all_products_cb").prop("checked", false);
+    
     products_table.rows().every(function() {
         const node = $(this.node());
 
@@ -1895,6 +1897,10 @@ $(document).ready(function() {
         init_pouchdb_sync();
 
         // Main screen
+        if (metabase_url !== '') {
+            $('#access_metabase').show();
+        }
+
         $("#coverage_form").on("submit", function(e) {
             e.preventDefault();
             if (is_time_to('submit_coverage_form', 1000)) {
@@ -1914,6 +1920,20 @@ $(document).ready(function() {
             }
         });
 
+        $("#toggle_action_buttons").on("click", function(e) {
+            $('#actions_buttons_container').toggle();
+        });
+
+        // Close dropdown menu on click outside
+        $(document).click(function(event) { 
+            let target = $(event.target);
+            if (
+                !target.closest('#actions_buttons_wrapper').length
+                && $('#actions_buttons_container').is(":visible")
+            ) {
+                $('#actions_buttons_container').hide();
+            }        
+        });
 
         $("#supplier_form").on("submit", function(e) {
             e.preventDefault();
