@@ -50,6 +50,28 @@
     padding-top: 15px;
 }
 
+.order_pill {
+    flex-direction: row;
+}
+
+.pill_order_name {
+    flex: 3 0 auto;
+}
+.remove_order_icon {
+    flex: 0 1 auto;
+    color: #B22222;
+    margin-left: 5px;
+    cursor: pointer;
+    z-index: 2;
+}
+.remove_order_icon:hover {
+    color: #CD5C5C;
+}
+
+.remove_order_name {
+    font-weight: bold;
+}
+
 .order_last_update {
     font-weight: bold;
 }

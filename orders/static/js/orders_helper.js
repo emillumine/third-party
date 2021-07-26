@@ -625,11 +625,12 @@ function set_product_npa(p_id, npa) {
 
             // Give time for modal to fade
             setTimeout(function() {
-                $.notify(
+                $(".actions_buttons_area .rights_buttons").notify(
                     "Produit passé en NPA !",
                     {
-                        globalPosition:"top right",
-                        className: "success"
+                        position:"bottom right",
+                        className: "success",
+                        arrowShow: false
                     }
                 );
             }, 500);
@@ -832,6 +833,8 @@ function create_cdb_order() {
 
 /**
  * Update order data of an existing order in couchdb
+ * 
+ * @returns Promise resolved after update is complete
  */
 function update_cdb_order() {
     order_doc.products = products;
@@ -854,6 +857,28 @@ function update_cdb_order() {
                 console.log(err);
 
                 resolve();
+            }
+        });
+    });
+}
+
+/**
+ * Delete an order in couchdb.
+ * 
+ * @returns Promise resolved after delete is complete
+ */
+function delete_cdb_order() {
+    order_doc._deleted = true;
+
+    return new Promise((resolve, reject) => {
+        dbc.put(order_doc, function callback(err, result) {
+            if (!err && result !== undefined) {
+                resolve();
+            } else {
+                alert("Erreur lors de la suppression de la commande... Si l'erreur persiste contactez un administrateur svp.");
+                console.log(err);
+
+                reject();
             }
         });
     });
@@ -965,8 +990,8 @@ function create_orders() {
             get_order_attachments();
 
             // Clear data
-            order_doc._deleted = true;
-            update_cdb_order().then(() => {
+            delete_cdb_order().finally(() => {
+                // Continue with workflow anyway
                 update_order_selection_screen().then(() => {
                     reset_data();
                     switch_screen('orders_created');
@@ -1721,6 +1746,44 @@ function update_order_selection_screen() {
                     }
 
                     $(".order_pill").on("click", order_pill_on_click);
+                    $(".remove_order_icon").on("click", function(e) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        order_name_container = $(this).prev()[0];
+                        let order_id = $(order_name_container).text();
+                
+                        let modal_remove_order = $('#templates #modal_remove_order');
+                        modal_remove_order.find(".remove_order_name").text(order_id);
+                
+                        openModal(
+                            modal_remove_order.html(),
+                            () => {
+                                if (is_time_to('validate_remove_order')) {
+                                    dbc.get(order_id).then((doc) => {
+                                        order_doc = doc;
+                                        delete_cdb_order().then(() => {
+                                            update_order_selection_screen().then(() => {
+                                                reset_data();
+                                                setTimeout(function() {
+                                                    $.notify(
+                                                        "Commande supprimée !",
+                                                        {
+                                                            globalPosition:"top left",
+                                                            className: "success"
+                                                        }
+                                                    );
+                                                }, 500);
+                                            });
+                                        })
+                                        .catch(() => {
+                                            console.log("error deleting order");
+                                        });
+                                    });
+                                }
+                            },
+                            'Valider'
+                        );
+                    });
                 }
 
                 resolve();
@@ -1886,6 +1949,41 @@ $(document).ready(function() {
             if (is_time_to('generate_inventory', 1000)) {
                 generate_inventory();
             }
+        });
+
+        $("#delete_order_button").on("click", function(e) {
+            if (is_time_to('press_delete_order_button', 1000)) {
+                let modal_remove_order = $('#templates #modal_remove_order');
+                modal_remove_order.find(".remove_order_name").text(order_doc._id);
+
+                openModal(
+                    modal_remove_order.html(),
+                    () => {
+                        if (is_time_to('validate_remove_order')) {
+                            delete_cdb_order().then(() => {
+                                update_order_selection_screen().then(() => {
+                                    reset_data();
+                                    switch_screen('order_selection');
+                                    setTimeout(function() {
+                                        $.notify(
+                                            "Commande supprimée !",
+                                            {
+                                                globalPosition:"top left",
+                                                className: "success"
+                                            }
+                                        );
+                                    }, 500);
+                                });
+                            })
+                            .catch(() => {
+                                console.log("error deleting order");
+                            });
+                        }
+                    },
+                    'Valider'
+                );
+            }
+    
         });
 
         $('#back_to_order_selection_from_main').on('click', function() {

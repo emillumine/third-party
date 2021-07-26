@@ -41,6 +41,9 @@
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
             <div class="rights_buttons">
+                <button type="button" class='btn--danger' id="delete_order_button">
+                    Supprimer la commande
+                </button>
                 <button type="button" class='btn--primary' id="do_inventory" style="display:none;">
                     Faire un inventaire
                 </button>
@@ -143,6 +146,7 @@
         <div id="order_pill_template">
             <div class="pill order_pill btn btn--primary">
                 <span class="pill_order_name"></span>
+                <i class="fas fa-times remove_order_icon"></i>
             </div>
         </div>
 
@@ -171,6 +175,15 @@
                 nous conseillons fortement de ne pas accéder à la commande afin d'éviter les conflits.
             </p><br/>
             <p>Voulez-vous quand même y accéder ?</p>
+            <hr/>
+        </div>
+
+        <div id="modal_remove_order">
+            <h3>Attention !</h3>
+            <p>
+                Vous vous apprêtez à supprimer cette commande en cours : <span class="remove_order_name"></span>.<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
             <hr/>
         </div>
     
