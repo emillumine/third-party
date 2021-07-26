@@ -1921,17 +1921,28 @@ $(document).ready(function() {
         });
 
         $("#toggle_action_buttons").on("click", function(e) {
-            $('#actions_buttons_container').toggle();
+            if ($('#actions_buttons_container').is(":visible")) {
+                $('#actions_buttons_container').hide();
+                $('.toggle_action_buttons_icon').empty()
+                    .append('<i class="fas fa-chevron-down"></i>');
+            } else {
+                $('#actions_buttons_container').show();
+                $('.toggle_action_buttons_icon').empty()
+                    .append('<i class="fas fa-chevron-up"></i>');
+            }
         });
 
         // Close dropdown menu on click outside
         $(document).click(function(event) { 
             let target = $(event.target);
+
             if (
                 !target.closest('#actions_buttons_wrapper').length
                 && $('#actions_buttons_container').is(":visible")
             ) {
                 $('#actions_buttons_container').hide();
+                $('.toggle_action_buttons_icon').empty()
+                    .append('<i class="fas fa-chevron-down"></i>');
             }        
         });
 
