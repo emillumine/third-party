@@ -494,7 +494,7 @@ class CagetteProducts(models.Model):
                 ptids = []
                 for p in psi:
                     if (p["product_tmpl_id"] is not False 
-                        and (p["date_start"] is False or p["date_end"] is not False and p["date_start"] <= today) 
+                        and (p["date_start"] is False or p["date_start"] is not False and p["date_start"] <= today) 
                         and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
                         ptids.append(p["product_tmpl_id"][0])
             else:
