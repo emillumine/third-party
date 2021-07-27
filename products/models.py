@@ -486,7 +486,7 @@ class CagetteProducts(models.Model):
 
             if supplier_ids is not None and len(supplier_ids) > 0:
                 # Get products/supplier relation
-                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name']
+                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name', 'product_code']
                 c = [['name', 'in', [ int(x) for x in supplier_ids]]]
                 psi = api.search_read('product.supplierinfo', c, f)
 
@@ -543,7 +543,8 @@ class CagetteProducts(models.Model):
                             filtered_products_t[i]['suppliersinfo'].append({
                                 'supplier_id': int(psi_item["name"][0]),
                                 'package_qty': psi_item["package_qty"],
-                                'price': psi_item["price"]
+                                'price': psi_item["price"],
+                                'product_code': psi_item["product_code"]
                             })
 
                 for s in sales:

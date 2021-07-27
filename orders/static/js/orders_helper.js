@@ -939,6 +939,7 @@ function create_orders() {
             // If a qty is set for a supplier for a product
             if ('qty' in p_supplierinfo && p_supplierinfo.qty != 0) {
                 const supplier_id = p_supplierinfo.supplier_id;
+                const product_code = p_supplierinfo.product_code;
 
                 orders_data.suppliers_data[supplier_id].lines.push({
                     'package_qty': p_supplierinfo.package_qty,
@@ -949,7 +950,8 @@ function create_orders() {
                     'product_uom': p.uom_id[0],
                     'price_unit': p_supplierinfo.price,
                     'supplier_taxes_id': p.supplier_taxes_id,
-                    'product_variant_ids': p.product_variant_ids
+                    'product_variant_ids': p.product_variant_ids,
+                    'product_code': product_code
                 });
             }
         }
