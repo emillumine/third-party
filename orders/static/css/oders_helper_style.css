@@ -279,8 +279,9 @@
     font-weight: bold;
 }
 
-.supplier_total_value_container {
+.supplier_data {
     font-size: 1.5rem;
+    display: flex;
 }
 
 .remove_supplier_icon {

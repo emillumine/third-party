@@ -324,6 +324,7 @@ function add_supplier() {
     openModal();
 
     supplier.total_value = 0;
+    supplier.total_packages = 0;
     selected_suppliers.push(supplier);
 
     // Fetch supplier products
@@ -583,15 +584,19 @@ function _compute_total_values_by_supplier() {
     // Reinit
     for (let s of selected_suppliers) {
         s.total_value = 0;
+        s.total_packages = 0;
     }
 
     for (let p of products) {
         for (let supinfo of p.suppliersinfo) {
             let supplier_index = selected_suppliers.findIndex(s => s.id == supinfo.supplier_id);
 
+            // Value
             let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.package_qty * supinfo.price : 0;
-
             selected_suppliers[supplier_index].total_value += product_supplier_value;
+
+            // Packages
+            selected_suppliers[supplier_index].total_packages += ('qty' in supinfo) ? supinfo.qty : 0;
         }
     }
 }
@@ -1668,6 +1673,9 @@ function display_total_values() {
         $(`#pill_supplier_${supplier.id}`).find('.supplier_total_value')
             .text(parseFloat(supplier.total_value).toFixed(2));
         order_total_value += supplier.total_value;
+
+        $(`#pill_supplier_${supplier.id}`).find('.supplier_total_packages')
+            .text(+parseFloat(supplier.total_packages).toFixed(2));
     }
 
     order_total_value = parseFloat(order_total_value).toFixed(2);
