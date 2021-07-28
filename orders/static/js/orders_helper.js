@@ -716,7 +716,7 @@ function generate_inventory() {
                                         "Inventaire créé !",
                                         {
                                             elementPosition:"bottom center",
-                                            className: "success",
+                                            className: "success"
                                         }
                                     );
                                 }, 200);
@@ -833,7 +833,7 @@ function create_cdb_order() {
 
 /**
  * Update order data of an existing order in couchdb
- * 
+ *
  * @returns Promise resolved after update is complete
  */
 function update_cdb_order() {
@@ -864,7 +864,7 @@ function update_cdb_order() {
 
 /**
  * Delete an order in couchdb.
- * 
+ *
  * @returns Promise resolved after delete is complete
  */
 function delete_cdb_order() {
@@ -878,7 +878,7 @@ function delete_cdb_order() {
                 alert("Erreur lors de la suppression de la commande... Si l'erreur persiste contactez un administrateur svp.");
                 console.log(err);
 
-                reject();
+                reject(new Error("Error while deleting order"));
             }
         });
     });
@@ -1642,7 +1642,7 @@ function display_products(params) {
  */
 function unselect_all_rows() {
     $("#select_all_products_cb").prop("checked", false);
-    
+
     products_table.rows().every(function() {
         const node = $(this.node());
 
@@ -1753,10 +1753,11 @@ function update_order_selection_screen() {
                         e.stopImmediatePropagation();
                         order_name_container = $(this).prev()[0];
                         let order_id = $(order_name_container).text();
-                
+
                         let modal_remove_order = $('#templates #modal_remove_order');
+
                         modal_remove_order.find(".remove_order_name").text(order_id);
-                
+
                         openModal(
                             modal_remove_order.html(),
                             () => {
@@ -1777,9 +1778,9 @@ function update_order_selection_screen() {
                                                 }, 500);
                                             });
                                         })
-                                        .catch(() => {
-                                            console.log("error deleting order");
-                                        });
+                                            .catch(() => {
+                                                console.log("error deleting order");
+                                            });
                                     });
                                 }
                             },
@@ -1933,7 +1934,7 @@ $(document).ready(function() {
         });
 
         // Close dropdown menu on click outside
-        $(document).click(function(event) { 
+        $(document).click(function(event) {
             let target = $(event.target);
 
             if (
@@ -1943,7 +1944,7 @@ $(document).ready(function() {
                 $('#actions_buttons_container').hide();
                 $('.toggle_action_buttons_icon').empty()
                     .append('<i class="fas fa-chevron-down"></i>');
-            }        
+            }
         });
 
         $("#supplier_form").on("submit", function(e) {
@@ -1985,6 +1986,7 @@ $(document).ready(function() {
         $("#delete_order_button").on("click", function(e) {
             if (is_time_to('press_delete_order_button', 1000)) {
                 let modal_remove_order = $('#templates #modal_remove_order');
+
                 modal_remove_order.find(".remove_order_name").text(order_doc._id);
 
                 openModal(
@@ -2006,15 +2008,15 @@ $(document).ready(function() {
                                     }, 500);
                                 });
                             })
-                            .catch(() => {
-                                console.log("error deleting order");
-                            });
+                                .catch(() => {
+                                    console.log("error deleting order");
+                                });
                         }
                     },
                     'Valider'
                 );
             }
-    
+
         });
 
         $('#back_to_order_selection_from_main').on('click', function() {
