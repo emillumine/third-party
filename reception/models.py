@@ -151,6 +151,7 @@ class CagetteReception(models.Model):
                             self.o_api.update('stock.move.operation.link', [linked_move_op_id], {'qty': received_products[pack['product_id'][0]]})
                             pfields['product_uom_qty'] = received_qty
                             self.o_api.update('stock.move', [move_id], pfields)
+                            del pfields['product_uom_qty']  # field not in stock.pack.operation
                             pfields['qty_done'] = pfields['product_qty'] = received_qty
                             self.o_api.update('stock.pack.operation', [int(pack['id'])], pfields)
                         processed_lines += 1
