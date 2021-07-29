@@ -221,26 +221,6 @@ def update_orders(request):
                     m.update_order_status(order_id, data['update_type'])
                     if data['update_type'] == 'br_valid':
                         answer_data[order_id]['finalyze_result'] = m.register_purchase_order_to_finalyze()
-
-                        # Remove order's group
-                        try:
-                            # TODO remove from couchdb orders & group (here?)
-                            if os.path.exists('temp/grouped_order.json'):
-                                with open('temp/grouped_order.json', 'r') as json_file:
-                                    saved_groups = json.load(json_file)
-
-                                for oi in order_ids:
-                                    for i, group in enumerate(saved_groups):
-                                        if oi in group:
-                                            saved_groups.pop(i)
-                                            break
-
-                                with open('temp/grouped_order.json', 'w') as json_file:
-                                    json.dump(saved_groups, json_file)
-                        except Exception as e:
-                            # no saved groups
-                            print(str(e))
-                    # TODO else if first step, save first step data (here?)
                 else:
                     coop_logger.error("update_orders errors : %s", str(errors))
             rep = JsonResponse(answer_data, safe=False)
