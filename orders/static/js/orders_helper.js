@@ -952,7 +952,7 @@ function delete_cdb_order() {
                 alert("Erreur lors de la suppression de la commande... Si l'erreur persiste contactez un administrateur svp.");
                 console.log(err);
 
-                reject(new Error('fail'));
+                reject(new Error("Error while deleting order"));
             }
         });
     });

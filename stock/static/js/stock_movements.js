@@ -166,6 +166,7 @@ function init_datatable() {
             let data = row.data();
 
             let validated_data = qty_validation(qty, data.uom.id);
+
             if (validated_data >= 0) {
                 data.qty = validated_data;
                 row.remove().draw();
@@ -423,28 +424,33 @@ var update_existing_product = function(product, added_qty, undo_option = false) 
 function qty_validation(qty, uom_id) {
     if (qty == null || qty == '') {
         $.notify("Il n'y a pas de quantité indiquée, ou ce n'est pas un nombre", {
-                        globalPosition:"top right",
-                        className: "error"});
+            globalPosition:"top right",
+            className: "error"});
+
         return -1;
     }
 
     if (uom_id == 1) {
-        if (qty/parseInt(qty) != 1 && qty != 0){
+        if (qty/parseInt(qty) != 1 && qty != 0) {
             $.notify("Une quantité avec décimale est indiquée alors que c'est un article à l'unité", {
-                        globalPosition:"top right",
-                        className: "error"});
-            return -2;}
+                globalPosition:"top right",
+                className: "error"});
+
+            return -2;
+        }
 
         qty = parseInt(qty); // product by unit
     } else {
         qty = parseFloat(qty).toFixed(2);
     }
 
-    if (isNaN(qty)){
+    if (isNaN(qty)) {
         $.notify("Une quantité n'est pas un nombre", {
-                        globalPosition:"top right",
-                        className: "error"});
-        return -3;}
+            globalPosition:"top right",
+            className: "error"});
+
+        return -3;
+    }
 
     return qty;
 }
