@@ -227,18 +227,27 @@
     width: 100px;
 }
 
+.product_ref_input {
+    padding: .5rem .5rem;
+}
+
 .supplier_package_qty {
     font-style: italic;
     font-size: 1.3rem;
 }
 
 .product_not_from_supplier {
-    background-color: #e7e9ed;
+    background-color: #e8ebf0;
     cursor: pointer;
 }
 
 .product_not_from_supplier:hover {
-    background-color: #c7cace;
+    background-color: #d3d7db;
+}
+
+.product_ref_cell:hover {
+    background-color: #d3d7db;
+    cursor: pointer;
 }
 
 .product_name, .supplier_name, .product_npa {

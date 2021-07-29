@@ -114,6 +114,17 @@ def update_product_purchase_ok(request):
     else:
         return JsonResponse({"res": res})
 
+def update_product_internal_ref(request):
+    res = {}
+    data = json.loads(request.body.decode())
+
+    res = CagetteProduct.update_product_internal_ref(data["product_tmpl_id"], data["default_code"])
+
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({"res": res})
+
 def labels_appli_csv(request, params):
     """Generate files to put in DAV directory to be retrieved by scales app."""
     withCandidate = False

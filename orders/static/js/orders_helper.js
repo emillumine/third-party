@@ -292,6 +292,73 @@ function check_products_data() {
     });
 }
 
+/**
+ * Update the product internal reference ('default_code')
+ *
+ * @param {HTMLElement} input_el
+ * @param {int} p_id
+ * @param {int} p_index
+ */
+function update_product_ref(input_el, p_id, p_index) {
+    const val = $(input_el).val();
+    const existing_val = products[p_index].default_code.replace("[input]", "");
+
+    products[p_index].default_code = val;
+
+    const row = $(input_el).closest('tr');
+    const new_row_data = prepare_datatable_data([p_id])[0];
+
+    products_table.row(row).data(new_row_data)
+        .draw();
+
+    $('#products_table')
+        .off('blur', 'tbody .product_ref_input')
+        .off('keypress', 'tbody .product_ref_input');
+
+    // Update in backend if value changed
+    if (existing_val !== val) {
+        const data = {
+            'product_tmpl_id': p_id,
+            'default_code': val
+        };
+
+        // Send request to create association
+        $.ajax({
+            type: "POST",
+            url: "/products/update_product_internal_ref",
+            dataType: "json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: () => {
+                update_cdb_order();
+
+                $(".actions_buttons_area .right_action_buttons").notify(
+                    "Référence sauvegardée !",
+                    {
+                        elementPosition:"bottom right",
+                        className: "success",
+                        arrowShow: false
+                    }
+                );
+            },
+            error: function(data) {
+                let msg = "erreur serveur lors de la sauvegarde de la référence";
+
+                msg += ` (product_tmpl_id: ${product.id}`;
+
+                err = {msg: msg, ctx: 'update_product_ref'};
+                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                    err.msg += ' : ' + data.responseJSON.error;
+                }
+                report_JS_error(err, 'orders');
+
+                alert('Erreur lors de la sauvegarde de la référence dans Odoo. Veuillez recharger la page et ré-essayer plus tard.');
+            }
+        });
+    }
+}
+
 
 /* - SUPPLIERS */
 
@@ -303,9 +370,9 @@ function check_products_data() {
 function add_supplier() {
     const user_input = $("#supplier_input").val();
 
-    // Check if user input is a valid supplier
     let supplier = suppliers_list.find(s => s.display_name === user_input);
 
+    // Check if user input is a valid supplier
     if (supplier === undefined) {
         alert("Le fournisseur renseigné n'est pas valide.\n"
         + "Veuillez sélectionner un fournisseur dans la liste déroulante.");
@@ -323,10 +390,6 @@ function add_supplier() {
 
     openModal();
 
-    supplier.total_value = 0;
-    supplier.total_packages = 0;
-    selected_suppliers.push(supplier);
-
     // Fetch supplier products
     $.ajax({
         type: 'GET',
@@ -339,6 +402,10 @@ function add_supplier() {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
+            supplier.total_value = 0;
+            supplier.total_packages = 0;
+            selected_suppliers.push(supplier);
+
             save_supplier_products(supplier, data.res.products);
             update_main_screen();
             $("#supplier_input").val("");
@@ -448,8 +515,9 @@ function save_supplier_product_association(product, supplier, cell) {
             closeModal();
         },
         error: function(data) {
-            let msg = "erreur serveur lors de la sauvegarde de l'association product/supplier".
-                msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
+            let msg = "erreur serveur lors de la sauvegarde de l'association product/supplier";
+
+            msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
 
             err = {msg: msg, ctx: 'save_supplier_product_association'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
@@ -593,6 +661,7 @@ function _compute_total_values_by_supplier() {
 
             // Value
             let product_supplier_value = ('qty' in supinfo) ? supinfo.qty * supinfo.package_qty * supinfo.price : 0;
+
             selected_suppliers[supplier_index].total_value += product_supplier_value;
 
             // Packages
@@ -721,7 +790,7 @@ function generate_inventory() {
                                         "Inventaire créé !",
                                         {
                                             elementPosition:"bottom center",
-                                            className: "success",
+                                            className: "success"
                                         }
                                     );
                                 }, 200);
@@ -838,7 +907,7 @@ function create_cdb_order() {
 
 /**
  * Update order data of an existing order in couchdb
- * 
+ *
  * @returns Promise resolved after update is complete
  */
 function update_cdb_order() {
@@ -869,7 +938,7 @@ function update_cdb_order() {
 
 /**
  * Delete an order in couchdb.
- * 
+ *
  * @returns Promise resolved after delete is complete
  */
 function delete_cdb_order() {
@@ -883,7 +952,7 @@ function delete_cdb_order() {
                 alert("Erreur lors de la suppression de la commande... Si l'erreur persiste contactez un administrateur svp.");
                 console.log(err);
 
-                reject();
+                reject(new Error('fail'));
             }
         });
     });
@@ -1260,9 +1329,20 @@ function prepare_datatable_columns() {
         {
             data: "default_code",
             title: "Ref",
-            width: "6%",
-            render: function (data) {
-                return (data === false) ? "" : data;
+            width: "8%",
+            render: function (data, type, full) {
+                if (data === false) {
+                    return "";
+                } else if (data.includes("[input]")) {
+                    let val = data.replace("[input]", "");
+
+
+                    return `<div class="custom_cell_content">
+                                <input type="text" class="product_ref_input" id="${full.id}_ref_input" value="${val}">
+                            </div>`;
+                } else {
+                    return data;
+                }
             }
         },
         {
@@ -1433,13 +1513,15 @@ function display_products(params) {
         scrollX: true,
         language: {url : '/static/js/datatables/french.json'},
         createdRow: function(row) {
-            for (const cell_node of row.cells) {
+            for (var i = 0; i < row.cells.length; i++) {
+                const cell_node = row.cells[i];
                 const cell = $(cell_node);
 
-                if (cell.hasClass("supplier_input_cell")) {
-                    if (cell.text() == "X") {
-                        cell.addClass('product_not_from_supplier');
-                    }
+                if (cell.hasClass("supplier_input_cell") && cell.text() === "X") {
+                    cell.addClass('product_not_from_supplier');
+                } else if (i === 1) {
+                    // Column at index 1 is product reference
+                    cell.addClass('product_ref_cell');
                 }
             }
         }
@@ -1576,6 +1658,41 @@ function display_products(params) {
             new_product_supplier_association.package_qty = $(this).val();
         });
     });
+
+    // Display input on click on product ref cell
+    $('#products_table').on('click', 'tbody .product_ref_cell', function () {
+        if ($(this).find('input').length === 0) {
+            const row = $(this).closest('tr');
+            const p_id = products_table.row(row).data().id;
+            const p_index = products.findIndex(p => p.id === p_id);
+
+            const existing_ref = products[p_index].default_code === false ? '' : products[p_index].default_code;
+
+            products[p_index].default_code = "[input]" + existing_ref;
+
+            const new_row_data = prepare_datatable_data([p_id])[0];
+
+            products_table.row(row).data(new_row_data)
+                .draw();
+
+            let ref_input = $(`#${p_id}_ref_input`);
+
+            ref_input.focus();
+            ref_input.select();
+
+            $('#products_table')
+                .on('blur', 'tbody .product_ref_input', function () {
+                    update_product_ref(this, p_id, p_index);
+                })
+                .on('keypress', 'tbody .product_ref_input', function(e) {
+                // Validate on Enter pressed
+                    if (e.which == 13) {
+                        update_product_ref(this, p_id, p_index);
+                    }
+                });
+        }
+    });
+
     // Select row(s) on checkbox change
     $(products_table.table().header()).on('click', 'th #select_all_products_cb', function () {
         if (this.checked) {
@@ -1649,7 +1766,7 @@ function display_products(params) {
  */
 function unselect_all_rows() {
     $("#select_all_products_cb").prop("checked", false);
-    
+
     products_table.rows().every(function() {
         const node = $(this.node());
 
@@ -1691,6 +1808,7 @@ function update_main_screen(params) {
     // Remove listener before recreating them
     $('#products_table').off('change', 'tbody td .product_qty_input');
     $('#products_table').off('click', 'tbody .product_not_from_supplier');
+    $('#products_table').off('click', 'tbody .product_ref_cell');
     $('#products_table').off('click', 'thead th #select_all_products_cb');
     $('#products_table').off('click', 'tbody td .select_product_cb');
     $(".remove_supplier_icon").off();
@@ -1763,10 +1881,11 @@ function update_order_selection_screen() {
                         e.stopImmediatePropagation();
                         order_name_container = $(this).prev()[0];
                         let order_id = $(order_name_container).text();
-                
+
                         let modal_remove_order = $('#templates #modal_remove_order');
+
                         modal_remove_order.find(".remove_order_name").text(order_id);
-                
+
                         openModal(
                             modal_remove_order.html(),
                             () => {
@@ -1787,9 +1906,9 @@ function update_order_selection_screen() {
                                                 }, 500);
                                             });
                                         })
-                                        .catch(() => {
-                                            console.log("error deleting order");
-                                        });
+                                            .catch(() => {
+                                                console.log("error deleting order");
+                                            });
                                     });
                                 }
                             },
@@ -1930,7 +2049,7 @@ $(document).ready(function() {
             }
         });
 
-        $("#toggle_action_buttons").on("click", function(e) {
+        $("#toggle_action_buttons").on("click", function() {
             if ($('#actions_buttons_container').is(":visible")) {
                 $('#actions_buttons_container').hide();
                 $('.toggle_action_buttons_icon').empty()
@@ -1943,7 +2062,7 @@ $(document).ready(function() {
         });
 
         // Close dropdown menu on click outside
-        $(document).click(function(event) { 
+        $(document).click(function(event) {
             let target = $(event.target);
 
             if (
@@ -1953,7 +2072,7 @@ $(document).ready(function() {
                 $('#actions_buttons_container').hide();
                 $('.toggle_action_buttons_icon').empty()
                     .append('<i class="fas fa-chevron-down"></i>');
-            }        
+            }
         });
 
         $("#supplier_form").on("submit", function(e) {
@@ -1992,9 +2111,10 @@ $(document).ready(function() {
             }
         });
 
-        $("#delete_order_button").on("click", function(e) {
+        $("#delete_order_button").on("click", function() {
             if (is_time_to('press_delete_order_button', 1000)) {
                 let modal_remove_order = $('#templates #modal_remove_order');
+
                 modal_remove_order.find(".remove_order_name").text(order_doc._id);
 
                 openModal(
@@ -2016,15 +2136,15 @@ $(document).ready(function() {
                                     }, 500);
                                 });
                             })
-                            .catch(() => {
-                                console.log("error deleting order");
-                            });
+                                .catch(() => {
+                                    console.log("error deleting order");
+                                });
                         }
                     },
                     'Valider'
                 );
             }
-    
+
         });
 
         $('#back_to_order_selection_from_main').on('click', function() {

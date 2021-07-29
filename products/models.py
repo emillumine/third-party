@@ -130,6 +130,7 @@ class CagetteProduct(models.Model):
     @staticmethod
     def associate_supplier_to_product(data):
         api = OdooAPI()
+        res = {}
 
         product_tmpl_id = data["product_tmpl_id"]
         partner_id = data["supplier_id"]
@@ -151,7 +152,11 @@ class CagetteProduct(models.Model):
             'package_qty': package_qty,
             'sequence': 1000  # lowest priority for the new suppliers
         }
-        res = api.create('product.supplierinfo', f)
+
+        try:
+            res = api.create('product.supplierinfo', f)
+        except Exception as e:
+            res['error'] = str(e)
 
         return res
 
@@ -178,6 +183,23 @@ class CagetteProduct(models.Model):
 
         f = {
             'purchase_ok': purchase_ok
+        }
+
+        try:
+            res["update"] = api.update('product.template', product_tmpl_id, f)
+        except Exception as e:
+            res["error"] = str(e)
+            print(str(e))
+
+        return res
+
+    @staticmethod
+    def update_product_internal_ref(product_tmpl_id, default_code):
+        api = OdooAPI()
+        res = {}
+
+        f = {
+            'default_code': default_code
         }
 
         try:
