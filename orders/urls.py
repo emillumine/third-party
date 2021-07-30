@@ -13,7 +13,7 @@ urlpatterns = [
     url(r'^get_suppliers$', views.get_suppliers),
     url(r'^get_supplier_products$', views.get_supplier_products),
     url(r'^associate_supplier_to_product$', views.associate_supplier_to_product),
-    url(r'^remove_supplier_product_association$', views.remove_supplier_product_association),
+    url(r'^end_supplier_product_association$', views.end_supplier_product_association),
     url(r'^create_orders$', views.create_orders),
     url(r'^get_orders_attachment$', views.get_orders_attachment),
 ]

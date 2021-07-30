@@ -497,6 +497,7 @@ function save_supplier_product_association(product, supplier, cell) {
             product.suppliersinfo.push({
                 supplier_id: supplier.id,
                 package_qty: package_qty,
+                product_code: false,
                 price: price
             });
 
@@ -539,7 +540,7 @@ function save_supplier_product_association(product, supplier, cell) {
  * @param {object} product
  * @param {object} supplier
  */
-function remove_supplier_product_association(product, supplier) {
+function end_supplier_product_association(product, supplier) {
     openModal();
 
     const data = {
@@ -550,7 +551,7 @@ function remove_supplier_product_association(product, supplier) {
     // Send request to create association
     $.ajax({
         type: "POST",
-        url: "/orders/remove_supplier_product_association",
+        url: "/orders/end_supplier_product_association",
         dataType: "json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -572,7 +573,7 @@ function remove_supplier_product_association(product, supplier) {
             let msg = "erreur serveur lors de la suppression de l'association product/supplier".
                 msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
 
-            err = {msg: msg, ctx: 'remove_supplier_product_association'};
+            err = {msg: msg, ctx: 'end_supplier_product_association'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
@@ -1541,20 +1542,20 @@ function display_products(params) {
         const supplier_id = id_split[3];
 
         if (val == -1) {
-            let modal_remove_supplier_product_association = $('#templates #modal_remove_supplier_product_association');
+            let modal_end_supplier_product_association = $('#templates #modal_end_supplier_product_association');
 
             const product = products.find(p => p.id == prod_id);
 
-            modal_remove_supplier_product_association.find(".product_name").text(product.name);
+            modal_end_supplier_product_association.find(".product_name").text(product.name);
             const supplier = selected_suppliers.find(s => s.id == supplier_id);
 
-            modal_remove_supplier_product_association.find(".supplier_name").text(supplier.display_name);
+            modal_end_supplier_product_association.find(".supplier_name").text(supplier.display_name);
 
             openModal(
-                modal_remove_supplier_product_association.html(),
+                modal_end_supplier_product_association.html(),
                 () => {
-                    if (is_time_to('validate_remove_supplier_product_association')) {
-                        remove_supplier_product_association(product, supplier);
+                    if (is_time_to('validate_end_supplier_product_association')) {
+                        end_supplier_product_association(product, supplier);
                     }
                 },
                 'Valider',

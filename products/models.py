@@ -141,6 +141,8 @@ class CagetteProduct(models.Model):
         c = [['product_tmpl_id', '=', product_tmpl_id]]
         res_products = api.search_read('product.product', c, f)
         product = res_products[0]
+        
+        today = datetime.date.today().strftime("%Y-%m-%d")
 
         f = {
             'product_tmpl_id' : product_tmpl_id,
@@ -150,29 +152,40 @@ class CagetteProduct(models.Model):
             'price': price,
             'base_price': price,
             'package_qty': package_qty,
+            'date_start': today,
             'sequence': 1000  # lowest priority for the new suppliers
         }
 
         try:
-            res = api.create('product.supplierinfo', f)
+            res['create'] = api.create('product.supplierinfo', f)
         except Exception as e:
             res['error'] = str(e)
 
         return res
 
     @staticmethod
-    def remove_supplier_product_association(data):
+    def end_supplier_product_association(data):
         api = OdooAPI()
+        res = {}
 
         product_tmpl_id = data["product_tmpl_id"]
         partner_id = data["supplier_id"]
 
         f = ["id"]
-        c = [['product_tmpl_id', '=', product_tmpl_id], ['name', '=', partner_id]]
+        c = [['product_tmpl_id', '=', product_tmpl_id], ['name', '=', partner_id], ['date_end', '=', False]]
         res_supplierinfo = api.search_read('product.supplierinfo', c, f)
         psi_id = res_supplierinfo[0]['id']
 
-        res = api.execute('product.supplierinfo', 'unlink', [psi_id])
+        today = datetime.date.today().strftime("%Y-%m-%d")
+
+        f = {
+            'date_end': today
+        }
+
+        try:
+            res["update"] = api.update('product.supplierinfo', psi_id, f)
+        except Exception as e:
+            res['error'] = str(e)
 
         return res
 
@@ -514,10 +527,12 @@ class CagetteProducts(models.Model):
 
                 # Filter valid data
                 ptids = []
+                valid_psi = []
                 for p in psi:
                     if (p["product_tmpl_id"] is not False 
                         and (p["date_start"] is False or p["date_start"] is not False and p["date_start"] <= today) 
-                        and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] >= today)):
+                        and (p["date_end"] is False or p["date_end"] is not False and p["date_end"] > today)):
+                        valid_psi.append(p)
                         ptids.append(p["product_tmpl_id"][0])
             else:
                 ptids = [ int(x) for x in pids ]
@@ -560,7 +575,7 @@ class CagetteProducts(models.Model):
                 if supplier_ids is not None and len(supplier_ids) > 0:
                     # Add all the product suppliersinfo (products from multiple suppliers into the suppliers list provided)
                     filtered_products_t[i]['suppliersinfo'] = []
-                    for psi_item in psi: 
+                    for psi_item in valid_psi: 
                         if psi_item["product_tmpl_id"] is not False and psi_item ["product_tmpl_id"][0] == fp["id"]:
                             filtered_products_t[i]['suppliersinfo'].append({
                                 'supplier_id': int(psi_item["name"][0]),
