@@ -857,6 +857,7 @@ function editProductInfo (productToEdit, value = null, batch = false) {
     // Check if the product is already in the 'updated' list
         var index = searchUpdatedProduct();
         var firstUpdate = false;
+        var isValid = false;
         let newValue = value;
         var addition = false;
 
@@ -873,20 +874,29 @@ function editProductInfo (productToEdit, value = null, batch = false) {
             }
         });
         // If qty edition & Check if qty changed
-        if (reception_status == "False" && productToEdit.product_qty != newValue) {
-            if (index == -1) { // First update
-                productToEdit.old_qty = productToEdit.product_qty;
-                firstUpdate = true;
-            }
+        if (reception_status == "False") {
+            firstUpdate = (index == -1); //first update
+            if (productToEdit.product_qty != newValue) {
+                if (firstUpdate) {
+                    productToEdit.old_qty = productToEdit.product_qty;
+                } else {
+                    //if it is not the first update AND newValue is equal to the validation qty then the product is valid
+                    isValid = (newValue === productToEdit.old_qty);
+                }
 
-            // Edit product info
-            productToEdit.product_qty = newValue;
-            /*
-            If qty has changed, we choose to set detailed values as follow:
-            1 package (product_qty_package) of X products (package_qty)
-            */
-            productToEdit.product_qty_package = 1;
-            productToEdit.package_qty = productToEdit.product_qty;
+                // Edit product info
+                productToEdit.product_qty = newValue;
+                /*
+               If qty has changed, we choose to set detailed values as follow:
+               1 package (product_qty_package) of X products (package_qty)
+               */
+                productToEdit.product_qty_package = 1;
+                productToEdit.package_qty = productToEdit.product_qty;
+
+            } else if (firstUpdate) {
+                // if the product is updated for the first time and productQty is equal to the newValue then the product is validated
+                isValid = true;
+            }
         }
 
         // Check if price changed
@@ -918,27 +928,56 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         if (firstUpdate) {
             updatedProducts.push(productToEdit);
 
-            // Create 'updated_products' list in order if not exists
-            if (!orders[productToEdit.id_po]['updated_products']) {
-                orders[productToEdit.id_po]['updated_products'] = [];
-            }
+            //if product is validated thru edition -> add to valid_products
+            if (isValid) {
+                // Create 'valid_products' list in order if not exists
+                if (!orders[productToEdit.id_po]['valid_products']) {
+                    orders[productToEdit.id_po]['valid_products'] = [];
+                }
+                orders[productToEdit.id_po]['valid_products'].push(productToEdit['id']);
+            } else {
+                // Create 'updated_products' list in order if not exists
+                if (!orders[productToEdit.id_po]['updated_products']) {
+                    orders[productToEdit.id_po]['updated_products'] = [];
+                }
 
-            // Add product to order's updated products if first update
-            orders[productToEdit.id_po]['updated_products'].push(productToEdit);
+                // Add product to order's updated products if first update
+                orders[productToEdit.id_po]['updated_products'].push(productToEdit);
 
-            // May have been directly validated then updated from processed list
-            //  -> remove from 'valid_products' list
-            for (i in orders[productToEdit.id_po]['valid_products']) {
-                if (orders[productToEdit.id_po]['valid_products'][i] == productToEdit['id']) {
-                    orders[productToEdit.id_po]['valid_products'].splice(i, 1);
+                // May have been directly validated then updated from processed list
+                //  -> remove from 'valid_products' list
+                for (i in orders[productToEdit.id_po]['valid_products']) {
+                    if (orders[productToEdit.id_po]['valid_products'][i] == productToEdit['id']) {
+                        orders[productToEdit.id_po]['valid_products'].splice(i, 1);
+                    }
                 }
             }
         } else {
-            // Look for product in order's updated products list
-            for (i in orders[productToEdit.id_po]['updated_products']) {
-                if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
-            == productToEdit['product_id'][0]) {
-                    orders[productToEdit.id_po]['updated_products'][i] = productToEdit;
+
+            if (isValid) {
+                //if product is valid -> remove from updated_products list and add to valid_products list
+                //removing from updated_products
+                for (i in orders[productToEdit.id_po]['updated_products']) {
+                    if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
+                == productToEdit['product_id'][0]) {
+                        orders[productToEdit.id_po]['updated_products'].splice(i, 1);
+                    }
+                }
+
+                //add to valid_products
+                // Create 'valid_products' list in order if not exists
+                if (!orders[productToEdit.id_po]['valid_products']) {
+                    orders[productToEdit.id_po]['valid_products'] = [];
+                }
+                orders[productToEdit.id_po]['valid_products'].push(productToEdit['id']);
+
+            } else {
+                // Look for product in order's updated products list
+                for (i in orders[productToEdit.id_po]['updated_products']) {
+                    if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
+                == productToEdit['product_id'][0]) {
+                        orders[productToEdit.id_po]['updated_products'][i] = productToEdit;
+                    }
                 }
             }
         }
@@ -948,8 +987,9 @@ function editProductInfo (productToEdit, value = null, batch = false) {
             update_distant_order(productToEdit.id_po);
         }
 
-        if(addition){
+        if (addition) {
             let row = table_processed.row($('#'+productToEdit.product_id[0]));
+
             remove_from_processed(row, productToEdit);
         }
 
