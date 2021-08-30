@@ -261,7 +261,7 @@ class Order(models.Model):
             product_line_name =  line["name"]
             if "product_code" in line and line["product_code"] is not False:
                 product_code = str(line["product_code"])
-                product_line_name = f"[{product_code}] {product_line_name}"
+                product_line_name = "[" + product_code + "] " + product_line_name
 
             order_data["order_line"].append(
                 [
