@@ -262,6 +262,14 @@
     background-color: #76cf71 !important;
 }
 
+.dataTables_scrollHead {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    top: 0;
+    z-index: 3;
+    background-color: white;
+}
+
 /* -- Footer */
 
 #main_content_footer {
@@ -283,8 +291,8 @@
     margin: 30px 0 20px 0;
     position: -webkit-sticky;
     position: sticky;
-    top: 20px;
-    z-index: 3;
+    top: 150px;
+    z-index: 5;
 }
 
 .supplier_pill {
