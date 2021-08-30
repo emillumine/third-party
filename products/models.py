@@ -136,30 +136,52 @@ class CagetteProduct(models.Model):
         partner_id = data["supplier_id"]
         package_qty = data["package_qty"]
         price = data["price"]
-
-        f = ["id", "standard_price", "purchase_ok"]
-        c = [['product_tmpl_id', '=', product_tmpl_id]]
-        res_products = api.search_read('product.product', c, f)
-        product = res_products[0]
         
-        today = datetime.date.today().strftime("%Y-%m-%d")
+        # Look for existing association
+        f = ["id"]
+        c = [['product_tmpl_id', '=', product_tmpl_id], ['name', '=', partner_id]]
+        res_existing_supplierinfo = api.search_read('product.supplierinfo', c, f)
 
-        f = {
-            'product_tmpl_id' : product_tmpl_id,
-            'product_id' : product["id"],
-            'name' : partner_id,
-            'product_purchase_ok': product["purchase_ok"],
-            'price': price,
-            'base_price': price,
-            'package_qty': package_qty,
-            'date_start': today,
-            'sequence': 1000  # lowest priority for the new suppliers
-        }
+        if (len(res_existing_supplierinfo) > 0):
+            # A relation already exists, update it's start & end dates 
+            psi_id = res_existing_supplierinfo[0]['id']
 
-        try:
-            res['create'] = api.create('product.supplierinfo', f)
-        except Exception as e:
-            res['error'] = str(e)
+            today = datetime.date.today().strftime("%Y-%m-%d")
+
+            f = {
+                'date_start': today,
+                'date_end': False
+            }
+
+            try:
+                res["update"] = api.update('product.supplierinfo', psi_id, f)
+            except Exception as e:
+                res['error'] = str(e)
+        else:
+            # Relation doesn't exists, create one
+            f = ["id", "standard_price", "purchase_ok"]
+            c = [['product_tmpl_id', '=', product_tmpl_id]]
+            res_products = api.search_read('product.product', c, f)
+            product = res_products[0]
+            
+            today = datetime.date.today().strftime("%Y-%m-%d")
+
+            f = {
+                'product_tmpl_id' : product_tmpl_id,
+                'product_id' : product["id"],
+                'name' : partner_id,
+                'product_purchase_ok': product["purchase_ok"],
+                'price': price,
+                'base_price': price,
+                'package_qty': package_qty,
+                'date_start': today,
+                'sequence': 1000  # lowest priority for the new suppliers
+            }
+
+            try:
+                res['create'] = api.create('product.supplierinfo', f)
+            except Exception as e:
+                res['error'] = str(e)
 
         return res
 
@@ -174,18 +196,21 @@ class CagetteProduct(models.Model):
         f = ["id"]
         c = [['product_tmpl_id', '=', product_tmpl_id], ['name', '=', partner_id], ['date_end', '=', False]]
         res_supplierinfo = api.search_read('product.supplierinfo', c, f)
-        psi_id = res_supplierinfo[0]['id']
 
-        today = datetime.date.today().strftime("%Y-%m-%d")
+        # End all active associations in case multiple are open (which shouldn't happen)
+        for psi in res_supplierinfo:
+            psi_id = psi['id']
 
-        f = {
-            'date_end': today
-        }
+            today = datetime.date.today().strftime("%Y-%m-%d")
 
-        try:
-            res["update"] = api.update('product.supplierinfo', psi_id, f)
-        except Exception as e:
-            res['error'] = str(e)
+            f = {
+                'date_end': today
+            }
+
+            try:
+                res["update"] = api.update('product.supplierinfo', psi_id, f)
+            except Exception as e:
+                res['error'] = str(e)
 
         return res
 

@@ -196,21 +196,21 @@ function compute_products_coverage_qties() {
         ] of Object.entries(products)) {
             if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
                 let purchase_qty_for_coverage = null;
-    
+
                 // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
                 const stock = product.qty_available;
                 const incoming_qty = product.incoming_qty;
                 const daily_conso = product.daily_conso;
-    
+
                 purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
                 purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-    
+
                 // Reduce to nb of packages to purchase
                 purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-    
+
                 // Round up to unit for all products
                 purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
-    
+
                 // Set qty to purchase for first supplier only
                 products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
             }
