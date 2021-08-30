@@ -19,7 +19,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 8px 30px 8px 30px;
+    padding: 7px 30px 7px 30px;
     margin: 0 10px 5px 10px;
 }
 
@@ -288,8 +288,8 @@
 }
 
 .supplier_pill {
-    background-color: #00bfdb;
-    border: 1px solid #008ea9;
+    background-color: #a0daff;
+    border: 1px solid #6ea8cc;
 }
 
 .pill_supplier_name {
