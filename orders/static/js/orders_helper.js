@@ -189,29 +189,31 @@ function add_product() {
  * Set the computed qty for the first supplier only.
  */
 function compute_products_coverage_qties() {
-    for (const [
-        key,
-        product
-    ] of Object.entries(products)) {
-        if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
-            let purchase_qty_for_coverage = null;
-
-            // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
-            const stock = product.qty_available;
-            const incoming_qty = product.incoming_qty;
-            const daily_conso = product.daily_conso;
-
-            purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
-            purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-
-            // Reduce to nb of packages to purchase
-            purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-
-            // Round up to unit for all products
-            purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
-
-            // Set qty to purchase for first supplier only
-            products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
+    if (order_doc.coverage_days != null) {
+        for (const [
+            key,
+            product
+        ] of Object.entries(products)) {
+            if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
+                let purchase_qty_for_coverage = null;
+    
+                // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
+                const stock = product.qty_available;
+                const incoming_qty = product.incoming_qty;
+                const daily_conso = product.daily_conso;
+    
+                purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
+                purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+    
+                // Reduce to nb of packages to purchase
+                purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+    
+                // Round up to unit for all products
+                purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
+    
+                // Set qty to purchase for first supplier only
+                products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
+            }
         }
     }
 }
@@ -232,8 +234,10 @@ function check_products_data() {
                 }
             );
 
-            clicked_order_pill.find('.pill_order_name').empty()
-                .append(`<i class="fas fa-spinner fa-spin"></i>`);
+            if (clicked_order_pill != null) {
+                clicked_order_pill.find('.pill_order_name').empty()
+                    .append(`<i class="fas fa-spinner fa-spin"></i>`);
+            }
 
             $.ajax({
                 type: 'GET',
@@ -2112,8 +2116,9 @@ $(document).ready(function() {
 
                 check_products_data()
                     .then(() => {
-                        update_cdb_order();
+                        compute_products_coverage_qties();
                         update_main_screen();
+                        update_cdb_order();
                         closeModal();
                     });
             }
