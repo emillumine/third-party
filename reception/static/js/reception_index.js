@@ -103,18 +103,29 @@ function goto(id) {
  * @param {int} group_index index of group in groups array
  */
 function group_goto(group_index) {
+    let missing_orders = [];
+
     // Make sure a couchdb document exists for all group's orders
     for (let i in order_groups.groups[group_index]) {
         let order_data = null;
+        let order_id = order_groups.groups[group_index][i];
 
         // Find order data
         for (let order of orders) {
-            if (order.id == order_groups.groups[group_index][i]) {
+            if (order.id == order_id) {
                 order_data = order;
             }
         }
 
-        create_order_doc(order_data);
+        if (order_data != null) {
+            create_order_doc(order_data);
+        } else {
+            missing_orders.push(order_id)
+        }
+    }
+
+    if (missing_orders.length > 0) {
+        // TODO what to do when orders are missing from group?
     }
 
     // go to first order
