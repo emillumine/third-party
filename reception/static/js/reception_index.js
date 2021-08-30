@@ -366,7 +366,7 @@ function display_orders_table() {
         $('#orders').empty();
     }
     for (let j in orders) {
-        console.log(orders[j].id)
+        console.log(orders[j].id);
     }
     table_orders = $('#orders').DataTable({
         data: orders,

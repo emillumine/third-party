@@ -42,8 +42,10 @@ def get_simple_list(request):
 def get_product_for_order_helper(request):
     res = {}
     try:
-        pids = json.loads(request.body.decode())
-        res = CagetteProducts.get_products_for_order_helper(None, pids)
+        data = json.loads(request.body.decode())
+        pids = data['pids']
+        stats_from = data['stats_from']
+        res = CagetteProducts.get_products_for_order_helper(None, pids, stats_from)
     except Exception as e:
         coop_logger.error("get_product_for_help_order_line : %s", str(e))
         res['error'] = str(e)
@@ -106,6 +108,17 @@ def update_product_purchase_ok(request):
     data = json.loads(request.body.decode())
 
     res = CagetteProduct.update_product_purchase_ok(data["product_tmpl_id"], data["purchase_ok"])
+
+    if ('error' in res):
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({"res": res})
+
+def update_product_internal_ref(request):
+    res = {}
+    data = json.loads(request.body.decode())
+
+    res = CagetteProduct.update_product_internal_ref(data["product_tmpl_id"], data["default_code"])
 
     if ('error' in res):
         return JsonResponse(res, status=500)

@@ -109,3 +109,6 @@ RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, 
 
 # display or not column "Autres" in reception process
 DISPLAY_COL_AUTRES = False
+
+# URL to the metabase dashboard for orders helper
+ORDERS_HELPER_METABASE_URL = "https://metabase.lacagette-coop.fr/dashboard/16"
