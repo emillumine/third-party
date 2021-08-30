@@ -1492,7 +1492,6 @@ function display_products(params) {
                 sort_order_dir
             ]
         ],
-        // stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
         aLengthMenu: [
             [
@@ -1532,8 +1531,18 @@ function display_products(params) {
     $('#main_content_footer').show();
     $('#do_inventory').show();
 
+    // Color line on input focus
+    $('#products_table').on('focus', 'tbody td .product_qty_input', function () {
+        const row = $(this).closest('tr');
+        row.addClass('focused_line');
+    });
+
     // Manage data on inputs blur
     $('#products_table').on('blur', 'tbody td .product_qty_input', function () {
+        // Remove line coloring on input blur
+        const row = $(this).closest('tr');
+        row.removeClass('focused_line');
+
         let val = ($(this).val() == '') ? 0 : $(this).val();
 
         const id_split = $(this).attr('id')
@@ -1807,6 +1816,8 @@ function display_total_values() {
  */
 function update_main_screen(params) {
     // Remove listener before recreating them
+    $('#products_table').off('focus', 'tbody td .product_qty_input');
+    $('#products_table').off('blur', 'tbody td .product_qty_input');
     $('#products_table').off('change', 'tbody td .product_qty_input');
     $('#products_table').off('click', 'tbody .product_not_from_supplier');
     $('#products_table').off('click', 'tbody .product_ref_cell');

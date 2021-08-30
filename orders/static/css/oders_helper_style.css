@@ -19,7 +19,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 5px 30px 5px 30px;
+    padding: 8px 30px 8px 30px;
     margin: 0 10px 5px 10px;
 }
 
@@ -258,6 +258,10 @@
     cursor: pointer;
 }
 
+.focused_line {
+    background-color: #76cf71 !important;
+}
+
 /* -- Footer */
 
 #main_content_footer {
@@ -284,8 +288,8 @@
 }
 
 .supplier_pill {
-    background-color: #00acc1;
-    border: 1px solid black;
+    background-color: #00bfdb;
+    border: 1px solid #008ea9;
 }
 
 .pill_supplier_name {
