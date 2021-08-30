@@ -1492,7 +1492,7 @@ function display_products(params) {
                 sort_order_dir
             ]
         ],
-        stripeClasses: [], // Remove datatable cells coloring
+        // stripeClasses: [], // Remove datatable cells coloring
         orderClasses: false,
         aLengthMenu: [
             [
