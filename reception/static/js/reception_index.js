@@ -120,7 +120,7 @@ function group_goto(group_index) {
         if (order_data != null) {
             create_order_doc(order_data);
         } else {
-            missing_orders.push(order_id)
+            missing_orders.push(order_id);
         }
     }
 
