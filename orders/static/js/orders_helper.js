@@ -1534,6 +1534,7 @@ function display_products(params) {
     // Color line on input focus
     $('#products_table').on('focus', 'tbody td .product_qty_input', function () {
         const row = $(this).closest('tr');
+
         row.addClass('focused_line');
     });
 
@@ -1541,6 +1542,7 @@ function display_products(params) {
     $('#products_table').on('blur', 'tbody td .product_qty_input', function () {
         // Remove line coloring on input blur
         const row = $(this).closest('tr');
+
         row.removeClass('focused_line');
 
         let val = ($(this).val() == '') ? 0 : $(this).val();
