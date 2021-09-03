@@ -1252,25 +1252,21 @@ function _compute_product_data(product) {
     }
 
     /* Coverage related data */
-    if (order_doc.coverage_days !== null) {
-        let qty_not_covered = 0;
-        let days_covered = 0;
+    const coverage_days = (order_doc.coverage_days !== null) ? order_doc.coverage_days : 0;
+    let qty_not_covered = 0;
+    let days_covered = 0;
 
-        if (product.daily_conso !== 0) {
-            qty_not_covered = product.daily_conso * order_doc.coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
-            qty_not_covered = -Math.ceil(qty_not_covered); // round up, so if a value is not fully covered display it
-            qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
+    if (product.daily_conso !== 0) {
+        qty_not_covered = product.daily_conso * coverage_days - product.qty_available - product.incoming_qty - purchase_qty;
+        qty_not_covered = -Math.ceil(qty_not_covered); // round up: display values that are not fully covered
+        qty_not_covered = (qty_not_covered > 0) ? 0 : qty_not_covered; // only display qty not covered (neg value)
 
-            days_covered = (product.qty_available + product.incoming_qty + purchase_qty) / product.daily_conso;
-            days_covered = Math.floor(days_covered);
-        }
-
-        item.qty_not_covered = qty_not_covered;
-        item.days_covered = days_covered;
-    } else {
-        item.qty_not_covered = 'X';
-        item.days_covered = 'X';
+        days_covered = (product.qty_available + product.incoming_qty + purchase_qty) / product.daily_conso;
+        days_covered = Math.floor(days_covered);
     }
+    
+    item.qty_not_covered = qty_not_covered;
+    item.days_covered = days_covered; 
 
     return item;
 }
