@@ -150,7 +150,11 @@ class CagetteProduct(models.Model):
 
             f = {
                 'date_start': today,
-                'date_end': False
+                'date_end': False,
+                'price': price,
+                'base_price': price,
+                'package_qty': package_qty,
+                'sequence': 1000  # lowest priority for the new suppliers
             }
 
             try:
