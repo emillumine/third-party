@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     'shop',
     'shelfs',
     'sales',
+    'members-space',
     #  'tests'
 
 )

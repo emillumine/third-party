@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static "css/members-space.css" %}?v=">
+{% endblock %}
+
+{% block additionnal_scripts %}
+{% endblock %}
+
+{% block content %}
+
+<div class="page_body">
+  <div id="content_main" class="page_content">
+    <div class="header txtcenter">
+      <h1>Nouvel espace membres</h1>
+    </div>
+  </div>
+
+  <div id="templates" style="display:none;">
+  </div>
+</div>
+
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/members-space.js" %}?v="></script>
+{% endblock %}
