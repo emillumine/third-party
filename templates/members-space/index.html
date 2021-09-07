@@ -5,22 +5,64 @@
 <link rel="stylesheet" href="{% static "css/members-space.css" %}?v=">
 {% endblock %}
 
-{% block additionnal_scripts %}
-{% endblock %}
+{% block additionnal_scripts %}{% endblock %}
 
 {% block content %}
 
 <div class="page_body">
-  <div id="content_main" class="page_content">
-    <div class="header txtcenter">
-      <h1>Nouvel espace membres</h1>
+  {% include "members-space/header.html" %}
+
+  <div id="main_content" class="page_content">
+    {% block members_space_content %}
+
+    <div class="page_title txtcenter">
+      <h1>Mon espace membre</h1>
     </div>
+    <div class="tiles_container">
+      <div class="tile tile_my_info">
+        <div class="tile_title">
+          Mes Infos
+        </div>
+        <div class="tile_content">
+          À venir...
+        </div>
+      </div>
+      <div class="tile tile_my_info">
+        <div class="tile_title">
+          Mes Services
+        </div>
+        <div class="tile_content">
+          À venir...
+        </div>
+      </div>
+      <div class="tile tile_my_info">
+        <div class="tile_title">
+          Échange de services
+        </div>
+        <div class="tile_content">
+          À venir...
+        </div>
+      </div>
+      <div class="tile tile_my_info">
+        <div class="tile_title">
+          J'ai une demande
+        </div>
+        <div class="tile_content">
+          À venir...
+        </div>
+      </div>
+    </div>
+
+    {% endblock %}
   </div>
 
   <div id="templates" style="display:none;">
   </div>
 </div>
 
+<script>
+  var app_env = '{{app_env}}';
+</script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members-space.js" %}?v="></script>
 {% endblock %}

@@ -1,0 +1,22 @@
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/members-space-header.css' %}">
+{% endblock %}
+    
+{% block content %}
+    <div class="topnav" id="topnav">
+        <a href="#" class="nav_item active" id="nav_home">Espace Membre</a>
+        <a href="#" class="nav_item" id="nav_my_info">Mes Infos</a>
+        <a href="#" class="nav_item" id="nav_my_services">Mes Services</a>
+        <a href="#" class="nav_item" id="nav_services_exchange">Échange de services</a>
+        <a href="#" class="nav_item" id="nav_calendar">Calendrier</a>
+        {# Disconnection button must have this id (logic in all_common.js) #}
+        <a href="#" id="deconnect">Déconnexion</a>
+        <a href="javascript:void(0);" class="icon" onclick="toggleHeader()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </div>
+
+    <script type="text/javascript" src="{% static 'js/members-space-header.js' %}"></script>
+{% endblock %}

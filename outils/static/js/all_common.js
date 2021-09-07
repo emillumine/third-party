@@ -386,7 +386,7 @@ try {
 }
 
 if (getCookie('deconnect_option') && $('#deconnect').length == 0) {
-    //Add deconnect button
+    // Add deconnect button
     //$('body').prepend($('<button>').attr('id','password_change').text('Changer mon mot de passe'));
     $('body').prepend($('<button>').attr('id', 'deconnect')
         .attr('type', 'button')
@@ -396,6 +396,11 @@ if (getCookie('deconnect_option') && $('#deconnect').length == 0) {
     });
     $('#password_change').click(function() {
         window.location.href = '/website/change_pwd';
+    });
+} else if (getCookie('deconnect_option') && $('#deconnect').length !== 0) {
+    // If a deconnect button already exists
+    $('#deconnect').click(function() {
+        window.location.href = "/website/deconnect";
     });
 }
 

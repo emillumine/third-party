@@ -1,13 +1,110 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
 
+from django.urls import reverse
+
 from sales.models import CagetteSales
+from members.models import CagetteMember
+from shifts.models import CagetteShift
+
+import hashlib
 
 
-def index(request):
-    """Display sales export screen"""
+def _get_response_according_to_credentials(request, credentials, context, template):
+    response = HttpResponse(template.render(context, request))
+    if ('token' in credentials and 'auth_token' in credentials):
+        response.set_cookie('id', credentials['id'])
+        response.set_cookie('token', credentials['token'])
+        response.set_cookie('auth_token', credentials['auth_token'])
+        response.set_cookie('deconnect_option', 'true')
+    return response
 
-    context = {'title': 'Espace Membre'}
+def index(request, exception=None):
+    """Display main screen for the members space"""
+
+    credentials = CagetteMember.get_credentials(request)
+
+    context = {
+        'title': 'Espace Membre',
+        'app_env': getattr(settings, 'APP_ENV', 'prod')
+    }
     template = loader.get_template('members-space/index.html')
 
+    if ('failure' in credentials):
+        # Bad credentials (or none)
+        template = loader.get_template('website/connect.html')
+        context['msg'] = ''
+        if 'msg' in credentials:
+            context['msg'] = credentials['msg']
+        context['password_placeholder'] = 'Naissance (jjmmaaaa)'
+    elif ('validation_state' in credentials) and credentials['validation_state'] == 'waiting_validation_member':
+        # First connection, until the member validated his account
+        template = loader.get_template('members/validation_coop.html')
+
+        referer = request.META.get('HTTP_REFERER')
+
+        doc = CagetteMember.get_couchdb_data(credentials['login'])
+
+        if len(doc) > 1:
+            context = {'title': 'Validation inscription',
+                       'coop': json.dumps(doc),
+                       'coop_msg': doc.get('coop_msg'),
+                       'warning_placeholder':
+                       """Signaler ici une anomalie du formulaire,
+                       un problème lié à votre souscription""",
+                       'referer': referer,
+                       'mag_place_string': settings.MAG_NAME,
+                       'office_place_string': settings.OFFICE_NAME,
+                       'max_begin_hour': settings.MAX_BEGIN_HOUR,
+                       'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
+                       'em_url': settings.EM_URL,
+                       'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
+                       'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
+            if hasattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX'):
+                context['ask_for_sex'] = settings.SUBSCRIPTION_ASK_FOR_SEX
+            if hasattr(settings, 'SUBSCRIPTION_ADD_STREET2'):
+                context['ask_for_street2'] = settings.SUBSCRIPTION_ADD_STREET2
+            if hasattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE'):
+                context['ask_for_second_phone'] = settings.SUBSCRIPTION_ADD_SECOND_PHONE
+    else:
+        # Members space
+        if 'id' in request.COOKIES:
+            partner_id = request.COOKIES['id']
+        else:
+            partner_id = credentials['id']
+
+        cs = CagetteShift()
+        partnerData = cs.get_data_partner(partner_id)
+
+        if 'create_date' in partnerData:
+            md5_calc = hashlib.md5(partnerData['create_date'].encode('utf-8')).hexdigest()
+            partnerData['verif_token'] = md5_calc
+
+            # Error case encountered from Odoo: member in delay state and last extension is over -> member is suspended
+            try:
+                if partnerData['cooperative_state'] == "delay" and datetime.datetime.strptime(partnerData['date_delay_stop'], '%Y-%m-%d') < datetime.datetime.now():
+                    partnerData['cooperative_state'] = "suspended"
+            except:
+                pass
+
+            context['partnerData'] = partnerData
+
+            # Days to hide in the calendar
+            days_to_hide = "0"
+            context['ADDITIONAL_INFO_SHIFT_PAGE'] = getattr(settings, 'ADDITIONAL_INFO_SHIFT_PAGE', '')
+            if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
+                days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
+            context['daysToHide'] = days_to_hide
+        else:
+            # may arrive when switching database without cleaning cookie
+            return redirect('/website/deconnect')
+
+    return _get_response_according_to_credentials(request, credentials, context, template)
+
+def my_info(request):
+    template = loader.get_template('members-space/my-info.html')
+    context = {
+        'title': 'Mes Infos',
+        'app_env': getattr(settings, 'APP_ENV', 'prod')
+    }
     return HttpResponse(template.render(context, request))

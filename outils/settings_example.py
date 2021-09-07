@@ -226,3 +226,5 @@ DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True # Needed to make dev test with different IP and ports
 
 ADMIN_IDS = [1]
+
+APP_ENV = 'dev' # Default is prod
