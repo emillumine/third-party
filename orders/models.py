@@ -258,6 +258,11 @@ class Order(models.Model):
         }
 
         for line in order_lines:
+            product_line_name =  line["name"]
+            if "product_code" in line and line["product_code"] is not False:
+                product_code = str(line["product_code"])
+                product_line_name = "[" + product_code + "] " + product_line_name
+
             order_data["order_line"].append(
                 [
                     0,
@@ -267,7 +272,7 @@ class Order(models.Model):
                         "price_policy": "uom",
                         "indicative_package": True,
                         "product_id": line["product_variant_ids"][0],
-                        "name": line["name"],
+                        "name": product_line_name,
                         "date_planned": date_planned,
                         "account_analytic_id": False,
                         "product_qty_package":line["product_qty_package"],

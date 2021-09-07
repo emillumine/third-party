@@ -221,26 +221,6 @@ def update_orders(request):
                     m.update_order_status(order_id, data['update_type'])
                     if data['update_type'] == 'br_valid':
                         answer_data[order_id]['finalyze_result'] = m.register_purchase_order_to_finalyze()
-
-                        # Remove order's group
-                        try:
-                            # TODO remove from couchdb orders & group (here?)
-                            if os.path.exists('temp/grouped_order.json'):
-                                with open('temp/grouped_order.json', 'r') as json_file:
-                                    saved_groups = json.load(json_file)
-
-                                for oi in order_ids:
-                                    for i, group in enumerate(saved_groups):
-                                        if oi in group:
-                                            saved_groups.pop(i)
-                                            break
-
-                                with open('temp/grouped_order.json', 'w') as json_file:
-                                    json.dump(saved_groups, json_file)
-                        except Exception as e:
-                            # no saved groups
-                            print(str(e))
-                    # TODO else if first step, save first step data (here?)
                 else:
                     coop_logger.error("update_orders errors : %s", str(errors))
             rep = JsonResponse(answer_data, safe=False)
@@ -259,104 +239,112 @@ def save_error_report(request):
         save it to an excel file,
         attach file to order in odoo
     """
-    if request.is_ajax():
-        if request.method == 'POST':
+    if request.method == 'POST':
+        data = None
+        try:
             myJson = request.body
             data = json.loads(myJson.decode())
+        except Exception as e1:
+            coop_logger.error("Save reception report : Unable to load data %s (%s)", str(e1), str(myJson))
 
-            temp_files_name = []
-            orders_name = ""
+        if data and ('orders' in data):
+            orders_name_elts = []
             orders_partner = ""
             group_ids = []
-            for i, order in enumerate(data['orders']) :
-                # list of temp files: 1 report per order & group
-                data['orders'][i]['temp_file_name'] = "temp/" + order['name'] + "_rapport-reception_temp.xlsx"
 
-                group_ids.append(order['id'])
+            try:
+                for i, order in enumerate(data['orders']) :
+                    # list of temp files: 1 report per order & group
+                    data['orders'][i]['temp_file_name'] = "temp/" + order['name'] + "_rapport-reception_temp.xlsx"
 
-                # Concatenate orders name
-                if orders_name != "" :
-                    orders_name = orders_name + '-'
-                orders_name = orders_name + order['name']
+                    group_ids.append(order['id'])
 
-                # Concatenate orders partner
-                if order['partner'] != orders_partner :
-                    if orders_partner != "" :
-                        orders_partner = orders_partner + ', '
-                    orders_partner = orders_partner + order['partner'] + ' du ' + order['date_order']
+                    orders_name_elts.append(order['name'])
+
+                    # Concatenate orders partner
+                    if order['partner'] != orders_partner:
+                        if orders_partner != "":
+                            orders_partner = orders_partner + ', '
+                        orders_partner = orders_partner + order['partner'] + ' du ' + order['date_order']
 
 
-            # If group of orders
-            if len(data['orders']) > 1 :
-                temp_group_file_name = "temp/" + orders_name + "_rapport-reception_temp.xlsx"
+                # If group of orders
+                if len(data['orders']) > 1:
+                    orders_name = '-'.join(orders_name_elts)
+                    temp_group_file_name = "temp/" + orders_name + "_rapport-reception_temp.xlsx"
 
-                # Add group in data['orders']
-                group_order = {
-                    'name' : orders_name,
-                    'partner' : orders_partner,
-                    'date_order' : data['orders'][0]['date_order'],
-                    'amount_total' : data['group_amount_total'],
-                    'updated_products' : data['updated_products'],
-                    'temp_file_name' : temp_group_file_name,
-                    'group_ids' : group_ids
-                }
+                    # Add group in data['orders']
+                    group_order = {
+                        'name': orders_name,
+                        'partner': orders_partner,
+                        'date_order': data['orders'][0]['date_order'],
+                        'amount_total': data['group_amount_total'],
+                        'updated_products': data['updated_products'],
+                        'temp_file_name': temp_group_file_name,
+                        'group_ids': group_ids
+                    }
 
-                data['orders'].append(group_order)
-
+                    data['orders'].append(group_order)
+                else:
+                    coop_logger.info("data['orders'] is a single PO (not inside group)")
+            except Exception as e2:
+                coop_logger.error("Save reception report : Error while create group_order %s", str(e2))
 
             # Save qties & comments after step 1
             if data['update_type'] == 'qty_valid':
                 for order in data['orders']:
-                    wb = Workbook()
-                    ws = wb.active
-                    ws.title = "Commande " + order['name']
-
-                    ws.append(['type',
-                                'nom_contenu',
-                                'supplier_code',
-                                'barcode',
-                                'old_qty',
-                                'product_qty',
-                                'price_unit',
-                                'supplier_shortage'])
-
-                    # If in group add group name
-                    if len(data['orders']) > 1 :
-                        ws.append( ['group', orders_name] )
                     try:
-                        if 'updated_products' in order:
-                            for product in order['updated_products']:
-                                # Don't store products with same qties
-                                if product['old_qty'] != product['product_qty']:
-                                    if 'supplier_code' in product:
-                                        supplier_code = str(product['supplier_code'])
-                                    else:
-                                        supplier_code = 'X'
+                        wb = Workbook()
+                        ws = wb.active
+                        ws.title = "Commande " + order['name']
 
-                                    if 'supplier_shortage' in product:
-                                        supplier_shortage = '/!\ Rupture fournisseur'
-                                    else:
-                                        supplier_shortage = ''
+                        ws.append(['type',
+                                    'nom_contenu',
+                                    'supplier_code',
+                                    'barcode',
+                                    'old_qty',
+                                    'product_qty',
+                                    'price_unit',
+                                    'supplier_shortage'])
 
-                                    ws.append( ['produit',
-                                                product['product_id'][1],
-                                                supplier_code,
-                                                str(product['barcode']),
-                                                product['old_qty'],
-                                                product['product_qty'],
-                                                product['price_unit'],
-                                                supplier_shortage] )
-                    except Exception as exp:
-                        print("Error while updating products")
-                        print(exp)
-                    if ('user_comments' in data) and data['user_comments'] != "":
-                        ws.append( ['commentaire', data['user_comments']] )
-                    else:
-                        ws.append( ['commentaire', 'Aucun commentaire.'] )
+                        # If in group add group name
+                        if len(data['orders']) > 1:
+                            ws.append(['group', orders_name])
+                        try:
+                            if 'updated_products' in order:
+                                for product in order['updated_products']:
+                                    # Don't store products with same qties
+                                    if product['old_qty'] != product['product_qty']:
+                                        if 'supplier_code' in product:
+                                            supplier_code = str(product['supplier_code'])
+                                        else:
+                                            supplier_code = 'X'
 
-                    # Save file
-                    wb.save(filename=order['temp_file_name'])
+                                        if 'supplier_shortage' in product:
+                                            supplier_shortage = '/!\ Rupture fournisseur'
+                                        else:
+                                            supplier_shortage = ''
 
+                                        ws.append(['produit',
+                                                    product['product_id'][1],
+                                                    supplier_code,
+                                                    str(product['barcode']),
+                                                    product['old_qty'],
+                                                    product['product_qty'],
+                                                    product['price_unit'],
+                                                    supplier_shortage])
+                        except Exception as exp:
+                            coop_logger.error("Error while updating products in report : %s", str(exp))
+
+                        if ('user_comments' in data) and data['user_comments'] != "":
+                            ws.append( ['commentaire', data['user_comments']] )
+                        else:
+                            ws.append( ['commentaire', 'Aucun commentaire.'] )
+
+                        # Save file
+                        wb.save(filename=order['temp_file_name'])
+                    except Exception as e3:
+                        coop_logger.error("Save reception report : Error while create order Workbook %s", str(e3))
 
 
             # Create report with data from steps 1 & 2
@@ -385,13 +373,14 @@ def save_error_report(request):
                                     'supplier_shortage' : row[7]
                                 }
                             elif row[0] == 'group':
-                                group_name = row[1]         # group's orders name
+                                group_name = row[1]         # group's orders name : Unused
                             elif row[0] == 'commentaire':
                                 data_comment_s1 = row[1]    # user comments
 
                         # Clear step 1 temp file
                         os.remove(order['temp_file_name'])
-                    except:
+                    except Exception as e4:
+                        coop_logger.error("Save reception report : reloading first step xlsx file %s", str(e4))
                         data_comment_s1 = "Données de la première étape absentes !"
 
                     # Add data from step 2
@@ -450,140 +439,152 @@ def save_error_report(request):
                                 error_total_abs += abs(item['error_line'])
 
                                 data_full.append(item)
-                    except Exception as exp:
+                        else:
+                            coop_logger.info("Save reception error doc : no 'updated_products' in order (%s)", str(order))
+                    except Exception as e5:
+                        coop_logger.error("Save reception report : Error while updating products %s", str(e5))
                         # no updated products, do nothing
-                        print("Error while updating products")
-                        print(exp)
 
                     # Add remaining products, the ones edited only in step 1
                     for product in data_qties.values():
-                        item = {
-                            'product_id': product['nom_contenu'],
-                            'product_supplier_code': product['supplier_code'],
-                            'product_barcode': product['barcode'],
-                            'old_qty': float(product['old_qty']),
-                            'product_qty': float(product['product_qty']),
-                            'old_price_unit': float(product['price_unit']),
-                            'price_unit': '',
-                            'expected_amount':float(product['old_qty'])*float(product['price_unit']),
-                            'error_line': (float(product['old_qty'])-float(product['product_qty']))*float(product['price_unit']),
-                            'supplier_shortage': product['supplier_shortage']
-                        }
+                        try:
+                            item = {
+                                'product_id': product['nom_contenu'],
+                                'product_supplier_code': product['supplier_code'],
+                                'product_barcode': product['barcode'],
+                                'old_qty': float(product['old_qty']),
+                                'product_qty': float(product['product_qty']),
+                                'old_price_unit': float(product['price_unit']),
+                                'price_unit': '',
+                                'expected_amount':float(product['old_qty'])*float(product['price_unit']),
+                                'error_line': (float(product['old_qty'])-float(product['product_qty']))*float(product['price_unit']),
+                                'supplier_shortage': product['supplier_shortage']
+                            }
 
-                        error_total += item['error_line']
-                        error_total_abs += abs(item['error_line'])
+                            error_total += item['error_line']
+                            error_total_abs += abs(item['error_line'])
 
-                        data_full.append(item)
+                            data_full.append(item)
+                        except Exception as e6:
+                            coop_logger.error("Save reception report : Error while creating item from product %s (%s)", str(e6), str(e6))
+                    try:
+                        # Sort by error amount
+                        def sortByError(e):
+                            return abs(e['error_line'])
+                        data_full.sort(reverse=True, key=sortByError)
 
-                    # Sort by error amount
-                    def sortByError(e):
-                        return abs(e['error_line'])
-                    data_full.sort(reverse=True, key=sortByError)
+                        # Create excel file
+                        wb = Workbook()
+                        ws = wb.active
+                        ws.title = "Commande " + order['name']
+                        # Group
+                        if 'group_ids' in order :
+                            ws.append( ['Rapport de réception d\'un groupe de commandes'] )
+                            ws.append( ['Fournisseur(s) : ', order['partner']] )
+                            ws.append( ['Références des commandes du groupe : ', order['name']] )
+                        else:
+                            ws.append( ['Rapport de réception'] )
+                            ws.append( ['Fournisseur : ', order['partner']] )
+                            ws.append( ['Réf Commande : ', order['name']] )
+                            if len(data['orders']) > 1 :
+                                ws.append( ['Commande traitée en groupe. Groupe : ', orders_name] )
 
-                    # Create excel file
-                    wb = Workbook()
-                    ws = wb.active
-                    ws.title = "Commande " + order['name']
-                    # Group
-                    if 'group_ids' in order :
-                        ws.append( ['Rapport de réception d\'un groupe de commandes'] )
-                        ws.append( ['Fournisseur(s) : ', order['partner']] )
-                        ws.append( ['Références des commandes du groupe : ', order['name']] )
-                    else:
-                        ws.append( ['Rapport de réception'] )
-                        ws.append( ['Fournisseur : ', order['partner']] )
-                        ws.append( ['Réf Commande : ', order['name']] )
-                        if len(data['orders']) > 1 :
-                            ws.append( ['Commande traitée en groupe. Groupe : ', orders_name] )
+                        ws.append( ['Date de la commande : ', order['date_order']] )
+                        ws.append( ['Date de la réception : ', time.strftime("%d/%m/%y")] )
+                        ws.append( ['Montant total attendu (TTC) : ', str(round(order['amount_total'],2)) + ' €'] )
+                        ws.append( [] )
 
-                    ws.append( ['Date de la commande : ', order['date_order']] )
-                    ws.append( ['Date de la réception : ', time.strftime("%d/%m/%y")] )
-                    ws.append( ['Montant total attendu (TTC) : ', str(round(order['amount_total'],2)) + ' €'] )
-                    ws.append( [] )
+                        ws.append( ['Nom produit',
+                                    'Code Four.',
+                                    'Numéro de Code Barre',
+                                    'Qté commande',
+                                    'Qté réception',
+                                    'Prix unit. initial',
+                                    'Prix unit. MAJ',
+                                    'Prix total attendu',
+                                    "Montant erreur livraison (basé sur les différences de quantité)"] )
 
-                    ws.append( ['Nom produit',
-                                'Code Four.',
-                                'Numéro de Code Barre',
-                                'Qté commande',
-                                'Qté réception',
-                                'Prix unit. initial',
-                                'Prix unit. MAJ',
-                                'Prix total attendu',
-                                "Montant erreur livraison (basé sur les différences de quantité)"] )
+                        if len(data_full) == 0:
+                            ws.append( ['- Aucune modification -'] )
+                        else:
+                            for product in data_full:
+                                ws.append( [product['product_id'],
+                                            product['product_supplier_code'],
+                                            str(product['product_barcode']),
+                                            product['old_qty'],
+                                            product['product_qty'],
+                                            product['old_price_unit'],
+                                            product['price_unit'],
+                                            round(product['expected_amount'], 2),
+                                            round(product['error_line'], 2),
+                                            product['supplier_shortage']] )
+                        ws.append( [] )
+                        ws.append( ['Montant total de l\'erreur :', '', '', '', '', '', '', '', round(error_total, 2)] )
+                        ws.append( ['Montant total en valeur absolue :', '', '', '', '', '', '', '', round(error_total_abs, 2)] )
 
-                    if len(data_full) == 0:
-                        ws.append( ['- Aucune modification -'] )
-                    else:
-                        for product in data_full:
-                            ws.append( [product['product_id'],
-                                        product['product_supplier_code'],
-                                        str(product['product_barcode']),
-                                        product['old_qty'],
-                                        product['product_qty'],
-                                        product['old_price_unit'],
-                                        product['price_unit'],
-                                        round(product['expected_amount'], 2),
-                                        round(product['error_line'], 2),
-                                        product['supplier_shortage']] )
-                    ws.append( [] )
-                    ws.append( ['Montant total de l\'erreur :', '', '', '', '', '', '', '', round(error_total, 2)] )
-                    ws.append( ['Montant total en valeur absolue :', '', '', '', '', '', '', '', round(error_total_abs, 2)] )
+                        ws.append( [] )
+                        ws.append( [] )
 
-                    ws.append( [] )
-                    ws.append( [] )
+                        ws.append( ['Problèmes survenus durant le comptage :', data_comment_s1] )
+                        # Merge cells for comments
+                        merge_begin = ws.max_row
+                        merge_end = ws.max_row+3
+                        ws.append( [] )
+                        ws.append( [] )
+                        ws.append( [] )
+                        ws.merge_cells(start_row=merge_begin, start_column=1, end_row=merge_end, end_column=1)
+                        ws.merge_cells(start_row=merge_begin, start_column=2, end_row=merge_end, end_column=7)
+                        # Styling merged cells
+                        top_left_cell = ws['A'+str(merge_begin)]
+                        top_left_cell.alignment = Alignment(vertical="top")
+                        top_left_cell = ws['B'+str(merge_begin)]
+                        top_left_cell.alignment = Alignment(vertical="top")
 
-                    ws.append( ['Problèmes survenus durant le comptage :', data_comment_s1] )
-                    # Merge cells for comments
-                    merge_begin = ws.max_row
-                    merge_end = ws.max_row+3
-                    ws.append( [] )
-                    ws.append( [] )
-                    ws.append( [] )
-                    ws.merge_cells(start_row=merge_begin, start_column=1, end_row=merge_end, end_column=1)
-                    ws.merge_cells(start_row=merge_begin, start_column=2, end_row=merge_end, end_column=7)
-                    # Styling merged cells
-                    top_left_cell = ws['A'+str(merge_begin)]
-                    top_left_cell.alignment = Alignment(vertical="top")
-                    top_left_cell = ws['B'+str(merge_begin)]
-                    top_left_cell.alignment = Alignment(vertical="top")
+                        ws.append( ['Problèmes survenus durant la mise à jour des prix :', data_comment_s2] )
+                        merge_begin = ws.max_row
+                        merge_end = ws.max_row+3
+                        ws.append( [] )
+                        ws.append( [] )
+                        ws.append( [] )
+                        ws.merge_cells(start_row=merge_begin, start_column=1, end_row=merge_end, end_column=1)
+                        ws.merge_cells(start_row=merge_begin, start_column=2, end_row=merge_end, end_column=7)
+                        top_left_cell = ws['A'+str(merge_begin)]
+                        top_left_cell.alignment = Alignment(vertical="top")
+                        top_left_cell = ws['B'+str(merge_begin)]
+                        top_left_cell.alignment = Alignment(vertical="top")
+                        # "Auto fit" columns width to content
+                        for column_cells in ws.columns:
+                            length = max(len(as_text(cell.value)) for cell in column_cells)
+                            # For other columns than the first, limit size
+                            if column_cells[3].column_letter != "A" and length > 20 :
+                                length = 20
 
-                    ws.append( ['Problèmes survenus durant la mise à jour des prix :', data_comment_s2] )
-                    merge_begin = ws.max_row
-                    merge_end = ws.max_row+3
-                    ws.append( [] )
-                    ws.append( [] )
-                    ws.append( [] )
-                    ws.merge_cells(start_row=merge_begin, start_column=1, end_row=merge_end, end_column=1)
-                    ws.merge_cells(start_row=merge_begin, start_column=2, end_row=merge_end, end_column=7)
-                    top_left_cell = ws['A'+str(merge_begin)]
-                    top_left_cell.alignment = Alignment(vertical="top")
-                    top_left_cell = ws['B'+str(merge_begin)]
-                    top_left_cell.alignment = Alignment(vertical="top")
-                    # "Auto fit" columns width to content
-                    for column_cells in ws.columns:
-                        length = max(len(as_text(cell.value)) for cell in column_cells)
-                        # For other columns than the first, limit size
-                        if column_cells[3].column_letter != "A" and length > 20 :
-                            length = 20
-
-                        ws.column_dimensions[column_cells[3].column_letter].width = length
+                            ws.column_dimensions[column_cells[3].column_letter].width = length
+                    except Exception as e7:
+                        coop_logger.error("PO save report : error while creating final Workbook %s", str(e7))
                     # Save file
                     fileName = "temp/" + order['name'] + "_rapport-reception.xlsx"
                     try:
                         wb.save(filename=fileName)
-                    except Exception as exp:
-                        print("Error while saving file %s"%fileName)
-                        print(str(exp))
-                    #Attach file to order
-                    if 'group_ids' in order :     # group report
-                        # Attach group report to each order
-                        for group_item_id in order['group_ids'] :
-                            m = CagetteReception(group_item_id)
-                            m.attach_file(fileName, False)
-                        os.remove(fileName)
-                    else:
-                        m = CagetteReception(order['id'])
-                        m.attach_file(fileName)
+                        #Attach file to order
+                        if 'group_ids' in order:     # group report
+                            # Attach group report to each order
+                            for group_item_id in order['group_ids']:
+                                m = CagetteReception(group_item_id)
+                                m.attach_file(fileName, False)
+                            os.remove(fileName)
+                        else:
+                            m = CagetteReception(order['id'])
+                            m.attach_file(fileName)
+                            coop_logger.info("%s attached to order id %s", fileName, str(order['id']))
+                    except Exception as e8:
+                        coop_logger.error("PO save report Error while saving file %s (%s)", fileName, str(e8))
+            else:
+                coop_logger.error("Save reception error report : unknown state %s (%s) ", str(data['update_type']), str(data))
+        else:
+            coop_logger.error("Cant find 'orders' in data (%s)", str(data))
+    else:
+        coop_logger.info("Was waiting for a POST method (%s)", str(request.method))
     return JsonResponse("ok", safe=False)
 
 def reception_FAQ(request):
@@ -625,3 +626,39 @@ def reception_pricesValidated(request):
 def po_process_picking(request):
     res = CagetteReception.process_enqueued_po_to_finalyze()
     return JsonResponse(res, safe=False)
+
+
+def send_mail_no_barcode(request):
+    """
+        Receive json data with liste of product with no barcode
+        Send mail to order maker
+    """
+    from django.core.mail import send_mail
+
+    if request.method == 'POST':
+        data = None
+        try:
+            myJson = request.body
+            data = json.loads(myJson.decode())
+            data_partner = CagetteReception.get_mail_create_po(int(data['order']['id']))
+
+            msg = settings.NO_BARCODE_MAIL_MSG
+
+
+            for barcode in data["no_barcode_list"]:
+
+                msg = msg + '       -' + str(barcode[0]) + '---' + str(barcode[1])+ '\n'
+
+            send_mail(settings.NO_BARCODE_MAIL_SUBJECT.format(data['order']['name']),
+                  msg.format(data_partner[0]['display_name'], data['order']['name'],data['order']['date_order'], data['order']['partner']),
+                  settings.DEFAULT_FROM_EMAIL,
+                  [data_partner[0]['email']],
+                  fail_silently=False,)
+
+
+        except Exception as e1:
+            coop_logger.error("Send_mail_no_barcode : Unable to load data %s (%s)", str(e1), str(myJson))
+            print(str(e1)+'\n'+ str(myJson))
+
+
+    return JsonResponse("ok", safe=False)

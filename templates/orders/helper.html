@@ -16,14 +16,20 @@
 {% block content %}
 <div class="page_body">
     <div id="select_order_content" class="page_content txtcenter">
+        <div class="login_area">
+            {% include "common/conn_admin.html" %}
+        </div>
         <div id="new_order_area">
             <h2>Créer une nouvelle commande</h2>
-            <form id="new_order_form">
+            <div class="txtcenter" id="not_connected_content" style="display:none;">
+                <p>Vous devez vous connecter avec un compte Odoo pour accéder au module d'aide à la commande.</p>
+            </div>
+            <form id="new_order_form" style="display:none;">
                 <input type="text" id="new_order_name" placeholder="Nom de la commande...">
-                <button type="submit" class="btn btn--primary">Valider</button>
+                <button type="submit" class="btn btn--primary">C'est parti !</button>
             </form>
         </div>
-        <div id="existing_orders_area">
+        <div id="existing_orders_area" style="display:none;">
             <h2>Ou, continuer une commande en cours de création</h2>
             <div id="existing_orders"></div>
         </div>
@@ -34,9 +40,30 @@
             <button type="button" class="btn--danger" id="back_to_order_selection_from_main">
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
-            <button type="button" class='btn--primary' id="do_inventory" style="display:none;">
-                Faire un inventaire
-            </button>
+            <div class="right_action_buttons">
+                
+                <div id="actions_buttons_wrapper">
+                    <button type="button" class='btn--primary' id="toggle_action_buttons">
+                        <span class="button_content">
+                            Actions
+                        </span>
+                        <span class="toggle_action_buttons_icon">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div id="actions_buttons_container">
+                        <button type="button" class='btn--primary action_button' id="do_inventory" style="display:none;">
+                            Faire un inventaire
+                        </button>
+                        <button type="button" class='btn--danger action_button' id="delete_order_button">
+                            Supprimer la commande
+                        </button>
+                    </div>
+                </div>
+                <a class='btn--warning link_as_button' id="access_metabase" style="display:none;" href="{{metabase_url}}" target="_blank">
+                    Stats Métabase
+                </a>
+            </div>
         </div>
     
         <div class="header txtcenter">
@@ -49,13 +76,22 @@
         </div>
     
         <div class="txtcenter" id="order_forms_container">
-            <form action="javascript:;" id="coverage_form">
-                <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
-                <button type="submit" class='btn--primary'>Calculer les besoins</button>
-            </form>
-            <form action="javascript:;" id="supplier_form">
+            <form action="javascript:;" id="supplier_form" class="order_form_item">
                 <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
                 <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
+            </form>
+            <form action="javascript:;" id="stats_date_from_form" class="order_form_item">
+                <label for="stats_date_period_select">Période de calcul de la conso moyenne </label>
+
+                <select name="stats_date_period_select" id="stats_date_period_select">
+                    <option value="">Par défaut</option>
+                    <option value="1week">1 semaine</option>
+                    <option value="2weeks">2 semaines</option>
+                </select>
+            </form>
+            <form action="javascript:;" id="coverage_form" class="order_form_item">
+                <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
+                <button type="submit" class='btn--primary'>Calculer les besoins</button>
             </form>
         </div>
     
@@ -117,8 +153,14 @@
                     <span class="pill_supplier_name"></span>
                     <i class="fas fa-times remove_supplier_icon"></i>
                 </div>
-                <div class="supplier_total_value_container">
-                    Total: <span class="supplier_total_value">0</span>€
+                <div class="supplier_data">
+                    <div class="supplier_total_value_container">
+                        Total : <span class="supplier_total_value">0</span>€
+                    </div>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <div class="supplier_total_packages_container">
+                        Nb colis : <span class="supplier_total_packages">0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,6 +168,7 @@
         <div id="order_pill_template">
             <div class="pill order_pill btn btn--primary">
                 <span class="pill_order_name"></span>
+                <i class="fas fa-times remove_order_icon"></i>
             </div>
         </div>
 
@@ -136,7 +179,7 @@
                 <h4 class="new_order_date_planned"></h4>
                 <div class='download_order_file'>
                     <i class="fas fa-spinner fa-spin download_order_file_loading"></i>
-                    <a class='btn--success download_order_file_button' style="display:none;" href="#">
+                    <a class='btn--success download_order_file_button link_as_button' style="display:none;" href="#">
                         Télécharger le fichier de commande
                     </a>
                 </div>
@@ -154,6 +197,15 @@
                 nous conseillons fortement de ne pas accéder à la commande afin d'éviter les conflits.
             </p><br/>
             <p>Voulez-vous quand même y accéder ?</p>
+            <hr/>
+        </div>
+
+        <div id="modal_remove_order">
+            <h3>Attention !</h3>
+            <p class="remove_order_modal_text">
+                Vous vous apprêtez à <b style="color: #d9534f;">supprimer</b> cette commande en cours : <span class="remove_order_name"></span>.<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
             <hr/>
         </div>
     
@@ -189,6 +241,19 @@
             <br/>
             <p> 
                 L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
+
+        <div id="modal_end_supplier_product_association">
+            <h3>Attention !</h3>
+            <p> 
+                Vous vous apprêtez à rendre le produit <span class="product_name"></span> 
+                indisponible chez le fournisseur <span class="supplier_name"></span>.
+            </p>
+            <p> 
+                L'association sera supprimée dès que vous aurez cliqué sur "Valider".<br/>
             </p>
             <p>Êtez-vous sûr ?</p>
             <hr/>
@@ -244,6 +309,7 @@
     var couchdb_dbname = '{{db}}';
     var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
     var odoo_server = '{{odoo_server}}';
+    var metabase_url = '{{metabase_url}}';
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script type="text/javascript" src="{% static 'js/orders_helper.js' %}?v="></script>

@@ -59,10 +59,9 @@ function post_form(url, data, callback) {
     $.post(ajax_params)
         .done(function(rData) {
             callback(null, rData);
-
         })
         .fail(function(err) {
-            console.log(err);
+            callback(err, {});
         });
 }
 

@@ -103,18 +103,29 @@ function goto(id) {
  * @param {int} group_index index of group in groups array
  */
 function group_goto(group_index) {
+    let missing_orders = [];
+
     // Make sure a couchdb document exists for all group's orders
     for (let i in order_groups.groups[group_index]) {
         let order_data = null;
+        let order_id = order_groups.groups[group_index][i];
 
         // Find order data
         for (let order of orders) {
-            if (order.id == order_groups.groups[group_index][i]) {
+            if (order.id == order_id) {
                 order_data = order;
             }
         }
 
-        create_order_doc(order_data);
+        if (order_data != null) {
+            create_order_doc(order_data);
+        } else {
+            missing_orders.push(order_id);
+        }
+    }
+
+    if (missing_orders.length > 0) {
+        // TODO what to do when orders are missing from group?
     }
 
     // go to first order
@@ -212,7 +223,7 @@ function validatePrices() {
 
     var updates = {
         'group_amount_total' : order['amount_total'],
-        'update_type' : 'br_vaid',
+        'update_type' : 'br_valid',
         'updated_products' : [],
         'user_comments': "",
         'orders' : [order]
@@ -285,7 +296,10 @@ function group_action() {
  * Remove the grouped orders from the order table to prevent grouping in multiple groups.
  */
 function display_grouped_orders() {
+
     if (table_orders !== null) {
+        var display_something = false;
+
         $('#groups_items').empty();
         let groups_display_content = "<ul>";
 
@@ -308,33 +322,38 @@ function display_grouped_orders() {
                 }
             }
 
-            // Display group
-            document.getElementById("container_groups").hidden = false;
-            let group_row = `<li class="group_line"> Commandes de `;
+            if (group_orders.length > 0) {
+                // Display group
+                display_something = true;
+                document.getElementById("container_groups").hidden = false;
+                let group_row = `<li class="group_line"> Commandes de `;
 
-            for (let i in group_orders) {
-                if (i == group_orders.length-1) { // last element of list
-                    group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + " : ";
-                } else {
-                    group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + ", ";
+                for (let i in group_orders) {
+                    if (i == group_orders.length-1) { // last element of list
+                        group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + " : ";
+                    } else {
+                        group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + ", ";
+                    }
                 }
-            }
 
-            if (group_orders[0].reception_status == 'False') {
-                group_row += "<button class='btn--primary' onClick='group_goto("
-                    + group_index
-                    + ")'>Compter les produits</button>";
-            } else {
-                group_row += "<button class='btn--success' onClick='group_goto("
-                    + group_index
-                    + ")'>Mettre à jour les prix</button>";
-            }
+                if (group_orders[0].reception_status == 'False') {
+                    group_row += "<button class='btn--primary' onClick='group_goto("
+                        + group_index
+                        + ")'>Compter les produits</button>";
+                } else {
+                    group_row += "<button class='btn--success' onClick='group_goto("
+                        + group_index
+                        + ")'>Mettre à jour les prix</button>";
+                }
 
-            group_row += "</li>";
-            groups_display_content += group_row;
+                group_row += "</li>";
+                groups_display_content += group_row;
+            }
         }
-        $('#container_groups').show();
-        $('#groups_items').append(groups_display_content);
+        if (display_something === true) {
+            $('#container_groups').show();
+            $('#groups_items').append(groups_display_content);
+        }
     }
 }
 
@@ -346,7 +365,9 @@ function display_orders_table() {
         table_orders.clear().destroy();
         $('#orders').empty();
     }
-
+    for (let j in orders) {
+        console.log(orders[j].id);
+    }
     table_orders = $('#orders').DataTable({
         data: orders,
         columns:[

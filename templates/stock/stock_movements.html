@@ -83,16 +83,7 @@
       <hr />
       <section class="set_member_to_movement">
         <p>Avant de valider l'opération, merci de nous dire qui vous êtes :</p>
-        <form id="sm_search_member_form" action="javascript:;" method="post">
-          <input type="text" id="sm_search_member_input" value="" placeholder="Votre nom ou numéro..." required>
-          <button type="submit" class="btn--primary" id="sm_search_member_button">Recherche</button>
-        </form>
-        <div class="search_member_results_area" style="display:none;">
-          <div>
-            <p>Vous êtes (cliquez sur votre nom) :</p>
-          </div>
-          <div class="search_member_results"></div>
-        </div>
+        {% include "members/member_selection.html" %}
       </section>
       <hr />
     </div>

@@ -24,6 +24,10 @@ def index(request):
         'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', ''),
         'ENTRANCE_SHOPPING_BTN': getattr(settings, 'ENTRANCE_SHOPPING_BTN', 'Je viens faire mes courses'),
         'ENTRANCE_SERVICE_BTN': getattr(settings, 'ENTRANCE_SERVICE_BTN', 'Je viens faire mon service'),
+        'ENTRANCE_MISSED_SHIFT_BEGIN_MSG': getattr(settings, 'ENTRANCE_MISSED_SHIFT_BEGIN_MSG',
+                                                   "La période pendant laquelle il est possible de s'enregistrer est close."),
+        'ENTRANCE_EASY_SHIFT_VALIDATE_MSG': getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE_MSG',
+                                                    'Je valide mon service "Comité"'),
         'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e')
     }
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
@@ -33,6 +37,8 @@ def index(request):
         for_shoping_msg = msettings['msg_accueil']['value']
     context['ENTRANCE_COME_FOR_SHOPING_MSG'] = for_shoping_msg
     context['ftop_btn_display'] = getattr(settings, 'ENTRANCE_FTOP_BUTTON_DISPLAY', True)
+    context['extra_btns_display'] = getattr(settings, 'ENTRANCE_EXTRA_BUTTONS_DISPLAY', True)
+    context['easy_shift_validate'] = getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE', False)
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:
             context['no_picture_member_advice'] = msettings['no_picture_member_advice']['value']
@@ -282,6 +288,22 @@ def record_service_presence(request):
     except Exception as e:
         res['error'] = str(e)
     return JsonResponse({'res': res})
+
+def easy_validate_shift_presence(request):
+    """Add a presence point if the request is valid."""
+    res = {}
+    try:
+        coop_id = int(request.POST.get("coop_id", "nan"))
+        res = CagetteServices.easy_validate_shift_presence(coop_id)
+    except Exception as e:
+        res['error'] = str(e)
+    if 'error' in res:
+        if res['error'] == "One point has been added less then 24 hours ago":
+            #  TODO : use translation (all project wide)
+            res['error'] = "Vous ne pouvez pas valider plus d'un service par 24h"
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse(res, safe=False)
 
 def record_absences(request):
     return JsonResponse({'res': CagetteServices.record_absences()})

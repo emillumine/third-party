@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^get_products_stdprices$', views.get_products_stdprices),
     url(r'^update_product_stock$', views.update_product_stock),
     url(r'^update_product_purchase_ok$', views.update_product_purchase_ok),
+    url(r'^update_product_internal_ref$', views.update_product_internal_ref),
     url(r'^labels_appli_csv(\/?[a-z]*)$', views.labels_appli_csv, name='labels_appli_csv'),
     url(r'^label_print/([0-9]+)/?([0-9\.]*)/?([a-z]*)/?([0-9]*)$', views.label_print),
     url(r'^shelf_labels$', views.shelf_labels), # massive print

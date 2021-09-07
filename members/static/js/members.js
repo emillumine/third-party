@@ -16,6 +16,7 @@
 })(jQuery);
 
 var current_displayed_member = null,
+    operator = null,
     results = null,
     loaded_services = null,
     selected_service = null,
@@ -23,6 +24,8 @@ var current_displayed_member = null,
     rattrapage_ou_volant = null,
     timeout_counter = null;
 var search_button = $('.btn--primary.search');
+var sm_search_member_button = $('#sm_search_member_button'),
+    sm_search_member_input = $('#sm_search_member_input');
 var loading2 = $('.loading2');
 var search_field = $('input[name="search_string"]');
 var shift_title = $('#current_shift_title');
@@ -35,6 +38,8 @@ var webcam_is_attached = false;
 var photo_advice = $('#photo_advice');
 var photo_studio = $('#photo_studio');
 var coop_info = $('.coop-info');
+
+const missed_begin_msg = $('#missed_begin_msg').html();
 
 let no_pict_msg = $('#no-picture-msg');
 
@@ -162,6 +167,7 @@ function canSearch() {
 
 function search_member(force_search = false) {
     chars = []; // to prevent false "as barcode-reader" input
+    operator = null;
     if (canSearch() || force_search) {
 
         html_elts.member_slide.hide();
@@ -279,7 +285,15 @@ function fill_service_entry(s) {
     rattrapage_wanted.show();
 }
 
+function clean_search_for_easy_validate_zone() {
+    $('.search_member_results_area').hide();
+    $('.search_member_results').empty();
+    sm_search_member_input.val('');
+    operator = null;
+}
+
 function clean_service_entry() {
+    clean_search_for_easy_validate_zone();
     rattrapage_wanted.hide();
     shift_title.text('');
     shift_members.html('');
@@ -346,8 +360,8 @@ function get_service_entry_data() {
             page_title.text('Qui es-tu ?');
             try {
                 if (rData.res.length == 0) {
-                    info_place.text('La période pendant laquelle il est possible de s\'enregistrer est close.');
-                    page_title.text('');
+                    info_place.html(missed_begin_msg);
+                    page_title.html('');
 
                 } else {
                     if (rData.res.length > 1) {
@@ -667,6 +681,73 @@ html_elts.image_medium.on('click', function() {
     }
 });
 
+function ask_for_easy_shift_validation() {
+    //alert("operator = " + JSON.stringify(operator))
+    msg = "<p>Je suis bien " + operator.name + "<br/> et <br/>je valide mon service 'Comité' </p>";
+    openModal(msg, function() {
+        try {
+            post_form(
+                '/members/easy_validate_shift_presence',
+                {
+                    coop_id: operator.id
+                },
+                function(err, result) {
+                    if (!err) {
+                        alert("1 point volant vient d'être ajouté.");
+                        clean_search_for_easy_validate_zone();
+                        closeModal();
+                    } else {
+                        if (typeof (err.responseJSON) != "undefined"
+                                        && typeof (err.responseJSON.error) != "undefined") {
+                            alert(err.responseJSON.error);
+                        } else {
+                            console.log(err);
+                        }
+                    }
+                }
+            );
+        } catch (e) {
+            console.log(e);
+        }
+    }, 'Confirmer');
+}
+// Display the members from the search result (copied from stock_movements)
+function display_possible_members() {
+    $('.search_member_results_area').show();
+    $('.search_member_results').empty();
+
+    if (members_search_results.length > 0) {
+        for (member of members_search_results) {
+            let btn_classes = "btn";
+
+            if (operator != null && operator.id == member.id) {
+                btn_classes = "btn--success";
+            }
+
+            // Display results (possible members) as buttons
+            var member_button = '<button class="' + btn_classes + ' btn_member" member_id="'
+                          + member.id + '">'
+                          + member.barcode_base + ' - ' + member.name
+                          + '</button>';
+
+            $('.search_member_results').append(member_button);
+            // Set action on click on a member button
+            $('.btn_member').on('click', function() {
+                for (member of members_search_results) {
+                    if (member.id == $(this).attr('member_id')) {
+                        operator = member;
+                        // Enable validation button when operator is selected
+                        ask_for_easy_shift_validation();
+                        break;
+                    }
+                }
+                display_possible_members();
+            });
+        }
+    } else {
+        $('.search_member_results').html('<p><i>Aucun résultat ! Faites-vous partie d\'un comité ? <br/> Si oui, vérifiez la recherche..</i></p>');
+    }
+}
 $(document).ready(function() {
     var shopping_entry_btn = $('a[data-next="shopping_entry"]');
 
@@ -706,6 +787,44 @@ $(document).ready(function() {
     $('#crop_width').change(function() {
         Webcam.reset();
         init_webcam();
+    });
+
+    $('#sm_search_member_form').submit(function() {
+        if (is_time_to('search_member', 1000)) {
+            sm_search_member_button.empty().append(`<i class="fas fa-spinner fa-spin"></i>`);
+            let search_str = sm_search_member_input.val();
+
+            $.ajax({
+                url: '/members/search/' + search_str,
+                dataType : 'json',
+                success: function(data) {
+                    members_search_results = [];
+
+                    for (member of data.res) {
+                        if (member.shift_type == 'ftop') {
+                            members_search_results.push(member);
+                        }
+                    }
+
+                    display_possible_members();
+                },
+                error: function(data) {
+                    err = {
+                        msg: "erreur serveur lors de la recherche de membres",
+                        ctx: 'easy_validate.search_members'
+                    };
+                    report_JS_error(err, 'members');
+
+                    $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
+                        globalPosition:"top right",
+                        className: "error"
+                    });
+                },
+                complete: function() {
+                    sm_search_member_button.empty().append(`Recherche`);
+                }
+            });
+        }
     });
 
 });
