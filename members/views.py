@@ -28,8 +28,10 @@ def index(request):
                                                    "La période pendant laquelle il est possible de s'enregistrer est close."),
         'ENTRANCE_EASY_SHIFT_VALIDATE_MSG': getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE_MSG',
                                                     'Je valide mon service "Comité"'),
-        'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e')
+        'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e'),
+        'LATE_MODE': getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
     }
+
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
 
     msettings = MConfig.get_settings('members')
