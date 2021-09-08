@@ -1090,7 +1090,11 @@ class CagetteServices(models.Model):
         f = {'state': 'done'}
         late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
         if late_mode is True:
-            services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
+            # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
+            local_tz = timezone('Europe/Paris')
+            now = datetime.datetime.now().astimezone(local_tz).strftime("%H:%MZ")
+            # coop_logger.info("Maintenant = %s", now)
+            services = CagetteServices.get_services_at_time(now,0, with_members=False)
             if len(services) > 0:
                 # Notice : Despite is_late is defined as boolean in Odoo, 0 or 1 is needed for api call
                 is_late = 0
