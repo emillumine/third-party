@@ -244,6 +244,14 @@
 
         (makes sens if ENTRANCE_EASY_SHIFT_VALIDATE is True)
 
+- ENTRANCE_WITH_LATE_MODE = True
+
+        (If member is coming within the grace delay)
+
+- ENTRANCE_VALIDATION_GRACE_DELAY = 60
+
+        (if not set, 60 minutes is the default)
+
 ### Member space
 
 - EM_URL = ''

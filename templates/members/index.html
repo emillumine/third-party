@@ -8,7 +8,7 @@
  <script type="text/javascript">
     // Prevent back page
     // Add actual page to history
-    history.pushState(null, null, location.pathname)
+    history.pushState(null, null, location.pathname);
 
     // Register back button click
     window.onpopstate = function (e) {
@@ -16,7 +16,8 @@
         e.preventDefault()
         // Add actual page to history again
         history.pushState(null, null, location.pathname)
-    }
+    };
+    window.late_mode = {% if LATE_MODE %}true{% else %}false{% endif %};
   </script>
   <script src="{% static "js/webcam.min.js" %}">
   </script>
