@@ -13,56 +13,41 @@
   {% include "members-space/header.html" %}
 
   <div id="main_content" class="page_content">
-    {% block members_space_content %}
-
-    <div class="page_title txtcenter">
-      <h1>Mon espace membre</h1>
-    </div>
-    <div class="tiles_container">
-      <div class="tile tile_my_info">
-        <div class="tile_title">
-          Mes Infos
-        </div>
-        <div class="tile_content">
-          À venir...
-        </div>
-      </div>
-      <div class="tile tile_my_info">
-        <div class="tile_title">
-          Mes Services
-        </div>
-        <div class="tile_content">
-          À venir...
-        </div>
-      </div>
-      <div class="tile tile_my_info">
-        <div class="tile_title">
-          Échange de services
-        </div>
-        <div class="tile_content">
-          À venir...
-        </div>
-      </div>
-      <div class="tile tile_my_info">
-        <div class="tile_title">
-          J'ai une demande
-        </div>
-        <div class="tile_content">
-          À venir...
-        </div>
-      </div>
-    </div>
-
-    {% endblock %}
   </div>
 
   <div id="templates" style="display:none;">
+    <div id="shift_line_template">
+      <div class="shift_line">
+        <i class="fas fa-chevron-right shift_line_chevron"></i>
+        <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
   var app_env = '{{app_env}}';
+  var partner_data = {
+    "partner_id":"{{partnerData.id}}",
+    "name":"{{partnerData.display_name}}",
+    "in_ftop_team":"{{partnerData.in_ftop_team}}",
+    "final_standard_point":"{{partnerData.final_standard_point}}",
+    "final_ftop_point":"{{partnerData.final_ftop_point}}",
+    "dateProlonge":"{{partnerData.date_delay_stop}}",
+    "date_alert_stop":"{{partnerData.date_alert_stop}}",
+    "cooperative_state":"{{partnerData.cooperative_state}}",
+    "is_leave": "{{partnerData.is_leave}}",
+    "leave_start_date": "{{partnerData.leave_start_date}}",
+    "leave_stop_date": "{{partnerData.leave_stop_date}}",
+    "next_regular_shift_date": "{{partnerData.next_regular_shift_date}}",
+    "regular_shift_name": "{{partnerData.regular_shift_name}}",
+    "verif_token" : "{{partnerData.verif_token}}"
+  }
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/members-space-home.js" %}?v="></script>
+<script src="{% static "js/members-space-my-info.js" %}?v="></script>
+<script src="{% static "js/members-space-my-shifts.js" %}?v="></script>
+<script src="{% static "js/members-space-shifts-exchange.js" %}?v="></script>
 <script src="{% static "js/members-space.js" %}?v="></script>
 {% endblock %}

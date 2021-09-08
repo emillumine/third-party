@@ -101,10 +101,37 @@ def index(request, exception=None):
 
     return _get_response_according_to_credentials(request, credentials, context, template)
 
+def home(request):
+    template = loader.get_template('members-space/home.html')
+    context = {
+        'title': 'Espace Membres',
+    }
+    return HttpResponse(template.render(context, request))
+
 def my_info(request):
-    template = loader.get_template('members-space/my-info.html')
+    template = loader.get_template('members-space/my_info.html')
     context = {
         'title': 'Mes Infos',
-        'app_env': getattr(settings, 'APP_ENV', 'prod')
+    }
+    return HttpResponse(template.render(context, request))
+
+def my_shifts(request):
+    template = loader.get_template('members-space/my_shifts.html')
+    context = {
+        'title': 'Mes Services',
+    }
+    return HttpResponse(template.render(context, request))
+
+def shifts_exchange(request):
+    template = loader.get_template('members-space/shifts_exchange.html')
+    context = {
+        'title': 'Échange de Services',
+    }
+    return HttpResponse(template.render(context, request))
+
+def no_content(request):
+    template = loader.get_template('members-space/no_content.html')
+    context = {
+        'title': 'Contenu non trouvé',
     }
     return HttpResponse(template.render(context, request))
