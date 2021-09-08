@@ -24,6 +24,11 @@ body {
     box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
 }
 
+.full_width_tile {
+    flex: 1 0 90%;
+    min-height: 100px;
+}
+
 .tile_title {
     display: flex;
     justify-content: center;
@@ -41,11 +46,11 @@ body {
     display: flex;
 }
 
-#tile_services_exchange .tile_content {
+#home_tile_services_exchange .tile_content {
     justify-content: center;
 }
 
-#tile_my_services .tile_content {
+#home_tile_my_services .tile_content {
     height: 100%;
     flex-direction: column;
 }

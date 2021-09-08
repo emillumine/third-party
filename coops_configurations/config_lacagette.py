@@ -114,3 +114,5 @@ DISPLAY_COL_AUTRES = False
 BLOCK_SERVICE_EXCHANGE_24H_BEFORE = True
 # URL to the metabase dashboard for orders helper
 ORDERS_HELPER_METABASE_URL = "https://metabase.lacagette-coop.fr/dashboard/16"
+# New members space
+START_DATE_FOR_POINTS_HISTORY = "2018-01-01"

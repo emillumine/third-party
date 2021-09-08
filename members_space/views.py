@@ -3,9 +3,10 @@ from outils.for_view_imports import *
 
 from django.urls import reverse
 
-from sales.models import CagetteSales
+from outils.common import Verification
 from members.models import CagetteMember
 from shifts.models import CagetteShift
+from members_space.models import CagetteMembersSpace
 
 import hashlib
 
@@ -28,7 +29,7 @@ def index(request, exception=None):
         'title': 'Espace Membre',
         'app_env': getattr(settings, 'APP_ENV', 'prod')
     }
-    template = loader.get_template('members-space/index.html')
+    template = loader.get_template('members_space/index.html')
 
     if ('failure' in credentials):
         # Bad credentials (or none)
@@ -102,36 +103,52 @@ def index(request, exception=None):
     return _get_response_according_to_credentials(request, credentials, context, template)
 
 def home(request):
-    template = loader.get_template('members-space/home.html')
+    template = loader.get_template('members_space/home.html')
     context = {
         'title': 'Espace Membres',
     }
     return HttpResponse(template.render(context, request))
 
 def my_info(request):
-    template = loader.get_template('members-space/my_info.html')
+    template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
     }
     return HttpResponse(template.render(context, request))
 
 def my_shifts(request):
-    template = loader.get_template('members-space/my_shifts.html')
+    template = loader.get_template('members_space/my_shifts.html')
     context = {
         'title': 'Mes Services',
     }
     return HttpResponse(template.render(context, request))
 
 def shifts_exchange(request):
-    template = loader.get_template('members-space/shifts_exchange.html')
+    template = loader.get_template('members_space/shifts_exchange.html')
     context = {
         'title': 'Échange de Services',
     }
     return HttpResponse(template.render(context, request))
 
 def no_content(request):
-    template = loader.get_template('members-space/no_content.html')
+    template = loader.get_template('members_space/no_content.html')
     context = {
         'title': 'Contenu non trouvé',
     }
     return HttpResponse(template.render(context, request))
+
+def get_points_history(request):
+    res = {}
+    partner_id = int(request.GET.get('partner_id'))
+
+    if 'verif_token' in request.GET and Verification.verif_token(request.GET.get('verif_token'), partner_id) is True:
+        m = CagetteMembersSpace()
+
+        limit = int(request.GET.get('limit'))
+        date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
+        res["data"] = m.get_points_history(partner_id, limit, date_from)
+        
+    else:
+        return JsonResponse(res, status=403)
+
+    return JsonResponse(res)
