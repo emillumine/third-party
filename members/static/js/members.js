@@ -264,6 +264,9 @@ function fill_service_entry(s) {
 
     if (s.members) {
         m_list = '<ul class="members_list">';
+        if (typeof s.late != "undefined" && s.late == true) {
+            m_list = '<ul class="members_list late">';
+        } 
         $.each(s.members, function(i, e) {
             var li_class = "btn";
             var li_data = "";
@@ -445,14 +448,15 @@ function record_service_presence() {
                     var res = rData.res;
                     var next = (res.update == 'ok')
                                   ||(res.rattrapage && !isNaN(res.rattrapage));
-
                     if (next) {
                         fill_service_entry_sucess(rData.res.member);
                         goto_page(pages.service_entry_success);
                     } else if (rData.res.error) {
                         alert(rData.res.error);
+                    } else {
+                        alert("Un problème est survenu. S'il persiste merci de le signaler à un responsable du magasin.")
                     }
-                }
+                } 
                 loading2.hide();
             }
         );
@@ -488,20 +492,6 @@ function fill_rattrapage_2() {
 
 function init_webcam() {
     try {
-
-        /*
-        Webcam.set({
-            width: $('#img_width').val(),
-            height: $('#img_height').val(),
-            dest_width: $('#img_dest_width').val(),
-            dest_height: $('#img_dest_height').val(),
-            crop_width: $('#img_crop_width').val(),
-            crop_height: $('#img_crop_height').val(),
-            image_format: 'jpeg',
-            jpeg_quality: 90
-
-        });
-        */
         Webcam.set({
             width: 320,
             height: 240,

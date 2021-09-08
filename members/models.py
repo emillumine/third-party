@@ -12,7 +12,7 @@ import sys
 from pytz import timezone
 import locale
 import re
-
+import dateutil.parser
 
 
 
@@ -1045,28 +1045,42 @@ class CagetteServices(models.Model):
         return shift
 
     @staticmethod
-    def get_services_at_time(time, tz_offset):
+    def get_services_at_time(time, tz_offset, with_members=True):
         """Retrieve present services with member linked."""
-        import dateutil.parser
+        
         # import operator
+        min_before_shift_starts_delay = 20
+        min_after_shift_starts_delay = 20
+        late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        if late_mode is True:
+            min_before_shift_starts_delay = getattr(settings, 'ENTRANCE_VALIDATION_GRACE_DELAY', 60)
+            min_after_shift_starts_delay = 0
         api = OdooAPI()
         now = dateutil.parser.parse(time) - datetime.timedelta(minutes=tz_offset)
-        start1 = now - datetime.timedelta(minutes=20)
-        start2 = now + datetime.timedelta(minutes=25)
+        start1 = now - datetime.timedelta(minutes=min_before_shift_starts_delay)
+        start2 = now + datetime.timedelta(minutes=min_after_shift_starts_delay)
         cond = [['date_begin_tz', '>=', start1.isoformat()],
                 ['date_begin_tz', '<=', start2.isoformat()]]
         fields = ['name', 'week_number', 'registration_ids',
                   'standard_registration_ids',
                   'shift_template_id', 'shift_ticket_ids',
                   'date_begin_tz', 'date_end_tz']
-        # return (start1.isoformat(), start2.isoformat())
-        services = api.search_read('shift.shift', cond, fields)
+        ## return (start1.isoformat(), start2.isoformat())
+        services = api.search_read('shift.shift', cond, fields,order ="date_begin_tz ASC")
         for s in services:
             if (len(s['registration_ids']) > 0):
-                cond = [['id', 'in', s['registration_ids']], ['state', '!=', 'cancel']]
-                fields = ['partner_id', 'shift_type', 'state']
-                members = api.search_read('shift.registration', cond, fields)
-                s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
+                if late_mode is True:
+                    s['late'] = (
+                                 now.replace(tzinfo=None)
+                                 -
+                                 dateutil.parser.parse(s['date_begin_tz']).replace(tzinfo=None)
+                                 ).seconds / 60 > min_after_shift_starts_delay
+                if with_members is True:
+                    cond = [['id', 'in', s['registration_ids']], ['state', '!=', 'cancel']]
+                    fields = ['partner_id', 'shift_type', 'state']
+                    members = api.search_read('shift.registration', cond, fields)
+                    s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
+
         return services
 
     @staticmethod
@@ -1074,6 +1088,17 @@ class CagetteServices(models.Model):
         """Equivalent to click present in presence form."""
         api = OdooAPI()
         f = {'state': 'done'}
+        late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        if late_mode is True:
+            services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
+            if len(services) > 0:
+                # Notice : Despite is_late is defined as boolean in Odoo, 0 or 1 is needed for api call
+                is_late = 0
+                if services[0]['late'] is True:
+                    is_late = 1 
+                f['is_late'] = is_late
+            else:
+                return False
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
