@@ -1092,10 +1092,11 @@ class CagetteServices(models.Model):
         if late_mode is True:
             services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
             if len(services) > 0:
+                # Notice : Despite is_late is defined as boolean in Odoo, 0 or 1 is needed for api call
                 is_late = 0
                 if services[0]['late'] is True:
-                    is_late = 1
-                f['is_late'] = 1
+                    is_late = 1 
+                f['is_late'] = is_late
             else:
                 return False
         return api.update('shift.registration', [int(registration_id)], f)
