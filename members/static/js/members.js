@@ -266,7 +266,7 @@ function fill_service_entry(s) {
         m_list = '<ul class="members_list">';
         if (typeof s.late != "undefined" && s.late == true) {
             m_list = '<ul class="members_list late">';
-        } 
+        }
         $.each(s.members, function(i, e) {
             var li_class = "btn";
             var li_data = "";
@@ -448,15 +448,16 @@ function record_service_presence() {
                     var res = rData.res;
                     var next = (res.update == 'ok')
                                   ||(res.rattrapage && !isNaN(res.rattrapage));
+
                     if (next) {
                         fill_service_entry_sucess(rData.res.member);
                         goto_page(pages.service_entry_success);
                     } else if (rData.res.error) {
                         alert(rData.res.error);
                     } else {
-                        alert("Un problème est survenu. S'il persiste merci de le signaler à un responsable du magasin.")
+                        alert("Un problème est survenu. S'il persiste merci de le signaler à un responsable du magasin.");
                     }
-                } 
+                }
                 loading2.hide();
             }
         );

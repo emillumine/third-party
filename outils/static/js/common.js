@@ -42,6 +42,7 @@ function get_shift_name(s_data) {
             shift_name += ' - ' + s_data.place;
         }
     }
+
     return shift_name;
 }
 
