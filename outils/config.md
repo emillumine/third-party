@@ -118,6 +118,10 @@
 
         If True, in shift_template calendar choice view, "Volant" button is included
 
+- USE_STANDARD_SHIFT = True (by default)
+
+        La Cagette use False to implement custom rules
+
 ### Scales and labels files generation
 
 - DAV_PATH = '/data/dav/cagette'

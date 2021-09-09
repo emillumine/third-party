@@ -117,6 +117,7 @@ def prepa_odoo(request):
                'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
+               'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member']}
 
     # with_addr_complement
@@ -150,6 +151,7 @@ def validation_inscription(request, email):
                    'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                    'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                    'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
+                   'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                    'em_url': settings.EM_URL,
                    'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
                    'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}

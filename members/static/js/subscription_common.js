@@ -46,7 +46,8 @@ function display_current_coop_form() {
     // form.find('[name="barcode_base"]').val(current_coop.barcode_base);
     form.find('[name="email"]').val(current_coop._id);
     if (current_coop.shift_template &&
-      current_coop.shift_template.data.type == 2) {
+      current_coop.shift_template.data.type == 2 && 
+      typeof manage_ftop != "undefined" && manage_ftop == true) { 
         $('#choosen_shift input').hide();
         ftop_shift.val('Volant');
         ftop_shift.show();
