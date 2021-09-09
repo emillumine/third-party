@@ -114,6 +114,10 @@
         Character which by used to separate every 2 phone figures (04.67.23.89.21 for example)
         Default is " "
 
+- SHOW_FTOP_BUTTON = True (by default)
+
+        If True, in shift_template calendar choice view, "Volant" button is included
+
 ### Scales and labels files generation
 
 - DAV_PATH = '/data/dav/cagette'

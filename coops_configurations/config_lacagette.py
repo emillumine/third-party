@@ -54,6 +54,10 @@ EM_URL = ''
 
 
 RECEPTION_MERGE_ORDERS_PSWD = 'jpsrcp'
+RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \
+        Merci d'indiquer un maximum d'informations, le nom du produit et son code barre."
+DISPLAY_COL_AUTRES = False
+
 
 DAV_PATH = '/shared_dir/dav/'
 TOOLS_SERVER = 'https://outils.lacagette-coop.fr'
@@ -99,18 +103,19 @@ PB_INSTRUCTIONS = """Si j'ai un problème, que je suis désinscrit, que je veux 
 ENTRANCE_COME_FOR_SHOPING_MSG = "Hey coucou toi ! Cet été nous sommes plus de <strong>1000 acheteur·euses</strong> pour seulement  <strong>300 coopérateur·rice·s</strong> en service. <br />Tu fais tes courses à La Cagette cet été ?<br/> Inscris-toi sur ton espace membre !"
 ENTRANCE_EXTRA_BUTTONS_DISPLAY = False
 ENTRANCE_EASY_SHIFT_VALIDATE = True
+ENTRANCE_MISSED_SHIFT_BEGIN_MSG = """La période pendant laquelle il est possible de s'enregistrer est close.<br />
+Merci de remplir le formulaire <em>"arrivé·e en retard"</em> <br/> 
+que vous trouverez <em>sur le site internet de La Cagette</em>
+dans la rubrique<br />
+"Espace Membre"  > "J\'ai un problème ou une demande".<br/>
+Le bureau des membres traitera votre demande !'
+"""
+ENTRANCE_EASY_SHIFT_VALIDATE_MSG = """Si vous faites un service dans un comité, merci de <br/>
+valider votre présence en cherchant<br/>
+votre nom ou numéro ci-dessous
+"""
 # Members space / shifts
 UNSUBSCRIBED_MSG = 'Vous êtes désincrit·e, merci de remplir <a href="https://docs.google.com/forms/d/e/1FAIpQLSfPiC2PkSem9x_B5M7LKpoFNLDIz0k0V5I2W3Mra9AnqnQunw/viewform">ce formulaire</a> pour vous réinscrire sur un créneau.<br />Vous pouvez également contacter le Bureau des Membres en remplissant <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZP0m5-EXPVJxEKJk6EjwSyZJtnbiGdYDuAeFI3ENsHAOikg/viewform">ce formulaire</a>'
 CONFIRME_PRESENT_BTN = 'Clique ici pour valider ta présence'
 
-RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \
-        Merci d'indiquer un maximum d'informations, le nom du produit et son code barre. \
-        Dans le cas de produits déteriorés, merci d'envoyer une photo avec votre téléphone à [Adresse_email]"
-
-# display or not column "Autres" in reception process
-DISPLAY_COL_AUTRES = False
-
-# Should block service exchange if old service is happening in less than 24h
-BLOCK_SERVICE_EXCHANGE_24H_BEFORE = True
-# URL to the metabase dashboard for orders helper
-ORDERS_HELPER_METABASE_URL = "https://metabase.lacagette-coop.fr/dashboard/16"
+ORDERS_HELPER_METABASE_URL = "url_meta_base"
