@@ -337,6 +337,10 @@
 
 - MEALS_PICKING_TYPE_ID = 10
 
+### New members space
+
+- START_DATE_FOR_POINTS_HISTORY = "2018-01-01"
+
 
 
 

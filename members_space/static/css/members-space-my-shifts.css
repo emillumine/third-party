@@ -1,0 +1,31 @@
+#my_shifts {
+    font-size: 1.8rem;
+}
+
+#incoming_services {
+    height: 100%;
+    flex-direction: column;
+}
+
+.history_table {
+    width: 100%;
+}
+
+.history_table_header {
+    display: flex;
+    border-bottom: 1px solid #333;
+}
+.history_table_line {
+    display: flex;
+}
+
+.table_header_el {
+    flex: 1 0 20%;
+    padding: 1rem 0.5rem;
+    font-weight: bold;
+}
+.table_line_el {
+    flex: 1 0 20%;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid #e7e9ed;
+}
