@@ -88,6 +88,7 @@ def inscriptions(request, type=1):
                'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
                'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
                'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
+               'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member']}
 
     response = HttpResponse(template.render(context, request))
