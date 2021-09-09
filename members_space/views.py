@@ -145,8 +145,9 @@ def get_points_history(request):
         m = CagetteMembersSpace()
 
         limit = int(request.GET.get('limit'))
+        offset = int(request.GET.get('offset'))
         date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
-        res["data"] = m.get_points_history(partner_id, limit, date_from)
+        res["data"] = m.get_points_history(partner_id, limit, offset, date_from)
         
     else:
         return JsonResponse(res, status=403)

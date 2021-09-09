@@ -4,37 +4,37 @@
     <h1>Mes Services</h1>
   </div>
   <div class="tiles_container">
-    <div class="tile full_width_tile" id="incoming_services_area">
+    <div class="tile full_width_tile" id="incoming_shifts_area">
       <div class="tile_title">
         À venir
       </div>
-      <div class="tile_content" id="incoming_services"></div>
+      <div class="loading-incoming-shifts">
+        <i class="fas fa-spinner fa-spin fa-lg"></i>
+      </div>
+      <div class="tile_content" id="incoming_shifts"></div>
     </div>
     <div class="tile full_width_tile" id="history_area">
       <div class="tile_title">
         Historique des mouvements de points
       </div>
+      <div class="loading-history">
+        <i class="fas fa-spinner fa-spin fa-lg"></i>
+      </div>
       <div class="tile_content" id="history">
-        <div class="history_table">
-          <div class="history_table_header">
-            <div class="table_header_el table_header_date">
-              Date
-            </div>
-            <div class="table_header_el table_header_created_by">
-              Créé par
-            </div>
-            <div class="table_header_el table_header_service">
-              Service ?? 
-            </div>
-            <div class="table_header_el table_header_desc">
-              Description
-            </div>
-            <div class="table_header_el table_header_pts">
-              Mouvement de points
-            </div>
+        <div class="history_table_area">
+          <table id="history_table" class="display" cellspacing="0" width="100%"></table>
+        </div>
+        <div class="more_history">
+          <div class="loading-more-history">
+            <i class="fas fa-spinner fa-spin fa-lg"></i>
           </div>
-          <div class="history_table_content">
-          </div>
+          <button 
+            type="button" 
+            class="btn btn--primary more_history_button"
+            title="Charger plus d'éléments..."
+          >
+            <i class="fas fa-plus more_history_icon"></i>
+          </button>
         </div>
       </div>
     </div>

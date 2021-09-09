@@ -2,11 +2,16 @@
 {% load static %}
 
 {% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/responsive.dataTables.min.css' %}">
 <link rel="stylesheet" href="{% static "css/members-space.css" %}?v=">
 <link rel="stylesheet" href="{% static "css/members-space-my-shifts.css" %}?v=">
 {% endblock %}
 
-{% block additionnal_scripts %}{% endblock %}
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.responsive.min.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 
@@ -21,16 +26,6 @@
       <div class="shift_line">
         <i class="fas fa-chevron-right shift_line_chevron"></i>
         <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
-      </div>
-    </div>
-
-    <div id="history_line_template">
-      <div class="history_table_line">
-        <div class="table_line_el table_line_date"></div>
-        <div class="table_line_el table_line_created_by"></div>
-        <div class="table_line_el table_line_service"></div>
-        <div class="table_line_el table_line_desc"></div>
-        <div class="table_line_el table_line_pts"></div>
       </div>
     </div>
   </div>
