@@ -50,12 +50,13 @@ body {
     justify-content: center;
 }
 
+
+/* -- My Shifts tile */
+
 #home_tile_my_services .tile_content {
     height: 100%;
     flex-direction: column;
 }
-
-/* -- My Shifts tile */
 
 #home_incoming_services {
     min-height: 80px;
@@ -75,4 +76,57 @@ body {
 .shift_line_chevron {
     color: #D9534F;
     margin-right: 5px;
+}
+
+/* -- My Info tile*/
+
+.tile_icon {
+    margin-right: 15px;
+    color: #00a573;
+}
+
+#home_tile_my_info .tile_content {
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    font-size: 2.3rem;
+}
+
+.home_member_info {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+#home_member_status_extra_info_area {
+    margin-bottom:20px;
+}
+#home_choose_makeups {
+    display: none;
+}
+
+.member_status_up_to_date,
+.member_status_exempted {
+    color: #5cb85c;
+}
+.member_status_alert,
+.member_status_delay {
+    color: #f0ad4e;
+}
+.member_status_suspended,
+.member_status_unsubscribed {
+    color: #d9534f;
+}
+
+#home_member_shift_name_area,
+#home_member_coop_number_area {
+    margin-bottom: 10px;
+}
+
+@media screen and (max-width: 768px) {
+    #home_member_shift_name_area,
+    #home_member_coop_number_area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 }

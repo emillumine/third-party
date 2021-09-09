@@ -5,21 +5,35 @@
   <div class="tiles_container">
     <div class="tile" id="home_tile_my_info">
       <div class="tile_title">
+        <i class="fas fa-user tile_icon"></i>
         Mes Infos
       </div>
       <div class="tile_content">
-        À venir...
+        <p>Mon statut : <span id="home_member_status" class="home_member_info"></span></p>
+        <div id="home_member_status_extra_info_area">
+          <button type="button" class="btn--danger" id="home_choose_makeups">
+            Je sélectionne mes rattrapages
+          </button>
+        </div>
+        <div id="home_member_shift_name_area">
+          <span>Mon créneau : </span>
+          <span id="home_member_shift_name" class="home_member_info"></span>
+        </div>
+        <div id="home_member_coop_number_area">
+          <span>Mon numéro de coop : </span>
+          <span id="home_member_coop_number" class="home_member_info"></span>
+        </div>
       </div>
     </div>
     <div class="tile" id="home_tile_my_services">
       <div class="tile_title">
+        <i class="fas fa-clipboard tile_icon"></i>
         Mes Services
       </div>
       <div class="tile_content">
         <h3>Services à venir</h3>
         <div id="home_incoming_services">
           <i class="fas fa-spinner fa-spin fa-lg"></i>
-          
         </div>
         <button type="button", class="btn btn--primary" id="home_go_to_shift_history">
           Accéder à mon historique
@@ -28,6 +42,7 @@
     </div>
     <div class="tile" id="home_tile_services_exchange">
       <div class="tile_title">
+        <i class="fas fa-exchange-alt tile_icon"></i>
         Échange de services
       </div>
       <div class="tile_content">
@@ -38,6 +53,7 @@
     </div>
     <div class="tile" id="home_tile_help">
       <div class="tile_title">
+        <i class="fas fa-question-circle tile_icon"></i>
         J'ai une demande
       </div>
       <div class="tile_content">

@@ -36,7 +36,7 @@ class CagetteShift(models.Model):
         fields = ['display_name', 'display_std_points',
                   'shift_type', 'date_alert_stop', 'date_delay_stop', 'extension_ids',
                   'cooperative_state', 'final_standard_point', 'create_date',
-                  'final_ftop_point', 'in_ftop_team', 'leave_ids']
+                  'final_ftop_point', 'in_ftop_team', 'leave_ids', 'makeups_to_do', 'barcode_base']
         partnerData = self.o_api.search_read('res.partner', cond, fields, 1)
         if partnerData:
             partnerData = partnerData[0]

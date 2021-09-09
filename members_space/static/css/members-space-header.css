@@ -25,7 +25,7 @@
 
 /* Add an active class to highlight the current page */
 .topnav a.active {
-    background-color: #5cb85c;
+    background-color: #00a573;
     color: white;
 }
 
