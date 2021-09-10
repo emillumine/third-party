@@ -95,19 +95,27 @@ class CagetteMember(models.Model):
             api = OdooAPI()
             cond = [['email', '=', login]]
             if getattr(settings, 'ALLOW_NON_MEMBER_TO_CONNECT', False) is False:
+                cond.append('|')
                 cond.append(['is_member', '=', True])
-            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state']
+                cond.append(['is_associated_people', '=', True])
+
+            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
-                for coop in res:
-                    y, m, d = coop['birthdate'].split('-')
-                    password = password.replace('/', '')
-                    if (password == d + m + y):
-                        data['id'] = coop['id']
-                        auth_token_seed = fp + coop['create_date']
-                        data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
-                        data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
-                        data['coop_state'] = coop['cooperative_state']
+                for item in res:
+                    coop = item
+                    if item["is_associated_people"] == True:
+                        break
+
+                y, m, d = coop['birthdate'].split('-')
+                password = password.replace('/', '')
+                if (password == d + m + y):
+                    data['id'] = coop['id']
+                    auth_token_seed = fp + coop['create_date']
+                    data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
+                    data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
+                    data['coop_state'] = coop['cooperative_state']
+
                 if not ('auth_token' in data):
                     data['failure'] = True
                     data['msg'] = "Erreur dans le mail ou le mot de passe"
