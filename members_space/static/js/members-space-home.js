@@ -75,11 +75,20 @@ function init_my_shifts_tile() {
 function init_my_info_tile() {
     $("#home_choose_makeups").off();
 
+    
     // Status related
     $("#home_tile_my_info #home_member_status")
         .text(possible_cooperative_state[partner_data.cooperative_state])
         .addClass("member_status_" + partner_data.cooperative_state);
 
+    if (partner_data.cooperative_state === 'delay' && partner_data.date_delay_stop !== 'False') {
+        const d = new Date (Date.parse(partner_data.date_delay_stop));
+        const f_date_delay_stop = d.getDate()+'/'+("0" + (d.getMonth() + 1)).slice(-2)+'/'+d.getFullYear();
+
+        $("#home_delay_date_stop").text(f_date_delay_stop);
+        $("#home_delay_date_stop_container").show();
+    }
+    
     if (partner_data.makeups_to_do > 0) {
         $("#home_choose_makeups").show();
         
