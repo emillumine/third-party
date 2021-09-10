@@ -17,6 +17,7 @@
         history.pushState(null, null, location.pathname)
     }
     var coop = {{coop|safe}};
+    let manage_ftop = {% if show_ftop_button %}true{% else %}false{% endif %};
   </script>
 {% endblock %}
 {% block content %}

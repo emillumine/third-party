@@ -3,12 +3,13 @@
  */
 function toggleHeader() {
     var x = document.getElementById("topnav");
+
     if (x.className === "topnav") {
-      x.className += " responsive";
+        x.className += " responsive";
     } else {
-      x.className = "topnav";
+        x.className = "topnav";
     }
-} 
+}
 
 $(document).ready(function() {
     // Navbar redirections

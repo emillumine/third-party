@@ -5,22 +5,23 @@ const possible_cooperative_state = {
     up_to_date: "À jour",
     unsubscribed: "Désinscrit.e",
     delay: "En délai"
-}
+};
 
 /**
  * Request a 6 month delay
  */
- function request_delay() {
+function request_delay() {
     return new Promise((resolve) => {
         let today = new Date();
 
         const delay_start = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
 
         let today_plus_six_month = new Date();
+
         today_plus_six_month.setMonth(today_plus_six_month.getMonth()+6);
         const diff_time = Math.abs(today_plus_six_month - today);
         const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
-        
+
         $.ajax({
             type: 'POST',
             url: "/shifts/request_delay",
@@ -34,7 +35,7 @@ const possible_cooperative_state = {
             success: function() {
                 partner_data.cooperative_state = 'delay';
                 partner_data.date_delay_stop = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-                
+
                 resolve();
             },
             error: function(data) {
@@ -54,16 +55,18 @@ const possible_cooperative_state = {
 
 function init_my_shifts_tile() {
     if (incoming_shifts.length === 0) {
-        $("#home_tile_my_services #home_incoming_services").text("Aucun service à venir...")
+        $("#home_tile_my_services #home_incoming_services").text("Aucun service à venir...");
     } else {
         $("#home_tile_my_services #home_incoming_services").empty();
-        
+
         let cpt = 0;
+
         for (shift of incoming_shifts) {
             if (cpt === 3) {
                 break;
             } else {
                 let shift_line_template = prepare_shift_line_template(shift.date_begin);
+
                 $("#home_tile_my_services #home_incoming_services").append(shift_line_template.html());
 
                 cpt++;
@@ -82,11 +85,11 @@ function init_home() {
     $("#see_more_info_link").on('click', (e) => {
         e.preventDefault();
         goto('mes-infos');
-    })
+    });
 
     // Init my info tile
     init_my_info_data();
-    
+
     if (incoming_shifts !== null) {
         init_my_shifts_tile();
     } else {

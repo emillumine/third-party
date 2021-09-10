@@ -122,6 +122,8 @@ class CagetteShift(models.Model):
 
     def get_shift_ticket(self,idShift, in_ftop_team):
         """Récupérer le shift_ticket suivant le membre et flotant ou pas"""
+        if getattr(settings, 'USE_STANDARD_SHIFT', True) == False:
+            in_ftop_team = "True"
         fields = ['shift_ticket_ids']
         cond = [['id', "=", idShift]]
         listeTicket = self.o_api.search_read('shift.shift', cond, fields)
@@ -134,11 +136,14 @@ class CagetteShift(models.Model):
         """Shift registration"""
         st_r_id = False
         try:
+            shift_type = "standard"
+            if data['in_ftop_team'] == "True" or getattr(settings, 'USE_STANDARD_SHIFT', True) == False:
+                shift_type = "ftop"
             fieldsDatas = { "partner_id": data['idPartner'],
                             "shift_id": data['idShift'],
                             "shift_ticket_id": self.get_shift_ticket(data['idShift'], data['in_ftop_team']),
-                            "shift_type": "standard",  # ftop
-                            "related_shift_state": 'confirm',
+                            "shift_type": shift_type,  
+                            "origin": 'memberspace',
                             "state": 'open'}
 
             st_r_id = self.o_api.create('shift.registration', fieldsDatas)

@@ -137,7 +137,7 @@ function changeShift(idOldRegister, idNewShift) {
                 closeModal();
 
                 if (error.status === 400) {
-                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. Il n'est plus possible de l'échanger.`)
+                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. Il n'est plus possible de l'échanger.`);
 
                 } else {
                     alert('Une erreur est survenue. Il est néanmoins possible que la requête ait abouti, veuillez patienter quelques secondes puis vérifier vos services enregistrés.');

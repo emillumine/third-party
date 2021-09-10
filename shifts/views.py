@@ -108,7 +108,7 @@ def get_list_shift_calendar(request, partner_id):
     events = []
     for value in listService:
         events.append(value)
-        if value['shift_type_id'][0] == 1:
+        if value['shift_type_id'][0] == 1 or getattr(settings, 'USE_STANDARD_SHIFT', True) is False:
             l = set(value['registration_ids']) & set(listRegisterPartner)
             # if (int(value['seats_reserved']) == int(value['seats_max']) and len(l) > 0 ) or (int(value['seats_reserved']) < int(value['seats_max'])):
             if (int(value['seats_available']) > 0 or len(l) > 0 ):

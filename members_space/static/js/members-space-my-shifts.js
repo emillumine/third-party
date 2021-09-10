@@ -5,7 +5,7 @@ const history_items_limit = 10;
 /**
  * Load the partner points history
  */
- function load_partner_history(offset = 0) {
+function load_partner_history(offset = 0) {
     return new Promise((resolve) => {
         $.ajax({
             type: 'GET',
@@ -40,8 +40,8 @@ const history_items_limit = 10;
 
 /**
  * Format history data to insert in the table
- *  
- * @param {Array} data 
+ *
+ * @param {Array} data
  * @returns formated data array
  */
 function prepare_server_data(data) {
@@ -52,6 +52,7 @@ function prepare_server_data(data) {
         let datetime_shift_start = new Date(history_item.create_date);
 
         let f_date_shift_start = datetime_shift_start.toLocaleDateString("fr-fr", date_options);
+
         f_date_shift_start = f_date_shift_start.charAt(0).toUpperCase() + f_date_shift_start.slice(1);
 
         history_item.movement_date = f_date_shift_start + " - " + datetime_shift_start.toLocaleTimeString("fr-fr");
@@ -83,14 +84,15 @@ function prepare_server_data(data) {
 }
 
 /**
- * Init the History section: display the history table 
+ * Init the History section: display the history table
  */
 function init_history() {
     $(".loading-history").hide();
     $("#history").show();
 
     if (partner_history.length === 0) {
-        $("#history").empty().text("Aucun historique... pour l'instant !")
+        $("#history").empty()
+            .text("Aucun historique... pour l'instant !");
     } else {
         let viewportWidth = $(window).width();
 
@@ -100,7 +102,7 @@ function init_history() {
                 {
                     data: "movement_date",
                     title: `Date`,
-                    responsivePriority: 1,
+                    responsivePriority: 1
                 },
                 {
                     data: "created_by",
@@ -110,20 +112,20 @@ function init_history() {
                 },
                 {
                     data: "shift_name",
-                    title: "Service",
+                    title: "Service"
                 },
                 {
                     data: "name",
                     title: "Détails",
-                    responsivePriority: 3,
+                    responsivePriority: 3
                 },
                 {
                     data: "point_qty",
                     title: (viewportWidth <= 768) ? "Mvmt de points" : "Mouvement de points",
                     responsivePriority: 2,
                     width: "10%",
-                    className: (viewportWidth <= 768) ? "dt-body-center" : '',
-                },
+                    className: (viewportWidth <= 768) ? "dt-body-center" : ''
+                }
             ],
             iDisplayLength: -1,
             ordering: false,
@@ -133,7 +135,7 @@ function init_history() {
             createdRow: function(row) {
                 for (var i = 0; i < row.cells.length; i++) {
                     const cell = $(row.cells[i]);
-    
+
                     if (cell.text() === "Présent") {
                         $(row).addClass('row_partner_ok');
                     } else if (cell.text() === "Retard") {
@@ -155,12 +157,13 @@ function init_incoming_shifts() {
     $("#incoming_shifts").show();
 
     if (incoming_shifts.length === 0) {
-        $("#incoming_shifts").text("Aucun service à venir...")
+        $("#incoming_shifts").text("Aucun service à venir...");
     } else {
         $("#incoming_shifts").empty();
-        
+
         for (shift of incoming_shifts) {
             let shift_line_template = prepare_shift_line_template(shift.date_begin);
+
             $("#incoming_shifts").append(shift_line_template.html());
         }
     }
@@ -196,8 +199,8 @@ function init_my_shifts() {
         load_partner_history(partner_history.length)
             .then((data) => {
                 partner_history = partner_history.concat(data);
-                if (history_table) {            
-                    history_table.rows.add( data ).draw( false );
+                if (history_table) {
+                    history_table.rows.add(data).draw(false);
                 }
 
                 $('.loading-more-history').hide();
