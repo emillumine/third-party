@@ -97,13 +97,23 @@ body {
     font-weight: bold;
 }
 
-#home_member_status_extra_info_area {
+#home_member_status_action {
     margin-bottom:20px;
+    font-size: 1.8rem;;
 }
+
 #home_choose_makeups {
     display: none;
-    font-size: 1.8rem;;
+}
 
+#home_unsuscribed_form_link {
+    display: none;
+    text-decoration: none;
+    /* margin-bottom: 10px; */
+}
+#home_unsuscribed_form_link:hover,
+#home_unsuscribed_form_link:active {
+    color: white !important;
 }
 
 .member_status_up_to_date,

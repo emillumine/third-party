@@ -75,9 +75,10 @@ function init_my_shifts_tile() {
 function init_my_info_tile() {
     $("#home_choose_makeups").off();
 
-    
+    $("#home_member_shift_name").text(partner_data.regular_shift_name);
+
     // Status related
-    $("#home_tile_my_info #home_member_status")
+    $("#home_member_status")
         .text(possible_cooperative_state[partner_data.cooperative_state])
         .addClass("member_status_" + partner_data.cooperative_state);
 
@@ -87,6 +88,17 @@ function init_my_info_tile() {
 
         $("#home_delay_date_stop").text(f_date_delay_stop);
         $("#home_delay_date_stop_container").show();
+    } else if (partner_data.cooperative_state === 'unsubscribed') {
+        $("#home_member_shift_name").text('X');
+
+        $("#home_unsuscribed_form_link")
+            .show()
+            .attr('href', unsuscribe_form_link)
+            .on('click', function() {
+                setTimeout(500, () => {
+                    $(this).removeClass('active');
+                });
+            });
     }
     
     if (partner_data.makeups_to_do > 0) {
@@ -112,10 +124,8 @@ function init_my_info_tile() {
         }
     }
 
-    $("#home_tile_my_info #home_member_shift_name").text(partner_data.regular_shift_name);
-
     // TODO coop number for attached people ??
-    $("#home_tile_my_info #home_member_coop_number").text(partner_data.barcode_base);
+    $("#home_member_coop_number").text(partner_data.barcode_base);
 }
 
 function init_home() {

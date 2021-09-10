@@ -27,7 +27,8 @@ def index(request, exception=None):
 
     context = {
         'title': 'Espace Membre',
-        'app_env': getattr(settings, 'APP_ENV', 'prod')
+        'app_env': getattr(settings, 'APP_ENV', 'prod'),
+        'unsuscribe_form_link': getattr(settings, 'UNSUBSCRIBED_FORM_LINK', ''),
     }
     template = loader.get_template('members_space/index.html')
 
