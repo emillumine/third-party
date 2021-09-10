@@ -173,21 +173,23 @@ class CagetteShift(models.Model):
             coop_logger.error("Reopen shift : %s", str(e))
         return response
 
-    def create_delay(self, data):
-        """Create a delay for a member.
-        A delay is 28 days from the given start_date.
+    def create_delay(self, data, duration=28):
+        """
+        Create a delay for a member.
+        If no duration is specified, a delay is by default 28 days from the given start_date.
 
-        If the partner already has a current extension: extend it by 28 days.
+        If the partner already has a current extension: extend it by [duration] days.
         Else, create a 28 days delay.
 
         Args:
             idPartner: int
             start_date: string date at iso format (eg. "2019-11-19")
-                Date from which the 28 days delay is calculated
+                Date from which the delay end date is calculated
             (optionnal) extension_beginning: string date at iso format
                 If specified, will be the actual starting date of the extension.
                 Should be inferior than start_date.
                 (at creation only: odoo ignores delays if today's not inside)
+            duration: nb of days
         """
         action = 'create'
 
@@ -218,7 +220,7 @@ class CagetteShift(models.Model):
         # Update current extension
         if action == 'update':
             ext_date_stop = datetime.datetime.strptime(extension['date_stop'], '%Y-%m-%d').date()
-            ext_new_date_stop = (ext_date_stop + datetime.timedelta(days=28))
+            ext_new_date_stop = (ext_date_stop + datetime.timedelta(days=duration))
 
             update_data = {
                 'date_stop': ext_new_date_stop.isoformat()
@@ -235,12 +237,11 @@ class CagetteShift(models.Model):
                     ext_type_id = val['id']
 
             starting_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-            ending_date = (starting_date + datetime.timedelta(days=28))
+            ending_date = (starting_date + datetime.timedelta(days=duration))
 
             if 'extension_beginning' in data:
                 starting_date = datetime.datetime.strptime(data['extension_beginning'], '%Y-%m-%d').date()
 
-            #TODO : bloquer si nextmonth > date_end_alert+5months ? (blocage js)
             fields= {
                 "partner_id":   data['idPartner'],
                 "type_id":      ext_type_id,

@@ -13,15 +13,23 @@ function toggleHeader() {
 $(document).ready(function() {
     // Navbar redirections
     $('#nav_home').on('click', function() {
-        goto('home');
+        if (current_location !== "home") {
+            goto('home');
+        }
     });
     $('#nav_my_info').on('click', function() {
-        goto('mes-infos');
+        if (current_location !== "my_info") {
+            goto('mes-infos');
+        }
     });
     $('#nav_my_shifts').on('click', function() {
-        goto('mes-services');
+        if (current_location !== "my_shifts") {
+            goto('mes-services');
+        }
     });
     $('#nav_shifts_exchange').on('click', function() {
-        goto('echange-de-services');
+        if (current_location !== "shifts_exchange") {
+            goto('echange-de-services');
+        }
     });
 });

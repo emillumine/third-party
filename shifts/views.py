@@ -231,6 +231,7 @@ def add_shift(request):
 def request_delay(request):
     if 'verif_token' in request.POST:
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
+            
             cs = CagetteShift()
             data = {
                 "idPartner": int(request.POST['idPartner']),
@@ -239,10 +240,15 @@ def request_delay(request):
             if ('extension_beginning' in request.POST):
                 data['extension_beginning'] = request.POST['extension_beginning']
 
+            if ('duration' in request.POST):
+                duration = int(request.POST['duration'])
+            else:
+                duration = None
+
             response = {'result': False}
 
             try:
-                new_id = cs.create_delay(data)
+                new_id = cs.create_delay(data, duration)
                 if (new_id):
                     response = {'result': True}
                 else:
