@@ -72,71 +72,20 @@ function init_my_shifts_tile() {
     }
 }
 
-function init_my_info_tile() {
-    $("#home_choose_makeups").off();
-
-    $("#home_member_shift_name").text(partner_data.regular_shift_name);
-
-    // Status related
-    $("#home_member_status")
-        .text(possible_cooperative_state[partner_data.cooperative_state])
-        .addClass("member_status_" + partner_data.cooperative_state);
-
-    if (partner_data.cooperative_state === 'delay' && partner_data.date_delay_stop !== 'False') {
-        const d = new Date (Date.parse(partner_data.date_delay_stop));
-        const f_date_delay_stop = d.getDate()+'/'+("0" + (d.getMonth() + 1)).slice(-2)+'/'+d.getFullYear();
-
-        $("#home_delay_date_stop").text(f_date_delay_stop);
-        $("#home_delay_date_stop_container").show();
-    } else if (partner_data.cooperative_state === 'unsubscribed') {
-        $("#home_member_shift_name").text('X');
-
-        $("#home_unsuscribed_form_link")
-            .show()
-            .attr('href', unsuscribe_form_link)
-            .on('click', function() {
-                setTimeout(500, () => {
-                    $(this).removeClass('active');
-                });
-            });
-    }
-    
-    if (partner_data.makeups_to_do > 0) {
-        $("#home_choose_makeups").show();
-        
-        if (
-            partner_data.cooperative_state === 'suspended' 
-            && partner_data.date_delay_stop === 'False') 
-        {
-            // If the member is suspended & doesn't have a delay
-            $("#home_choose_makeups").on('click', () => {
-                // Create 6 month delay
-                request_delay()
-                    .then(() => {
-                        // Then redirect to calendar
-                        goto('echange-de-services');
-                    })
-            });
-        } else {
-            $("#home_choose_makeups").on('click', () => {
-                goto('echange-de-services');
-            });
-        }
-    }
-
-    // TODO coop number for attached people ??
-    $("#home_member_coop_number").text(partner_data.barcode_base);
-}
-
 function init_home() {
-    $("#go_to_calendar_button").on("click", () => {
+    $("#go_to_shifts_calendar").on("click", () => {
         goto('echange-de-services');
     });
     $("#home_go_to_shift_history").on("click", () => {
         goto('mes-services');
     });
+    $("#see_more_info_link").on('click', (e) => {
+        e.preventDefault();
+        goto('mes-infos');
+    })
 
-    init_my_info_tile();
+    // Init my info tile
+    init_my_info_data();
     
     if (incoming_shifts !== null) {
         init_my_shifts_tile();

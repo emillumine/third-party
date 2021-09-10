@@ -12,22 +12,26 @@ function toggleHeader() {
 
 $(document).ready(function() {
     // Navbar redirections
-    $('#nav_home').on('click', function() {
+    $('#nav_home').on('click', (e) => {
+        e.preventDefault();
         if (current_location !== "home") {
             goto('home');
         }
     });
-    $('#nav_my_info').on('click', function() {
+    $('#nav_my_info').on('click', (e) => {
+        e.preventDefault();
         if (current_location !== "my_info") {
             goto('mes-infos');
         }
     });
-    $('#nav_my_shifts').on('click', function() {
+    $('#nav_my_shifts').on('click', (e) => {
+        e.preventDefault();
         if (current_location !== "my_shifts") {
             goto('mes-services');
         }
     });
-    $('#nav_shifts_exchange').on('click', function() {
+    $('#nav_shifts_exchange').on('click', (e) => {
+        e.preventDefault();
         if (current_location !== "shifts_exchange") {
             goto('echange-de-services');
         }

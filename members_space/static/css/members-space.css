@@ -64,10 +64,6 @@ body {
     flex-direction: column;
 }
 
-#home_go_to_shift_history {
-    margin-top: 30px;
-}
-
 .shift_line {
     margin-left: 15px;
     line-height: 2;
@@ -78,7 +74,22 @@ body {
     margin-right: 5px;
 }
 
-/* -- My Info tile*/
+#go_to_shift_history_area {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#home_go_to_shift_history {
+    width: 80%;
+    margin-top: 30px;
+}
+
+/* -- My Info tile */
+
+#home_tile_my_info {
+    position: relative;
+}
 
 .tile_icon {
     margin-right: 15px;
@@ -97,23 +108,23 @@ body {
     font-weight: bold;
 }
 
-#home_member_status_action {
+#member_status_action {
     margin-bottom:20px;
-    font-size: 1.8rem;;
 }
 
-#home_choose_makeups {
+.choose_makeups {
     display: none;
+    font-size: 1.8rem;
 }
 
-#home_unsuscribed_form_link {
+.unsuscribed_form_link {
     display: none;
     text-decoration: none;
-    /* margin-bottom: 10px; */
+    font-size: 1.7rem;
 }
-#home_unsuscribed_form_link:hover,
-#home_unsuscribed_form_link:active {
-    color: white !important;
+.unsuscribed_form_link:hover {
+    text-decoration: none;
+
 }
 
 .member_status_up_to_date,
@@ -129,23 +140,46 @@ body {
     color: #d9534f;
 }
 
-#home_member_shift_name_area,
-#home_member_coop_number_area {
+.member_shift_name_area,
+.member_coop_number_area {
     margin-bottom: 10px;
 }
 
 @media screen and (max-width: 768px) {
-    #home_member_shift_name_area,
-    #home_member_coop_number_area {
+    .member_shift_name_area,
+    .member_coop_number_area {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 }
 
-#home_delay_date_stop_container {
+.delay_date_stop_container {
     color: #f0ad4e;
     margin-top: -1rem;
     margin-bottom: 1rem;
     display: none;
+}
+
+#see_more_info {
+    position: absolute;
+    bottom: 2rem;
+    right: 4rem;
+}
+#see_more_info_link {
+    color: #0275d8 !important;
+}
+
+/* --Shifts exchange tile tile */
+
+#go_to_shifts_calendar_area {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#go_to_shifts_calendar {
+    width: 80%;
+    margin-top: 20px;
+    white-space: normal;
 }

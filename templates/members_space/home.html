@@ -9,26 +9,29 @@
         Mes Infos
       </div>
       <div class="tile_content">
-        <p>Mon statut : <span id="home_member_status" class="home_member_info"></span></p>
-        <div id="home_delay_date_stop_container">
-          ( jusqu'au <span id="home_delay_date_stop"></span> )
+        <p>Mon statut : <span class="member_info member_status"></span></p>
+        <div class="delay_date_stop_container">
+          ( jusqu'au <span class="delay_date_stop"></span> )
         </div>
-        <div id="home_member_status_action">
-          <a href="#" target="_blank" class="btn--primary" id="home_unsuscribed_form_link">
+        <div id="member_status_action">
+          <a href="#" target="_blank" class="btn--warning unsuscribed_form_link">
             J'accède au formulaire
           </a>
-          <button type="button" class="btn--danger" id="home_choose_makeups">
+          <button type="button" class="btn--danger choose_makeups">
             Je sélectionne mes rattrapages
           </button>
         </div>
-        <div id="home_member_shift_name_area">
+        <div class="member_shift_name_area">
           <span>Mon créneau : </span>
-          <span id="home_member_shift_name" class="home_member_info"></span>
+          <span class="member_shift_name member_info"></span>
         </div>
-        <div id="home_member_coop_number_area">
+        <div class="member_coop_number_area">
           <span>Mon numéro de coop : </span>
-          <span id="home_member_coop_number" class="home_member_info"></span>
+          <span class="member_coop_number member_info"></span>
         </div>
+      </div>
+      <div id="see_more_info">
+        <a href="#" id="see_more_info_link">Voir plus ></a>
       </div>
     </div>
     <div class="tile" id="home_tile_my_services">
@@ -41,9 +44,11 @@
         <div id="home_incoming_services">
           <i class="fas fa-spinner fa-spin fa-lg"></i>
         </div>
-        <button type="button", class="btn btn--primary" id="home_go_to_shift_history">
-          Accéder à mon historique
-        </button>
+        <div id="go_to_shift_history_area">
+          <button type="button", class="btn btn--primary" id="home_go_to_shift_history">
+            Accéder à mon historique
+          </button>
+        </div>
       </div>
     </div>
     <div class="tile" id="home_tile_services_exchange">
@@ -52,9 +57,11 @@
         Échange de services
       </div>
       <div class="tile_content">
-        <button type="button" class="btn--primary" id="go_to_calendar_button">
-            Accéder au calendrier d'échange de services
-        </button>
+        <div id="go_to_shifts_calendar_area">
+          <button type="button" class="btn--primary" id="go_to_shifts_calendar">
+              Accéder au calendrier d'échange de services
+          </button>
+        </div>
       </div>
     </div>
     <div class="tile" id="home_tile_help">

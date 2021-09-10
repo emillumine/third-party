@@ -131,9 +131,75 @@ function prepare_shift_line_template(date_begin) {
     return shift_line_template;
 }
 
+/* - Member info */
+
+/**
+ * Init common personal data between screens
+ */
+function init_my_info_data() {
+    $(".choose_makeups").off();
+    $(".unsuscribed_form_link").off();
+
+    $(".member_shift_name").text(partner_data.regular_shift_name);
+
+    // Status related
+    $(".member_status")
+        .text(possible_cooperative_state[partner_data.cooperative_state])
+        .addClass("member_status_" + partner_data.cooperative_state);
+
+    if (partner_data.cooperative_state === 'delay' && partner_data.date_delay_stop !== 'False') {
+        const d = new Date (Date.parse(partner_data.date_delay_stop));
+        const f_date_delay_stop = d.getDate()+'/'+("0" + (d.getMonth() + 1)).slice(-2)+'/'+d.getFullYear();
+
+        $(".delay_date_stop").text(f_date_delay_stop);
+        $(".delay_date_stop_container").show();
+    } else if (partner_data.cooperative_state === 'unsubscribed') {
+        $(".member_shift_name").text('X');
+
+        $(".unsuscribed_form_link")
+            .show()
+            .attr('href', unsuscribe_form_link)
+            .on('click', function() {
+                setTimeout(500, () => {
+                    $(this).removeClass('active');
+                });
+            });
+    }
+    
+    if (partner_data.makeups_to_do > 0) {
+        $(".choose_makeups").show();
+        
+        if (
+            partner_data.cooperative_state === 'suspended' 
+            && partner_data.date_delay_stop === 'False') 
+        {
+            // If the member is suspended & doesn't have a delay
+            $(".choose_makeups").on('click', () => {
+                // Create 6 month delay
+                request_delay()
+                    .then(() => {
+                        // Then redirect to calendar
+                        goto('echange-de-services');
+                    })
+            });
+        } else {
+            $(".choose_makeups").on('click', () => {
+                goto('echange-de-services');
+            });
+        }
+    }
+
+    // TODO coop number for attached people ??
+    $(".member_coop_number").text(partner_data.barcode_base);
+}
+
 $(document).ready(function() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     base_location = (app_env === 'dev') ? '/members_space/' : '/';
     update_dom();
+
+    window.onpopstate = function() {
+        update_dom();
+    };
 });
