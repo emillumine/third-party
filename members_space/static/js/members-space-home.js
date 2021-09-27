@@ -93,7 +93,7 @@ function init_home() {
     if (incoming_shifts !== null) {
         init_my_shifts_tile();
     } else {
-        load_partner_shifts(partner_data.partner_id)
+        load_partner_shifts(partner_data.concerned_partner_id)
             .then(init_my_shifts_tile);
     }
 }

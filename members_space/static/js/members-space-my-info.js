@@ -1,8 +1,13 @@
 function init_my_info() {
     init_my_info_data();
 
-    console.log(partner_data);
     $(".member_email").text(partner_data.email);
+
+    if (partner_data.is_associated_people === "False") {
+        $("#attached_info_area").hide();
+    } else {
+        $(".attached_partner_name").text(partner_data.parent_name);
+    }
 
     if (partner_data.street !== "") {
         $(".member_address")

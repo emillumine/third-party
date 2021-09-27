@@ -91,6 +91,13 @@ def index(request, exception=None):
 
             context['partnerData'] = partnerData
 
+            # TODO test with partner who's not attached
+            if partnerData["parent_id"] is not False:
+                partnerData["parent_name"] = partnerData["parent_id"][1]
+                partnerData["parent_id"] = partnerData["parent_id"][0]
+            else:
+                partnerData["parent_name"] = False
+
             # Days to hide in the calendar
             days_to_hide = "0"
             context['ADDITIONAL_INFO_SHIFT_PAGE'] = getattr(settings, 'ADDITIONAL_INFO_SHIFT_PAGE', '')
@@ -142,15 +149,11 @@ def get_points_history(request):
     res = {}
     partner_id = int(request.GET.get('partner_id'))
 
-    if 'verif_token' in request.GET and Verification.verif_token(request.GET.get('verif_token'), partner_id) is True:
-        m = CagetteMembersSpace()
+    m = CagetteMembersSpace()
 
-        limit = int(request.GET.get('limit'))
-        offset = int(request.GET.get('offset'))
-        date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
-        res["data"] = m.get_points_history(partner_id, limit, offset, date_from)
-        
-    else:
-        return JsonResponse(res, status=403)
+    limit = int(request.GET.get('limit'))
+    offset = int(request.GET.get('offset'))
+    date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
+    res["data"] = m.get_points_history(partner_id, limit, offset, date_from)
 
     return JsonResponse(res)

@@ -11,7 +11,7 @@ function load_partner_history(offset = 0) {
             type: 'GET',
             url: "/members_space/get_points_history",
             data: {
-                partner_id: partner_data.partner_id,
+                partner_id: partner_data.concerned_partner_id,
                 verif_token: partner_data.verif_token,
                 limit: history_items_limit,
                 offset: offset
@@ -173,7 +173,7 @@ function init_my_shifts() {
     if (incoming_shifts !== null) {
         init_incoming_shifts();
     } else {
-        load_partner_shifts(partner_data.partner_id)
+        load_partner_shifts(partner_data.concerned_partner_id)
             .then(init_incoming_shifts);
     }
 

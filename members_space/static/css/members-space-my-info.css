@@ -1,16 +1,17 @@
-/* We override styles defined on the home page for the specific needs of the My Info page */
+/* We override some styles defined on the home page for the specific needs of the My Info page */
 
 #my_info {
     font-size: 2rem;
 }
 
-#my_info {
+#my_info_content {
     display: flex;
     flex-direction: column;
 }
 
 .my_info_line {
     display: flex;
+    flex-wrap: wrap;
     width: 100%;
     padding: 1.5rem 0;
 }
@@ -24,6 +25,8 @@
 .my_info_line_right {
     width: 50%;
     padding-left: 2rem;
+    max-width: 100%;
+    word-break: break-all;
 }
 
 #my_info #member_status_action,
@@ -32,9 +35,16 @@
     margin-bottom: 0;
 }
 
-.member_email {
-    max-width: 100%;
-    word-break: break-all;
+#attached_info {
+    display: flex;
+    flex-direction: column;
+}
+
+.pairs_info {
+    background-color: #00a573;
+    color: white;
+    padding: 1.5rem 1.2rem;
+    margin: 2rem 0;
 }
 
 @media screen and (max-width: 768px) {
@@ -48,6 +58,16 @@
     .my_info_line_right {
         width: 70%;
         padding-left: 1rem;
+    }
+
+    #attached_info .my_info_line_left {
+        width: 100%;
+        text-align: left;
+        padding: 0;
+    }
+    #attached_info .my_info_line_right {
+        width: 100%;
+        padding: 0;
     }
 
     #my_info .choose_makeups,

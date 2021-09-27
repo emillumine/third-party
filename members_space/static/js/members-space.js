@@ -13,7 +13,7 @@ var date_options = {weekday: "long", year: "numeric", month: "long", day: "numer
 
 /**
  * Load the shifts the member is registered to
- * @param {int} partner_id
+ * @param {int} partner_id either the members id, or its parent's if s.he's attached
  */
 function load_partner_shifts(partner_id) {
     return new Promise((resolve) => {
@@ -167,7 +167,7 @@ function init_my_info_data() {
             });
     }
 
-    if (partner_data.makeups_to_do > 0) {
+    if (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "False") {
         $(".choose_makeups").show();
 
         if (
@@ -189,12 +189,17 @@ function init_my_info_data() {
         }
     }
 
-    // TODO coop number for attached people ??
     $(".member_coop_number").text(partner_data.barcode_base);
 }
 
 $(document).ready(function() {
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
+    // If partner is associated (attached), display the pair's main partner shift data
+    partner_data.concerned_partner_id =
+        (partner_data.is_associated_people === "True")
+            ? partner_data.parent_id
+            : partner_data.partner_id;
 
     base_location = (app_env === 'dev') ? '/members_space/' : '/';
     update_dom();
