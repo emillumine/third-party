@@ -1142,6 +1142,12 @@ class CagetteServices(models.Model):
         # let authorized people time to set presence for those who came in late
         end_date = now - datetime.timedelta(hours=3)
         api = OdooAPI()
+        absence_status = 'excused'
+        res_c = api.search_read('ir.config_parameter',
+                                [['key', '=', 'lacagette_membership.absence_status']],
+                                ['value'])
+        if len(res_c) == 1:
+            absence_status = res_c[0]['value']
         cond = [['date_begin', '>=', date_24h_before.isoformat()],
                 ['date_begin', '<=', end_date.isoformat()],
                 ['state', '=', 'open']]
@@ -1165,7 +1171,7 @@ class CagetteServices(models.Model):
                 (_h, _m, _s) = h.split(':')
                 if int(_h) < 21:
                     ids.append(int(r['id']))
-        f = {'state': 'excused'}
+        f = {'state': absence_status}
         return {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
 
     @staticmethod
