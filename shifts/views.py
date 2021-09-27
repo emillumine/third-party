@@ -239,11 +239,9 @@ def request_delay(request):
             }
             if ('extension_beginning' in request.POST):
                 data['extension_beginning'] = request.POST['extension_beginning']
-
+            duration = 28
             if ('duration' in request.POST):
                 duration = int(request.POST['duration'])
-            else:
-                duration = None
 
             response = {'result': False}
 
@@ -252,8 +250,10 @@ def request_delay(request):
                 if (new_id):
                     response = {'result': True}
                 else:
+                    coop_logger.error("request delay : %s, %s", str(new_id), str(data))
                     return HttpResponseServerError()
             except Exception as e:
+                coop_logger.error("request delay : %s, %s", str(e), str(data))
                 return HttpResponseServerError()
 
             return JsonResponse(response)

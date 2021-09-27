@@ -242,7 +242,7 @@ class CagetteShift(models.Model):
             for val in extension_types:
                 if val['name'] == 'Extension':
                     ext_type_id = val['id']
-
+            
             starting_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d').date()
             ending_date = (starting_date + datetime.timedelta(days=duration))
 
