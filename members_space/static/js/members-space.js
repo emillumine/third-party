@@ -84,7 +84,7 @@ function update_dom() {
 }
 
 /**
- * Update the data displayed depending on the current location 
+ * Update the data displayed depending on the current location
  * (ex: insert personal data in the DOM when on the 'My Info' page)
  */
 function update_content() {
