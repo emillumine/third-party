@@ -279,7 +279,7 @@
 
         If not set, default view is 'dayGridMonth'
 
-- SHIFT_EXCHANGE_DAYS_TO_HIDE = ''
+- SHIFT_EXCHANGE_DAYS_TO_HIDE = '0'
 
         By default, if this variable is not set, sunday is hidden
         To hide Sunday and Monday, set this to "0,1"
@@ -343,6 +343,10 @@
 - MEALS_PICKING_TYPE_ID = 10
 
 ### New members space
+
+- USE_NEW_MEMBERS_SPACE = True
+
+        Should be set to False by default if parameter not set
 
 - START_DATE_FOR_POINTS_HISTORY = "2018-01-01"
 

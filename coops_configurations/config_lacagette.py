@@ -95,7 +95,7 @@ DISCOUNT_SHELFS_IDS = [74]
 FL_SHELFS = [16, 17, 18]
 VRAC_SHELFS = [20, 38]
 
-SHIFT_EXCHANGE_DAYS_TO_HIDE = ''
+SHIFT_EXCHANGE_DAYS_TO_HIDE = '0'
 SHIFT_INFO  = """A la cagette, un service est une plage de trois heures un jour en particulier, par exemple : le mardi 25/09/2018 à 13h15.
 <br />A l'inverse, un créneau est une plage de trois heures régulière, par exemple, tous les mardi de semaine A à 13h15."""
 PB_INSTRUCTIONS = """Si j'ai un problème, que je suis désinscrit, que je veux changer de créneaux ou quoi que ce soit, merci de vous rendre dans la section \"J'ai un problème\" sur le site web de <a href=\"https://lacagette-coop.fr/?MonEspaceMembre\">La Cagette</a>"""
@@ -132,5 +132,6 @@ BLOCK_SERVICE_EXCHANGE_24H_BEFORE = True
 # URL to the metabase dashboard for orders helper
 ORDERS_HELPER_METABASE_URL = "url_meta_base"
 # New members space
+USE_NEW_MEMBERS_SPACE = True
 START_DATE_FOR_POINTS_HISTORY = "2018-01-01"
 

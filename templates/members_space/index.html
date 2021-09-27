@@ -4,14 +4,18 @@
 {% block additionnal_css %}
 <link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
 <link rel="stylesheet" href="{% static 'css/datatables/responsive.dataTables.min.css' %}">
+<link rel="stylesheet" href="{% static 'fullcalendar-5.9.0/lib/main.min.css' %}"></script>
 <link rel="stylesheet" href="{% static "css/members-space.css" %}?v=">
 <link rel="stylesheet" href="{% static "css/members-space-my-shifts.css" %}?v=">
 <link rel="stylesheet" href="{% static "css/members-space-my-info.css" %}?v=">
+<link rel="stylesheet" href="{% static "css/members-space-shifts-exchange.css" %}?v=">
 {% endblock %}
 
 {% block additionnal_scripts %}
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.responsive.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'fullcalendar-5.9.0/lib/main.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'fullcalendar-5.9.0/lib/locales/fr.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -27,6 +31,15 @@
       <div class="shift_line">
         <i class="fas fa-chevron-right shift_line_chevron"></i>
         <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+      </div>
+    </div>
+
+    <div id="selectable_shift_line_template">
+      <div class="selectable_shift_line btn--primary">
+        <input type="checkbox" class="checkbox">
+        <div class="selectable_shift_line_text">
+          <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -63,6 +76,7 @@
     "parent_id" : "{{partnerData.parent_id}}",
     "parent_name" : "{{partnerData.parent_name}}",
   }
+  var days_to_hide = "{{daysToHide}}"
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members-space-home.js" %}?v="></script>

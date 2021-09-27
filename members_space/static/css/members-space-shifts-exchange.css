@@ -1,0 +1,41 @@
+#shifts_exchange_content {
+    width: 95%;
+    margin: 3rem auto;
+}
+
+#shifts_list {
+    flex-direction: column;
+    display: none;
+    width: min-content; /* ??? */
+}
+
+.selectable_shift_line {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+    margin: 1rem 0;
+    border-radius: 5px;
+}
+
+.selectable_shift_line .checkbox {
+    margin-right: 10px;
+}
+
+/* .selectable_shift_line_text {
+    border: 2px solid #424242;
+    border-radius: 5px;
+    padding: 0.75rem;
+} */
+
+#calendar {
+    margin: 3rem auto;
+}
+
+.fc .fc-event {
+    cursor: pointer;
+    margin: 1px 10px !important;
+}
+
+#calendar .fc-list-table {
+    table-layout: auto;
+}

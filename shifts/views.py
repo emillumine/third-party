@@ -97,6 +97,8 @@ def get_list_shift_calendar(request, partner_id):
     cs = CagetteShift()
     registerPartner = cs.get_shift_partner(partner_id)
 
+    use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
+
     listRegisterPartner = []
     for v in registerPartner:
         listRegisterPartner.append(v['id'])
@@ -115,9 +117,14 @@ def get_list_shift_calendar(request, partner_id):
                 event = {}
                 event["id"] = value['id']
                 smax = int(value['seats_available']) + int(value['seats_reserved'])
+ 
                 title_prefix = ''
+                # if use_new_members_space is True:
+                #     title_prefix = value["name"] + " ~ "
+                # else:
                 if len(value['address_id']) == 2 and ',' in value['address_id'][1]:
                     title_prefix = str(value['address_id'][1]).split(",")[1] + " -- "
+
                 event["title"] = title_prefix + str(value['seats_reserved']) + "/" + str(smax)
 
                 event["start"] = dateIsoUTC(value['date_begin_tz'])

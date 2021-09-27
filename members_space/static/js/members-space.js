@@ -20,9 +20,6 @@ function load_partner_shifts(partner_id) {
         $.ajax({
             type: 'GET',
             url: "/shifts/get_list_shift_partner/" + partner_id,
-            data: {
-                limit: 3
-            },
             dataType:"json",
             traditional: true,
             contentType: "application/json; charset=utf-8",
@@ -48,7 +45,6 @@ function load_partner_shifts(partner_id) {
 /* - Navigation */
 
 /**
- *
  * @param {String} page home | mes-infos | mes-services | echange-de-services
  */
 function goto(page) {
@@ -88,7 +84,8 @@ function update_dom() {
 }
 
 /**
- * Update the data displayed depending on the current location (ex: insert personal data in the DOM when on the 'My Info' page)
+ * Update the data displayed depending on the current location 
+ * (ex: insert personal data in the DOM when on the 'My Info' page)
  */
 function update_content() {
     switch (current_location) {
