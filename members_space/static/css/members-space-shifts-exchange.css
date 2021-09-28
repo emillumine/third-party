@@ -7,13 +7,13 @@
 
 /* -- Suspended screen */
 
-#suspended_content {
+#suspended_content, #unsuscribed_content {
     align-items: center;
     text-align: center;
 }
 
-.select_makeups {
-    margin: 2rem 0;
+#shifts_exchange .select_makeups, #shifts_exchange .unsuscribed_form_link {
+    margin: 1.5rem 0;
 }
 
 /* -- Calendar screen, shifts list */
@@ -75,7 +75,17 @@
 
 #calendar {
     margin: 2rem 1rem;
+}
+
+.loading-calendar {
+    margin: 3rem auto;
     display: none;
+}
+
+@media screen and (max-width:768px) {
+    #calendar {
+        display: none;
+    }
 }
 
 .fc .fc-event {

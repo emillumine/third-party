@@ -1,5 +1,6 @@
 var calendar = null,
-    selected_shift = null;
+    selected_shift = null,
+    vw = null;
 
 /**
  * A partner can exchange shifts if:
@@ -23,15 +24,15 @@ function can_select_makeup() {
 
 /**
  * Proceed to shift exchange or registration
- * @param {int} new_shift_id 
+ * @param {int} new_shift_id
  */
 function add_or_change_shift(new_shift_id) {
     if (is_time_to('change_shift')) {
-        setTimeout(openModal, 100);  // loading on
+        setTimeout(openModal, 100); // loading on
 
-        tData = 'idNewShift=' + new_shift_id 
-            +'&idPartner=' + partner_data.partner_id 
-            + '&in_ftop_team=' + partner_data.in_ftop_team 
+        tData = 'idNewShift=' + new_shift_id
+            +'&idPartner=' + partner_data.partner_id
+            + '&in_ftop_team=' + partner_data.in_ftop_team
             + '&verif_token=' + partner_data.verif_token;
 
         if (selected_shift === null) {
@@ -61,9 +62,10 @@ function add_or_change_shift(new_shift_id) {
                     }
 
                     let msg = "Parfait! ";
-                    msg += (selected_shift === null) 
-                            ? "Le service choisi a été ajouté." 
-                            : "Le service a été échangé.";
+
+                    msg += (selected_shift === null)
+                        ? "Le service choisi a été ajouté."
+                        : "Le service a été échangé.";
 
                     selected_shift = null;
 
@@ -74,7 +76,7 @@ function add_or_change_shift(new_shift_id) {
                             closeModal();
 
                             setTimeout(() => {
-                                
+
 
                                 alert(msg);
                             }, 100);
@@ -86,14 +88,14 @@ function add_or_change_shift(new_shift_id) {
             },
             error: function(error) {
                 closeModal();
-                selected_shift = null
+                selected_shift = null;
 
                 if (error.status === 400) {
-                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. `  +
+                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. ` +
                             `Il n'est plus possible de l'échanger.`);
                 } else {
-                    alert(`Une erreur est survenue.` + 
-                        `Il est néanmoins possible que la requête ait abouti,`  + 
+                    alert(`Une erreur est survenue.` +
+                        `Il est néanmoins possible que la requête ait abouti,` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
                 }
 
@@ -144,20 +146,21 @@ function init_shifts_list() {
         $(".selectable_shift_line").on("click", function(e) {
             if (can_exchange_shifts()) {
                 let cb = $(this).find(".checkbox");
-                
+
                 // Select checkbox on click on button
                 if (!$(e.target).hasClass("checkbox")) {
                     cb.prop("checked", !cb.prop("checked"));
                 }
-    
+
                 if (cb.prop("checked")) {
                     selected_shift = incoming_shifts.find(s => s.id == cb.prop("value"));
                 } else {
                     selected_shift = null;
                 }
-    
+
                 // Unselect other checkboxes
-                if ($(this).find(".checkbox").prop("checked")) {
+                if ($(this).find(".checkbox")
+                    .prop("checked")) {
                     for (let cb_item of $("#shifts_list").find(".checkbox")) {
                         if (cb.prop("value") !== $(cb_item).prop("value")) {
                             $(cb_item).prop("checked", false);
@@ -173,6 +176,10 @@ function init_shifts_list() {
  * Inits the page when the calendar is displayed
  */
 function init_calendar_page() {
+    if (vw <= 768) {
+        $(".loading-calendar").show();
+    }
+
     if (incoming_shifts !== null) {
         init_shifts_list();
     } else {
@@ -185,7 +192,6 @@ function init_calendar_page() {
         $("#need_to_select_makeups_message").show();
     }
 
-    const vw = window.innerWidth;
     let default_initial_view = "";
     let header_toolbar = {};
 
@@ -195,19 +201,20 @@ function init_calendar_page() {
             left: 'title',
             center: 'dayGridMonth,listWeek,timeGridDay',
             right: 'prev,next today'
-        }
+        };
     } else {
         default_initial_view = 'dayGridMonth';
         header_toolbar = {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,listWeek,timeGridDay'
-        }
+        };
     }
 
     const hidden_days = $.map(days_to_hide.split(", "), Number);
 
     const calendarEl = document.getElementById('calendar');
+
     calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'fr',
         initialView: default_initial_view,
@@ -231,22 +238,23 @@ function init_calendar_page() {
                 // Set new shift
                 const datetime_new_shift = info.event.start;
                 let new_shift_date = datetime_new_shift.toLocaleDateString("fr-fr", date_options);
-                let new_shift_time = datetime_new_shift.toLocaleTimeString("fr-fr", time_options)
-    
+                let new_shift_time = datetime_new_shift.toLocaleTimeString("fr-fr", time_options);
+
                 if (selected_shift !== null && can_exchange_shifts()) {
                     /* shift exchange */
                     // Set old shift
                     let datetime_old_shift = new Date(selected_shift.date_begin);
                     let old_shift_date = datetime_old_shift.toLocaleDateString("fr-fr", date_options);
-                    let old_shift_time = datetime_old_shift.toLocaleTimeString("fr-fr", time_options)                    
+                    let old_shift_time = datetime_old_shift.toLocaleTimeString("fr-fr", time_options);
 
                     // Display modal
                     let modal_template = $("#modal_shift_exchange_template");
+
                     modal_template.find(".date_old_shift").text(old_shift_date);
                     modal_template.find(".time_old_shift").text(old_shift_time);
                     modal_template.find(".date_new_shift").text(new_shift_date);
                     modal_template.find(".time_new_shift").text(new_shift_time);
-    
+
                     openModal(
                         modal_template.html(),
                         () => {
@@ -258,12 +266,13 @@ function init_calendar_page() {
                     /* could exchange shift but no old shift selected */
                     openModal(
                         "Je dois sélectionner un service à échanger.",
-                        closeModal, 
+                        closeModal,
                         "J'ai compris"
                     );
                 } else if (can_select_makeup()) {
                     /* choose a makeup service */
                     let modal_template = $("#modal_add_shift_template");
+
                     modal_template.find(".date_new_shift").text(new_shift_date);
                     modal_template.find(".time_new_shift").text(new_shift_time);
 
@@ -278,11 +287,13 @@ function init_calendar_page() {
             }
         },
         eventDidMount: function() {
-            if (vw <=768) {
+            if (vw <= 768) {
                 $(".fc .fc-header-toolbar").addClass("resp-header-toolbar");
-            }
 
-            $("#calendar").show();
+                // Calendar is hidden at first on mobile to hide header change when data is loaded
+                $(".loading-calendar").hide();
+                $("#calendar").show();
+            }
         }
     });
 
@@ -290,21 +301,20 @@ function init_calendar_page() {
 }
 
 function init_shifts_exchange() {
-    // TODO : loading
-    // TODO : suspended
-
     $(".shifts_exchange_page_content").hide();
+    vw = window.innerWidth;
 
     if (partner_data.cooperative_state === 'unsubscribed') {
-        // TODO
-        // $(".unsuscribed_form_link")
-        //     .show()
-        //     .attr('href', unsuscribe_form_link)
-        //     .on('click', function() {
-        //         setTimeout(500, () => {
-        //             $(this).removeClass('active');
-        //         });
-        //     });
+        $("#unsuscribed_content").show();
+
+        $(".unsuscribed_form_link")
+            .show()
+            .attr('href', unsuscribe_form_link)
+            .on('click', function() {
+                setTimeout(500, () => {
+                    $(this).removeClass('active');
+                });
+            });
     } else if (partner_data.cooperative_state === 'suspended'
                 && partner_data.date_delay_stop === 'False') {
         $("#suspended_content").show();
@@ -318,12 +328,11 @@ function init_shifts_exchange() {
                     $("#suspended_content").hide();
                     $("#shifts_exchange_content").show();
                     closeModal();
-                    init_calendar_page();   
+                    init_calendar_page();
                 });
         });
     } else {
         $("#shifts_exchange_content").show();
         init_calendar_page();
     }
-
 }
