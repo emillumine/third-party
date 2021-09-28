@@ -15,6 +15,11 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
                                              'value': ''
                                       },
+                     'shop_opening_hours' : {
+                                                'title': 'Horaires ouverture magasin',
+                                                'type': 'textarea',
+                                                'value': ''
+                                            }
                     }
 
 def config(request):
