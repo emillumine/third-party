@@ -18,23 +18,27 @@ $(document).ready(function() {
         if (current_location !== "home") {
             goto('home');
         }
+        toggleHeader();
     });
     $('#nav_my_info').on('click', (e) => {
         e.preventDefault();
         if (current_location !== "my_info") {
             goto('mes-infos');
         }
+        toggleHeader();
     });
     $('#nav_my_shifts').on('click', (e) => {
         e.preventDefault();
         if (current_location !== "my_shifts") {
             goto('mes-services');
         }
+        toggleHeader();
     });
     $('#nav_shifts_exchange').on('click', (e) => {
         e.preventDefault();
         if (current_location !== "shifts_exchange") {
             goto('echange-de-services');
         }
+        toggleHeader();
     });
 });

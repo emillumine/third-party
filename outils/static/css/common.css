@@ -60,6 +60,11 @@ footer { position: fixed;
     margin: auto;
     padding:15px;
 }
+@media screen and (max-width:768px) {
+    .overlay-content .mconfirm {
+        width: 100%;
+    }
+}
 .overlay-content .mconfirm button {margin:5px;}
 .overlay-content > em {
     color: #fff;

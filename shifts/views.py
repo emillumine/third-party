@@ -119,9 +119,6 @@ def get_list_shift_calendar(request, partner_id):
                 smax = int(value['seats_available']) + int(value['seats_reserved'])
  
                 title_prefix = ''
-                # if use_new_members_space is True:
-                #     title_prefix = value["name"] + " ~ "
-                # else:
                 if len(value['address_id']) == 2 and ',' in value['address_id'][1]:
                     title_prefix = str(value['address_id'][1]).split(",")[1] + " -- "
 
@@ -131,19 +128,31 @@ def get_list_shift_calendar(request, partner_id):
                 event["end"] = dateIsoUTC(value['date_begin_tz'])
 
                 if len(l) > 0:
-                    event["className"] = "shift_booked"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_booked"]
+                    else:
+                        event["className"] = "shift_booked"
                     event["changed"] = False
                 # elif int(value['seats_reserved']) == int(value['seats_max']):
                 #     event["className"] = "shift_full"
                 #     event["changed"] = False
                 elif int(value['seats_reserved']) == 0:
-                    event["className"] = "shift_empty"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_empty"]
+                    else:
+                        event["className"] = "shift_empty"
                     event["changed"] = True
                 elif _is_middled_filled_considered(value['seats_reserved'], smax) is True:
-                    event["className"] = "shift_less_alf"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_less_alf"]
+                    else:
+                        event["className"] = "shift_less_alf"
                     event["changed"] = True
                 else:
-                    event["className"] = "shift_other"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_other"]
+                    else:
+                        event["className"] = "shift_other"
                     event["changed"] = True
 
                 event["registration_ids"] = value['registration_ids']
@@ -215,18 +224,36 @@ def add_shift(request):
             cs = CagetteShift()
 
             if 'idNewShift' in request.POST and 'idPartner' in request.POST:
-
-                data = {"idPartner": int(request.POST['idPartner']), "idShift":int(request.POST['idNewShift']), "in_ftop_team":request.POST['in_ftop_team']}
+                data = {
+                    "idPartner": int(request.POST['idPartner']), 
+                    "idShift":int(request.POST['idNewShift']), 
+                    "in_ftop_team":request.POST['in_ftop_team']
+                }
+                
                 #Insertion du nouveau shift
                 st_r_id = False
                 try:
                     st_r_id = cs.set_shift(data)
                 except Exception as e:
                     coop_logger.error("Add shift : %s, %s", str(e), str(data))
+
                 if st_r_id:
                     response = {'result': True}
                 else:
                     response = {'result': False}
+
+                # decrement makeups_to_do
+                res_decrement = False
+                try:
+                    res_decrement = cs.decrement_makeups_to_do(int(request.POST['idPartner']))
+                except Exception as e:
+                    coop_logger.error("Decrement makeups to do : %s, %s", str(e), str(data))
+
+                if res_decrement:
+                    response["decrement_makeups"] = res_decrement
+                else:
+                    response["decrement_makeups"] = False
+
             else:
                 response = {'result': False}
             return JsonResponse(response)
