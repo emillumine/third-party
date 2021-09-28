@@ -4,6 +4,7 @@ from outils.for_view_imports import *
 from django.urls import reverse
 
 from outils.common import Verification
+from outils.common import MConfig
 from members.models import CagetteMember
 from shifts.models import CagetteShift
 from members_space.models import CagetteMembersSpace
@@ -103,6 +104,7 @@ def index(request, exception=None):
             if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
                 days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
             context['daysToHide'] = days_to_hide
+            
         else:
             # may arrive when switching database without cleaning cookie
             return redirect('/website/deconnect')
@@ -114,6 +116,12 @@ def home(request):
     context = {
         'title': 'Espace Membres',
     }
+    # Get messages to display
+    msettings = MConfig.get_settings('members')
+    if 'msg_accueil' in msettings:
+        context['msg_accueil'] = msettings['msg_accueil']['value']
+    if 'shop_opening_hours' in msettings:
+        context['shop_opening_hours'] = msettings['shop_opening_hours']['value']
     return HttpResponse(template.render(context, request))
 
 def my_info(request):

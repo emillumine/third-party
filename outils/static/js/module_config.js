@@ -3,20 +3,34 @@ var param_template = $('#templates #param'),
     main_content = $('#main_content');
 
 function save_module_settings() {
-    var form_data = new FormData(main_content.get(0));
-    var data = {};
+    var form_elts = $('.input-container'),
+        data = {};
 
-    for (var pair of form_data.entries()) {
-        let val = pair[1],
-            key = pair[0];
-        let elt = main_content.find('[name="' + key +'"]');
-
-        data[key] = {title: elt.closest('.param').find('label')
-            .text(),
-        type: elt.get(0).type,
-        value: val};
-
-    }
+    form_elts.each(function(i, elt){
+        const label = $(elt).closest('.param').find('label'),
+            key = label.attr('for'),
+            title = label.text();
+        if (key.length > 0 && key != 'iname') {
+            let value = "",
+                type = "";
+            
+            if ($(elt).hasClass('ql-container')) {
+                type = 'textarea';
+                value = $(elt).find('.ql-editor').html().replace('<p><br></p>','')
+            } else {
+                type = 'input';
+                value = $(elt).find('input').val();
+            }
+            data[key] = {
+                           title: title,
+                           type: type,
+                           value: value
+                        };
+        }
+        
+        
+    });
+    
     post_form(
         'settings', {params: JSON.stringify(data)},
         function(err, result) {
@@ -39,17 +53,35 @@ function save_module_settings() {
     );
 
 }
+function quillify(params) {
+    let quill = new Quill(params.id, {
+                          modules: {
+                            toolbar: [
+                              [{ header: [1, 2, false] }],
+                              ['bold', 'italic', 'underline'],
+                              [{ 'size': ['small', false, 'large', 'huge'] }],
+                              [{ 'color': [] }, { 'background': [] }],
+                            ]
+                          },
+                          placeholder: '',
+                          theme: 'snow'
+                        });
+    quill.root.innerHTML = params.content;
+
+}
 function get_module_settings() {
     $.ajax('settings')
         .done(function(rData) {
             try {
                 if (typeof rData.res.settings != "undefined") {
-                    var added_elts = [];
+                    var added_elts = [],
+                        quill_containers = [];
 
                     for (let key in rData.res.settings) {
                         var param = $(param_template.clone().html());
                         var input = null;
                         let data = rData.res.settings[key];
+                            
 
                         param.find('label').text(data.title)
                             .attr('for', key);
@@ -57,6 +89,16 @@ function get_module_settings() {
                             param.find('input').remove();
                             input = param.find('textarea');
                             input.attr('name', key).text(data.value);
+                            input.closest('div').attr('id', 'quill-' + key)
+                                                .css('height', '375px')
+
+                            quill_containers.push(
+                                                    {
+                                                     id: '#quill-' + key, 
+                                                     content: data.value
+                                                    }
+                                                 )
+                            
                         } else {
                             param.find('textarea').remove();
                             input = param.find('input');
@@ -69,12 +111,20 @@ function get_module_settings() {
                     console.log(param)
                     */
                         param.appendTo(main_content);
+                       
+                        
                         added_elts.push(key);
                     }
                     if (added_elts.length > 0) {
                         submit_btn.appendTo(main_content);
                     }
                     submit_btn.click(save_module_settings);
+                    quill_containers.forEach(function(params){
+                        quillify(params);
+                    });
+                    // setTimeout(function() {
+                            
+                    // }, 5000);
                 }
             } catch (e) {
                 console.log(e);
