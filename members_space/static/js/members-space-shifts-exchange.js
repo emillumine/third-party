@@ -169,9 +169,10 @@ function init_shifts_list() {
     }
 }
 
-function init_shifts_exchange() {
-    // TODO : loading
-
+/**
+ * Inits the page when the calendar is displayed
+ */
+function init_calendar_page() {
     if (incoming_shifts !== null) {
         init_shifts_list();
     } else {
@@ -286,4 +287,43 @@ function init_shifts_exchange() {
     });
 
     calendar.render();
+}
+
+function init_shifts_exchange() {
+    // TODO : loading
+    // TODO : suspended
+
+    $(".shifts_exchange_page_content").hide();
+
+    if (partner_data.cooperative_state === 'unsubscribed') {
+        // TODO
+        // $(".unsuscribed_form_link")
+        //     .show()
+        //     .attr('href', unsuscribe_form_link)
+        //     .on('click', function() {
+        //         setTimeout(500, () => {
+        //             $(this).removeClass('active');
+        //         });
+        //     });
+    } else if (partner_data.cooperative_state === 'suspended'
+                && partner_data.date_delay_stop === 'False') {
+        $("#suspended_content").show();
+
+        $(".select_makeups").on('click', () => {
+            openModal();
+
+            // Create 6 month delay
+            request_delay()
+                .then(() => {
+                    $("#suspended_content").hide();
+                    $("#shifts_exchange_content").show();
+                    closeModal();
+                    init_calendar_page();   
+                });
+        });
+    } else {
+        $("#shifts_exchange_content").show();
+        init_calendar_page();
+    }
+
 }

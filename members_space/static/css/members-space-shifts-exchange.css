@@ -1,9 +1,22 @@
-#shifts_exchange_content {
+.shifts_exchange_page_content {
     width: 95%;
     margin: 3rem auto;
     display: flex;
     flex-direction: column;
 }
+
+/* -- Suspended screen */
+
+#suspended_content {
+    align-items: center;
+    text-align: center;
+}
+
+.select_makeups {
+    margin: 2rem 0;
+}
+
+/* -- Calendar screen, shifts list */
 
 #shifts_list {
     flex-direction: column;
@@ -36,12 +49,14 @@
     cursor: not-allowed;
 }
 
+/* -- Calendar screen, makeups message */
+
 #need_to_select_makeups_message {
     display: none;
     align-self: center;
     background-color: #d9534f;
     color: white;
-    margin: 0 1rem 1rem 1rem;
+    margin: 0 1rem 2rem 1rem;
     padding: 1rem 1.25rem;
     text-align: center;
 }
@@ -56,8 +71,10 @@
     }
 }
 
+/* -- Calendar screen, calendar */
+
 #calendar {
-    margin: 3rem 1rem;
+    margin: 2rem 1rem;
     display: none;
 }
 
