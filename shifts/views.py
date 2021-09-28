@@ -265,8 +265,16 @@ def add_shift(request):
 def request_delay(request):
     if 'verif_token' in request.POST:
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
-            
             cs = CagetteShift()
+
+            # TODO do we need this?
+            # use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
+            # if use_new_members_space is True:
+            #     member_can_have_delay = cs.member_can_have_delay(int(request.POST.get('idPartner')))
+            #     if member_can_have_delay is False:
+            #         res = { 'message' : 'delays limit reached'}
+            #         return JsonResponse(res, status=403)
+            
             data = {
                 "idPartner": int(request.POST['idPartner']),
                 "start_date" : request.POST['start_date']
