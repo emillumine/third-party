@@ -30,7 +30,8 @@ function request_delay() {
                 verif_token: partner_data.verif_token,
                 idPartner: partner_data.partner_id,
                 start_date: delay_start,
-                duration: diff_days
+                duration: diff_days,
+                shift_type: (partner_data.in_ftop_team === "True") ? "ftop" : "standard"
             },
             success: function() {
                 partner_data.cooperative_state = 'delay';

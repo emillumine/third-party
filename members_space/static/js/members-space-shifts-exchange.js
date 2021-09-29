@@ -271,6 +271,16 @@ function init_calendar_page() {
                     );
                 } else if (can_select_makeup()) {
                     /* choose a makeup service */
+                    // Check if selected new shift is in less than 6 months
+                    if (partner_data.date_delay_stop !== 'False') {
+                        date_partner_delay_stop = new Date(partner_data.date_delay_stop);
+                        if ( datetime_new_shift > date_partner_delay_stop ) {
+                            let msg = `Vous avez jusqu'au ${date_partner_delay_stop.toLocaleDateString("fr-fr", date_options)} ` +
+                                        `pour sélectionner un rattrapage (soit une période de 6 mois depuis votre absence).`;
+                            alert(msg);
+                            return;
+                        }
+                    }
                     let modal_template = $("#modal_add_shift_template");
 
                     modal_template.find(".date_new_shift").text(new_shift_date);

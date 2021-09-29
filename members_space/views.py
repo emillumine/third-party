@@ -160,7 +160,8 @@ def get_points_history(request):
 
     limit = int(request.GET.get('limit'))
     offset = int(request.GET.get('offset'))
+    shift_type = request.GET.get('shift_type')
     date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
-    res["data"] = m.get_points_history(partner_id, limit, offset, date_from)
+    res["data"] = m.get_points_history(partner_id, limit, offset, date_from, shift_type)
 
     return JsonResponse(res)
