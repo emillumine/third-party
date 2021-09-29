@@ -41,6 +41,13 @@ def index(request):
     context['ftop_btn_display'] = getattr(settings, 'ENTRANCE_FTOP_BUTTON_DISPLAY', True)
     context['extra_btns_display'] = getattr(settings, 'ENTRANCE_EXTRA_BUTTONS_DISPLAY', True)
     context['easy_shift_validate'] = getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE', False)
+    if context['easy_shift_validate'] is True:
+        committees_shift_id = CagetteServices.get_committees_shift_id()
+        if committees_shift_id is None:
+            return HttpResponse("Le créneau des comités n'est pas configuré dans Odoo !")
+        else:
+            context['committees_shift_id'] = committees_shift_id
+        
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:
             context['no_picture_member_advice'] = msettings['no_picture_member_advice']['value']
@@ -227,7 +234,7 @@ def update_couchdb_barcodes(request):
 # Borne accueil
 
 
-def search(request, needle):
+def search(request, needle, shift_id):
     """Search member has been requested."""
     try:
         key = int(needle)
@@ -238,8 +245,8 @@ def search(request, needle):
     except ValueError:
         key = needle
         k_type = 'name'
-
-    res = CagetteMember.search(k_type, key)
+    
+    res = CagetteMember.search(k_type, key, shift_id)
     return JsonResponse({'res': res})
 
 

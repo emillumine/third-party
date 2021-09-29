@@ -786,11 +786,10 @@ $(document).ready(function() {
             let search_str = sm_search_member_input.val();
 
             $.ajax({
-                url: '/members/search/' + search_str,
+                url: '/members/search/' + search_str + '/' + window.committees_shift_id,
                 dataType : 'json',
                 success: function(data) {
                     members_search_results = [];
-
                     for (member of data.res) {
                         if (member.shift_type == 'ftop') {
                             members_search_results.push(member);
