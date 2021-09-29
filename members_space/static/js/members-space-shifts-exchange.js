@@ -94,8 +94,8 @@ function add_or_change_shift(new_shift_id) {
                     alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. ` +
                             `Il n'est plus possible de l'échanger.`);
                 } else {
-                    alert(`Une erreur est survenue.` +
-                        `Il est néanmoins possible que la requête ait abouti,` +
+                    alert(`Une erreur est survenue. ` +
+                        `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
                 }
 

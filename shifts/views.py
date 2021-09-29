@@ -290,16 +290,6 @@ def request_delay(request):
             try:
                 new_id = cs.create_delay(data, duration)
                 if (new_id):
-                    try:
-                        if ('shift_type' in request.POST):
-                            shift_type = request.POST['shift_type']
-
-                            # This is a hack to ensure that the coop goes in delay state when a delay is created
-                            cm = CagetteMember(int(request.POST['idPartner']))
-                            res_addpt = cm.add_pts(shift_type, 0, "[fo] passage en délai")
-                    except Exception as e:
-                        coop_logger.error("force_delay_status : %s, %s", str(e), str(data))
-
                     response = {'result': True}
                 else:
                     coop_logger.error("request delay : %s, %s", str(new_id), str(data))
