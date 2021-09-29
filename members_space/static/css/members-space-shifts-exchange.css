@@ -1,19 +1,43 @@
-#shifts_exchange_content {
+.shifts_exchange_page_content {
     width: 95%;
     margin: 3rem auto;
+    display: flex;
+    flex-direction: column;
 }
+
+/* -- Suspended screen */
+
+#suspended_content, #unsuscribed_content {
+    align-items: center;
+    text-align: center;
+}
+
+#shifts_exchange .select_makeups, #shifts_exchange .unsuscribed_form_link {
+    margin: 1.5rem 0;
+}
+
+/* -- Calendar screen, shifts list */
 
 #shifts_list {
     flex-direction: column;
     display: none;
-    width: min-content; /* ??? */
+    width: min-content;
+    max-width: 100%;
+}
+
+@media screen and (max-width:768px) {
+    #partner_shifts_list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 }
 
 .selectable_shift_line {
     display: flex;
     align-items: center;
     margin-left: 15px;
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     border-radius: 5px;
 }
 
@@ -21,14 +45,47 @@
     margin-right: 10px;
 }
 
-/* .selectable_shift_line_text {
-    border: 2px solid #424242;
-    border-radius: 5px;
-    padding: 0.75rem;
-} */
+.selectable_shift_line.btn {
+    cursor: not-allowed;
+}
+
+/* -- Calendar screen, makeups message */
+
+#need_to_select_makeups_message {
+    display: none;
+    align-self: center;
+    background-color: #d9534f;
+    color: white;
+    margin: 0 1rem 2rem 1rem;
+    padding: 1rem 1.25rem;
+    text-align: center;
+}
+
+.makeups_warning {
+    margin-right: 3px;
+}
+
+@media screen and (max-width:768px) {
+    .select_makeups_message_block {
+        display: block;
+    }
+}
+
+/* -- Calendar screen, calendar */
 
 #calendar {
+    margin: 2rem 1rem;
+}
+
+.loading-calendar {
     margin: 3rem auto;
+    display: none;
+}
+
+@media screen and (max-width:768px) {
+    #calendar {
+        display: none;
+    }
 }
 
 .fc .fc-event {
@@ -36,6 +93,30 @@
     margin: 1px 10px !important;
 }
 
+.fc-event.shift_booked {
+    background-color: #585858;
+    cursor: auto;
+    border-color: #585858;
+}
+
+.fc-list-event.shift_booked {
+    color: white;
+}
+
 #calendar .fc-list-table {
     table-layout: auto;
+}
+
+.resp-header-toolbar {
+    display: flex;
+    flex-direction: column;
+}
+
+.resp-header-toolbar .fc-toolbar-chunk {
+    text-align: center;
+    margin: 0.25rem;
+}
+
+.date_old_shift, .time_old_shift, .date_new_shift, .time_new_shift {
+    font-weight: bold;
 }

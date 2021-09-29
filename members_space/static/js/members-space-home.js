@@ -39,15 +39,24 @@ function request_delay() {
                 resolve();
             },
             error: function(data) {
-                err = {msg: "erreur serveur lors de la création du délai", ctx: 'request_delay'};
-                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                    err.msg += ' : ' + data.responseJSON.error;
-                }
-                report_JS_error(err, 'members_space.home');
+                if (data.status == 403
+                        && typeof data.responseJSON != 'undefined'
+                        && data.responseJSON.message === "delays limit reached") {
+                    closeModal();
+                    alert("Vous avez mis plus de 6 mois pour rattraper un service, " +
+                            "vous ne pouvez plus sélectionner de rattrapage depuis l'espace membre. " +
+                            "Merci de contacter le BDM.");
+                } else {
+                    err = {msg: "erreur serveur lors de la création du délai", ctx: 'request_delay'};
+                    if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                        err.msg += ' : ' + data.responseJSON.error;
+                    }
+                    report_JS_error(err, 'members_space.home');
 
-                closeModal();
-                // TODO Notify
-                alert('Erreur lors de la création du délai.');
+                    closeModal();
+                    alert('Erreur lors de la création du délai.');
+                }
+
             }
         });
     });

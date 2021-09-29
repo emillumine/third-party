@@ -300,3 +300,21 @@ class CagetteShift(models.Model):
 
     def get_test(self, odooModel, cond, fieldsDatas):
         return self.o_api.search_read(odooModel, cond, fieldsDatas, limit = 1000)
+
+    def decrement_makeups_to_do(self, partner_id):
+        """ Decrements partners makeups to do if > 0 """
+        cond = [['id', '=', partner_id]]
+        fields = ['makeups_to_do']
+        makeups_to_do = self.o_api.search_read('res.partner', cond, fields)[0]["makeups_to_do"]
+
+        if makeups_to_do > 0:
+            makeups_to_do -= 1
+            f = { "makeups_to_do": makeups_to_do }
+
+            return self.o_api.update('res.partner', partner_id,  f)
+        else:
+            return "makeups already at 0"
+
+    def member_can_have_delay(self, partner_id):
+        """ Can a member have a delay? """
+        return self.o_api.execute('res.partner', 'can_have_extension', [partner_id])

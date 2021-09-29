@@ -55,7 +55,7 @@ function prepare_server_data(data) {
 
         f_date_shift_start = f_date_shift_start.charAt(0).toUpperCase() + f_date_shift_start.slice(1);
 
-        history_item.movement_date = f_date_shift_start + " - " + datetime_shift_start.toLocaleTimeString("fr-fr");
+        history_item.movement_date = f_date_shift_start + " - " + datetime_shift_start.toLocaleTimeString("fr-fr", time_options);
 
         // Text replacements
         history_item.name = (history_item.name === "Clôturer le service") ? "Décompte 28j" : history_item.name;//Clôlturer le service

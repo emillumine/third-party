@@ -8,6 +8,7 @@ var base_location = null,
     partner_history = null;
 
 var date_options = {weekday: "long", year: "numeric", month: "long", day: "numeric"};
+var time_options = {hour: '2-digit', minute:'2-digit'};
 
 /* - Data */
 
@@ -124,7 +125,7 @@ function prepare_shift_line_template(date_begin) {
     f_date_shift_start = f_date_shift_start.charAt(0).toUpperCase() + f_date_shift_start.slice(1);
 
     shift_line_template.find(".shift_line_date").text(f_date_shift_start);
-    shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr"));
+    shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
 
     return shift_line_template;
 }
@@ -190,6 +191,8 @@ function init_my_info_data() {
 }
 
 $(document).ready(function() {
+    // TODO essayer de ne charger les js que au besoin
+
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     // If partner is associated (attached), display the pair's main partner shift data
