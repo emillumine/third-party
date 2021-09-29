@@ -36,7 +36,7 @@ urlpatterns = [
     url(r'^verify_final_state$', views.verify_final_state),
     url(r'^update_couchdb_barcodes$', views.update_couchdb_barcodes),
     #  Borne accueil
-    url(r'^search/(.+)', views.search),
+    url(r'^search/([^\/.]+)/?([0-9]*)', views.search),
     url(r'^save_photo/([0-9]+)$', views.save_photo, name='save_photo'),
     url(r'^services_at_time/([0-9TZ\-\: \.]+)/([0-9\-]+)$', views.services_at_time),
     url(r'^service_presence/$', views.record_service_presence),

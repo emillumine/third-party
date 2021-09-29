@@ -687,7 +687,7 @@ class CagetteMember(models.Model):
         return m_list
 
     @staticmethod
-    def search(k_type, key):
+    def search(k_type, key, shift_id=None):
         """Search member according 3 types of key."""
         api = OdooAPI()
         if k_type == 'id':
@@ -699,23 +699,38 @@ class CagetteMember(models.Model):
         else:
             cond = [['name', 'ilike', str(key)]]
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
-
-        res = api.search_read('res.partner', cond, CagetteMember.m_default_fields)
+        fields = CagetteMember.m_default_fields
+        if not shift_id is None:
+            CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
+        res = api.search_read('res.partner', cond, fields)
         members = []
         if len(res) > 0:
             for m in res:
-                try:
-                    img_code = base64.b64decode(m['image_medium'])
-                    extension = imghdr.what('', img_code)
-                    m['image_extension'] = extension
-                except Exception as e:
-                    coop_logger.info("Img error : %s", e)
-                m['state'] = m['cooperative_state']
-                m['cooperative_state'] = \
-                    CagetteMember.get_state_fr(m['cooperative_state'])
-                # member = CagetteMember(m['id'], m['email'])
-                # m['next_shifts'] = member.get_next_shift()
-                members.append(m)
+                keep_it = False
+                if not shift_id is None and len(shift_id) > 0:
+                    # Only member registred to shift_id will be returned
+                    cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
+                    fields = ['shift_template_id']
+                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                    if (len(shift_templ_res) > 0 
+                        and 
+                        int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
+                        keep_it = True
+                else:
+                    keep_it = True
+                if keep_it is True:
+                    try:
+                        img_code = base64.b64decode(m['image_medium'])
+                        extension = imghdr.what('', img_code)
+                        m['image_extension'] = extension
+                    except Exception as e:
+                        coop_logger.info("Img error : %s", e)
+                    m['state'] = m['cooperative_state']
+                    m['cooperative_state'] = \
+                        CagetteMember.get_state_fr(m['cooperative_state'])
+                    # member = CagetteMember(m['id'], m['email'])
+                    # m['next_shifts'] = member.get_next_shift()
+                    members.append(m)
 
         return CagetteMember.add_next_shifts_to_members(members)
 
@@ -784,6 +799,7 @@ class CagetteMembers(models.Model):
         """Search partner with missing elements"""
         api = OdooAPI()
         return []
+
 
     @staticmethod
     def raw_search(needle):
@@ -1236,37 +1252,64 @@ class CagetteServices(models.Model):
         return result
 
     @staticmethod
+    def get_committees_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('ir.config_parameter',
+                                  [['key','=', 'lacagette_membership.committees_shift_id']],
+                                  ['value'])
+            if len(res) > 0:
+                try:
+                    shift_id = int(res[0]['value'])
+                except:
+                    pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
     def easy_validate_shift_presence(coop_id):
         """Add a presence point if the request is valid."""
         res = {}
         try:
+            committees_shift_id = CagetteServices.get_committees_shift_id()
             api = OdooAPI()
             # let verify coop_id is corresponding to a ftop subscriber
             cond = [['id', '=', coop_id]]
-            fields = ['shift_type']
+            fields = ['tmpl_reg_line_ids']
             coop = api.search_read('res.partner', cond, fields)
             if coop:
-                if coop[0]['shift_type'] == 'ftop':
-                    evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
-                    c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
-                    f = ['create_date']
-                    last_point_mvts = api.search_read('shift.counter.event', c, f,
-                                                      order ="create_date DESC", limit=1)
-                    ok_for_adding_pt = False
-                    if len(last_point_mvts):
-                        now = datetime.datetime.now()
-                        past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
-                                                           '%Y-%m-%d %H:%M:%S')
-                        if (now - past).total_seconds() >= 3600 * 24:
+                if len(coop[0]['tmpl_reg_line_ids']) > 0 :
+                    cond = [['id', '=', coop[0]['tmpl_reg_line_ids'][0]]]
+                    fields = ['shift_template_id']
+                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                    if (len(shift_templ_res) > 0 
+                        and 
+                        shift_templ_res[0]['shift_template_id'][0] == committees_shift_id):
+
+                        evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
+                        c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
+                        f = ['create_date']
+                        last_point_mvts = api.search_read('shift.counter.event', c, f,
+                                                          order ="create_date DESC", limit=1)
+                        ok_for_adding_pt = False
+                        if len(last_point_mvts):
+                            now = datetime.datetime.now()
+                            past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
+                                                               '%Y-%m-%d %H:%M:%S')
+                            if (now - past).total_seconds() >= 3600 * 24:
+                                ok_for_adding_pt = True
+                        else:
                             ok_for_adding_pt = True
+                        if ok_for_adding_pt is True:
+                            res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
+                        else:
+                            res['error'] = "One point has been added less then 24 hours ago"
                     else:
-                        ok_for_adding_pt = True
-                    if ok_for_adding_pt is True:
-                        res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
-                    else:
-                        res['error'] = "One point has been added less then 24 hours ago"
+                        res['error'] = "Unallowed coop"
                 else:
-                    res['error'] = "Unallowed coop"
+                    res['error'] = "Unregistred coop"
             else:
                 res['error'] = "Invalid coop id"
         except Exception as e:

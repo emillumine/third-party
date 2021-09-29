@@ -18,11 +18,15 @@
         history.pushState(null, null, location.pathname)
     };
     window.late_mode = {% if LATE_MODE %}true{% else %}false{% endif %};
+    {% if committees_shift_id %}
+       window.committees_shift_id = {{committees_shift_id}};
+    {% endif %} 
   </script>
   <script src="{% static "js/webcam.min.js" %}">
   </script>
   <script src="{% static "js/JsBarcode.all.min.js" %}">
   </script>
+  <script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
   <script defer src="{% static "fontawesome/js/fontawesome-all.js" %}"></script>
 
 {% endblock %}
