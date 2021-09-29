@@ -3,6 +3,7 @@
     margin: 3rem auto;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 /* -- Suspended screen */
@@ -14,6 +15,21 @@
 
 #shifts_exchange .select_makeups, #shifts_exchange .unsuscribed_form_link {
     margin: 1.5rem 0;
+}
+
+/* -- Calendar screen, area on top of the calendar */
+
+#calendar_top_info {
+    display: flex;
+    justify-content: space-between;
+}
+
+@media screen and (max-width:768px) {
+    #calendar_top_info {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }  
 }
 
 /* -- Calendar screen, shifts list */
@@ -119,4 +135,35 @@
 
 .date_old_shift, .time_old_shift, .date_new_shift, .time_new_shift {
     font-weight: bold;
+}
+
+/* -- Explainations */
+
+#calendar_explaination_area {
+    max-width: 33%;
+    border: 2px solid #585858;
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.example-event {
+    max-width: 200px;
+    margin: 2rem 0 0.5rem 0;
+    font-size: 1.4rem !important;
+    padding: 0 !important;
+}
+
+@media screen and (max-width:768px) {
+    .example-event {
+        margin: 2rem auto 0.5rem auto;
+    }
+}
+
+.arrow_explanation_numbers {
+    margin: 0 3px;
+}
+
+#calendar_explaination_button {
+    max-width: 60%;
+    margin: 2rem auto -1rem auto;
 }

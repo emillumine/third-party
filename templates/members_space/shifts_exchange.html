@@ -19,12 +19,16 @@
             <span class="select_makeups_message_block">Je dois les sélectionner dans le calendrier. </span>
             <span class="select_makeups_message_block">Je ne peux pas échanger de service tant que je n'ai pas choisi mes rattrapages. </span>
         </div>
-        <div id="partner_shifts_list">
-            <h4>Liste de mes services :</h4>
-            <div class="loading-incoming-shifts">
-                <i class="fas fa-spinner fa-spin fa-lg"></i>
+        <div id="calendar_top_info">
+            <div id="partner_shifts_list">
+                <h4>Liste de mes services :</h4>
+                <div class="loading-incoming-shifts">
+                    <i class="fas fa-spinner fa-spin fa-lg"></i>
+                </div>
+                <div id="shifts_list"></div>
             </div>
-            <div id="shifts_list"></div>
+            <div id="calendar_explaination_area"></div>
+            <button id="calendar_explaination_button" class="btn--success">Légende du calendrier</button>
         </div>
         <div class="loading-calendar">
             <i class="fas fa-spinner fa-spin fa-2x"></i>

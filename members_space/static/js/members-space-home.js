@@ -30,7 +30,7 @@ function request_delay() {
                 verif_token: partner_data.verif_token,
                 idPartner: partner_data.partner_id,
                 start_date: delay_start,
-                duration: diff_days
+                duration: diff_days,
             },
             success: function() {
                 partner_data.cooperative_state = 'delay';
@@ -44,7 +44,7 @@ function request_delay() {
                         && data.responseJSON.message === "delays limit reached") {
                     closeModal();
                     alert("Vous avez mis plus de 6 mois pour rattraper un service, " +
-                            "vous ne pouvez plus sélectionner de rattrapage depuis l'espace membre. " +
+                            "vous ne pouvez plus rien faire depuis l'espace membre. " +
                             "Merci de contacter le BDM.");
                 } else {
                     err = {msg: "erreur serveur lors de la création du délai", ctx: 'request_delay'};

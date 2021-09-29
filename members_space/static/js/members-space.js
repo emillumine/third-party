@@ -165,7 +165,11 @@ function init_my_info_data() {
             });
     }
 
-    if (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "False") {
+    if (
+        partner_data.makeups_to_do > 0
+        && partner_data.is_associated_people === "False"
+        && partner_data.cooperative_state !== 'unsubscribed'
+    ) {
         $(".choose_makeups").show();
 
         if (

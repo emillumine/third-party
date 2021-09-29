@@ -49,8 +49,19 @@
       <div>par celui du : </div>
       <div><span class="date_new_shift"></span> à <span class="time_new_shift"></span></div>
     </div>
+
     <div id="modal_add_shift_template">
       <div>Je suis sur le point de m'inscrire au service du : <span class="date_new_shift"></span> à <span class="time_new_shift"></span></div>
+    </div>
+
+    <div id="calendar_explaination_template"> 
+      <h4>Légende du calendrier</h4>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">06:00</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky"> Clemenceau -- 9/12</div></div></div></div></a>
+      <p>Un service colorié en noir : je suis déjà inscrit à ce service.</p>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_less_alf"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">10:45</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky"> Clemenceau -- 3/12</div></div></div></div></a>
+      <p>Un service colorié en bleu : je peux m'inscrire à ce service.</p>
+      <p>3/12 <i class="arrow_explanation_numbers fas fa-arrow-right"></i> il y a déjà 3 places réservées à ce service sur 12 disponibles.
+          <b>Plus le chiffre de gauche est petit, plus on a besoin de coopérateurs.rices à ce service !</b></p>
     </div>
   </div>
 </div>
@@ -62,16 +73,8 @@
     "partner_id":"{{partnerData.id}}",
     "name":"{{partnerData.display_name}}",
     "in_ftop_team":"{{partnerData.in_ftop_team}}",
-    "final_standard_point":"{{partnerData.final_standard_point}}",
-    "final_ftop_point":"{{partnerData.final_ftop_point}}",
     "date_delay_stop":"{{partnerData.date_delay_stop}}",
-    "date_alert_stop":"{{partnerData.date_alert_stop}}",
     "cooperative_state":"{{partnerData.cooperative_state}}",
-    "is_leave": "{{partnerData.is_leave}}",
-    "leave_start_date": "{{partnerData.leave_start_date}}",
-    "leave_stop_date": "{{partnerData.leave_stop_date}}",
-    "next_regular_shift_date": "{{partnerData.next_regular_shift_date}}",
-    "regular_shift_name": "{{partnerData.regular_shift_name}}",
     "verif_token" : "{{partnerData.verif_token}}",
     "makeups_to_do" : "{{partnerData.makeups_to_do}}",
     "barcode_base" : "{{partnerData.barcode_base}}",
@@ -87,6 +90,7 @@
     "parent_name" : "{{partnerData.parent_name}}",
   }
   var days_to_hide = "{{daysToHide}}"
+  var abcd_calendar_link = "{{abcd_calendar_link}}"
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members-space-home.js" %}?v="></script>

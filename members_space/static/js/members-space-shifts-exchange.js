@@ -94,8 +94,8 @@ function add_or_change_shift(new_shift_id) {
                     alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. ` +
                             `Il n'est plus possible de l'échanger.`);
                 } else {
-                    alert(`Une erreur est survenue.` +
-                        `Il est néanmoins possible que la requête ait abouti,` +
+                    alert(`Une erreur est survenue. ` +
+                        `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
                 }
 
@@ -176,8 +176,22 @@ function init_shifts_list() {
  * Inits the page when the calendar is displayed
  */
 function init_calendar_page() {
+    let template_explanations = $("#calendar_explaination_template");
+
     if (vw <= 768) {
         $(".loading-calendar").show();
+
+        $("#calendar_explaination_area").hide();
+        $("#calendar_explaination_button").on("click", () => {
+            openModal(
+                template_explanations.html(),
+                closeModal,
+                "J'ai compris"
+            )
+        })
+    } else {
+        $("#calendar_explaination_button").hide();
+        $("#calendar_explaination_area").html(template_explanations.html());
     }
 
     if (incoming_shifts !== null) {
@@ -199,7 +213,7 @@ function init_calendar_page() {
         default_initial_view = 'listWeek';
         header_toolbar = {
             left: 'title',
-            center: 'dayGridMonth,listWeek,timeGridDay',
+            center: '',
             right: 'prev,next today'
         };
     } else {
@@ -271,6 +285,16 @@ function init_calendar_page() {
                     );
                 } else if (can_select_makeup()) {
                     /* choose a makeup service */
+                    // Check if selected new shift is in less than 6 months
+                    if (partner_data.date_delay_stop !== 'False') {
+                        date_partner_delay_stop = new Date(partner_data.date_delay_stop);
+                        if ( datetime_new_shift > date_partner_delay_stop ) {
+                            let msg = `Vous avez jusqu'au ${date_partner_delay_stop.toLocaleDateString("fr-fr", date_options)} ` +
+                                        `pour sélectionner un rattrapage (soit une période de 6 mois depuis votre absence).`;
+                            alert(msg);
+                            return;
+                        }
+                    }
                     let modal_template = $("#modal_add_shift_template");
 
                     modal_template.find(".date_new_shift").text(new_shift_date);

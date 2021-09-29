@@ -311,7 +311,7 @@ class CagetteShift(models.Model):
             makeups_to_do -= 1
             f = { "makeups_to_do": makeups_to_do }
 
-            return self.o_api.update('res.partner', partner_id,  f)
+            return self.o_api.update('res.partner', [partner_id],  f)
         else:
             return "makeups already at 0"
 

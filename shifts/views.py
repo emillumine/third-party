@@ -3,6 +3,7 @@ from outils.for_view_imports import *
 from outils.common import Verification
 
 from shifts.models import CagetteShift
+from members.models import CagetteMember
 
 # working_state = ['up_to_date', 'alert', 'exempted', 'delay', 'suspended']
 state_shift_allowed = ["up_to_date", "alert", "delay"]
@@ -267,13 +268,12 @@ def request_delay(request):
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
             cs = CagetteShift()
 
-            # TODO do we need this?
-            # use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
-            # if use_new_members_space is True:
-            #     member_can_have_delay = cs.member_can_have_delay(int(request.POST.get('idPartner')))
-            #     if member_can_have_delay is False:
-            #         res = { 'message' : 'delays limit reached'}
-            #         return JsonResponse(res, status=403)
+            use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
+            if use_new_members_space is True:
+                member_can_have_delay = cs.member_can_have_delay(int(request.POST.get('idPartner')))
+                if member_can_have_delay is False:
+                    res = { 'message' : 'delays limit reached'}
+                    return JsonResponse(res, status=403)
             
             data = {
                 "idPartner": int(request.POST['idPartner']),

@@ -19,7 +19,12 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'title': 'Horaires ouverture magasin',
                                                 'type': 'textarea',
                                                 'value': ''
-                                            }
+                                            },
+                      'abcd_calendar_link' : {
+                                                'title': 'Lien vers le calendrier ABCD',
+                                                'type': 'text',
+                                                'value': ''
+                       }
                     }
 
 def config(request):

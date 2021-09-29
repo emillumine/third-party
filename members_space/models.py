@@ -11,12 +11,13 @@ class CagetteMembersSpace(models.Model):
         """Init with odoo id."""
         self.o_api = OdooAPI()
 
-    def get_points_history(self, partner_id, limit, offset, date_from):
+    def get_points_history(self, partner_id, limit, offset, date_from, shift_type):
         """ Get partner points history with related shift registration if needed """
         cond = [
             ['partner_id', '=', partner_id], 
-            ['type', '=', 'ftop'],
-            ['create_date', '>', date_from]
+            ['type', '=', shift_type],
+            ['create_date', '>', date_from],
+            ['point_qty', '!=', 0]
         ]
         f = ['create_date', 'create_uid', 'shift_id', 'name', 'point_qty']
 
