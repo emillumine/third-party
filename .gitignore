@@ -17,3 +17,4 @@ db.sqlite3
 shop/shop_admin_settings.json
 shop/errors.log
 .idea
+members/settings.json

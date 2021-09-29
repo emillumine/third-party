@@ -18,7 +18,9 @@ $(document).ready(function() {
         if (current_location !== "home") {
             goto('home');
         }
-        toggleHeader();
+        if (document.getElementById("topnav").className !== "topnav") {
+            toggleHeader();
+        }
     });
     $('#nav_my_info').on('click', (e) => {
         e.preventDefault();
@@ -39,6 +41,10 @@ $(document).ready(function() {
         if (current_location !== "shifts_exchange") {
             goto('echange-de-services');
         }
+        toggleHeader();
+    });
+    $('#nav_calendar').prop("href", abcd_calendar_link);
+    $('#nav_calendar').on('click', () => {
         toggleHeader();
     });
 });

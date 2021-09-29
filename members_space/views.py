@@ -91,7 +91,6 @@ def index(request, exception=None):
 
             context['partnerData'] = partnerData
 
-            # TODO test with partner who's not attached
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
@@ -104,6 +103,10 @@ def index(request, exception=None):
             if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
                 days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
             context['daysToHide'] = days_to_hide
+
+            msettings = MConfig.get_settings('members')
+            if 'abcd_calendar_link' in msettings:
+                context['abcd_calendar_link'] = msettings['abcd_calendar_link']['value']
             
         else:
             # may arrive when switching database without cleaning cookie

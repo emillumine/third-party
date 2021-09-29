@@ -213,7 +213,7 @@ function init_calendar_page() {
         default_initial_view = 'listWeek';
         header_toolbar = {
             left: 'title',
-            center: 'dayGridMonth,listWeek,timeGridDay',
+            center: '',
             right: 'prev,next today'
         };
     } else {
