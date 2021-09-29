@@ -176,8 +176,22 @@ function init_shifts_list() {
  * Inits the page when the calendar is displayed
  */
 function init_calendar_page() {
+    let template_explanations = $("#calendar_explaination_template");
+
     if (vw <= 768) {
         $(".loading-calendar").show();
+
+        $("#calendar_explaination_area").hide();
+        $("#calendar_explaination_button").on("click", () => {
+            openModal(
+                template_explanations.html(),
+                closeModal,
+                "J'ai compris"
+            )
+        })
+    } else {
+        $("#calendar_explaination_button").hide();
+        $("#calendar_explaination_area").html(template_explanations.html());
     }
 
     if (incoming_shifts !== null) {
