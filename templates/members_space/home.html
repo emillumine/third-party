@@ -3,7 +3,7 @@
     <h1>Mon espace membre</h1>
   </div>
   <div class="tiles_container">
-    <div class="tile" id="home_tile_my_info">
+    <div class="tile high_tile" id="home_tile_my_info">
       <div class="tile_title">
         <i class="fas fa-user tile_icon"></i>
         Mes Infos
@@ -34,7 +34,7 @@
         <a href="#" id="see_more_info_link">Voir plus ></a>
       </div>
     </div>
-    <div class="tile" id="home_tile_my_services">
+    <div class="tile high_tile" id="home_tile_my_services">
       <div class="tile_title">
         <i class="fas fa-clipboard tile_icon"></i>
         Mes Services
@@ -51,29 +51,39 @@
         </div>
       </div>
     </div>
-    <div class="tile" id="home_tile_services_exchange">
+    <div class="tile small_tile" id="home_tile_services_exchange">
       <div class="tile_title">
         <i class="fas fa-exchange-alt tile_icon"></i>
         Échange de services
       </div>
       <div class="tile_content">
-        <div id="go_to_shifts_calendar_area">
-          <button type="button" class="btn--primary" id="go_to_shifts_calendar">
+        <div class="home_link_button_area">
+          <button type="button" class="btn--primary home_link_button" id="go_to_shifts_calendar">
               Accéder au calendrier d'échange de services
           </button>
         </div>
       </div>
     </div>
-    <div class="tile" id="home_tile_help">
+    <div class="tile small_tile" id="home_tile_help">
       <div class="tile_title">
         <i class="fas fa-question-circle tile_icon"></i>
         J'ai une demande
       </div>
       <div class="tile_content">
-        À venir...
+        <div class="home_link_button_area">
+          <a
+            href="javascript:void(0);"
+            target="_blank"
+            type="button" 
+            class="btn--primary home_link_button" 
+            id="go_to_forms"
+          >
+              Accéder aux formulaires
+          </a>
+        </div>
       </div>
     </div>
-    <div class="tile" id="home_tile_shop_info">
+    <div class="tile small_tile" id="home_tile_shop_info">
       <div class="tile_title">
         <i class="fas fa-newspaper tile_icon"></i>
         Informations magasins

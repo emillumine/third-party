@@ -24,6 +24,16 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'title': 'Lien vers le calendrier ABCD',
                                                 'type': 'text',
                                                 'value': ''
+                       },
+                       'forms_link' : {
+                                                'title': 'Lien vers la page des formulaires',
+                                                'type': 'text',
+                                                'value': ''
+                       },
+                       'unsuscribe_form_link' : {
+                                                'title': 'Lien vers le formulaire de ré-inscription',
+                                                'type': 'text',
+                                                'value': ''
                        }
                     }
 

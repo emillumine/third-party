@@ -19,9 +19,14 @@ body {
     flex-direction: column;
     align-items: center;
     border-radius: 30px;
-    min-height: 350px;
     margin: 1rem 1rem;
     box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
+}
+.high_tile {
+    min-height: 350px;
+}
+.small_tile {
+    min-height: 250px;
 }
 
 .full_width_tile {
@@ -49,6 +54,7 @@ body {
     margin: 3rem 0;
     width: 80%;
     display: flex;
+    height: 100%;
 }
 
 #home_tile_services_exchange .tile_content {
@@ -120,7 +126,7 @@ body {
     }
 }
 
-.member_info {
+#home .member_info {
     font-weight: bold;
 }
 
@@ -193,16 +199,29 @@ body {
 
 /* --Shifts exchange tile tile */
 
-#go_to_shifts_calendar_area {
+.home_link_button_area {
     width: 100%;
     display: flex;
     justify-content: center;
+    height: 100%;
 }
 
-#go_to_shifts_calendar {
+.home_link_button {
     width: 80%;
-    margin-top: 20px;
+    margin: 30px auto auto auto;
     white-space: normal;
+}
+
+/* -- I have a question tile */
+
+#go_to_forms {
+    text-decoration: none;
+}
+#go_to_forms:hover {
+    color: white;
+}
+#go_to_forms.active {
+    color: white !important;
 }
 
 /* -- Shop info tile */
@@ -212,7 +231,7 @@ body {
     justify-content: center;
     align-items: center;
     width: 80%;
-    height: 100%;
+    margin: auto;
 }
 
 .shop_info_item {
@@ -222,6 +241,7 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 2rem;
+    flex: 1 0 50%;
 }
 
 .shop_info_item h1,h2,h3,h4,h5,h6 {
@@ -234,23 +254,27 @@ body {
     font-weight: bold;
 }
 
+.shop_message_content {
+    text-align: center;
+}
+
 @media screen and (min-width: 769px) {
     .shop_info_item {
-        height: 90%;
         padding: 0 4rem;
     }
     .shop_message {
         border-left: 1px solid #e7e9ed;
-    }
-    .shop_message_content {
-        text-align: center;
+        margin: 3rem 0;
     }
 }
 
 @media screen and (max-width: 768px) {
+    #shop_info_content {
+        flex-direction: column;
+    }
     .shop_info_item {
-        width: 90%;
-        height: 50%;
+        flex: 1 0 50%;
+        width: 100%;
         font-size: 1.6rem;
         padding: 1.5rem 0;
     }
@@ -260,8 +284,10 @@ body {
     .opening_hours_title {
         font-size: 1.9rem;
     }
-
     .shop_message {
         border-top: 1px solid #e7e9ed;
+    }
+    .shop_message_content {
+        width: 90%;
     }
 }

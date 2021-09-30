@@ -28,8 +28,8 @@ def index(request, exception=None):
 
     context = {
         'title': 'Espace Membre',
-        'unsuscribe_form_link': getattr(settings, 'UNSUBSCRIBED_FORM_LINK', ''),
     }
+
     template = loader.get_template('members_space/index.html')
 
     if ('failure' in credentials):
@@ -105,9 +105,10 @@ def index(request, exception=None):
             context['daysToHide'] = days_to_hide
 
             msettings = MConfig.get_settings('members')
-            if 'abcd_calendar_link' in msettings:
-                context['abcd_calendar_link'] = msettings['abcd_calendar_link']['value']
-            
+            context['abcd_calendar_link'] = msettings['abcd_calendar_link']['value'] if 'abcd_calendar_link' in msettings else ''
+            context['unsuscribe_form_link'] = msettings['unsuscribe_form_link']['value'] if 'unsuscribe_form_link' in msettings else ''
+            context['forms_link'] = msettings['forms_link']['value'] if 'forms_link' in msettings else ''
+
         else:
             # may arrive when switching database without cleaning cookie
             return redirect('/website/deconnect')

@@ -68,7 +68,10 @@
 
 <script>
   var app_env = '{{app_env}}';
+  var forms_link = '{{forms_link}}';
   var unsuscribe_form_link = '{{unsuscribe_form_link}}';
+  var abcd_calendar_link = "{{abcd_calendar_link}}"
+  var days_to_hide = "{{daysToHide}}"
   var partner_data = {
     "partner_id":"{{partnerData.id}}",
     "name":"{{partnerData.display_name}}",
@@ -90,8 +93,6 @@
     "parent_id" : "{{partnerData.parent_id}}",
     "parent_name" : "{{partnerData.parent_name}}",
   }
-  var days_to_hide = "{{daysToHide}}"
-  var abcd_calendar_link = "{{abcd_calendar_link}}"
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members-space-home.js" %}?v="></script>

@@ -95,6 +95,7 @@ function init_home() {
         e.preventDefault();
         goto('mes-infos');
     });
+    $("#go_to_forms").prop("href", forms_link);
 
     // Init my info tile
     init_my_info_data();
