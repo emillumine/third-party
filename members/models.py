@@ -20,7 +20,7 @@ FUNDRAISING_CAT_ID = {'A': 1, 'B': 2, 'C': 3}
 
 class CagetteMember(models.Model):
     """Class to handle cagette Odoo member."""
-    m_default_fields = ['name', 'sex', 'image_medium', 'active',
+    m_default_fields = ['name', 'parent_name', 'sex', 'image_medium', 'active',
                         'barcode_base', 'barcode', 'in_ftop_team',
                         'is_associated_people', 'is_member', 'shift_type',
                         'display_ftop_points', 'display_std_points',
@@ -730,6 +730,9 @@ class CagetteMember(models.Model):
                         CagetteMember.get_state_fr(m['cooperative_state'])
                     # member = CagetteMember(m['id'], m['email'])
                     # m['next_shifts'] = member.get_next_shift()
+                    if not m['parent_name'] is False:
+                        m['name'] += ' / ' + m['parent_name']
+                        del m['parent_name']
                     members.append(m)
 
         return CagetteMember.add_next_shifts_to_members(members)
@@ -1120,6 +1123,20 @@ class CagetteServices(models.Model):
                     fields = ['partner_id', 'shift_type', 'state']
                     members = api.search_read('shift.registration', cond, fields)
                     s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
+                    if len(s['members']) > 0:
+                        # search for associated people linked to these members
+                        mids = []
+                        for m in s['members']:
+                            mids.append(m['partner_id'][0])
+                        cond = [['parent_id', 'in', mids]]
+                        fields = ['parent_id', 'name']
+                        associated = api.search_read('res.partner', cond, fields)
+
+                        if len(associated) > 0:
+                            for m in s['members']:
+                                for a in associated:
+                                    if int(a['parent_id'][0]) == int(m['partner_id'][0]):
+                                        m['partner_id'][1] += ' / ' + a['name']
 
         return services
 
