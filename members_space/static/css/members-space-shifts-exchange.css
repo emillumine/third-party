@@ -13,8 +13,23 @@
     text-align: center;
 }
 
-#shifts_exchange .select_makeups, #shifts_exchange .unsuscribed_form_link {
+#shifts_exchange .select_makeups, #shifts_exchange .unsuscribed_form_link, .cant_have_delay_form_link {
     margin: 1.5rem 0;
+}
+
+/* -- Suspended can't have delay screen */
+
+#suspended_cant_have_delay_content {
+    align-items: center;
+    text-align: center;
+    width: 50%;
+}
+@media screen and (max-width:768px) {
+    #suspended_cant_have_delay_content {
+        align-items: center;
+        text-align: center;
+        width: 90%;
+    }
 }
 
 /* -- Calendar screen, area on top of the calendar */

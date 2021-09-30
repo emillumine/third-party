@@ -34,6 +34,11 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'title': 'Lien vers le formulaire de ré-inscription',
                                                 'type': 'text',
                                                 'value': ''
+                       },
+                       'member_cant_have_delay_form_link' : {
+                                                'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
+                                                'type': 'text',
+                                                'value': ''
                        }
                     }
 

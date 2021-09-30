@@ -13,12 +13,12 @@ function can_exchange_shifts() {
 }
 
 /**
- * A partner can add a shift if:
+ * A partner should select a shift if:
  *  - s.he has makeups to do
  *  - s.he's not an associated partner
  * @returns boolean
  */
-function can_select_makeup() {
+function should_select_makeup() {
     return partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "False";
 }
 
@@ -201,7 +201,7 @@ function init_calendar_page() {
             .then(init_shifts_list);
     }
 
-    if (can_select_makeup()) {
+    if (should_select_makeup()) {
         $(".makeups_nb").text(partner_data.makeups_to_do);
         $("#need_to_select_makeups_message").show();
     }
@@ -283,7 +283,7 @@ function init_calendar_page() {
                         closeModal,
                         "J'ai compris"
                     );
-                } else if (can_select_makeup()) {
+                } else if (should_select_makeup()) {
                     /* choose a makeup service */
                     // Check if selected new shift is in less than 6 months
                     if (partner_data.date_delay_stop !== 'False') {
@@ -334,6 +334,22 @@ function init_shifts_exchange() {
         $(".unsuscribed_form_link")
             .show()
             .attr('href', unsuscribe_form_link)
+            .on('click', function() {
+                setTimeout(500, () => {
+                    $(this).removeClass('active');
+                });
+            });
+    } else if (
+        partner_data.cooperative_state === 'suspended'
+        && partner_data.can_have_delay === 'False') 
+    {
+        let msg_template = $("#cant_have_delay_msg_template");
+        $(".suspended_cant_have_delay_msg").html(msg_template.html())
+        $("#suspended_cant_have_delay_content").show()
+
+        $(".cant_have_delay_form_link")
+            .show()
+            .attr('href', member_cant_have_delay_form_link)
             .on('click', function() {
                 setTimeout(500, () => {
                     $(this).removeClass('active');

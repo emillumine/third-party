@@ -89,13 +89,15 @@ def index(request, exception=None):
             except:
                 pass
 
-            context['partnerData'] = partnerData
-
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
             else:
                 partnerData["parent_name"] = False
+
+            partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
+
+            context['partnerData'] = partnerData
 
             # Days to hide in the calendar
             days_to_hide = "0"
@@ -105,9 +107,16 @@ def index(request, exception=None):
             context['daysToHide'] = days_to_hide
 
             msettings = MConfig.get_settings('members')
-            context['abcd_calendar_link'] = msettings['abcd_calendar_link']['value'] if 'abcd_calendar_link' in msettings else ''
-            context['unsuscribe_form_link'] = msettings['unsuscribe_form_link']['value'] if 'unsuscribe_form_link' in msettings else ''
             context['forms_link'] = msettings['forms_link']['value'] if 'forms_link' in msettings else ''
+            context['unsuscribe_form_link'] = ( msettings['unsuscribe_form_link']['value'] 
+                if 'unsuscribe_form_link' in msettings 
+                else '')
+            context['member_cant_have_delay_form_link'] = ( msettings['member_cant_have_delay_form_link']['value'] 
+                if 'member_cant_have_delay_form_link' in msettings 
+                else '')
+            context['abcd_calendar_link'] = ( msettings['abcd_calendar_link']['value'] 
+                if 'abcd_calendar_link' in msettings 
+                else '')
 
         else:
             # may arrive when switching database without cleaning cookie

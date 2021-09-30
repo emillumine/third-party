@@ -43,9 +43,17 @@ function request_delay() {
                         && typeof data.responseJSON != 'undefined'
                         && data.responseJSON.message === "delays limit reached") {
                     closeModal();
-                    alert("Vous avez mis plus de 6 mois pour rattraper un service, " +
-                            "vous ne pouvez plus rien faire depuis l'espace membre. " +
-                            "Merci de contacter le BDM.");
+
+                    let msg_template = $("#cant_have_delay_msg_template");
+                    openModal(
+                        msg_template.html(),
+                        () => {
+                            window.location =member_cant_have_delay_form_link;
+                        },
+                        "J'accède au formulaire",
+                        true,
+                        false
+                    )
                 } else {
                     err = {msg: "erreur serveur lors de la création du délai", ctx: 'request_delay'};
                     if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
