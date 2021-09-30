@@ -73,16 +73,27 @@
         À venir...
       </div>
     </div>
-    <div class="tile" id="home_tile_message">
+    <div class="tile" id="home_tile_shop_info">
       <div class="tile_title">
         <i class="fas fa-newspaper tile_icon"></i>
         Informations magasins
       </div>
-      <div class="subtile">
-        {{msg_accueil|safe}}
-      </div>
-      <div class="subtile">
-        {{shop_opening_hours|safe}}
+      <div id="shop_info_content">
+        <div class="shop_info_item shop_opening_hours">
+          <div class="shop_info_item_content">
+            <div class="opening_hours_title">
+              Horaires du magasin :
+            </div>
+            <div class="opening_hours_content">
+              {{shop_opening_hours|safe}}
+            </div>
+          </div>
+        </div>
+        <div class="shop_info_item shop_message">
+          <div class="shop_info_item_content shop_message_content">
+            {{msg_accueil|safe}}
+          </div>
+        </div>
       </div>
     </div>
   </div>

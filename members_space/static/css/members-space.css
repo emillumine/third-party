@@ -24,14 +24,6 @@ body {
     box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
 }
 
-.subtile {
-    
-}
-
-.subtile.two {
-    max-width: 45%;
-}
-
 .full_width_tile {
     flex: 1 0 90%;
     min-height: 100px;
@@ -45,6 +37,11 @@ body {
     font-size: 2.7rem;
     padding: 2rem 0;
     width: 80%;
+}
+@media screen and (max-width: 768px) {
+    .tile_title {
+        font-size: 2.5rem;
+    }
 }
 
 .tile_content {
@@ -64,6 +61,13 @@ body {
 #home_tile_my_services .tile_content {
     height: 100%;
     flex-direction: column;
+    margin: auto;
+    padding: 2rem 0;
+}
+@media screen and (min-width: 769px) {
+    #home_tile_my_services .tile_content {
+        width: 50%;
+    }
 }
 
 #home_incoming_services {
@@ -89,7 +93,7 @@ body {
 }
 
 #home_go_to_shift_history {
-    width: 80%;
+    width: 100%;
     margin-top: 30px;
 }
 
@@ -108,16 +112,25 @@ body {
     height: 100%;
     flex-direction: column;
     align-items: center;
-    font-size: 2.3rem;
+    font-size: 2.2rem;
+}
+@media screen and (max-width: 768px) {
+    #home_tile_my_info .tile_content {
+        font-size: 1.9rem;
+    }
 }
 
-.home_member_info {
-    font-size: 2rem;
+.member_info {
     font-weight: bold;
 }
 
 #member_status_action {
-    margin-bottom:20px;
+    margin-bottom: 20px;
+}
+@media screen and (max-width: 768px) {
+    #member_status_action {
+        margin-bottom: 10px;
+    }
 }
 
 .choose_makeups {
@@ -190,4 +203,65 @@ body {
     width: 80%;
     margin-top: 20px;
     white-space: normal;
+}
+
+/* -- Shop info tile */
+#shop_info_content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    height: 100%;
+}
+
+.shop_info_item {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.shop_info_item h1,h2,h3,h4,h5,h6 {
+    font-size: 2rem;
+}
+
+.opening_hours_title {
+    margin-bottom: 10px;
+    font-size: 2.3rem;
+    font-weight: bold;
+}
+
+@media screen and (min-width: 769px) {
+    .shop_info_item {
+        height: 90%;
+        padding: 0 4rem;
+    }
+    .shop_message {
+        border-left: 1px solid #e7e9ed;
+    }
+    .shop_message_content {
+        text-align: center;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .shop_info_item {
+        width: 90%;
+        height: 50%;
+        font-size: 1.6rem;
+        padding: 1.5rem 0;
+    }
+    .shop_info_item h1,h2,h3,h4,h5,h6 {
+        font-size: 1.6rem;
+    }
+    .opening_hours_title {
+        font-size: 1.9rem;
+    }
+
+    .shop_message {
+        border-top: 1px solid #e7e9ed;
+    }
 }
