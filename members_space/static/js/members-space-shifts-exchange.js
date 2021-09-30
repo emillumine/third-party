@@ -187,8 +187,8 @@ function init_calendar_page() {
                 template_explanations.html(),
                 closeModal,
                 "J'ai compris"
-            )
-        })
+            );
+        });
     } else {
         $("#calendar_explaination_button").hide();
         $("#calendar_explaination_area").html(template_explanations.html());
@@ -288,10 +288,12 @@ function init_calendar_page() {
                     // Check if selected new shift is in less than 6 months
                     if (partner_data.date_delay_stop !== 'False') {
                         date_partner_delay_stop = new Date(partner_data.date_delay_stop);
-                        if ( datetime_new_shift > date_partner_delay_stop ) {
+                        if (datetime_new_shift > date_partner_delay_stop) {
                             let msg = `Vous avez jusqu'au ${date_partner_delay_stop.toLocaleDateString("fr-fr", date_options)} ` +
                                         `pour sélectionner un rattrapage (soit une période de 6 mois depuis votre absence).`;
+
                             alert(msg);
+
                             return;
                         }
                     }
@@ -341,11 +343,11 @@ function init_shifts_exchange() {
             });
     } else if (
         partner_data.cooperative_state === 'suspended'
-        && partner_data.can_have_delay === 'False') 
-    {
+        && partner_data.can_have_delay === 'False') {
         let msg_template = $("#cant_have_delay_msg_template");
-        $(".suspended_cant_have_delay_msg").html(msg_template.html())
-        $("#suspended_cant_have_delay_content").show()
+
+        $(".suspended_cant_have_delay_msg").html(msg_template.html());
+        $("#suspended_cant_have_delay_content").show();
 
         $(".cant_have_delay_form_link")
             .show()
