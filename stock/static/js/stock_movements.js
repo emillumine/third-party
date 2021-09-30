@@ -185,7 +185,7 @@ function init_datatable() {
         });
 
         // Show validation button
-        $('.footer').show();
+        $('.movement_validation_area').show();
     }
 }
 
@@ -333,7 +333,7 @@ var add_product = function(product) {
         }
 
         update_total_value();
-        $('.footer').show(); // if is a second or more access, footer is hidden (init_datatable is not fired)
+        $('.movement_validation_area').show(); // if is a second or more access, movement_validation_area is hidden (init_datatable is not fired)
     } catch (e) {
         err = {msg: e.name + ' : ' + e.message, ctx: 'add_product'};
         console.error(err);
@@ -702,7 +702,7 @@ function do_stock_movement() {
 
                 products = [];
                 products_table.clear().draw();
-                $('.footer').hide();
+                $('.movement_validation_area').hide();
 
 
             },

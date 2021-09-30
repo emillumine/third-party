@@ -1,5 +1,17 @@
-.main, .barcode_search_area {
+.main {
   margin-top: 40px;
+}
+
+.top_content {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top_content_item {
+  flex: 1 0 33%;
 }
 
 #sm_barcode_selector {
@@ -9,10 +21,6 @@
 
 .stock_edit_input {
   max-width: 60px;
-}
-
-#movement_validation_button {
-  margin-top: 20px;
 }
 
 .notifyjs-test1-base {
