@@ -113,7 +113,7 @@ function init_history() {
                     data: "name",
                     title: "Détails",
                     responsivePriority: 3
-                },
+                }
             ],
             iDisplayLength: -1,
             ordering: false,
