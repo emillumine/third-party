@@ -1,6 +1,6 @@
 var makeups_members_table = null,
     makeups_members = null,
-    selected_rows = [];  // Contain members id
+    selected_rows = []; // Contain members id
 
 function switch_active_tab() {
     // Set tabs
@@ -11,6 +11,7 @@ function switch_active_tab() {
     $('.tab_content').hide();
 
     let tab = $(this).attr('id');
+
     if (tab == 'tab_makeups') {
         $('#tab_makeups_content').show();
     }
@@ -23,6 +24,7 @@ function switch_active_tab() {
  */
 function load_tab_data() {
     let current_tab = $('.tab .active').attr('id');
+
     if (current_tab === 'tab_makeups' && makeups_members === null) {
         load_makeups_members();
     }
@@ -66,13 +68,13 @@ function display_makeups_members() {
     }
 
     // Remove members with 0 makeups to do
-    ids_to_remove = []
+    ids_to_remove = [];
     for (member_item of makeups_members) {
         if (member_item.makeups_to_do == 0) {
-            ids_to_remove.push(member_item.id)
+            ids_to_remove.push(member_item.id);
         }
     }
-    makeups_members = makeups_members.filter(m => !ids_to_remove.includes(m.id))
+    makeups_members = makeups_members.filter(m => !ids_to_remove.includes(m.id));
 
     // TODO : select multiple and grouped action
     makeups_members_table = $('#makeups_members_table').DataTable({
@@ -90,7 +92,7 @@ function display_makeups_members() {
             },
             {
                 data: "name",
-                title: "Nom",
+                title: "Nom"
             },
             {
                 data: "makeups_to_do",
@@ -102,7 +104,7 @@ function display_makeups_members() {
                         <button class="decrement_makeup btn--primary" id="decrement_member_${full.id}">
                             <i class="fas fa-arrow-down"></i>
                         </button>`;
-                },
+                }
             }
         ],
         aLengthMenu: [
@@ -118,11 +120,12 @@ function display_makeups_members() {
             ]
         ],
         iDisplayLength: -1,
-        language: {url : '/static/js/datatables/french.json'},
+        language: {url : '/static/js/datatables/french.json'}
     });
 
     $('#makeups_members_table').on('click', 'tbody td .decrement_makeup', function () {
-        const button_id = $(this).prop('id').split('_');
+        const button_id = $(this).prop('id')
+            .split('_');
         const member_id = button_id[button_id.length - 1];
 
         const member = makeups_members.find(m => m.id == member_id);
@@ -134,7 +137,7 @@ function display_makeups_members() {
             },
             "Confirmer",
             false
-        )
+        );
     });
 
     $('#makeups_members_table').on('click', 'tbody td .select_member_cb', function () {
@@ -149,6 +152,7 @@ function display_makeups_members() {
             selected_rows.push(m_id);
         } else {
             const i = selected_rows.findIndex(id => id == m_id);
+
             selected_rows.splice(i, 1);
         }
 
@@ -163,23 +167,24 @@ function display_makeups_members() {
                         },
                         "Confirmer",
                         false
-                    )
+                    );
                 });
             }
         } else {
-            $("#decrement_selected_members_makeups").off().hide();
+            $("#decrement_selected_members_makeups").off()
+                .hide();
         }
     });
 }
 
 /**
  * Send request to update members nb of makeups to do
- * @param {Array} member_ids 
+ * @param {Array} member_ids
  */
 function decrement_makeups(member_ids) {
     openModal();
 
-    data = []
+    data = [];
     for (mid of member_ids) {
         member_index = makeups_members.findIndex(m => m.id == mid);
         makeups_members[member_index].makeups_to_do -= 1;
@@ -187,7 +192,7 @@ function decrement_makeups(member_ids) {
         data.push({
             member_id: mid,
             target_makeups_nb: makeups_members[member_index].makeups_to_do
-        })
+        });
     }
 
     $.ajax({
@@ -197,10 +202,10 @@ function decrement_makeups(member_ids) {
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
+        success: function() {
             selected_rows = [];
             display_makeups_members();
-            closeModal()
+            closeModal();
         },
         error: function(data) {
             err = {msg: "erreur serveur pour décrémenter les rattrapages", ctx: 'load_makeups_members'};
@@ -217,11 +222,11 @@ function decrement_makeups(member_ids) {
 
 $(document).ready(function() {
     if (coop_is_connected()) {
-        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });    
-    
+        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
         $(".page_content").show();
         load_makeups_members();
-    
+
         $(".tabs .tab").on('click', switch_active_tab);
     } else {
         $(".page_content").hide();
