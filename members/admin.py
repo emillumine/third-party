@@ -215,3 +215,31 @@ def create_envelops(request):
     else:
         response = JsonResponse(res, status=403)
     return response
+
+# # # ADMIN / BDM # # #
+
+def admin(request):
+    """ Administration des membres """
+    template = loader.get_template('members/admin/index.html')
+    context = {'title': 'BDM',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
+def get_makeups_members(request):
+    """ Récupération des membres qui doivent faire des rattrapages """
+    res = CagetteMembers.get_makeups_members()
+    return JsonResponse({ 'res' : res })
+
+def update_members_makeups(request):
+    """ Décrémente les rattrapages des membres passés dans la requête """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        members_data = json.loads(request.body.decode())
+        res["res"] = CagetteMembers.update_members_makeups(members_data)
+
+        response = JsonResponse(res)
+    else:
+        res["message"] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response
