@@ -1,5 +1,6 @@
 var makeups_members_table = null,
-    makeups_members = null;
+    makeups_members = null,
+    selected_rows = [];  // Contain members id
 
 function switch_active_tab() {
     // Set tabs
@@ -10,23 +11,26 @@ function switch_active_tab() {
     $('.tab_content').hide();
 
     let tab = $(this).attr('id');
-    if (tab == 'tab_settings') {
-        $('#tab_settings_content').show();
-    } else {
-        // Default
+    if (tab == 'tab_makeups') {
         $('#tab_makeups_content').show();
     }
 
     load_tab_data();
 }
 
+/**
+ * Load data for the current tab
+ */
 function load_tab_data() {
     let current_tab = $('.tab .active').attr('id');
-    if (current_tab === 'tab_makeups') {
+    if (current_tab === 'tab_makeups' && makeups_members === null) {
         load_makeups_members();
     }
 }
 
+/**
+ * Load partners who have makeups to do
+ */
 function load_makeups_members() {
     $.ajax({
         type: 'GET',
@@ -51,6 +55,9 @@ function load_makeups_members() {
     });
 }
 
+/**
+ * (Re)Display table of makeup members
+ */
 function display_makeups_members() {
     if (makeups_members_table) {
         $('#makeups_members_table').off();
@@ -60,9 +67,9 @@ function display_makeups_members() {
 
     // Remove members with 0 makeups to do
     ids_to_remove = []
-    for (of in makeups_members) {
-        if (makeups_members[i].makeups_to_do == 0) {
-            ids_to_remove.push(makeups_members[i].id)
+    for (member_item of makeups_members) {
+        if (member_item.makeups_to_do == 0) {
+            ids_to_remove.push(member_item.id)
         }
     }
     makeups_members = makeups_members.filter(m => !ids_to_remove.includes(m.id))
@@ -129,8 +136,46 @@ function display_makeups_members() {
             false
         )
     });
+
+    $('#makeups_members_table').on('click', 'tbody td .select_member_cb', function () {
+        $(this).closest('tr')
+            .toggleClass('selected');
+
+        // Save / unsave selected row
+        const m_id = makeups_members_table.row($(this).closest('tr')).data().id;
+        const first_select = selected_rows.length === 0;
+
+        if (this.checked) {
+            selected_rows.push(m_id);
+        } else {
+            const i = selected_rows.findIndex(id => id == m_id);
+            selected_rows.splice(i, 1);
+        }
+
+        if (selected_rows.length > 0) {
+            $("#decrement_selected_members_makeups").show();
+            if (first_select) {
+                $("#decrement_selected_members_makeups").on("click", () => {
+                    openModal(
+                        `Enlever un rattrapage aux membres sélectionnés ?`,
+                        () => {
+                            decrement_makeups(selected_rows);
+                        },
+                        "Confirmer",
+                        false
+                    )
+                });
+            }
+        } else {
+            $("#decrement_selected_members_makeups").off().hide();
+        }
+    });
 }
 
+/**
+ * Send request to update members nb of makeups to do
+ * @param {Array} member_ids 
+ */
 function decrement_makeups(member_ids) {
     openModal();
 
@@ -153,6 +198,7 @@ function decrement_makeups(member_ids) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
+            selected_rows = [];
             display_makeups_members();
             closeModal()
         },
@@ -170,9 +216,14 @@ function decrement_makeups(member_ids) {
 }
 
 $(document).ready(function() {
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });    
-
-    load_makeups_members();
-
-    $(".tabs .tab").on('click', switch_active_tab);
+    if (coop_is_connected()) {
+        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });    
+    
+        $(".page_content").show();
+        load_makeups_members();
+    
+        $(".tabs .tab").on('click', switch_active_tab);
+    } else {
+        $(".page_content").hide();
+    }
 });

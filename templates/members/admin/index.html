@@ -17,26 +17,31 @@
 <div class="page_body">
     <div class="login_area">
       {% include "common/conn_admin.html" %}
-      </div>
+    </div>
     <div class="header txtcenter">
       <h1>Bureau des membres</h1>
     </div>
-  
-    <section class="tabs autogrid">
-      <div class="button tab active" id="tab_makeups"><h5>Rattrapages</h5></div>
-      <div class="button tab" id="tab_settings"><h5>Réglages</h5></div>
-    </section>
-  
-    <div id="tab_makeups_content" class="tab_content">
-        <h3>Liste des membres devant effectuer un rattrapage</h3>
-        <div class="table_area">
-            <table id="makeups_members_table" class="display" cellspacing="0" width="100%"></table>
+    
+    <div class="page_content">
+        <section class="tabs autogrid">
+          <div class="button tab active" id="tab_makeups"><h5>Rattrapages</h5></div>
+        </section>
+      
+        <div id="tab_makeups_content" class="tab_content">
+            <div id="table_top_area">
+                <h3>Liste des membres devant effectuer un rattrapage</h3>
+                <div class="table_grouped_action">
+                    <button type="button" class="btn--primary" id="decrement_selected_members_makeups">
+                        -1 rattrapage pour les membres sélectionnés
+                    </button>
+                </div>
+            </div>
+            <div class="table_area">
+                <table id="makeups_members_table" class="display" cellspacing="0" width="100%"></table>
+            </div>
         </div>
     </div>
   
-    <div id="tab_settings_content" class="tab_content" style="display:none;">
-        ...
-    </div>
 
     <div id="templates" style="display:none;"></div>
 </div>

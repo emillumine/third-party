@@ -106,12 +106,6 @@ function init_history() {
                     responsivePriority: 1
                 },
                 {
-                    data: "created_by",
-                    title: "Créé par",
-                    responsivePriority: 20000,
-                    className: "desktop tablet-l"
-                },
-                {
                     data: "shift_name",
                     title: "Service"
                 },
@@ -120,13 +114,6 @@ function init_history() {
                     title: "Détails",
                     responsivePriority: 3
                 },
-                {
-                    data: "point_qty",
-                    title: (viewportWidth <= 768) ? "Mvmt de points" : "Mouvement de points",
-                    responsivePriority: 2,
-                    width: "10%",
-                    className: (viewportWidth <= 768) ? "dt-body-center" : ''
-                }
             ],
             iDisplayLength: -1,
             ordering: false,
