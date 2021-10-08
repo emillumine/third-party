@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/members_admin.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+    <div class="login_area">
+      {% include "common/conn_admin.html" %}
+    </div>
+    <div class="header txtcenter">
+      <h1>Bureau des membres</h1>
+    </div>
+    
+    <div class="page_content">
+        <section class="tabs autogrid">
+          <div class="button tab active" id="tab_makeups"><h5>Rattrapages</h5></div>
+        </section>
+      
+        <div id="tab_makeups_content" class="tab_content">
+            <div id="table_top_area">
+                <h3>Liste des membres devant effectuer un rattrapage</h3>
+                <div class="table_grouped_action">
+                    <button type="button" class="btn--primary" id="decrement_selected_members_makeups">
+                        -1 rattrapage pour les membres sélectionnés
+                    </button>
+                </div>
+            </div>
+            <div class="table_area">
+                <table id="makeups_members_table" class="display" cellspacing="0" width="100%"></table>
+            </div>
+        </div>
+    </div>
+  
+
+    <div id="templates" style="display:none;"></div>
+</div>
+
+<script src='{% static "js/all_common.js" %}?v='></script>
+<script src='{% static "js/members_admin.js" %}?v='></script>
+{% endblock %}

@@ -24,6 +24,21 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'title': 'Lien vers le calendrier ABCD',
                                                 'type': 'text',
                                                 'value': ''
+                       },
+                       'forms_link' : {
+                                                'title': 'Lien vers la page des formulaires',
+                                                'type': 'text',
+                                                'value': ''
+                       },
+                       'unsuscribe_form_link' : {
+                                                'title': 'Lien vers le formulaire de ré-inscription',
+                                                'type': 'text',
+                                                'value': ''
+                       },
+                       'member_cant_have_delay_form_link' : {
+                                                'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
+                                                'type': 'text',
+                                                'value': ''
                        }
                     }
 
@@ -198,5 +213,33 @@ def create_envelops(request):
             res['error'] = str(e)
         response = JsonResponse(res, safe=False)
     else:
+        response = JsonResponse(res, status=403)
+    return response
+
+# # # ADMIN / BDM # # #
+
+def admin(request):
+    """ Administration des membres """
+    template = loader.get_template('members/admin/index.html')
+    context = {'title': 'BDM',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
+def get_makeups_members(request):
+    """ Récupération des membres qui doivent faire des rattrapages """
+    res = CagetteMembers.get_makeups_members()
+    return JsonResponse({ 'res' : res })
+
+def update_members_makeups(request):
+    """ Décrémente les rattrapages des membres passés dans la requête """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        members_data = json.loads(request.body.decode())
+        res["res"] = CagetteMembers.update_members_makeups(members_data)
+
+        response = JsonResponse(res)
+    else:
+        res["message"] = "Unauthorized"
         response = JsonResponse(res, status=403)
     return response

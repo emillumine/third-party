@@ -63,19 +63,30 @@
       <p>3/12 <i class="arrow_explanation_numbers fas fa-arrow-right"></i> il y a déjà 3 places réservées à ce service sur 12 disponibles.
           <b>Plus le chiffre de gauche est petit, plus on a besoin de coopérateurs.rices à ce service !</b></p>
     </div>
+
+    <div id="cant_have_delay_msg_template">
+      <h3>Bonjour, tu avais 6 mois pour rattraper tes services manqués et il semblerait que tu ne l'aies pas fait.</h3>
+      <h3>Tu ne peux plus sélectionner de rattrapages sur ton espace membre pour le moment, 
+          merci de contacter le bureau des membres pour résoudre ce problème en remplissant ce formulaire : </h3>
+    </div>
   </div>
 </div>
 
 <script>
   var app_env = '{{app_env}}';
+  var forms_link = '{{forms_link}}';
   var unsuscribe_form_link = '{{unsuscribe_form_link}}';
+  var member_cant_have_delay_form_link = '{{member_cant_have_delay_form_link}}';
+  var abcd_calendar_link = "{{abcd_calendar_link}}"
+  var days_to_hide = "{{daysToHide}}"
   var partner_data = {
     "partner_id":"{{partnerData.id}}",
     "name":"{{partnerData.display_name}}",
     "in_ftop_team":"{{partnerData.in_ftop_team}}",
     "date_delay_stop":"{{partnerData.date_delay_stop}}",
     "cooperative_state":"{{partnerData.cooperative_state}}",
-    "verif_token" : "{{partnerData.verif_token}}",
+    "regular_shift_name":"{{partnerData.regular_shift_name}}",
+    "can_have_delay" : "{{partnerData.can_have_delay}}",
     "makeups_to_do" : "{{partnerData.makeups_to_do}}",
     "barcode_base" : "{{partnerData.barcode_base}}",
     "street" : "{{partnerData.street}}",
@@ -88,9 +99,8 @@
     "is_associated_people" : "{{partnerData.is_associated_people}}",
     "parent_id" : "{{partnerData.parent_id}}",
     "parent_name" : "{{partnerData.parent_name}}",
+    "verif_token" : "{{partnerData.verif_token}}",
   }
-  var days_to_hide = "{{daysToHide}}"
-  var abcd_calendar_link = "{{abcd_calendar_link}}"
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members-space-home.js" %}?v="></script>

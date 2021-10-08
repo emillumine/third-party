@@ -9,7 +9,7 @@ if (coop_is_connected()) {
             env_template = $('#templates [data-type="envelops"]');
 
         // PouchDB sync actions listeners
-        sync.on('change', function (info) {
+        sync.on('change', function () {
             // handle change
 
 
@@ -27,10 +27,10 @@ if (coop_is_connected()) {
             //update_completed_count();
                 online = true;
             })
-            .on('denied', function (err) {
+            .on('denied', function () {
             // a document failed to replicate (e.g. due to permissions)
             })
-            .on('complete', function (info) {
+            .on('complete', function () {
             // handle complete
             })
             .on('error', function (err) {
@@ -333,7 +333,7 @@ if (coop_is_connected()) {
                 dsha1 = sha1(jss),
                 member = {_id: dsha1, data: data, hash: dsha1 };
 
-            dbc.put(member, function callback(err, result) {
+            dbc.put(member, function callback(err) {
                 if (!err) {
                     closeModal();
                     page_cleaning();

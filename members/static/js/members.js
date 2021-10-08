@@ -33,7 +33,6 @@ var shift_members = $('#current_shift_members');
 var service_validation = $('#service_validation');
 var validation_last_call = 0;
 var rattrapage_wanted = $('[data-next="rattrapage_1"]');
-var rattrapage_validation = $('#rattrapage_validation');
 var webcam_is_attached = false;
 var photo_advice = $('#photo_advice');
 var photo_studio = $('#photo_studio');
@@ -637,7 +636,7 @@ shift_members.on("click", '.btn[data-rid]', function() {
 
 });
 
-pages.shopping_entry.on('css', function(e) {
+pages.shopping_entry.on('css', function() {
     photo_advice.hide();
     photo_studio.hide();
     search_box_clear_html_elts();
@@ -645,14 +644,14 @@ pages.shopping_entry.on('css', function(e) {
     move_search_box(pages.rattrapage_1, pages.shopping_entry);
 });
 
-pages.service_entry.on('css', function(e) {
+pages.service_entry.on('css', function() {
     photo_advice.hide();
     photo_studio.hide();
     clean_service_entry();
     get_service_entry_data();
 });
 
-pages.rattrapage_1.on('css', function(e) {
+pages.rattrapage_1.on('css', function() {
     search_box_clear_html_elts();
     var msg = "Vous venez pour un rattrapage.";
 
@@ -682,7 +681,7 @@ function ask_for_easy_shift_validation() {
                 {
                     coop_id: operator.id
                 },
-                function(err, result) {
+                function(err) {
                     if (!err) {
                         alert("1 point volant vient d'être ajouté.");
                         clean_search_for_easy_validate_zone();
@@ -798,7 +797,7 @@ $(document).ready(function() {
 
                     display_possible_members();
                 },
-                error: function(data) {
+                error: function() {
                     err = {
                         msg: "erreur serveur lors de la recherche de membres",
                         ctx: 'easy_validate.search_members'
