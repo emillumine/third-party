@@ -47,7 +47,7 @@ def index(request):
             return HttpResponse("Le créneau des comités n'est pas configuré dans Odoo !")
         else:
             context['committees_shift_id'] = committees_shift_id
-        
+
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:
             context['no_picture_member_advice'] = msettings['no_picture_member_advice']['value']
@@ -245,7 +245,7 @@ def search(request, needle, shift_id):
     except ValueError:
         key = needle
         k_type = 'name'
-    
+
     res = CagetteMember.search(k_type, key, shift_id)
     return JsonResponse({'res': res})
 
@@ -274,7 +274,14 @@ def record_service_presence(request):
         mid = int(request.POST.get("mid", 0))  # member id
         sid = int(request.POST.get("sid", 0))  # shift id
         stid = int(request.POST.get("stid", 0))  # shift_ticket_id
+        app_env = getattr(settings, 'APP_ENV', "prod")
         if (rid > -1 and mid > 0):
+            overrided_date = ""
+            if app_env != "prod":
+                import re
+                o_date = re.search(r'/([^\/]+?)$', request.META.get('HTTP_REFERER'))
+                if o_date:
+                    overrided_date = o_date.group(1)
             # rid = 0 => C'est un rattrapage, sur le service
             if sid > 0 and stid > 0:
                 # Add member to service and take presence into account
@@ -282,7 +289,8 @@ def record_service_presence(request):
                 if res['rattrapage'] is True:
                     res['update'] = 'ok'
             else:
-                if (CagetteServices.registration_done(rid) is True):
+
+                if (CagetteServices.registration_done(rid, overrided_date) is True):
                     res['update'] = 'ok'
                 else:
                     res['update'] = 'ko'

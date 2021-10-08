@@ -9,7 +9,7 @@ from products.models import OFF
 from envelops.models import CagetteEnvelops
 
 import sys
-from pytz import timezone
+import pytz
 import locale
 import re
 import dateutil.parser
@@ -653,7 +653,7 @@ class CagetteMember(models.Model):
         locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
         if len(res) > 0:
-            local_tz = timezone('Europe/Paris')
+            local_tz = pytz.timezone('Europe/Paris')
             for s in res:
                 date, t = s['date_begin'].split(' ')
                 year, month, day = date.split('-')
@@ -712,8 +712,8 @@ class CagetteMember(models.Model):
                     cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
                     fields = ['shift_template_id']
                     shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
-                    if (len(shift_templ_res) > 0 
-                        and 
+                    if (len(shift_templ_res) > 0
+                        and
                         int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
                         keep_it = True
                 else:
@@ -1078,7 +1078,7 @@ class CagetteServices(models.Model):
         res = api.search_read('shift.shift', c, f, 1, 0, 'date_begin ASC')
         if (res and res[0]):
             locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
-            local_tz = timezone('Europe/Paris')
+            local_tz = pytz.timezone('Europe/Paris')
             date, t = res[0]['date_begin'].split(' ')
             year, month, day = date.split('-')
             start = datetime.datetime(int(year), int(month), int(day),
@@ -1090,7 +1090,7 @@ class CagetteServices(models.Model):
     @staticmethod
     def get_services_at_time(time, tz_offset, with_members=True):
         """Retrieve present services with member linked."""
-        
+
         # import operator
         min_before_shift_starts_delay = 20
         min_after_shift_starts_delay = 20
@@ -1141,22 +1141,25 @@ class CagetteServices(models.Model):
         return services
 
     @staticmethod
-    def registration_done(registration_id):
+    def registration_done(registration_id, overrided_date=""):
         """Equivalent to click present in presence form."""
         api = OdooAPI()
         f = {'state': 'done'}
         late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
         if late_mode is True:
             # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
-            local_tz = timezone('Europe/Paris')
-            now = datetime.datetime.now().astimezone(local_tz).strftime("%H:%MZ")
-            # coop_logger.info("Maintenant = %s", now)
-            services = CagetteServices.get_services_at_time(now,0, with_members=False)
+            if len(overrided_date) > 0 and getattr(settings, 'APP_ENV', "prod") != "prod":
+                now = overrided_date
+            else:
+                local_tz = pytz.timezone('Europe/Paris')
+                now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(local_tz).strftime("%H:%MZ")
+            # coop_logger.info("Maintenant = %s (overrided %s) %s", now, overrided_date)
+            services = CagetteServices.get_services_at_time(now, 0, with_members=False)
             if len(services) > 0:
                 # Notice : Despite is_late is defined as boolean in Odoo, 0 or 1 is needed for api call
                 is_late = 0
                 if services[0]['late'] is True:
-                    is_late = 1 
+                    is_late = 1
                 f['is_late'] = is_late
             else:
                 return False
@@ -1301,8 +1304,8 @@ class CagetteServices(models.Model):
                     cond = [['id', '=', coop[0]['tmpl_reg_line_ids'][0]]]
                     fields = ['shift_template_id']
                     shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
-                    if (len(shift_templ_res) > 0 
-                        and 
+                    if (len(shift_templ_res) > 0
+                        and
                         shift_templ_res[0]['shift_template_id'][0] == committees_shift_id):
 
                         evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
