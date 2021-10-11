@@ -909,6 +909,8 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                 }
 
                 firstUpdate = true;
+            } else if (productToEdit.old_price_unit == newValue) {
+                productToEdit.new_shelf_price = null;
             }
 
             productToEdit.price_unit = newValue;
