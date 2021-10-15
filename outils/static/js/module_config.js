@@ -1,31 +1,29 @@
 var param_template = $('#templates #param'),
-    submit_btn = $('#templates #submit_button'),
-    main_content = $('#main_content');
+    submit_btn = $('#templates .submit_button'),
+    main_content = $('#main_content'),
+    msettings = [];
 
 function save_module_settings() {
     var form_elts = $('.input-container'),
         data = {};
 
     form_elts.each(function(i, elt){
+        console.log(elt)
         const label = $(elt).closest('.param').find('label'),
-            key = label.attr('for'),
-            title = label.text();
+            key = label.attr('for');
+
         if (key.length > 0 && key != 'iname') {
-            let value = "",
-                type = "";
-            
+            let value = "";
+            data[key] = msettings[key];
+
             if ($(elt).hasClass('ql-container')) {
-                type = 'textarea';
+
                 value = $(elt).find('.ql-editor').html().replace('<p><br></p>','')
             } else {
-                type = 'input';
+
                 value = $(elt).find('input').val();
             }
-            data[key] = {
-                           title: title,
-                           type: type,
-                           value: value
-                        };
+            data[key].value = value;
         }
         
         
@@ -74,23 +72,36 @@ function get_module_settings() {
         .done(function(rData) {
             try {
                 if (typeof rData.res.settings != "undefined") {
+                    msettings = rData.res.settings;
                     var added_elts = [],
                         quill_containers = [];
 
-                    for (let key in rData.res.settings) {
+                    for (let key in msettings) {
                         var param = $(param_template.clone().html());
+                        // param html include textarea and input : one of them will be removed
                         var input = null;
                         let data = rData.res.settings[key];
                             
-
+                        // Fill the label content
                         param.find('label').text(data.title)
-                            .attr('for', key);
+                                           .attr('for', key)
                         if (data.type == 'textarea') {
                             param.find('input').remove();
+                            // create an accordean button with label content as "text"
+                            let accordeon_btn = $('<button>').attr('type', 'button')
+                                                             .addClass('accordion')
+                                                             .html(param.find('label').remove())
+                            param.prepend(accordeon_btn);
                             input = param.find('textarea');
                             input.attr('name', key).text(data.value);
-                            input.closest('div').attr('id', 'quill-' + key)
-                                                .css('height', '375px')
+                            // create a div wrapper and put textarea in it
+                            let content_div = $('<div>').attr('id', 'quill-' + key)
+                                                        .css('height', '375px')
+                                                        .html(input.remove())
+                            param.find('.input-container').addClass('panel')
+                                                          .addClass('ql-container')
+                                                          .append(content_div);
+
 
                             quill_containers.push(
                                                     {
@@ -103,6 +114,7 @@ function get_module_settings() {
                             param.find('textarea').remove();
                             input = param.find('input');
                             input.attr('name', key).attr('value', data.value);
+                            if (typeof data.class != "undefined") input.addClass(data.class);
                         }
 
                         /*
@@ -116,7 +128,8 @@ function get_module_settings() {
                         added_elts.push(key);
                     }
                     if (added_elts.length > 0) {
-                        submit_btn.appendTo(main_content);
+                        submit_btn.prependTo(main_content);
+                        submit_btn.clone().appendTo(main_content);
                     }
                     submit_btn.click(save_module_settings);
                     quill_containers.forEach(function(params){
@@ -134,3 +147,17 @@ function get_module_settings() {
 }
 
 get_module_settings();
+
+$(document).on('click', '.accordion', function(){
+    /* Toggle between adding and removing the "active" class,
+    to highlight the button that controls the panel */
+    this.classList.toggle("active");
+
+    /* Toggle between hiding and showing the active panel */
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+});

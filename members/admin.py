@@ -9,36 +9,47 @@ from outils.common import MConfig
 
 default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
-                                             'value': ''
+                                             'value': '',
+                                             'sort_order': 1
                                             },
                      'no_picture_member_advice': {'title': 'Message avertissement membre sans photo',
                                              'type': 'textarea',
-                                             'value': ''
+                                             'value': '',
+                                             'sort_order': 2
                                       },
-                     'shop_opening_hours' : {
+                     'shop_opening_hours': {
                                                 'title': 'Horaires ouverture magasin',
                                                 'type': 'textarea',
-                                                'value': ''
+                                                'value': '',
+                                                'sort_order': 3
                                             },
-                      'abcd_calendar_link' : {
+                      'abcd_calendar_link': {
                                                 'title': 'Lien vers le calendrier ABCD',
                                                 'type': 'text',
-                                                'value': ''
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 4
                        },
-                       'forms_link' : {
+                       'forms_link': {
                                                 'title': 'Lien vers la page des formulaires',
                                                 'type': 'text',
-                                                'value': ''
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 5
                        },
-                       'unsuscribe_form_link' : {
+                       'unsuscribe_form_link': {
                                                 'title': 'Lien vers le formulaire de ré-inscription',
                                                 'type': 'text',
-                                                'value': ''
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 6
                        },
-                       'member_cant_have_delay_form_link' : {
+                       'member_cant_have_delay_form_link': {
                                                 'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
                                                 'type': 'text',
-                                                'value': ''
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 7
                        }
                     }
 
@@ -63,7 +74,8 @@ def get_settings(request):
             for k, v in default_msettings.items():
                 if not (k in msettings):
                     msettings[k] = v
-            result['settings'] = msettings
+
+            result['settings'] = dict(sorted(msettings.items(), key=lambda k_v: k_v[1]['sort_order']))
         except Exception as e:
             result['error'] = str(e)
     else:
