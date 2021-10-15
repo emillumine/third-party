@@ -76,6 +76,7 @@ def get_settings(request):
                     msettings[k] = v
 
             result['settings'] = dict(sorted(msettings.items(), key=lambda k_v: k_v[1]['sort_order']))
+            # on preprod server, dict order (through JsonResponse ??) is not respected !!
         except Exception as e:
             result['error'] = str(e)
     else:

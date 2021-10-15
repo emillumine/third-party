@@ -67,6 +67,10 @@ function quillify(params) {
     quill.root.innerHTML = params.content;
 
 }
+function get_sorted_keys(obj) {
+    var keys = Object.keys(obj);
+    return keys.sort(function(a,b){return obj[a].sort_order-obj[b].sort_order});
+}
 function get_module_settings() {
     $.ajax('settings')
         .done(function(rData) {
@@ -76,11 +80,11 @@ function get_module_settings() {
                     var added_elts = [],
                         quill_containers = [];
 
-                    for (let key in msettings) {
+                    get_sorted_keys(msettings).forEach(function(key){
                         var param = $(param_template.clone().html());
                         // param html include textarea and input : one of them will be removed
                         var input = null;
-                        let data = rData.res.settings[key];
+                        let data = msettings[key];
                             
                         // Fill the label content
                         param.find('label').text(data.title)
@@ -126,7 +130,7 @@ function get_module_settings() {
                        
                         
                         added_elts.push(key);
-                    }
+                    })
                     if (added_elts.length > 0) {
                         submit_btn.prependTo(main_content);
                         submit_btn.clone().appendTo(main_content);
