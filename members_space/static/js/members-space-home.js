@@ -1,5 +1,5 @@
 const possible_cooperative_state = {
-    suspended: "Suspendu.e",
+    suspended: "Rattrapage",
     exempted: "Exempté.e",
     alert: "En alerte",
     up_to_date: "À jour",

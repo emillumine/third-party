@@ -22,6 +22,10 @@
 
         Used to draw weeks planning
 
+- COMPANY_NAME = 'lgds'
+
+        Used for company spesific code
+
 - COMPANY_NAME = 'Les Grains de Sel'
 
 - ADMIN_IDS = [13]

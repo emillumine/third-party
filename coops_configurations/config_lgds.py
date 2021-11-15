@@ -6,6 +6,7 @@ OPEN_ON_SUNDAY = True
 
 MAG_NAME = ''
 OFFICE_NAME = ''
+COMPANY_CODE = 'lgds'
 COMPANY_NAME = 'Les Grains de Sel'
 MAX_BEGIN_HOUR = '19:00'
 WELCOME_ENTRANCE_MSG = 'Bienvenue aux Grains de Sel!'
