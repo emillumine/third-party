@@ -360,7 +360,7 @@ function init_shifts_exchange() {
     } else if (partner_data.cooperative_state === 'suspended'
                 && partner_data.date_delay_stop === 'False') {
         $("#suspended_content .makeups_nb").text(partner_data.makeups_to_do);
-        
+
         $("#suspended_content").show();
 
         $(".select_makeups").on('click', () => {

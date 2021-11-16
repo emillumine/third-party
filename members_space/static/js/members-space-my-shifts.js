@@ -95,8 +95,6 @@ function init_history() {
         $("#history").empty()
             .text("Aucun historique... pour l'instant !");
     } else {
-        let viewportWidth = $(window).width();
-
         history_table = $('#history_table').DataTable({
             data: partner_history,
             columns: [
