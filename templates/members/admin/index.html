@@ -28,17 +28,33 @@
         </section>
       
         <div id="tab_makeups_content" class="tab_content">
-            <div id="table_top_area">
-                <h3>Liste des membres devant effectuer un rattrapage</h3>
-                <div class="table_grouped_action">
-                    <button type="button" class="btn--primary" id="decrement_selected_members_makeups">
-                        -1 rattrapage pour les membres sélectionnés
-                    </button>
-                </div>
+          
+          <div id="table_top_area">
+              <h3>Liste des membres devant effectuer un rattrapage</h3>
+              <div class="table_grouped_action">
+                  <button type="button" class="btn--primary" id="decrement_selected_members_makeups">
+                      -1 rattrapage pour les membres sélectionnés
+                  </button>
+              </div>
+          </div>
+          <div class="table_area">
+              <table id="makeups_members_table" class="display" cellspacing="0" width="100%"></table>
+          </div>
+          <div id="add_members_area">
+            <div id="add_members_form_area">
+              <h4>Ou, ajouter un rattrapage à un.e membre</h4>
+              <form id="search_member_form" action="javascript:;" method="post">
+                <input type="text" id="search_member_input" value="" placeholder="Nom ou numéro du coop..." required>
+                <button type="submit" class="btn--primary" id="search_member_button">Recherche</button>
+              </form>
             </div>
-            <div class="table_area">
-                <table id="makeups_members_table" class="display" cellspacing="0" width="100%"></table>
+            <div class="search_member_results_area" style="display:none;">
+              <div class="search_results_text">
+                <p><i>Choisissez parmi les membres trouvés :</i></p>
+              </div>
+              <div class="search_member_results"></div>
             </div>
+          </div>
         </div>
     </div>
   

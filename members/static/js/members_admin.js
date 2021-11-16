@@ -1,5 +1,6 @@
 var makeups_members_table = null,
     makeups_members = null,
+    members_search_results = [],
     selected_rows = []; // Contain members id
 
 function switch_active_tab() {
@@ -102,7 +103,10 @@ function display_makeups_members() {
                 render: function (data, type, full) {
                     return `<b>${data}</b> 
                         <button class="decrement_makeup btn--primary" id="decrement_member_${full.id}">
-                            <i class="fas fa-arrow-down"></i>
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="increment_makeup btn--primary" id="increment_member_${full.id}">
+                            <i class="fas fa-plus"></i>
                         </button>`;
                 }
             }
@@ -120,7 +124,35 @@ function display_makeups_members() {
             ]
         ],
         iDisplayLength: -1,
-        language: {url : '/static/js/datatables/french.json'}
+        oLanguage: {
+            "sProcessing":     "Traitement en cours...",
+            "sSearch":         "Rechercher dans le tableau",
+            "sLengthMenu":     "Afficher _MENU_ &eacute;l&eacute;ments",
+            "sInfo":           "Affichage de l'&eacute;l&eacute;ment _START_ &agrave; _END_ sur _TOTAL_ &eacute;l&eacute;ments",
+            "sInfoEmpty":      "Affichage de l'&eacute;l&eacute;ment 0 &agrave; 0 sur 0 &eacute;l&eacute;ment",
+            "sInfoFiltered":   "(filtr&eacute; de _MAX_ &eacute;l&eacute;ments au total)",
+            "sInfoPostFix":    "",
+            "sLoadingRecords": "Chargement en cours...",
+            "sZeroRecords":    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+            "sEmptyTable":     "Aucune donn&eacute;e disponible dans le tableau",
+            "oPaginate": {
+                "sFirst":      "Premier",
+                "sPrevious":   "Pr&eacute;c&eacute;dent",
+                "sNext":       "Suivant",
+                "sLast":       "Dernier"
+            },
+            "oAria": {
+                "sSortAscending":  ": activer pour trier la colonne par ordre croissant",
+                "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+            },
+            "select": {
+                    "rows": {
+                        "_": "%d lignes séléctionnées",
+                        "0": "Aucune ligne séléctionnée",
+                        "1": "1 ligne séléctionnée"
+                    }  
+            }
+        }
     });
 
     $('#makeups_members_table').on('click', 'tbody td .decrement_makeup', function () {
@@ -134,6 +166,23 @@ function display_makeups_members() {
             `Enlever un rattrapage à ${member.name} ?`,
             () => {
                 decrement_makeups([member_id]);
+            },
+            "Confirmer",
+            false
+        );
+    });
+
+    $('#makeups_members_table').on('click', 'tbody td .increment_makeup', function () {
+        const button_id = $(this).prop('id')
+            .split('_');
+        const member_id = button_id[button_id.length - 1];
+
+        const member = makeups_members.find(m => m.id == member_id);
+
+        openModal(
+            `Ajouter un rattrapage à ${member.name} ?`,
+            () => {
+                increment_makeups([member_id]);
             },
             "Confirmer",
             false
@@ -208,16 +257,127 @@ function decrement_makeups(member_ids) {
             closeModal();
         },
         error: function(data) {
-            err = {msg: "erreur serveur pour décrémenter les rattrapages", ctx: 'load_makeups_members'};
+            err = {msg: "erreur serveur pour décrémenter les rattrapages", ctx: 'decrement_makeups'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
-            report_JS_error(err, 'orders');
+            report_JS_error(err, 'members_admin');
 
             closeModal();
-            alert('Erreur serveur lors de la récupération des membres avec rattrapage. Ré-essayez plus tard.');
+            alert('Erreur serveur pour décrémenter les rattrapages. Ré-essayez plus tard.');
         }
     });
+}
+/**
+ * Send request to update members nb of makeups to do
+ * @param {Array} member_ids
+ */
+ function increment_makeups(member_ids) {
+    openModal();
+
+    data = [];
+    for (mid of member_ids) {
+        member_index = makeups_members.findIndex(m => m.id == mid);
+        makeups_members[member_index].makeups_to_do += 1;
+
+        data.push({
+            member_id: mid,
+            target_makeups_nb: makeups_members[member_index].makeups_to_do
+        });
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: "/members/update_members_makeups",
+        data: JSON.stringify(data),
+        dataType:"json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        success: function() {
+            selected_rows = [];
+            display_makeups_members();
+            closeModal();
+        },
+        error: function(data) {
+            err = {msg: "erreur serveur pour incrémenter les rattrapages", ctx: 'increment_makeups'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'members_admin');
+
+            closeModal();
+            alert('Erreur serveur pour incrémenter les rattrapages. Ré-essayez plus tard.');
+        }
+    });
+}
+
+/**
+ * Display the members from the search result
+ */
+function display_possible_members() {
+    $('.search_member_results_area').show();
+    $('.search_member_results').empty();
+
+    let no_result = true;
+
+    if (members_search_results.length > 0) {
+        for (member of members_search_results) {
+            // Don't display members already in the table
+            if (makeups_members.find(m => m.id == member.id) != null) {
+                continue;
+            }
+
+            $(".search_results_text").show();
+            no_result = false;
+
+            // Display results (possible members) as buttons
+            var member_button = '<button class="btn--success btn_possible_member" member_id="'
+                + member.id + '">'
+                + member.barcode_base + ' - ' + member.name
+                + '</button>';
+
+            $('.search_member_results').append(member_button);
+
+            // Set action on member button click
+            $('.btn_possible_member').on('click', function() {
+                for (member of members_search_results) {
+                    if (member.id == $(this).attr('member_id')) {
+                        if (makeups_members === null) {
+                            makeups_members = [];
+                        }
+
+                        makeups_members.unshift({
+                            id: member.id,
+                            name: member.name,
+                            makeups_to_do: 0
+                        })
+
+                        openModal(
+                            `Ajouter un rattrapage à ${member.name} ?`,
+                            () => {
+                                increment_makeups([member.id]);
+                                members_search_results = [];
+                                $('#search_member_input').val('');
+                                $('.search_member_results_area').hide();
+                                $('.search_member_results').empty();
+                            },
+                            "Confirmer",
+                            false
+                        );
+
+                        break;
+                    }
+                }
+            });
+        }
+    }
+    
+    if (no_result === true) {
+        $(".search_results_text").hide();
+        $('.search_member_results').html(`<p>
+            <i>Aucun résultat ! Vérifiez votre recherche, ou si le.la membre n\'est pas déjà dans le tableau...</i>
+        </p>`);
+    }
 }
 
 $(document).ready(function() {
@@ -231,4 +391,37 @@ $(document).ready(function() {
     } else {
         $(".page_content").hide();
     }
+
+    // Set action to search for the member
+    $('#search_member_form').submit(function() {
+        let search_str = $('#search_member_input').val();
+
+        $.ajax({
+            url: '/members/search/' + search_str,
+            dataType : 'json',
+            success: function(data) {
+                members_search_results = [];
+
+                for (member of data.res) {
+                    if (member.is_member || member.is_associated_people) {
+                        members_search_results.push(member);
+                    }
+                }
+
+                display_possible_members();
+            },
+            error: function(data) {
+                err = {
+                    msg: "erreur serveur lors de la recherche de membres",
+                    ctx: 'confirm_movement.search_members'
+                };
+                report_JS_error(err, 'stock');
+
+                $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
+                    globalPosition:"top right",
+                    className: "error"
+                });
+            }
+        });
+    });
 });

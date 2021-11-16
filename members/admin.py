@@ -244,7 +244,7 @@ def get_makeups_members(request):
     return JsonResponse({ 'res' : res })
 
 def update_members_makeups(request):
-    """ Décrémente les rattrapages des membres passés dans la requête """
+    """ Met à jour les rattrapages des membres passés dans la requête """
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
