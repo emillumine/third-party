@@ -146,11 +146,11 @@ function display_makeups_members() {
                 "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
             },
             "select": {
-                    "rows": {
-                        "_": "%d lignes séléctionnées",
-                        "0": "Aucune ligne séléctionnée",
-                        "1": "1 ligne séléctionnée"
-                    }  
+                "rows": {
+                    "_": "%d lignes séléctionnées",
+                    "0": "Aucune ligne séléctionnée",
+                    "1": "1 ligne séléctionnée"
+                }
             }
         }
     });
@@ -272,7 +272,7 @@ function decrement_makeups(member_ids) {
  * Send request to update members nb of makeups to do
  * @param {Array} member_ids
  */
- function increment_makeups(member_ids) {
+function increment_makeups(member_ids) {
     openModal();
 
     data = [];
@@ -350,7 +350,7 @@ function display_possible_members() {
                             id: member.id,
                             name: member.name,
                             makeups_to_do: 0
-                        })
+                        });
 
                         openModal(
                             `Ajouter un rattrapage à ${member.name} ?`,
@@ -371,11 +371,11 @@ function display_possible_members() {
             });
         }
     }
-    
+
     if (no_result === true) {
         $(".search_results_text").hide();
         $('.search_member_results').html(`<p>
-            <i>Aucun résultat ! Vérifiez votre recherche, ou si le.la membre n\'est pas déjà dans le tableau...</i>
+            <i>Aucun résultat ! Vérifiez votre recherche, ou si le.la membre n'est pas déjà dans le tableau...</i>
         </p>`);
     }
 }
@@ -410,7 +410,7 @@ $(document).ready(function() {
 
                 display_possible_members();
             },
-            error: function(data) {
+            error: function() {
                 err = {
                     msg: "erreur serveur lors de la recherche de membres",
                     ctx: 'confirm_movement.search_members'
