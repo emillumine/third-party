@@ -22,17 +22,22 @@ function init_my_info() {
         $(".member_address_line").hide();
     }
 
-    if (partner_data.mobile !== "") {
+    
+    if (partner_data.mobile !== "" && partner_data.mobile !== false && partner_data.mobile !== null) {
         $(".member_mobile")
             .append(partner_data.mobile);
     } else {
-        $(".member_mobile_line").hide();
+        $(".member_mobile").hide();
+    }
+    
+    if (partner_data.phone !== "" && partner_data.phone !== false && partner_data.phone !== null) {
+        $(".member_phone")
+        .append(partner_data.phone);
+    } else {
+        $(".member_phone").hide();
     }
 
-    if (partner_data.phone !== "") {
-        $(".member_phone")
-            .append(partner_data.phone);
-    } else {
+    if ($(".member_mobile").text() === "" && $(".member_phone").text() === "") {
         $(".member_phone_line").hide();
     }
 }
