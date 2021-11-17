@@ -32,7 +32,7 @@ function add_or_change_shift(new_shift_id) {
 
         tData = 'idNewShift=' + new_shift_id
             +'&idPartner=' + partner_data.partner_id
-            + '&in_ftop_team=' + partner_data.in_ftop_team
+            + '&shift_type=' + partner_data.shift_type
             + '&verif_token=' + partner_data.verif_token;
 
         if (selected_shift === null) {
