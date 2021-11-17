@@ -21,7 +21,7 @@ FUNDRAISING_CAT_ID = {'A': 1, 'B': 2, 'C': 3}
 class CagetteMember(models.Model):
     """Class to handle cagette Odoo member."""
     m_default_fields = ['name', 'parent_name', 'sex', 'image_medium', 'active',
-                        'barcode_base', 'barcode', 'in_ftop_team',
+                        'barcode_base', 'barcode', 'shift_type',
                         'is_associated_people', 'is_member', 'shift_type',
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']

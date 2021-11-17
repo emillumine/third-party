@@ -182,7 +182,7 @@ def change_shift(request):
                 data = {
                     "idPartner": int(request.POST['idPartner']),
                     "idShift": int(request.POST['idNewShift']),
-                    "in_ftop_team": request.POST['in_ftop_team'],
+                    "shift_type": request.POST['shift_type'],
                     "is_makeup": cs.shift_is_makeup(idOldShift)
                 }
                 
@@ -230,7 +230,7 @@ def add_shift(request):
                 data = {
                     "idPartner": int(request.POST['idPartner']), 
                     "idShift":int(request.POST['idNewShift']), 
-                    "in_ftop_team":request.POST['in_ftop_team'],
+                    "shift_type":request.POST['shift_type'],
                     "is_makeup":True
                 }
                 
