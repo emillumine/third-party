@@ -119,14 +119,14 @@ def get_list_shift_calendar(request, partner_id):
                 event["id"] = value['id']
                 smax = int(value['seats_available']) + int(value['seats_reserved'])
  
-                title_prefix = ''
+                title_prefix = '- '
                 if len(value['address_id']) == 2 and ',' in value['address_id'][1]:
-                    title_prefix = str(value['address_id'][1]).split(",")[1] + " -- "
+                    title_prefix = "- "
 
                 event["title"] = title_prefix + str(value['seats_reserved']) + "/" + str(smax)
 
                 event["start"] = dateIsoUTC(value['date_begin_tz'])
-                event["end"] = dateIsoUTC(value['date_begin_tz'])
+                event["end"] = dateIsoUTC(value['date_end_tz'])
 
                 if len(l) > 0:
                     if use_new_members_space is True:
