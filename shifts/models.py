@@ -144,6 +144,7 @@ class CagetteShift(models.Model):
                             "shift_ticket_id": self.get_shift_ticket(data['idShift'], data['in_ftop_team']),
                             "shift_type": shift_type,  
                             "origin": 'memberspace',
+                            "is_makeup": data['is_makeup'],
                             "state": 'open'}
 
             st_r_id = self.o_api.create('shift.registration', fieldsDatas)

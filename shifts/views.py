@@ -228,7 +228,8 @@ def add_shift(request):
                 data = {
                     "idPartner": int(request.POST['idPartner']), 
                     "idShift":int(request.POST['idNewShift']), 
-                    "in_ftop_team":request.POST['in_ftop_team']
+                    "in_ftop_team":request.POST['in_ftop_team'],
+                    "is_makeup":True
                 }
                 
                 #Insertion du nouveau shift
