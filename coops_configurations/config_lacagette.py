@@ -2,6 +2,7 @@
 MAG_NAME = 'Cleme'
 OFFICE_NAME = ''
 MAX_BEGIN_HOUR = '19:00'
+COMPANY_CODE = 'lacagette'
 COMPANY_NAME = 'La Cagette'
 WELCOME_ENTRANCE_MSG = 'Bienvenue à La Cagette !'
 WELCOME_MAIL_SUBJECT = 'Dernière étape de votre inscription à la Cagette.'

@@ -70,10 +70,42 @@
 }
 
 .decrement_makeup {
-    padding: 0.4rem 1.25rem;
     margin-left: 10px;
+}
+
+.decrement_makeup, .increment_makeup {
+    padding: 0.4rem 1.25rem;
 }
 
 .select_member_cb {
     cursor: pointer;
+}
+
+/* Search membres area */
+#add_members_area {
+    margin-top: 30px;
+}
+
+#add_members_form_area {
+    display:flex;
+    align-items: center;
+}
+
+#search_member_form {
+    margin-left: 10px;
+}
+
+.search_member_results_area {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.search_member_results {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.btn_possible_member {
+    margin: 0 1rem;
 }

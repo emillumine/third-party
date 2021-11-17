@@ -1,12 +1,3 @@
-const possible_cooperative_state = {
-    suspended: "Suspendu.e",
-    exempted: "Exempté.e",
-    alert: "En alerte",
-    up_to_date: "À jour",
-    unsubscribed: "Désinscrit.e",
-    delay: "En délai"
-};
-
 /**
  * Request a 6 month delay
  */

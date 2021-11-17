@@ -550,6 +550,8 @@ function open_coop_form(e) {
         console.error(error);
         report_JS_error(error, 'prepa-odoo');
     }
+
+    return null;
 }
 
 function ask_for_deletion() {
@@ -692,6 +694,8 @@ function retrieve_all_coops() {
                 return b.timestamp - a.timestamp;
             });
             dispatch_coops_in_boxes();
+
+            return null;
         });
     } catch (err) {
         error = {msg: err.name + ' : ' + err.message, ctx: 'retrieve_all_coops'};

@@ -617,12 +617,17 @@ class CagetteMember(models.Model):
     @staticmethod
     def get_state_fr(coop_state):
         """Return french version of given coop_state."""
+        company = getattr(settings, 'COMPANY_CODE', '')
+
         if coop_state == 'alert':
             fr_state = 'En alerte'
         elif coop_state == 'delay':
             fr_state = 'Délai accordé'
         elif coop_state == 'suspended':
-            fr_state = 'Suspendu(e)'
+            if company == 'lacagette':
+                fr_state = 'Rattrapage'
+            else:
+                fr_state = 'Suspendu(e)'
         elif coop_state == 'not_concerned':
             fr_state = 'Non concerné(e)'
         elif coop_state == 'blocked':

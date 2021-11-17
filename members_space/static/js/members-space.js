@@ -10,6 +10,15 @@ var base_location = null,
 var date_options = {weekday: "long", year: "numeric", month: "long", day: "numeric"};
 var time_options = {hour: '2-digit', minute:'2-digit'};
 
+const possible_cooperative_state = {
+    suspended: "Rattrapage",
+    exempted: "Exempté.e",
+    alert: "En alerte",
+    up_to_date: "À jour",
+    unsubscribed: "Désinscrit.e",
+    delay: "En délai"
+};
+
 /* - Data */
 
 /**

@@ -1,4 +1,5 @@
 """Company specific data values."""
+COMPANY_CODE = 'supercafoutch'
 
 """Odoo coop specific constants ."""
 EMAIL_DOMAIN = 'supercafoutch.fr'
