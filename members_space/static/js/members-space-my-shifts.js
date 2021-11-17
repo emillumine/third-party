@@ -14,7 +14,7 @@ function load_partner_history(offset = 0) {
                 partner_id: partner_data.concerned_partner_id,
                 verif_token: partner_data.verif_token,
                 limit: history_items_limit,
-                offset: offset,
+                offset: offset
             },
             dataType:"json",
             traditional: true,
@@ -82,7 +82,7 @@ function init_history() {
                 {
                     data: "shift_name",
                     title: "<spans class='dt-body-center'>Service</span>",
-                    width: "60%",
+                    width: "60%"
                 },
                 {
                     data: "details",

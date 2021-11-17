@@ -5,7 +5,7 @@ function init_my_info() {
 
     if (partner_data.is_in_association === false) {
         $("#attached_info_area").hide();
-    } 
+    }
 
     if (partner_data.is_associated_people === "True") {
         $(".attached_partner_name").text(partner_data.parent_name);
@@ -26,17 +26,17 @@ function init_my_info() {
         $(".member_address_line").hide();
     }
 
-    
+
     if (partner_data.mobile !== "" && partner_data.mobile !== "False" && partner_data.mobile !== false && partner_data.mobile !== null) {
         $(".member_mobile")
             .append(partner_data.mobile);
     } else {
         $(".member_mobile").hide();
     }
-    
-    if (partner_data.phone !== "" && partner_data.phone !== "False"  && partner_data.phone !== false && partner_data.phone !== null) {
+
+    if (partner_data.phone !== "" && partner_data.phone !== "False" && partner_data.phone !== false && partner_data.phone !== null) {
         $(".member_phone")
-        .append(partner_data.phone);
+            .append(partner_data.phone);
     } else {
         $(".member_phone").hide();
     }
