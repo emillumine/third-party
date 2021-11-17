@@ -281,7 +281,8 @@ def record_service_presence(request):
                 import re
                 o_date = re.search(r'/([^\/]+?)$', request.META.get('HTTP_REFERER'))
                 if o_date:
-                    overrided_date = o_date.group(1)
+                    overrided_date = re.sub(r'(%20)',' ', o_date.group(1))
+
             # rid = 0 => C'est un rattrapage, sur le service
             if sid > 0 and stid > 0:
                 # Add member to service and take presence into account
@@ -289,7 +290,6 @@ def record_service_presence(request):
                 if res['rattrapage'] is True:
                     res['update'] = 'ok'
             else:
-
                 if (CagetteServices.registration_done(rid, overrided_date) is True):
                     res['update'] = 'ok'
                 else:
@@ -325,8 +325,8 @@ def easy_validate_shift_presence(request):
     else:
         return JsonResponse(res, safe=False)
 
-def record_absences(request):
-    return JsonResponse({'res': CagetteServices.record_absences()})
+def record_absences(request, date):
+    return JsonResponse({'res': CagetteServices.record_absences(date)})
 
 def close_ftop_service(request):
     """Close the closest past FTOP service"""

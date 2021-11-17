@@ -9,13 +9,12 @@ function load_partner_history(offset = 0) {
     return new Promise((resolve) => {
         $.ajax({
             type: 'GET',
-            url: "/members_space/get_points_history",
+            url: "/members_space/get_shifts_history",
             data: {
                 partner_id: partner_data.concerned_partner_id,
                 verif_token: partner_data.verif_token,
                 limit: history_items_limit,
                 offset: offset,
-                shift_type: (partner_data.in_ftop_team === "True") ? "ftop" : "standard"
             },
             dataType:"json",
             traditional: true,
@@ -49,36 +48,18 @@ function prepare_server_data(data) {
     res = [];
 
     for (history_item of data) {
-        // Date formating
-        let datetime_shift_start = new Date(history_item.create_date);
-
-        let f_date_shift_start = datetime_shift_start.toLocaleDateString("fr-fr", date_options);
-
-        f_date_shift_start = f_date_shift_start.charAt(0).toUpperCase() + f_date_shift_start.slice(1);
-
-        history_item.movement_date = f_date_shift_start + " - " + datetime_shift_start.toLocaleTimeString("fr-fr", time_options);
-
-        // Text replacements
-        history_item.name = (history_item.name === "Clôturer le service") ? "Décompte 28j" : history_item.name;//Clôlturer le service
-        history_item.name = (history_item.name === "Rattrapage") ? "Absence" : history_item.name;
-        if (history_item.name === "Clôturer le service" || history_item.name === "Clôlturer le service") {
-            history_item.name = "Décompte 28j";
-        } else if (history_item.name === "Rattrapage") {
-            history_item.name = "Absence";
-        } else if (history_item.name === "Présent" && history_item.is_late != false) {
-            history_item.name = "Retard";
-        }
-
-        history_item.created_by = history_item.create_uid[1];
-        if (history_item.created_by === "Administrator") {
-            history_item.created_by = "Administrateur";
-        } else if (history_item.created_by === "api") {
-            history_item.created_by = "Système";
+        history_item.details = '';
+        if (history_item.state === 'excused' || history_item.state === 'absent') {
+            history_item.details = "Absent";
+        } else if (history_item.state === 'done' && history_item.is_late != false) {
+            history_item.details = "Présent (En Retard)";
+        } else if (history_item.state === 'done') {
+            history_item.details = "Présent";
+        } else if (history_item.state === 'cancel') {
+            history_item.details = "Annulé";
         }
 
         history_item.shift_name = (history_item.shift_id === false) ? '' : history_item.shift_id[1];
-
-        // if Present && is_late -> Absent
     }
 
     return data;
@@ -99,18 +80,14 @@ function init_history() {
             data: partner_history,
             columns: [
                 {
-                    data: "movement_date",
-                    title: `Date`,
-                    responsivePriority: 1
-                },
-                {
                     data: "shift_name",
-                    title: "Service"
+                    title: "<spans class='dt-body-center'>Service</span>",
+                    width: "60%",
                 },
                 {
-                    data: "name",
+                    data: "details",
                     title: "Détails",
-                    responsivePriority: 3
+                    className: "tablet-l desktop"
                 }
             ],
             iDisplayLength: -1,
@@ -126,7 +103,7 @@ function init_history() {
                         $(row).addClass('row_partner_ok');
                     } else if (cell.text() === "Retard") {
                         $(row).addClass('row_partner_late');
-                    } else if (cell.text() === "Absence") {
+                    } else if (cell.text() === "Absent") {
                         $(row).addClass('row_partner_absent');
                     }
                 }
