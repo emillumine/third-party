@@ -147,10 +147,15 @@ function prepare_shift_line_template(date_begin) {
 function init_my_info_data() {
     $(".choose_makeups").off();
     $(".unsuscribed_form_link").off();
+    console.log(partner_data);
 
     $(".member_shift_name").text(partner_data.regular_shift_name);
+    console.log(partner_data);
+    let pns = partner_data.name.split(" - ");
+    let name = pns.length > 1 ? pns[1] : pns[0];
 
     // Status related
+    $(".member_name").text(name);
     $(".member_status")
         .text(possible_cooperative_state[partner_data.cooperative_state])
         .addClass("member_status_" + partner_data.cooperative_state);

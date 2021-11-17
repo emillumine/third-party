@@ -23,14 +23,14 @@ function init_my_info() {
     }
 
     
-    if (partner_data.mobile !== "" && partner_data.mobile !== false && partner_data.mobile !== null) {
+    if (partner_data.mobile !== "" && partner_data.mobile !== "False" && partner_data.mobile !== false && partner_data.mobile !== null) {
         $(".member_mobile")
             .append(partner_data.mobile);
     } else {
         $(".member_mobile").hide();
     }
     
-    if (partner_data.phone !== "" && partner_data.phone !== false && partner_data.phone !== null) {
+    if (partner_data.phone !== "" && partner_data.phone !== "False"  && partner_data.phone !== false && partner_data.phone !== null) {
         $(".member_phone")
         .append(partner_data.phone);
     } else {

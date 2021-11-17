@@ -13,6 +13,12 @@ body {
     flex-wrap: wrap;
 }
 
+@media screen and (max-width: 768px) {
+    .tiles_container {
+        flex-direction: column;
+    }
+}
+
 .tile {
     flex: 1 0 45%;
     display: flex;
@@ -39,14 +45,9 @@ body {
     justify-content: center;
     align-items: center;
     border-bottom: 1px solid #e7e9ed;
-    font-size: 2.7rem;
+    font-size: 2.4rem;
     padding: 2rem 0;
     width: 80%;
-}
-@media screen and (max-width: 768px) {
-    .tile_title {
-        font-size: 2.5rem;
-    }
 }
 
 .tile_content {
@@ -109,6 +110,10 @@ body {
     position: relative;
 }
 
+#home_tile_my_info .tile_content {
+    margin: 2rem 0;
+}
+
 .tile_icon {
     margin-right: 15px;
     color: #00a573;
@@ -118,16 +123,20 @@ body {
     height: 100%;
     flex-direction: column;
     align-items: center;
-    font-size: 2.2rem;
+    font-size: 2rem;
 }
 @media screen and (max-width: 768px) {
     #home_tile_my_info .tile_content {
-        font-size: 1.9rem;
+        font-size: 1.7rem;
     }
 }
 
 #home .member_info {
     font-weight: bold;
+}
+
+.member_status_text_container {
+    margin-bottom: 5px;
 }
 
 #member_status_action {
