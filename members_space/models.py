@@ -11,38 +11,37 @@ class CagetteMembersSpace(models.Model):
         """Init with odoo id."""
         self.o_api = OdooAPI()
 
-    def get_points_history(self, partner_id, limit, offset, date_from, shift_type):
-        """ Get partner points history with related shift registration if needed """
-        cond = [
-            ['partner_id', '=', partner_id], 
-            ['type', '=', shift_type],
-            ['create_date', '>', date_from],
-            ['point_qty', '!=', 0]
-        ]
-        f = ['create_date', 'create_uid', 'shift_id', 'name', 'point_qty']
+    def get_shifts_history(self, partner_id, limit, offset, date_from):
+        """ Get partner shifts history """
+        res = {}
+        today = str(datetime.date.today())
 
-        res = self.o_api.search_read('shift.counter.event', cond, f, limit=limit, offset=offset,
-                    order='create_date DESC')
+        try:
+            cond = [
+                ['partner_id', '=', partner_id], 
+                ['create_date', '>', date_from],
+                ['date_begin', '<', today],
+                ['state', '!=', 'draft'],
+                ['state', '!=', 'open'],
+                ['state', '!=', 'waiting'],
+                ['state', '!=', 'replaced'],
+                ['state', '!=', 'replacing'],
+            ]
+            f = ['create_date', 'shift_id', 'name', 'state', 'is_late', 'is_makeup']
 
-        # Get related data from shift.registration
-        shift_ids = []
-        for item in res:
-            item['is_late'] = False # So every item has the attribute
+            marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+            try:
+                res = self.o_api.search_read('shift.registration', cond, f, limit=limit, offset=offset,
+                            order='create_date DESC')
+            except Exception as e:
+                if not (marshal_none_error in str(e)):
+                    res['error'] = repr(e)
+                    coop_logger.error(res['error'] + ' : %s', str(payment_id))
+                else:
+                    res = []
 
-            if item['shift_id'] is not False:
-                shift_ids.append(item['shift_id'][0])
-
-        cond = [['shift_id', 'in', shift_ids]]
-        f = ['is_late', 'shift_id']
-
-        res_shift_registration = self.o_api.search_read('shift.registration', cond, f)
-
-        for registration_item in res_shift_registration:
-            for shift_counter_item in res:
-                if (shift_counter_item['shift_id'] is not False 
-                    and shift_counter_item['shift_id'] == registration_item['shift_id']):
-                    shift_counter_item['is_late'] = registration_item['is_late']
-                    break
+        except Exception as e:
+            print(str(e))
 
         return res
  

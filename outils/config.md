@@ -352,7 +352,7 @@
 
         Should be set to False by default if parameter not set
 
-- START_DATE_FOR_POINTS_HISTORY = "2018-01-01"
+- START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
 
 
 
