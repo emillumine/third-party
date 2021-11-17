@@ -38,6 +38,7 @@
     background-color: #00a573;
     color: white;
     padding: 1.5rem 1.2rem;
+    display: none;
 }
 
 @media screen and (max-width: 992px) {

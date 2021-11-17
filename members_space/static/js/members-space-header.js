@@ -48,7 +48,7 @@ $(document).ready(function() {
         toggleHeader();
     });
 
-    if (partner_data.is_associated_people !== "True") {
-        $(".pairs_info").hide();
+    if (partner_data.is_associated_people === "True") {
+        $(".pairs_info").show();
     }
 });

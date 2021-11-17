@@ -39,6 +39,7 @@ def index(request, exception=None):
         if 'msg' in credentials:
             context['msg'] = credentials['msg']
         context['password_placeholder'] = 'Naissance (jjmmaaaa)'
+        context['is_member_space'] = True
     elif ('validation_state' in credentials) and credentials['validation_state'] == 'waiting_validation_member':
         # First connection, until the member validated his account
         template = loader.get_template('members/validation_coop.html')
