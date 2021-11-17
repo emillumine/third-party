@@ -1255,7 +1255,10 @@ class CagetteServices(models.Model):
                 if int(_h) < 21:
                     ids.append(int(r['id']))
         f = {'state': absence_status}
-        return {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
+        return update_shift_reg_result
 
     @staticmethod
     def close_ftop_service():
