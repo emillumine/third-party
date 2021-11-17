@@ -43,7 +43,7 @@ h1 .member_name {font-weight: bold;}
 {border:1px solid #000; border-radius: 5px; padding:5px; margin-bottom:15px;background:#FFF;}
 .members_list {list-style: none;}
 .members_list li {display:block;margin-bottom:5px;}
-.members_list.late li {color: #de9b00;}
+.members_list.late li {background-color: #de9b00; color: white}
 .members_list li.btn--inverse {background: #449d44 !important; cursor:not-allowed; color: #FFF; }
 
 #service_entry_success {font-size: x-large;}
