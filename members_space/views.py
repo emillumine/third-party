@@ -165,7 +165,7 @@ def no_content(request):
     }
     return HttpResponse(template.render(context, request))
 
-def get_points_history(request):
+def get_shifts_history(request):
     res = {}
     partner_id = int(request.GET.get('partner_id'))
 
@@ -173,8 +173,7 @@ def get_points_history(request):
 
     limit = int(request.GET.get('limit'))
     offset = int(request.GET.get('offset'))
-    shift_type = request.GET.get('shift_type')
-    date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
-    res["data"] = m.get_points_history(partner_id, limit, offset, date_from, shift_type)
+    date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
+    res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
 
     return JsonResponse(res)
