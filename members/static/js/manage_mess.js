@@ -409,6 +409,7 @@ if (coop_is_connected()) {
                 $('.item').click(display_possible_actions);
 
                 // dispatch_coops_in_boxes();
+                return null;
             });
 
             console.log(problematic_members);

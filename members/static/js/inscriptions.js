@@ -152,6 +152,8 @@ function _really_save_new_coop(email, fname, lname, cap, pm, cn, bc, msex) {
                     return console.log(err);
                 }
 
+                return null;
+
             });
             delete coop._rev;
         }
@@ -411,6 +413,8 @@ function get_latest_odoo_coop_bb() {
         return latest_odoo_coop_bb;
 
     }
+
+    return null;
 }
 
 function generate_email() {
