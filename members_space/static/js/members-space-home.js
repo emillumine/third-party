@@ -97,6 +97,18 @@ function init_home() {
     });
     $("#go_to_forms").prop("href", forms_link);
 
+    if (partner_data.is_in_association === false) {
+        $("#home .member_associated_partner_area").hide();
+    } else {
+        if (partner_data.is_associated_people === "True") {
+            $(".member_associated_partner").text(partner_data.parent_name);
+        } else if (partner_data.associated_partner_id !== "False") {
+            $(".member_associated_partner").text(partner_data.associated_partner_name);
+        }
+    }
+
+    // TODO vérif tile my info avec données binomes + rattrapage et délai
+
     // Init my info tile
     init_my_info_data();
 

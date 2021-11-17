@@ -15,7 +15,7 @@ const possible_cooperative_state = {
     exempted: "Exempté.e",
     alert: "En alerte",
     up_to_date: "À jour",
-    unsubscribed: "Désinscrit.e",
+    unsubscribed: "Désinscrit.e des créneaux",
     delay: "En délai"
 };
 
@@ -147,15 +147,14 @@ function prepare_shift_line_template(date_begin) {
 function init_my_info_data() {
     $(".choose_makeups").off();
     $(".unsuscribed_form_link").off();
-    console.log(partner_data);
 
     $(".member_shift_name").text(partner_data.regular_shift_name);
-    console.log(partner_data);
+
     let pns = partner_data.name.split(" - ");
     let name = pns.length > 1 ? pns[1] : pns[0];
+    $(".member_name").text(name);
 
     // Status related
-    $(".member_name").text(name);
     $(".member_status")
         .text(possible_cooperative_state[partner_data.cooperative_state])
         .addClass("member_status_" + partner_data.cooperative_state);
@@ -218,6 +217,13 @@ $(document).ready(function() {
         (partner_data.is_associated_people === "True")
             ? partner_data.parent_id
             : partner_data.partner_id;
+
+    partner_data.is_in_association = 
+        partner_data.is_associated_people === "True" || partner_data.associated_partner_id !== "False";
+
+    // For associated people, their parent name is attached in their display name
+    let partner_name_split = partner_data.name.split(', ');
+    partner_data.name = partner_name_split[partner_name_split.length - 1];
 
     base_location = (app_env === 'dev') ? '/members_space/' : '/';
     update_dom();

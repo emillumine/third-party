@@ -3,10 +3,14 @@ function init_my_info() {
 
     $(".member_email").text(partner_data.email);
 
-    if (partner_data.is_associated_people === "False") {
+    if (partner_data.is_in_association === false) {
         $("#attached_info_area").hide();
-    } else {
+    } 
+
+    if (partner_data.is_associated_people === "True") {
         $(".attached_partner_name").text(partner_data.parent_name);
+    } else if (partner_data.associated_partner_id !== "False") {
+        $(".attached_partner_name").text(partner_data.associated_partner_name);
     }
 
     if (partner_data.street !== "") {

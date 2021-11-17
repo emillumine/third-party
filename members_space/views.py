@@ -76,6 +76,7 @@ def index(request, exception=None):
             partner_id = credentials['id']
 
         cs = CagetteShift()
+
         partnerData = cs.get_data_partner(partner_id)
 
         if 'create_date' in partnerData:
@@ -89,11 +90,22 @@ def index(request, exception=None):
             except:
                 pass
 
+            # look for parent for associated partner
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
             else:
                 partnerData["parent_name"] = False
+
+            # look for associated partner for parents
+            cm = CagetteMember(partner_id)
+            associated_partner = cm.search_associated_people()
+
+            partnerData["associated_partner_id"] = False if associated_partner is None else associated_partner["id"]
+            partnerData["associated_partner_name"] = False if associated_partner is None else associated_partner["name"]
+
+            if (associated_partner is not None and partnerData["associated_partner_name"].find(str(associated_partner["barcode_base"])) == -1):
+                partnerData["associated_partner_name"] = str(associated_partner["barcode_base"]) + ' - ' + partnerData["associated_partner_name"]
 
             partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 

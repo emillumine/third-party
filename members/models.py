@@ -799,6 +799,20 @@ class CagetteMember(models.Model):
             res['error'] = str(e)
         return res
 
+    def search_associated_people(self):
+        """ Search for an associated partner """
+        res = {}
+
+        c = [["parent_id", "=", self.id]]
+        f = ["id", "name", "barcode_base"]
+
+        res = self.o_api.search_read('res.partner', c, f)
+
+        try:
+            return res[0]
+        except:
+            return None
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 

@@ -183,7 +183,8 @@ body {
 
 @media screen and (max-width: 768px) {
     .member_shift_name_area,
-    .member_coop_number_area {
+    .member_coop_number_area,
+    .member_associated_partner_area {
         display: flex;
         flex-direction: column;
         align-items: center;
