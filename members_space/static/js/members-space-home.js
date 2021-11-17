@@ -25,7 +25,7 @@ function request_delay() {
             },
             success: function() {
                 partner_data.cooperative_state = 'delay';
-                partner_data.date_delay_stop = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                partner_data.date_delay_stop = today_plus_six_month.getFullYear()+'-'+(today_plus_six_month.getMonth()+1)+'-'+today_plus_six_month.getDate();
 
                 resolve();
             },
