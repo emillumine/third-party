@@ -89,6 +89,15 @@ class CagetteShift(models.Model):
         shiftData = self.o_api.search_read('shift.registration', cond, fields, order ="date_begin ASC")
         return shiftData
 
+    def shift_is_makeup(self, id):
+        """vérifie si une shift est un rattrapage"""
+        fields = ["is_makeup", "id"] 
+        cond = [['id', '=', id]]
+        shiftData = self.o_api.search_read('shift.registration', cond, fields)
+        return shiftData[0]["is_makeup"]
+
+         
+
     def get_shift_calendar(self, id, start, end):
         """Récupère les shifts à partir de maintenant pour le calendier"""
         cond = [['date_begin', '>', datetime.datetime.now().isoformat()],
