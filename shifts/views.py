@@ -178,11 +178,14 @@ def change_shift(request):
 
             if 'idNewShift' in request.POST and 'idOldShift' in request.POST:
                 idOldShift = request.POST['idOldShift']
+                listRegister = [int(request.POST['idRegister'])]
                 data = {
                     "idPartner": int(request.POST['idPartner']),
                     "idShift":int(request.POST['idNewShift']),
-                    "in_ftop_team":request.POST['in_ftop_team']
+                    "in_ftop_team":request.POST['in_ftop_team'],
+                    "is_makeup":cs.shift_is_makeup(listRegister)
                 }
+                
                 
                 should_block_service_exchange = getattr(settings, 'BLOCK_SERVICE_EXCHANGE_24H_BEFORE', False)
                 if should_block_service_exchange:
@@ -228,7 +231,8 @@ def add_shift(request):
                 data = {
                     "idPartner": int(request.POST['idPartner']), 
                     "idShift":int(request.POST['idNewShift']), 
-                    "in_ftop_team":request.POST['in_ftop_team']
+                    "in_ftop_team":request.POST['in_ftop_team'],
+                    "is_makeup":True
                 }
                 
                 #Insertion du nouveau shift
