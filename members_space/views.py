@@ -193,7 +193,7 @@ def shifts_exchange(request):
     }
     return HttpResponse(template.render(context, request))
 
-def faq(request):
+def faqBDM(request):
     template = loader.get_template('members_space/faq.html')
     context = {
         'title': 'foire aux questions',

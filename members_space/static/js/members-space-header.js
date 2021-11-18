@@ -36,10 +36,10 @@ $(document).ready(function() {
         }
         toggleHeader();
     });
-    $('#faq').on('click', (e) => {
+    $('#faqBDM').on('click', (e) => {
         e.preventDefault();
-        if (current_location !== "faq") {
-            goto('faqBDM');
+        if (current_location !== "faqBDM") {
+            goto('faq');
         }
         toggleHeader();
     });
