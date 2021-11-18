@@ -2153,6 +2153,19 @@ $(document).ready(function() {
             }
         });
 
+        $("#refresh_order").on("click", function() {
+            if (is_time_to('refresh_order', 1000)) {
+                openModal();
+                check_products_data()
+                    .then(() => {
+                        update_cdb_order();
+                        update_main_screen();
+                        $("#toggle_action_buttons").click();
+                        closeModal();
+                    });
+            }
+        });
+
         $("#delete_order_button").on("click", function() {
             if (is_time_to('press_delete_order_button', 1000)) {
                 let modal_remove_order = $('#templates #modal_remove_order');

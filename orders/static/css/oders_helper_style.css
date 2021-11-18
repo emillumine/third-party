@@ -155,6 +155,14 @@
     min-height: 45px;
 }
 
+#do_inventory {
+    border-top: 1px solid #004aa6;
+}
+#refresh_order {
+    border-top: 1px solid #004aa6;
+    border-bottom: 1px solid #004aa6;
+}
+
 /* -- Order data */
 #order_data_container {
     font-size: 1.8rem;
