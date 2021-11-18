@@ -264,6 +264,15 @@
 
         (if not set, 60 minutes is the default)
 
+- ENTRANCE_VALIDATE_PRESENCE_MESSAGE = """
+    <div class="explanations">
+     Ta présence a bien été validée ! Merci de te diriger au fond du magasin pour le lancement du créneau !
+    </div>
+    Ton prochain service <span class="service_verb">est prévu</span> le <span class="next_shift"></span>
+"""
+
+        (La Cagette message, where no point data is displayed)
+
 ### Member space
 
 - EM_URL = ''
@@ -352,7 +361,7 @@
 
         Should be set to False by default if parameter not set
 
-- START_DATE_FOR_POINTS_HISTORY = "2018-01-01"
+- START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
 
 
 

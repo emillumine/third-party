@@ -57,7 +57,7 @@ function loadShiftPartner(partner_id) {
 
         $('#shift_msg').remove();
         $('#partnerData').append('<div id="shift_msg"></div>');
-        if (dataPartner.in_ftop_team == "True" || listeShiftPartner.length > 0) {
+        if (dataPartner.shift_type == "ftop" || listeShiftPartner.length > 0) {
         // ftop, no shift planned
             if (listeShiftPartner.length == 0) {
                 var date = new Date(dataPartner.next_regular_shift_date);
@@ -79,7 +79,7 @@ function loadShiftPartner(partner_id) {
 
                 // Set DOM for partner's shifts and shift message for ftops
                 iniListShift(listeShiftPartner, true);
-                if (dataPartner.in_ftop_team == "True") {
+                if (dataPartner.shift_type == "ftop") {
                     $('#shift_msg').append("<br /><strong>Je peux choisir d'autres services pour les mois à venir ou échanger un de ceux de la liste.</strong>");
                 }
             }
@@ -92,7 +92,7 @@ function changeShift(idOldRegister, idNewShift) {
     if (is_time_to('change_shift')) {
         openModal(); // loading on
 
-        tData = 'idNewShift=' + idNewShift +'&idPartner=' + dataPartner.partner_id + '&in_ftop_team=' + dataPartner.in_ftop_team + '&verif_token=' + dataPartner.verif_token;
+        tData = 'idNewShift=' + idNewShift +'&idPartner=' + dataPartner.partner_id + '&shift_type=' + dataPartner.shift_type + '&verif_token=' + dataPartner.verif_token;
         if (idOldRegister == "") {
             tUrl = '/shifts/add_shift';
         } else {
@@ -161,7 +161,7 @@ function canMakeExchange() {
     var answer = false;
     // Set the partner's limit date (after which he'll loose a point)
 
-    if (dataPartner.dateProlonge != "False" || dataPartner.final_standard_point < 0 || dataPartner.in_ftop_team == "True") {
+    if (dataPartner.dateProlonge != "False" || dataPartner.final_standard_point < 0 || dataPartner.shift_type == "ftop") {
         var dateProlonge = new Date(dataPartner.dateProlonge);
         var dateNextRegularShift = new Date(dataPartner.next_regular_shift_date);
 
@@ -170,7 +170,7 @@ function canMakeExchange() {
         // For ABCD : the limit date is end of alert
         var dateEndAlert = new Date(dataPartner.date_alert_stop);
 
-        if (dataPartner.in_ftop_team == "False" && limitDate < dateEndAlert) {
+        if (dataPartner.shift_type == "ftop" && limitDate < dateEndAlert) {
             limitDate = dateEndAlert;
         }
 
@@ -204,7 +204,7 @@ function canMakeExchange() {
         });
 
         // Allow exchange if points >= 0 or he already has enough services booked before the limit date
-        var partner_points = dataPartner.in_ftop_team == "True" ? dataPartner.final_ftop_point : dataPartner.final_standard_point;
+        var partner_points = dataPartner.shift_type == "ftop" ? dataPartner.final_ftop_point : dataPartner.final_standard_point;
 
         if (partner_points >= 0 || shifts_before_limit >= 1) {
             answer = true;
@@ -216,7 +216,7 @@ function canMakeExchange() {
         }
 
         // ftop can always exchange service
-        if (dataPartner.in_ftop_team == "True") {
+        if (dataPartner.shift_type == "ftop") {
             answer = true;
         }
     }
@@ -230,7 +230,7 @@ Génère le message à afficher lorsque le coop doit faire un rattrapage.
   Pour les volants, chaque service compte comme un rattrapage.
 */
 function addMakeUpMsg() {
-    var partner_points = dataPartner.in_ftop_team == "True" ? dataPartner.final_ftop_point : dataPartner.final_standard_point;
+    var partner_points = dataPartner.shift_type == "ftop" ? dataPartner.final_ftop_point : dataPartner.final_standard_point;
     let shifts_before_limit = 0;
 
     // Calcul du nombre de rattrapages à faire
@@ -281,7 +281,7 @@ function addMakeUpMsg() {
             }
 
             // Si le membre est un volant
-            if (dataPartner.in_ftop_team == "True") {
+            if (dataPartner.shift_type == "ftop") {
                 msg = "Je dois faire " + make_up_nb + " service";
                 if (make_up_nb > 1) msg += "s";
                 if (non_regular_shifts.length > 0) msg += " en plus";
@@ -320,7 +320,7 @@ function canAddShift(date_new_shift) {
     var answer = false;
 
     // If partner is ftop (ftop = volant)
-    if (dataPartner["in_ftop_team"] == "True") {
+    if (dataPartner["shift_type"] == "ftop") {
     // If points >= 0 : can register to any shift
         if (dataPartner.final_ftop_point >= 0) {
             answer = true;
@@ -414,7 +414,7 @@ $(document).ready(function() {
     loadShiftPartner(dataPartner.partner_id);
 
     // Display information depending on partner's type and state
-    if (dataPartner.in_ftop_team == "True") {
+    if (dataPartner.shift_type == "ftop") {
         $('div.intro div h2').text("Bienvenue dans le système de choix et d'échange de services");
         $('.additionnal_intro_data').text(' ou en choisir un nouveau');
 
@@ -543,7 +543,7 @@ $(document).ready(function() {
                         // For partners who can't add a shift as it is
                         if (!can_add_shift) {
                             // Partners who could ask for a delay
-                            if (dataPartner.in_ftop_team == "True" || dataPartner.in_ftop_team == "False" && dateShiftNew > limitDate) {
+                            if (dataPartner.shift_type == "ftop" || dateShiftNew > limitDate) {
                                 // Member can ask for 6 delays, which is 24 weeks after entering alert status
                                 // 'date_alert_stop' field is begining of alert + 4 weeks
                                 let date_end_alert = new Date(dataPartner.date_alert_stop);

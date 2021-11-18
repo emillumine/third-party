@@ -15,7 +15,7 @@ const possible_cooperative_state = {
     exempted: "Exempté.e",
     alert: "En alerte",
     up_to_date: "À jour",
-    unsubscribed: "Désinscrit.e",
+    unsubscribed: "Désinscrit.e des créneaux",
     delay: "En délai"
 };
 
@@ -68,6 +68,10 @@ function goto(page) {
 
 /**
  * Define which html content to load from server depending on the window location
+ * 
+ * WARNING: For the routing system to work, 
+ *          public urls (those the users will see & navigate to) must be different than the server urls used to fetch resources
+ * (ex: public url: /members_space/mes-info ; server url: /members_space/my_info)
  */
 function update_dom() {
     $(".nav_item").removeClass('active');
@@ -150,6 +154,11 @@ function init_my_info_data() {
 
     $(".member_shift_name").text(partner_data.regular_shift_name);
 
+    let pns = partner_data.name.split(" - ");
+    let name = pns.length > 1 ? pns[1] : pns[0];
+
+    $(".member_name").text(name);
+
     // Status related
     $(".member_status")
         .text(possible_cooperative_state[partner_data.cooperative_state])
@@ -213,6 +222,14 @@ $(document).ready(function() {
         (partner_data.is_associated_people === "True")
             ? partner_data.parent_id
             : partner_data.partner_id;
+
+    partner_data.is_in_association =
+        partner_data.is_associated_people === "True" || partner_data.associated_partner_id !== "False";
+
+    // For associated people, their parent name is attached in their display name
+    let partner_name_split = partner_data.name.split(', ');
+
+    partner_data.name = partner_name_split[partner_name_split.length - 1];
 
     base_location = (app_env === 'dev') ? '/members_space/' : '/';
     update_dom();

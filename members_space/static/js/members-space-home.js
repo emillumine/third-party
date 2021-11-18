@@ -25,7 +25,7 @@ function request_delay() {
             },
             success: function() {
                 partner_data.cooperative_state = 'delay';
-                partner_data.date_delay_stop = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                partner_data.date_delay_stop = today_plus_six_month.getFullYear()+'-'+(today_plus_six_month.getMonth()+1)+'-'+today_plus_six_month.getDate();
 
                 resolve();
             },
@@ -96,6 +96,18 @@ function init_home() {
         goto('mes-infos');
     });
     $("#go_to_forms").prop("href", forms_link);
+
+    if (partner_data.is_in_association === false) {
+        $("#home .member_associated_partner_area").hide();
+    } else {
+        if (partner_data.is_associated_people === "True") {
+            $(".member_associated_partner").text(partner_data.parent_name);
+        } else if (partner_data.associated_partner_id !== "False") {
+            $(".member_associated_partner").text(partner_data.associated_partner_name);
+        }
+    }
+
+    // TODO vérif tile my info avec données binomes + rattrapage et délai
 
     // Init my info tile
     init_my_info_data();
