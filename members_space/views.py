@@ -39,6 +39,7 @@ def index(request, exception=None):
         if 'msg' in credentials:
             context['msg'] = credentials['msg']
         context['password_placeholder'] = 'Naissance (jjmmaaaa)'
+        context['is_member_space'] = True
     elif ('validation_state' in credentials) and credentials['validation_state'] == 'waiting_validation_member':
         # First connection, until the member validated his account
         template = loader.get_template('members/validation_coop.html')
@@ -76,6 +77,7 @@ def index(request, exception=None):
             partner_id = credentials['id']
 
         cs = CagetteShift()
+
         partnerData = cs.get_data_partner(partner_id)
 
         if 'create_date' in partnerData:
@@ -89,11 +91,22 @@ def index(request, exception=None):
             except:
                 pass
 
+            # look for parent for associated partner
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
             else:
                 partnerData["parent_name"] = False
+
+            # look for associated partner for parents
+            cm = CagetteMember(partner_id)
+            associated_partner = cm.search_associated_people()
+
+            partnerData["associated_partner_id"] = False if associated_partner is None else associated_partner["id"]
+            partnerData["associated_partner_name"] = False if associated_partner is None else associated_partner["name"]
+
+            if (associated_partner is not None and partnerData["associated_partner_name"].find(str(associated_partner["barcode_base"])) == -1):
+                partnerData["associated_partner_name"] = str(associated_partner["barcode_base"]) + ' - ' + partnerData["associated_partner_name"]
 
             partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 
@@ -125,6 +138,12 @@ def index(request, exception=None):
     return _get_response_according_to_credentials(request, credentials, context, template)
 
 def home(request):
+    """ 
+        Endpoint the front-end will call to load the "home" page. 
+
+        Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
+        then the front-end index will call this endpoint to load the home page
+    """
     template = loader.get_template('members_space/home.html')
     context = {
         'title': 'Espace Membres',
@@ -138,6 +157,7 @@ def home(request):
     return HttpResponse(template.render(context, request))
 
 def my_info(request):
+    """ Endpoint the front-end will call to load the "My info" page. """
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
@@ -145,6 +165,7 @@ def my_info(request):
     return HttpResponse(template.render(context, request))
 
 def my_shifts(request):
+    """ Endpoint the front-end will call to load the "My shifts" page. """
     template = loader.get_template('members_space/my_shifts.html')
     context = {
         'title': 'Mes Services',
@@ -152,6 +173,7 @@ def my_shifts(request):
     return HttpResponse(template.render(context, request))
 
 def shifts_exchange(request):
+    """ Endpoint the front-end will call to load the "Shifts exchange" page. """
     template = loader.get_template('members_space/shifts_exchange.html')
     context = {
         'title': 'Échange de Services',
@@ -159,13 +181,14 @@ def shifts_exchange(request):
     return HttpResponse(template.render(context, request))
 
 def no_content(request):
+    """ Endpoint the front-end will call to load the "No content" page. """
     template = loader.get_template('members_space/no_content.html')
     context = {
         'title': 'Contenu non trouvé',
     }
     return HttpResponse(template.render(context, request))
 
-def get_points_history(request):
+def get_shifts_history(request):
     res = {}
     partner_id = int(request.GET.get('partner_id'))
 
@@ -173,8 +196,7 @@ def get_points_history(request):
 
     limit = int(request.GET.get('limit'))
     offset = int(request.GET.get('offset'))
-    shift_type = request.GET.get('shift_type')
-    date_from = getattr(settings, 'START_DATE_FOR_POINTS_HISTORY', '2018-01-01')
-    res["data"] = m.get_points_history(partner_id, limit, offset, date_from, shift_type)
+    date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
+    res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
 
     return JsonResponse(res)

@@ -394,7 +394,7 @@ function fill_service_entry_sucess(member) {
 
     var points = member.display_std_points;
 
-    if (member.in_ftop_team == true) {
+    if (member.shift_type == 'ftop') {
         points = member.display_ftop_points;
     }
     pages.service_entry_success.find('span.points').text(points);
@@ -410,7 +410,7 @@ function fill_service_entry_sucess(member) {
     var service_verb = 'est prévu';
 
     if (member.next_shift) {
-        if (member.in_ftop_team == true
+        if (member.shift_type == 'ftop'
             && member.next_shift.shift_type == "ftop") {
             var start_elts = member.next_shift.start.split(' à ');
 
@@ -468,7 +468,7 @@ function fill_rattrapage_2() {
     var msg = "Bienvenue pour ton rattrapage !";
     var shift_ticket_id = selected_service.shift_ticket_ids[0];
 
-    if (current_displayed_member.in_ftop_team == true) {
+    if (current_displayed_member.shift_type == 'ftop') {
         msg ="Bienvenue dans ce service !";
         if (selected_service.shift_ticket_ids[1])
             shift_ticket_id = selected_service.shift_ticket_ids[1];

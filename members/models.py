@@ -21,7 +21,7 @@ FUNDRAISING_CAT_ID = {'A': 1, 'B': 2, 'C': 3}
 class CagetteMember(models.Model):
     """Class to handle cagette Odoo member."""
     m_default_fields = ['name', 'parent_name', 'sex', 'image_medium', 'active',
-                        'barcode_base', 'barcode', 'in_ftop_team',
+                        'barcode_base', 'barcode', 'shift_type',
                         'is_associated_people', 'is_member', 'shift_type',
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
@@ -118,19 +118,25 @@ class CagetteMember(models.Model):
             fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
+                coop_id = None
                 for item in res:
                     coop = item
+                    if item["birthdate"] is not False:
+                        coop_birthdate = item['birthdate']
+                        coop_state = item['cooperative_state']
                     if item["is_associated_people"] == True:
-                        break
+                        coop_id = item['id']
 
-                y, m, d = coop['birthdate'].split('-')
+                y, m, d = coop_birthdate.split('-')
                 password = password.replace('/', '')
                 if (password == d + m + y):
-                    data['id'] = coop['id']
+                    if coop_id is None:
+                        coop_id = coop['id']
+                    data['id'] = coop_id 
                     auth_token_seed = fp + coop['create_date']
                     data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
                     data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
-                    data['coop_state'] = coop['cooperative_state']
+                    data['coop_state'] = coop_state
 
                 if not ('auth_token' in data):
                     data['failure'] = True
@@ -799,6 +805,20 @@ class CagetteMember(models.Model):
             res['error'] = str(e)
         return res
 
+    def search_associated_people(self):
+        """ Search for an associated partner """
+        res = {}
+
+        c = [["parent_id", "=", self.id]]
+        f = ["id", "name", "barcode_base"]
+
+        res = self.o_api.search_read('res.partner', c, f)
+
+        try:
+            return res[0]
+        except:
+            return None
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 
@@ -1117,24 +1137,26 @@ class CagetteServices(models.Model):
     def get_services_at_time(time, tz_offset, with_members=True):
         """Retrieve present services with member linked."""
 
-        # import operator
-        min_before_shift_starts_delay = 20
-        min_after_shift_starts_delay = 20
+        default_acceptable_minutes_after_shift_begins = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_AFTER_SHIFT_BEGINS', 15)
+        minutes_before_shift_starts_delay = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_BEFORE_SHIFT', 15)
+        minutes_after_shift_starts_delay = default_acceptable_minutes_after_shift_begins
         late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        max_duration = getattr(settings, 'MAX_DURATION', 180)
         if late_mode is True:
-            min_before_shift_starts_delay = getattr(settings, 'ENTRANCE_VALIDATION_GRACE_DELAY', 60)
-            min_after_shift_starts_delay = 0
+            minutes_after_shift_starts_delay = getattr(settings, 'ENTRANCE_VALIDATION_GRACE_DELAY', 60)
         api = OdooAPI()
         now = dateutil.parser.parse(time) - datetime.timedelta(minutes=tz_offset)
-        start1 = now - datetime.timedelta(minutes=min_before_shift_starts_delay)
-        start2 = now + datetime.timedelta(minutes=min_after_shift_starts_delay)
-        cond = [['date_begin_tz', '>=', start1.isoformat()],
-                ['date_begin_tz', '<=', start2.isoformat()]]
+        start1 = now + datetime.timedelta(minutes=minutes_before_shift_starts_delay)
+        start2 = now - datetime.timedelta(minutes=minutes_after_shift_starts_delay)
+        end = start1 + datetime.timedelta(minutes=max_duration)
+        cond = [['date_end_tz', '<=', end.isoformat()]]
+        cond.append('|')
+        cond.append(['date_begin_tz', '>=', start1.isoformat()])
+        cond.append(['date_begin_tz', '>=', start2.isoformat()])
         fields = ['name', 'week_number', 'registration_ids',
                   'standard_registration_ids',
                   'shift_template_id', 'shift_ticket_ids',
                   'date_begin_tz', 'date_end_tz']
-        ## return (start1.isoformat(), start2.isoformat())
         services = api.search_read('shift.shift', cond, fields,order ="date_begin_tz ASC")
         for s in services:
             if (len(s['registration_ids']) > 0):
@@ -1143,7 +1165,7 @@ class CagetteServices(models.Model):
                                  now.replace(tzinfo=None)
                                  -
                                  dateutil.parser.parse(s['date_begin_tz']).replace(tzinfo=None)
-                                 ).seconds / 60 > min_after_shift_starts_delay
+                                 ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
                 if with_members is True:
                     cond = [['id', 'in', s['registration_ids']], ['state', '!=', 'cancel']]
                     fields = ['partner_id', 'shift_type', 'state']
@@ -1211,14 +1233,17 @@ class CagetteServices(models.Model):
         return api.update('shift.registration', [int(reg_id)], f)
 
     @staticmethod
-    def record_absences():
+    def record_absences(date):
         """Called by cron script."""
         import dateutil.parser
-        now = datetime.datetime.now()
+        if len(date) > 0:
+            now = dateutil.parser.parse(date)
+        else:
+            now = datetime.datetime.now()
         # now = dateutil.parser.parse('2020-09-15T15:00:00Z')
         date_24h_before = now - datetime.timedelta(hours=24)
         # let authorized people time to set presence for those who came in late
-        end_date = now - datetime.timedelta(hours=3)
+        end_date = now - datetime.timedelta(hours=2)
         api = OdooAPI()
         absence_status = 'excused'
         res_c = api.search_read('ir.config_parameter',
@@ -1250,7 +1275,10 @@ class CagetteServices(models.Model):
                 if int(_h) < 21:
                     ids.append(int(r['id']))
         f = {'state': absence_status}
-        return {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
+        return update_shift_reg_result
 
     @staticmethod
     def close_ftop_service():

@@ -29,7 +29,8 @@ def index(request):
         'ENTRANCE_EASY_SHIFT_VALIDATE_MSG': getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE_MSG',
                                                     'Je valide mon service "Comité"'),
         'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e'),
-        'LATE_MODE': getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        'LATE_MODE': getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False),
+        'ENTRANCE_VALIDATE_PRESENCE_MESSAGE' : getattr(settings, 'ENTRANCE_VALIDATE_PRESENCE_MESSAGE', '')
     }
 
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
@@ -281,7 +282,8 @@ def record_service_presence(request):
                 import re
                 o_date = re.search(r'/([^\/]+?)$', request.META.get('HTTP_REFERER'))
                 if o_date:
-                    overrided_date = o_date.group(1)
+                    overrided_date = re.sub(r'(%20)',' ', o_date.group(1))
+
             # rid = 0 => C'est un rattrapage, sur le service
             if sid > 0 and stid > 0:
                 # Add member to service and take presence into account
@@ -289,7 +291,6 @@ def record_service_presence(request):
                 if res['rattrapage'] is True:
                     res['update'] = 'ok'
             else:
-
                 if (CagetteServices.registration_done(rid, overrided_date) is True):
                     res['update'] = 'ok'
                 else:
@@ -325,8 +326,8 @@ def easy_validate_shift_presence(request):
     else:
         return JsonResponse(res, safe=False)
 
-def record_absences(request):
-    return JsonResponse({'res': CagetteServices.record_absences()})
+def record_absences(request, date):
+    return JsonResponse({'res': CagetteServices.record_absences(date)})
 
 def close_ftop_service(request):
     """Close the closest past FTOP service"""
