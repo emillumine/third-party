@@ -18,3 +18,4 @@ shop/shop_admin_settings.json
 shop/errors.log
 .idea
 members/settings.json
+.DS_Store
