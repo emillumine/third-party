@@ -18,19 +18,19 @@ function init_faq() {
     $("#helper_unsubscribe_form_link_btn").prop("href", helper_unsubscribe_form_link);
     $("#request_form_link_btn2").prop("href", request_form_link);
     $("#request_form_link_btn").prop("href", request_form_link);
-    
 }
 
-$(document).on('click', '.accordion', function(){
+$(document).on('click', '.accordion', function() {
     /* Toggle between adding and removing the "active" class,
     to highlight the button that controls the panel */
     this.classList.toggle("active");
 
     /* Toggle between hiding and showing the active panel */
     var panel = this.nextElementSibling;
+
     if (panel.style.display === "block") {
-      panel.style.display = "none";
+        panel.style.display = "none";
     } else {
-      panel.style.display = "block";
+        panel.style.display = "block";
     }
 });
