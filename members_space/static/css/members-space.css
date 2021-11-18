@@ -59,7 +59,11 @@ body {
 }
 
 #home_tile_services_exchange .tile_content {
-    justify-content: center;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    
 }
 
 
