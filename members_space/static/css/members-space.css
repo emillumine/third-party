@@ -48,6 +48,7 @@ body {
     font-size: 2.4rem;
     padding: 2rem 0;
     width: 80%;
+    word-break: break-all;
 }
 
 .tile_content {
