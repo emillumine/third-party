@@ -36,5 +36,5 @@ $(document).on('click', '.accordion', function() {
 
     $("#shift_exchange_btn").on("click", () => {
         goto('echange-de-services');
-    })
+    });
 });

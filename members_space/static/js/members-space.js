@@ -68,8 +68,8 @@ function goto(page) {
 
 /**
  * Define which html content to load from server depending on the window location
- * 
- * WARNING: For the routing system to work, 
+ *
+ * WARNING: For the routing system to work,
  *          public urls (those the users will see & navigate to) must be different than the server urls used to fetch resources
  * (ex: public url: /members_space/mes-info ; server url: /members_space/my_info)
  */
