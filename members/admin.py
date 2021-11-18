@@ -44,13 +44,114 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'class': 'link',
                                                 'sort_order': 6
                        },
+                       'request_form_link': {
+                                                'title': 'Faire une demande au Bureau Des Membres',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 7
+                       },
+                       'late_service_form_link': {
+                                                'title': 'Retard à mon service ou oubli validation',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 8
+                       },
+                       'change_template_form_link': {
+                                                'title': 'Demande de changement de créneau',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 9
+                       },
+                       #TODO vérifier le nom d'un "binome"
+                       'associated_subscribe_form_link': {
+                                                'title': 'Demande de création de binôme',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 10
+                       },
+                       #TODO vérifier le nom d'un "binome"
+                       'associated_unsubscribe_form_link': {
+                                                'title': 'Se désolidariser de son binôme',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 11
+                       },
+                       'template_unsubscribe_form_link': {
+                                                'title': 'Se désinscrire de son créneau',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 12
+                       },
+                       'change_email_form_link': {
+                                                'title': 'Changer d\'adresse mail',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 13
+                       },
+                       'coop_unsubscribe_form_link': {
+                                                'title': 'Demande de démission de la coopérative et/ou de remboursement de mes parts sociales',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 14
+                       },
+                       'sick_leave_form_link': {
+                                                'title': 'Demande de congé maladie ou parental',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 15
+                       },
+                       'underage_subscribe_form_link': {
+                                                'title': 'Demande de création d’un compte mineur rattaché',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 16
+                       },
+                       'helper_subscribe_form_link': {
+                                                'title': 'Rejoindre la Brigade Solidaire',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 17
+                       },
+                       'helper_unsubscribe_form_link': {
+                                                'title': 'Se désinscrire de la brigade solidaire',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 18
+                       },
+                       'covid_form_link': {
+                                                'title': 'J\'ai le Covid-19 !',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 19
+                       },
+                       'covid_end_form_link': {
+                                                'title': 'Fin d\'exemption: reprise de mes services',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 20
+                       },
                        'member_cant_have_delay_form_link': {
                                                 'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
                                                 'type': 'text',
                                                 'value': '',
                                                 'class': 'link',
-                                                'sort_order': 7
+                                                'sort_order': 21
                        }
+
                     }
 
 def config(request):
@@ -244,7 +345,7 @@ def get_makeups_members(request):
     return JsonResponse({ 'res' : res })
 
 def update_members_makeups(request):
-    """ Met à jour les rattrapages des membres passés dans la requête """
+    """ Décrémente les rattrapages des membres passés dans la requête """
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
