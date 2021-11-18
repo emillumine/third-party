@@ -332,3 +332,7 @@ body {
         width: 90%;
     }
 }
+
+.message_error {
+  padding: 10vw;
+}
