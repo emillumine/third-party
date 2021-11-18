@@ -1606,10 +1606,37 @@ function display_products(params) {
             $(this).focus();
         })
         .on('keypress', 'tbody td .product_qty_input', function(e) {
-            if (e.which == 13) {
             // Validate on Enter pressed
+            if (e.which == 13) {
                 $(this).blur();
             }
+        })
+        .on('keydown', 'tbody td .product_qty_input', function(e) {
+            if (e.which == 38) {
+                e.preventDefault();
+
+                // On arrow up pressed, focus next row input
+                let next_input = $(this).closest("tr").prev().find(".product_qty_input");
+                next_input.focus();
+
+                // Scroll to a position where the target input is not hidden by the sticky suppliers container
+                const suppliers_container_top_offset = 
+                    $("#suppliers_container").offset().top
+                    - $(window).scrollTop()
+                    + $("#suppliers_container").outerHeight();
+                    const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
+
+                if (next_input_top_offset < suppliers_container_top_offset) {
+                    window.scrollTo({
+                        top: $(window).scrollTop() - $("#suppliers_container").outerHeight()
+                    });
+                }
+            } else if (e.which == 40) {
+                e.preventDefault();
+
+                // On arrow down pressed, focus previous row input
+                $(this).closest("tr").next().find(".product_qty_input").focus();
+            } 
         });
 
     // Associate product to supplier on click on 'X' in the table
