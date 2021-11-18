@@ -1,0 +1,71 @@
+#faq {
+    font-size: 1.8rem;
+}
+
+.btn_faq{
+    white-space: normal;
+}
+.grp_text{
+    margin-top: 25px;
+}
+
+.param {margin-bottom: 15px;}
+.param label {font-weight: bold;}
+input.link {min-width: 50em;}
+.submit_button {margin-bottom: 10px;}
+
+ /* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+  background-color: #ccc;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: 0 18px;
+  padding-bottom: 10px;
+  background-color: white;
+  display: none;
+  overflow: hidden;
+  border-left: 1px solid #E5E5E5;
+  border-right: 1px solid #E5E5E5;
+  border-bottom: 1px solid #E5E5E5;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+}
+
+button.accordion::after {
+    content: '\002B';
+    color: #777;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+}
+
+button.accordion.active::after {
+    content: "\2212";
+}
+
+.faq_link_button_area {
+   margin-top: 10px;
+    height: 100%;
+}
+
+.faq_link_button {
+   
+    /* margin: 30px auto auto auto; */
+    white-space: normal;
+    border-radius: 5px;
+}

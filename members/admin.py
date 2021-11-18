@@ -169,7 +169,6 @@ def get_settings(request):
     if is_connected_user is True:
         try:
             msettings = MConfig.get_settings('members')
-            print(msettings)
             if len(msettings) == 0:
                 msettings = default_msettings
             # take care that every params will be shown (consider newly added params)
@@ -346,7 +345,7 @@ def get_makeups_members(request):
     return JsonResponse({ 'res' : res })
 
 def update_members_makeups(request):
-    """ Met à jour les rattrapages des membres passés dans la requête """
+    """ Décrémente les rattrapages des membres passés dans la requête """
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
