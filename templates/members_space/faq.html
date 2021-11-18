@@ -3,31 +3,35 @@
 
   <div class="page_title txtcenter">
     <h1>
-      Je rencontre un problème ou j'ai une demande concernant mon statut de membre
+      J'ai un problème ou une demande
     </h1>
   </div>
   
   <div class="tiles_container">
     <div class="tile full_width_tile">
-      <div class ="tile_content">
+      <div class="tile_content">
         <div class="block">
-          <h3>
-            <ul>
-              <li>
-                Je clique sur l'onglet qui correspond à ma demande puis je remplis le formulaire adéquat.
-              </li>
-              <li>
-                Un·e coopérateur·rice du Bureau Des Membres répondra à ma demande dès que possible.
-              </li>
-            </ul>
-            
-            ATTENTION : Créneau/service c'est quoi la différence? <br/>
-            Un créneau, c'est une plage récurrente, par exemple, tous les jeudi de semaine A de 13h30 à 16h30.<br/>
-            Un service, c'est une plage horaire en particulier, par exemple le jeudi 28 novembre de 13h30 à 16h30.<br/>
-          </h3>
+          <div class="faq_intro_texts">
+              <p>Je rencontre un problème ou j'ai une demande concernant mon statut de membre :</p>
+              <ul>
+                <li>
+                  Je clique sur l'onglet qui correspond à ma demande puis je remplis le formulaire adéquat.
+                </li>
+                <li>
+                  Un·e coopérateur·rice du Bureau Des Membres répondra à ma demande dès que possible.
+                </li>
+              </ul>
+              
+              <div class="info_slots_shifts">
+                <p><i class="fas fa-exclamation-circle"></i> Créneau/service c'est quoi la différence?</p> 
+                <p>Un créneau, c'est une plage récurrente, par exemple, tous les jeudi de semaine A de 13h30 à 16h30.</p> 
+                <p>Un service, c'est une plage horaire en particulier, par exemple le jeudi 28 novembre de 13h30 à 16h30.</p> 
+              </div>
+          </div>
+          
           <div class="param">
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >000 Gestion de mon créneau: réinscription, changement, désinscription temporaire (absence de moyenne ou longue durée)</p >
+              <span class="full_width">000 Gestion de mon créneau: réinscription, changement, désinscription temporaire (absence de moyenne ou longue durée)</span>
             </button>
             <div class="input-container panel">
               
@@ -98,7 +102,7 @@
               </div>
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >001 Gestion de mes services: échanger son service, arrivé.e en retard à son service, demande de congés maladie ou parental</p >
+              <span class="full_width" >001 Gestion de mes services: échanger son service, arrivé.e en retard à son service, demande de congés maladie ou parental</span>
             </button>
             <div class="input-container panel">
               
@@ -119,12 +123,12 @@
                 </p>
                 <div class="faq_link_button_area">
                   <a
-                    href="https://lacagette-coop.fr/?CompteurPoints?usp=sf_link"
-                    target="_blank"
+                    href="javascript:void(0);"
                     type="button" 
                     class="btn--primary faq_link_button" 
+                    id="shift_exchange_btn"
                   >
-                    Mes services et mes points
+                    Échange de services
                   </a>
                 </div>
               </div>
@@ -183,7 +187,7 @@
               </div>
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width">002 Mon statut: Je suis suspendu.e ou désinscrit.e et je ne peux pas faire mes courses</p >
+              <span class="full_width">002 Mon statut: Je suis suspendu.e ou désinscrit.e et je ne peux pas faire mes courses</span>
             </button>
             <div class="input-container panel">
               
@@ -246,7 +250,7 @@
               
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >003 Mon binôme: créer un binôme, se désolidariser de son binôme, changer de binôme</p >
+              <span class="full_width" >003 Mon binôme: créer un binôme, se désolidariser de son binôme, changer de binôme</span>
             </button>
             <div class="input-container panel">
               
@@ -299,7 +303,7 @@
               </div>              
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >004 Spécial Covid: Tu as la Covid ou tu es cas contact, fin d'exemption Covid</p >
+              <span class="full_width" >004 Spécial Covid: Tu as la Covid ou tu es cas contact, fin d'exemption Covid</span>
             </button>
             <div class="input-container panel">
               
@@ -353,7 +357,7 @@
                         
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >005 Je veux que mes enfants puissent faire les courses à ma place</p >
+              <span class="full_width" >005 Je veux que mes enfants puissent faire les courses à ma place</span>
             </button>
             <div class="input-container panel">
               
@@ -379,7 +383,7 @@
               </div> 
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >006 Je veux changer d'adresse mail</p >
+              <span class="full_width" >006 Je veux changer d'adresse mail</span>
             </button>
             <div class="input-container panel">
               
@@ -407,7 +411,7 @@
               </div> 
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >007 Je veux quitter la coopérative</p >
+              <span class="full_width" >007 Je veux quitter la coopérative</span>
             </button>
             <div class="input-container panel">
               
@@ -447,7 +451,7 @@
               </div> 
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >008 Brigade Solidaire: s'inscrire ou se désinscrire de la brigade </p >
+              <span class="full_width" >008 Brigade Solidaire: s'inscrire ou se désinscrire de la brigade </span>
             </button>
             <div class="input-container panel">
               
@@ -487,7 +491,7 @@
               </div> 
             </div>
             <button type="button" class="accordion btn_faq">
-              <p class="full_width" >009 Faire un autre demande au BDM: seulement si les autres formulaires ne correspondent pas à ma demande </p >
+              <span class="full_width" >009 Faire une autre demande au BDM: seulement si les autres formulaires ne correspondent pas à ma demande </span>
             </button>
             <div class="input-container panel">
               

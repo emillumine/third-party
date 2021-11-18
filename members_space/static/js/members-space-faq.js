@@ -33,4 +33,8 @@ $(document).on('click', '.accordion', function() {
     } else {
         panel.style.display = "block";
     }
+
+    $("#shift_exchange_btn").on("click", () => {
+        goto('echange-de-services');
+    })
 });

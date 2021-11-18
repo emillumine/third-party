@@ -36,9 +36,9 @@ $(document).ready(function() {
         }
         toggleHeader();
     });
-    $('#faqBDM').on('click', (e) => {
+    $('#nav_faq').on('click', (e) => {
         e.preventDefault();
-        if (current_location !== "faqBDM") {
+        if (current_location !== "faq") {
             goto('faq');
         }
         toggleHeader();

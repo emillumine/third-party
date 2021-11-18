@@ -2,6 +2,13 @@
     font-size: 1.8rem;
 }
 
+#faqBDM .block {
+    width: 100%;
+}
+
+.info_slots_shifts {
+    margin: 2rem 0;
+}
 
 .grp_text{
     margin-top: 25px;
@@ -73,8 +80,15 @@ button.accordion.active::after {
 }
 
 .faq_link_button {
-   
-    /* margin: 30px auto auto auto; */
     white-space: normal;
     border-radius: 5px;
+}
+
+.faq_link_button:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
+.faq_intro_texts {
+    margin-bottom: 30px;
 }

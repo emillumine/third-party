@@ -89,9 +89,9 @@ function update_dom() {
         $("#main_content").load("/members_space/my_shifts", update_content);
         $("#nav_my_shifts").addClass("active");
     } else if (window.location.pathname === base_location + "faq") {
-        current_location = "faqBDM";
+        current_location = "faq";
         $("#main_content").load("/members_space/faqBDM", update_content);
-        $("#faqBDM").addClass("active");
+        $("#nav_faq").addClass("active");
     } else if (window.location.pathname === base_location + "echange-de-services") {
         current_location = "shifts_exchange";
         $("#main_content").load("/members_space/shifts_exchange", update_content);
