@@ -119,10 +119,12 @@ def get_list_shift_calendar(request, partner_id):
                 event["id"] = value['id']
                 smax = int(value['seats_available']) + int(value['seats_reserved'])
  
-                value['address_id'] = getattr(settings, 'COMPANY_CODE', '')
+                company_code = getattr(settings, 'COMPANY_CODE', '')
                 title_prefix = ''
-                if len(value['address_id']) == 2 and ',' in value['address_id'][1]:
+                if company_code != "lacagette" and len(value['address_id']) == 2 and ',' in value['address_id'][1]:
                     title_prefix = str(value['address_id'][1]).split(",")[1] + " --"
+                elif company_code == "lacagette":
+                    title_prefix = " -- "
 
                 event["title"] = title_prefix + str(value['seats_reserved']) + "/" + str(smax)
 
