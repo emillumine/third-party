@@ -137,6 +137,7 @@ body {
 }
 
 #member_status_action {
+    display: flex;
     margin-bottom: 20px;
 }
 @media screen and (max-width: 768px) {
@@ -151,10 +152,12 @@ body {
 }
 
 .unsuscribed_form_link {
+    display: none;
     text-decoration: none;
     font-size: 1.7rem;
     word-break: normal;
 }
+
 .unsuscribed_form_link:hover {
     text-decoration: none;
 
