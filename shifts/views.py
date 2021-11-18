@@ -120,14 +120,17 @@ def get_list_shift_calendar(request, partner_id):
                 smax = int(value['seats_available']) + int(value['seats_reserved'])
  
                 value['address_id'] = getattr(settings, 'COMPANY_CODE', '')
-                title_prefix = ' - '
+                title_prefix = ''
                 if len(value['address_id']) == 2 and ',' in value['address_id'][1]:
                     title_prefix = str(value['address_id'][1]).split(",")[1] + " --"
 
                 event["title"] = title_prefix + str(value['seats_reserved']) + "/" + str(smax)
 
+
                 event["start"] = dateIsoUTC(value['date_begin_tz'])
-                event["end"] = dateIsoUTC(value['date_end_tz'])
+
+                datetime_object = datetime.datetime.strptime(value['date_end_tz'], "%Y-%m-%d %H:%M:%S") - datetime.timedelta(minutes=15)
+                event["end"] = dateIsoUTC(datetime_object.strftime("%Y-%m-%d %H:%M:%S"))
 
                 if len(l) > 0:
                     if use_new_members_space is True:
