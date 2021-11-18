@@ -21,7 +21,7 @@ FUNDRAISING_CAT_ID = {'A': 1, 'B': 2, 'C': 3}
 class CagetteMember(models.Model):
     """Class to handle cagette Odoo member."""
     m_default_fields = ['name', 'parent_name', 'sex', 'image_medium', 'active',
-                        'barcode_base', 'barcode', 'in_ftop_team',
+                        'barcode_base', 'barcode', 'shift_type',
                         'is_associated_people', 'is_member', 'shift_type',
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
@@ -118,19 +118,25 @@ class CagetteMember(models.Model):
             fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
+                coop_id = None
                 for item in res:
                     coop = item
+                    if item["birthdate"] is not False:
+                        coop_birthdate = item['birthdate']
+                        coop_state = item['cooperative_state']
                     if item["is_associated_people"] == True:
-                        break
+                        coop_id = item['id']
 
-                y, m, d = coop['birthdate'].split('-')
+                y, m, d = coop_birthdate.split('-')
                 password = password.replace('/', '')
                 if (password == d + m + y):
-                    data['id'] = coop['id']
+                    if coop_id is None:
+                        coop_id = coop['id']
+                    data['id'] = coop_id 
                     auth_token_seed = fp + coop['create_date']
                     data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
                     data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
-                    data['coop_state'] = coop['cooperative_state']
+                    data['coop_state'] = coop_state
 
                 if not ('auth_token' in data):
                     data['failure'] = True
@@ -799,6 +805,20 @@ class CagetteMember(models.Model):
             res['error'] = str(e)
         return res
 
+    def search_associated_people(self):
+        """ Search for an associated partner """
+        res = {}
+
+        c = [["parent_id", "=", self.id]]
+        f = ["id", "name", "barcode_base"]
+
+        res = self.o_api.search_read('res.partner', c, f)
+
+        try:
+            return res[0]
+        except:
+            return None
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 
@@ -1255,7 +1275,10 @@ class CagetteServices(models.Model):
                 if int(_h) < 21:
                     ids.append(int(r['id']))
         f = {'state': absence_status}
-        return {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
+        return update_shift_reg_result
 
     @staticmethod
     def close_ftop_service():

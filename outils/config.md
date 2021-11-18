@@ -264,6 +264,15 @@
 
         (if not set, 60 minutes is the default)
 
+- ENTRANCE_VALIDATE_PRESENCE_MESSAGE = """
+    <div class="explanations">
+     Ta présence a bien été validée ! Merci de te diriger au fond du magasin pour le lancement du créneau !
+    </div>
+    Ton prochain service <span class="service_verb">est prévu</span> le <span class="next_shift"></span>
+"""
+
+        (La Cagette message, where no point data is displayed)
+
 ### Member space
 
 - EM_URL = ''

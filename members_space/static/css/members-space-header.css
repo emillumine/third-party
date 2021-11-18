@@ -34,8 +34,15 @@
     display: none;
 } 
 
-@media screen and (max-width: 768px) {
-    /* When the screen is less than 768 pixels wide, hide all links, except for the first one ("Home"). Show the link that contains should open and close the topnav (.icon) */
+.pairs_info {
+    background-color: #00a573;
+    color: white;
+    padding: 1.5rem 1.2rem;
+    display: none;
+}
+
+@media screen and (max-width: 992px) {
+    /* When the screen is less than 992 pixels wide, hide all links, except for the first one ("Home"). Show the link that contains should open and close the topnav (.icon) */
     .topnav a:not(:first-child) {display: none;}
     .topnav a.icon {
         float: right;

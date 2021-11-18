@@ -54,4 +54,8 @@ $(document).ready(function() {
     $('#nav_calendar').on('click', () => {
         toggleHeader();
     });
+
+    if (partner_data.is_associated_people === "True") {
+        $(".pairs_info").show();
+    }
 });

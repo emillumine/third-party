@@ -210,14 +210,14 @@ def add_pts_to_everybody(request, pts, reason):
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
         try:
-            fields = ['in_ftop_team']
+            fields = ['shift_type']
             cond = [['is_member', '=', True]]
             all_members = CagetteMembers.get(cond, fields)
             if all_members and len(all_members) > 0:
                 ftop_ids = []
                 standard_ids = []
                 for m in all_members:
-                    if m['in_ftop_team'] is True:
+                    if m['shift_type'] == 'ftop':
                         ftop_ids.append(m['id'])
                     else:
                         standard_ids.append(m['id'])

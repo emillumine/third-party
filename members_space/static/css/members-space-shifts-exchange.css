@@ -24,7 +24,7 @@
     text-align: center;
     width: 50%;
 }
-@media screen and (max-width:768px) {
+@media screen and (max-width:992px) {
     #suspended_cant_have_delay_content {
         align-items: center;
         text-align: center;
@@ -39,7 +39,7 @@
     justify-content: space-between;
 }
 
-@media screen and (max-width:768px) {
+@media screen and (max-width:992px) {
     #calendar_top_info {
         display: flex;
         flex-direction: column;
@@ -57,7 +57,7 @@
     white-space: nowrap;
 }
 
-@media screen and (max-width:768px) {
+@media screen and (max-width:992px) {
     #partner_shifts_list {
         display: flex;
         flex-direction: column;
@@ -97,7 +97,7 @@
     margin-right: 3px;
 }
 
-@media screen and (max-width:768px) {
+@media screen and (max-width:992px) {
     .select_makeups_message_block {
         display: block;
     }
@@ -114,7 +114,7 @@
     display: none;
 }
 
-@media screen and (max-width:768px) {
+@media screen and (max-width:992px) {
     #calendar {
         display: none;
     }
@@ -169,7 +169,7 @@
     padding: 0 !important;
 }
 
-@media screen and (max-width:768px) {
+@media screen and (max-width:992px) {
     .example-event {
         margin: 2rem auto 0.5rem auto;
     }
