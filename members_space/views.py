@@ -138,6 +138,12 @@ def index(request, exception=None):
     return _get_response_according_to_credentials(request, credentials, context, template)
 
 def home(request):
+    """ 
+        Endpoint the front-end will call to load the "home" page. 
+
+        Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
+        then the front-end index will call this endpoint to load the home page
+    """
     template = loader.get_template('members_space/home.html')
     context = {
         'title': 'Espace Membres',
@@ -151,6 +157,7 @@ def home(request):
     return HttpResponse(template.render(context, request))
 
 def my_info(request):
+    """ Endpoint the front-end will call to load the "My info" page. """
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
@@ -158,6 +165,7 @@ def my_info(request):
     return HttpResponse(template.render(context, request))
 
 def my_shifts(request):
+    """ Endpoint the front-end will call to load the "My shifts" page. """
     template = loader.get_template('members_space/my_shifts.html')
     context = {
         'title': 'Mes Services',
@@ -165,6 +173,7 @@ def my_shifts(request):
     return HttpResponse(template.render(context, request))
 
 def shifts_exchange(request):
+    """ Endpoint the front-end will call to load the "Shifts exchange" page. """
     template = loader.get_template('members_space/shifts_exchange.html')
     context = {
         'title': 'Échange de Services',
@@ -172,6 +181,7 @@ def shifts_exchange(request):
     return HttpResponse(template.render(context, request))
 
 def no_content(request):
+    """ Endpoint the front-end will call to load the "No content" page. """
     template = loader.get_template('members_space/no_content.html')
     context = {
         'title': 'Contenu non trouvé',
