@@ -2,9 +2,7 @@
     font-size: 1.8rem;
 }
 
-.btn_faq{
-    white-space: normal;
-}
+
 .grp_text{
     margin-top: 25px;
 }
@@ -58,6 +56,17 @@ button.accordion.active::after {
     content: "\2212";
 }
 
+.btn_faq{
+    white-space: normal;
+    border-radius: 5px;
+    margin-top: 3px;
+    padding-right: 25px;
+    display: flex;
+    align-items: flex-end;
+}
+.full_width{
+    width: 100%;
+}
 .faq_link_button_area {
    margin-top: 10px;
     height: 100%;

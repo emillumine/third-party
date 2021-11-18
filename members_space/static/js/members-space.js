@@ -55,7 +55,7 @@ function load_partner_shifts(partner_id) {
 /* - Navigation */
 
 /**
- * @param {String} page home | mes-infos | mes-services | echange-de-services
+ * @param {String} page home | mes-infos | mes-services | echange-de-services | faqBDM
  */
 function goto(page) {
     if (window.location.pathname === base_location) {
@@ -84,7 +84,7 @@ function update_dom() {
         current_location = "my_shifts";
         $("#main_content").load("/members_space/my_shifts", update_content);
         $("#nav_my_shifts").addClass("active");
-    } else if (window.location.pathname === base_location + "faq") {
+    } else if (window.location.pathname === base_location + "faqBDM") {
         current_location = "faq";
         $("#main_content").load("/members_space/faq", update_content);
         $("#faq").addClass("active");

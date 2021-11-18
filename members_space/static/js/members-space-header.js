@@ -39,7 +39,7 @@ $(document).ready(function() {
     $('#faq').on('click', (e) => {
         e.preventDefault();
         if (current_location !== "faq") {
-            goto('faq');
+            goto('faqBDM');
         }
         toggleHeader();
     });
