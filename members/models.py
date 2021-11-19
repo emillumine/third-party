@@ -827,6 +827,19 @@ class CagetteMember(models.Model):
         except:
             return None
 
+    def update_member_makeups(self, member_data):
+        api = OdooAPI()
+        res = {}
+        
+        f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
+        res_item = api.update('res.partner', [self.id], f)
+        res = {
+            'mid': self.id,
+            'update': res_item
+        }
+
+        return res
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 
@@ -1052,23 +1065,8 @@ class CagetteMembers(models.Model):
     def get_makeups_members():
         api = OdooAPI()
         cond = [['makeups_to_do','>', 0]]
-        fields = ['id', 'name', 'makeups_to_do']
+        fields = ['id', 'name', 'makeups_to_do','shift_type']
         res = api.search_read('res.partner', cond, fields)
-        return res
-
-    @staticmethod
-    def update_members_makeups(members_data):
-        api = OdooAPI()
-        res = []
-        for member_data in members_data:
-            member_id = int(member_data["member_id"])
-            f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
-            res_item = api.update('res.partner', [member_id], f)
-            res.append({
-                'mid': member_id,
-                'update': res_item
-            })
-
         return res
 
 class CagetteServices(models.Model):

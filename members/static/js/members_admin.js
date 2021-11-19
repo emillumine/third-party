@@ -123,7 +123,7 @@ function display_makeups_members() {
                 "Tout"
             ]
         ],
-        iDisplayLength: -1,
+        iDisplayLength: 25,
         oLanguage: {
             "sProcessing":     "Traitement en cours...",
             "sSearch":         "Rechercher dans le tableau",
@@ -280,9 +280,13 @@ function increment_makeups(member_ids) {
         member_index = makeups_members.findIndex(m => m.id == mid);
         makeups_members[member_index].makeups_to_do += 1;
 
+        console.log(makeups_members[member_index]);
+
         data.push({
             member_id: mid,
-            target_makeups_nb: makeups_members[member_index].makeups_to_do
+            target_makeups_nb: makeups_members[member_index].makeups_to_do,
+            decrement_pts: (makeups_members[member_index].makeups_to_do == 1),
+            member_shift_type: makeups_members[member_index].shift_type
         });
     }
 
@@ -349,7 +353,8 @@ function display_possible_members() {
                         makeups_members.unshift({
                             id: member.id,
                             name: member.name,
-                            makeups_to_do: 0
+                            makeups_to_do: 0,
+                            shift_type: member.shift_type
                         });
 
                         openModal(

@@ -345,12 +345,28 @@ def get_makeups_members(request):
     return JsonResponse({ 'res' : res })
 
 def update_members_makeups(request):
-    """ Décrémente les rattrapages des membres passés dans la requête """
+    """ Met à jour les rattrapages des membres passés dans la requête """
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
         members_data = json.loads(request.body.decode())
-        res["res"] = CagetteMembers.update_members_makeups(members_data)
+
+        res["res"] = []
+        for member_data in members_data:
+            cm = CagetteMember(int(member_data["member_id"]))
+
+            res["res"].append(cm.update_member_makeups(member_data))
+            
+            if "decrement_pts" in member_data and member_data["decrement_pts"] is True:
+                data = {
+                    'name': "Ajout manuel d'un rattrapage depuis l'admin BDM",
+                    'shift_id': False,
+                    'type': member_data["member_shift_type"],
+                    'partner_id': int(member_data["member_id"]),
+                    'point_qty': -1
+                }
+
+                cm.update_member_points(data)
 
         response = JsonResponse(res)
     else:
