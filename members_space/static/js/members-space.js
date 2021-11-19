@@ -138,7 +138,7 @@ function update_content() {
  */
 function prepare_shift_line_template(date_begin) {
     let shift_line_template = $("#shift_line_template");
-    let datetime_shift_start = new Date(date_begin);
+    let datetime_shift_start = new Date(date_begin.replace(/\s/, 'T'));
 
     let f_date_shift_start = datetime_shift_start.toLocaleDateString("fr-fr", date_options);
 
