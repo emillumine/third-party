@@ -213,24 +213,18 @@ body {
     margin-bottom: 10px;
 }
 
-.member_shift_name_area,
-.member_coop_number_area,
 .member_associated_partner_area {
     font-size: 1.9rem;
     line-height: 1.3;
 }
 
 @media screen and (max-width: 380px) {
-    .member_shift_name_area,
-    .member_coop_number_area,
     .member_associated_partner_area {
         font-size: 1.6rem;
     }
 }
 
 @media screen and (max-width: 992px) {
-    .member_shift_name_area,
-    .member_coop_number_area,
     .member_associated_partner_area {
         display: flex;
         flex-direction: column;
