@@ -130,7 +130,20 @@ def index(request, exception=None):
             context['abcd_calendar_link'] = ( msettings['abcd_calendar_link']['value'] 
                 if 'abcd_calendar_link' in msettings 
                 else '')
-
+            context['request_form_link'] = msettings['request_form_link']['value'] if 'request_form_link' in msettings else ''
+            context['late_service_form_link'] = msettings['late_service_form_link']['value'] if 'late_service_form_link' in msettings else ''
+            context['change_template_form_link'] = msettings['change_template_form_link']['value'] if 'change_template_form_link' in msettings else ''
+            context['associated_subscribe_form_link'] = msettings['associated_subscribe_form_link']['value'] if 'associated_subscribe_form_link' in msettings else ''
+            context['associated_unsubscribe_form_link'] = msettings['associated_unsubscribe_form_link']['value'] if 'associated_unsubscribe_form_link' in msettings else ''
+            context['template_unsubscribe_form_link'] = msettings['template_unsubscribe_form_link']['value'] if 'template_unsubscribe_form_link' in msettings else ''
+            context['change_email_form_link'] = msettings['change_email_form_link']['value'] if 'change_email_form_link' in msettings else ''
+            context['coop_unsubscribe_form_link'] = msettings['coop_unsubscribe_form_link']['value'] if 'coop_unsubscribe_form_link' in msettings else ''
+            context['sick_leave_form_link'] = msettings['sick_leave_form_link']['value'] if 'sick_leave_form_link' in msettings else ''
+            context['underage_subscribe_form_link'] = msettings['underage_subscribe_form_link']['value'] if 'underage_subscribe_form_link' in msettings else ''
+            context['helper_subscribe_form_link'] = msettings['helper_subscribe_form_link']['value'] if 'helper_subscribe_form_link' in msettings else ''
+            context['helper_unsubscribe_form_link'] = msettings['helper_unsubscribe_form_link']['value'] if 'helper_unsubscribe_form_link' in msettings else ''
+            context['covid_form_link'] = msettings['covid_form_link']['value'] if 'covid_form_link' in msettings else ''
+            context['covid_end_form_link'] = msettings['covid_end_form_link']['value'] if 'covid_end_form_link' in msettings else ''
         else:
             # may arrive when switching database without cleaning cookie
             return redirect('/website/deconnect')
@@ -138,6 +151,12 @@ def index(request, exception=None):
     return _get_response_according_to_credentials(request, credentials, context, template)
 
 def home(request):
+    """ 
+        Endpoint the front-end will call to load the "home" page. 
+
+        Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
+        then the front-end index will call this endpoint to load the home page
+    """
     template = loader.get_template('members_space/home.html')
     context = {
         'title': 'Espace Membres',
@@ -151,6 +170,7 @@ def home(request):
     return HttpResponse(template.render(context, request))
 
 def my_info(request):
+    """ Endpoint the front-end will call to load the "My info" page. """
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
@@ -158,6 +178,7 @@ def my_info(request):
     return HttpResponse(template.render(context, request))
 
 def my_shifts(request):
+    """ Endpoint the front-end will call to load the "My shifts" page. """
     template = loader.get_template('members_space/my_shifts.html')
     context = {
         'title': 'Mes Services',
@@ -165,13 +186,25 @@ def my_shifts(request):
     return HttpResponse(template.render(context, request))
 
 def shifts_exchange(request):
+    """ Endpoint the front-end will call to load the "Shifts exchange" page. """
     template = loader.get_template('members_space/shifts_exchange.html')
     context = {
         'title': 'Échange de Services',
     }
     return HttpResponse(template.render(context, request))
 
+def faqBDM(request):
+    template = loader.get_template('members_space/faq.html')
+    context = {
+        'title': 'foire aux questions',
+    }
+
+    msettings = MConfig.get_settings('members')
+    
+    return HttpResponse(template.render(context, request))
+
 def no_content(request):
+    """ Endpoint the front-end will call to load the "No content" page. """
     template = loader.get_template('members_space/no_content.html')
     context = {
         'title': 'Contenu non trouvé',

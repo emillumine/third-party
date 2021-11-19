@@ -36,6 +36,13 @@ $(document).ready(function() {
         }
         toggleHeader();
     });
+    $('#nav_faq').on('click', (e) => {
+        e.preventDefault();
+        if (current_location !== "faq") {
+            goto('faq');
+        }
+        toggleHeader();
+    });
     $('#nav_shifts_exchange').on('click', (e) => {
         e.preventDefault();
         if (current_location !== "shifts_exchange") {

@@ -4,9 +4,10 @@
 {% block additionnal_css %}
 <link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
 <link rel="stylesheet" href="{% static 'css/datatables/responsive.dataTables.min.css' %}">
-<link rel="stylesheet" href="{% static 'fullcalendar-5.9.0/lib/main.min.css' %}"></script>
+<link rel="stylesheet" href="{% static 'fullcalendar-5.9.0/lib/main.min.css' %}">
 <link rel="stylesheet" href="{% static "css/members-space.css" %}?v=">
 <link rel="stylesheet" href="{% static "css/members-space-my-shifts.css" %}?v=">
+<link rel="stylesheet" href="{% static "css/members-space-faq.css" %}?v=">
 <link rel="stylesheet" href="{% static "css/members-space-my-info.css" %}?v=">
 <link rel="stylesheet" href="{% static "css/members-space-shifts-exchange.css" %}?v=">
 {% endblock %}
@@ -56,9 +57,9 @@
 
     <div id="calendar_explaination_template"> 
       <h4>Légende du calendrier</h4>
-      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">06:00</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky"> Clemenceau -- 9/12</div></div></div></div></a>
-      <p>Un service colorié en noir : je suis déjà inscrit à ce service.</p>
-      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_less_alf"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">10:45</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky"> Clemenceau -- 3/12</div></div></div></div></a>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">06:00</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;-- 9/12</div></div></div></div></a>
+      <p>Un service colorié en noir : je suis déjà inscrit.e à ce service.</p>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_less_alf"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">10:45</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;-- 3/12</div></div></div></div></a>
       <p>Un service colorié en bleu : je peux m'inscrire à ce service.</p>
       <p>3/12 <i class="arrow_explanation_numbers fas fa-arrow-right"></i> il y a déjà 3 places réservées à ce service sur 12 disponibles.
           <b>Plus le chiffre de gauche est petit, plus on a besoin de coopérateurs.rices à ce service !</b></p>
@@ -76,6 +77,20 @@
   var app_env = '{{app_env}}';
   var forms_link = '{{forms_link}}';
   var unsuscribe_form_link = '{{unsuscribe_form_link}}';
+  var request_form_link = '{{request_form_link}}';
+  var late_service_form_link = '{{late_service_form_link}}';
+  var change_template_form_link = '{{change_template_form_link}}';
+  var associated_subscribe_form_link = '{{associated_subscribe_form_link}}';
+  var associated_unsubscribe_form_link = '{{associated_unsubscribe_form_link}}';
+  var template_unsubscribe_form_link = '{{template_unsubscribe_form_link}}';
+  var change_email_form_link = '{{change_email_form_link}}';
+  var coop_unsubscribe_form_link = '{{coop_unsubscribe_form_link}}';
+  var sick_leave_form_link = '{{sick_leave_form_link}}';
+  var underage_subscribe_form_link = '{{underage_subscribe_form_link}}';
+  var helper_subscribe_form_link = '{{helper_subscribe_form_link}}';
+  var helper_unsubscribe_form_link = '{{helper_unsubscribe_form_link}}';
+  var covid_form_link = '{{covid_form_link}}';
+  var covid_end_form_link = '{{covid_end_form_link}}';
   var member_cant_have_delay_form_link = '{{member_cant_have_delay_form_link}}';
   var abcd_calendar_link = "{{abcd_calendar_link}}"
   var days_to_hide = "{{daysToHide}}"
@@ -108,6 +123,7 @@
 <script src="{% static "js/members-space-home.js" %}?v="></script>
 <script src="{% static "js/members-space-my-info.js" %}?v="></script>
 <script src="{% static "js/members-space-my-shifts.js" %}?v="></script>
+<script src="{% static "js/members-space-faq.js" %}?v="></script>
 <script src="{% static "js/members-space-shifts-exchange.js" %}?v="></script>
 <script src="{% static "js/members-space.js" %}?v="></script>
 {% endblock %}

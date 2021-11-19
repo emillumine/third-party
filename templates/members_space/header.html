@@ -6,10 +6,12 @@
     
 {% block content %}
     <div class="topnav" id="topnav">
-        <a href="#" class="nav_item active" id="nav_home">Espace Membre</a>
-        <a href="#" class="nav_item" id="nav_my_info">Mes Infos</a>
-        <a href="#" class="nav_item" id="nav_my_shifts">Mes Services</a>
-        <a href="#" class="nav_item" id="nav_shifts_exchange">Échange de services</a>
+        <a href="javascript:void(0);" class="nav_item active" id="nav_home">Espace Membre</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_my_info">Mes Infos</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_my_shifts">Mes Services</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_shifts_exchange">Échange de services</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_faq">Problèmes & Demandes</a>
+
         <a 
             href="javascript:void(0);"
             target="_blank"
@@ -18,6 +20,7 @@
         >
             Calendrier ABCD
         </a>
+
         {# Disconnection button must have this id (logic in all_common.js) #}
         <a href="javascript:void(0);" id="deconnect">Déconnexion</a>
         <a href="javascript:void(0);" class="icon" onclick="toggleHeader()">
