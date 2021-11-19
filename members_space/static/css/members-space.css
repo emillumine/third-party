@@ -333,6 +333,12 @@ body {
     }
 }
 
+/* - No content page */
+
 .message_error {
-  padding: 10vw;
+  padding: 8vw;
+}
+
+.no_content_title {
+    margin-bottom: 1.5rem;
 }
