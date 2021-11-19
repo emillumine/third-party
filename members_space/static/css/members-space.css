@@ -349,3 +349,14 @@ body {
         width: 90%;
     }
 }
+
+/* - No content page */
+
+.message_error {
+    padding: 7vw;
+    font-size: 1.8rem;
+}
+
+.no_content_title {
+    margin-bottom: 1.5rem;
+}
