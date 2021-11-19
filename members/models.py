@@ -61,21 +61,22 @@ class CagetteMember(models.Model):
             image = res[0]['image_medium']
         return image
 
-    # def update_member_points(self, status):
-
-        #     fields = {'name': reason,
-        #               'shift_id': False,
-        #               'type': stype,
-        #               'partner_id': self.id,
-        #               'point_qty': pts
-        #              }
-        #     return self.o_api.create('shift.counter.event', fields)
-
-        #     if status not in ["suspended", "delay", "up_to_date", "unsuscribed", "alert"]:
-        #         raise Exception("Bad status")
-
-        #     f = { 'cooperative_state': "delay" }
-        #     return self.o_api.update('res.partner', [self.id], f)
+    def update_member_points(self, data):
+        """
+            ex:
+            data = {
+                'name': reason,
+                'shift_id': False,
+                'type': stype,
+                'partner_id': self.id,
+                'point_qty': pts
+            }
+        """
+        
+        try:
+            return self.o_api.create('shift.counter.event', data)
+        except Exception as e:
+            print(str(e))
 
 
 # # # BDM
@@ -826,6 +827,19 @@ class CagetteMember(models.Model):
         except:
             return None
 
+    def update_member_makeups(self, member_data):
+        api = OdooAPI()
+        res = {}
+        
+        f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
+        res_item = api.update('res.partner', [self.id], f)
+        res = {
+            'mid': self.id,
+            'update': res_item
+        }
+
+        return res
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 
@@ -1051,23 +1065,8 @@ class CagetteMembers(models.Model):
     def get_makeups_members():
         api = OdooAPI()
         cond = [['makeups_to_do','>', 0]]
-        fields = ['id', 'name', 'makeups_to_do']
+        fields = ['id', 'name', 'makeups_to_do','shift_type']
         res = api.search_read('res.partner', cond, fields)
-        return res
-
-    @staticmethod
-    def update_members_makeups(members_data):
-        api = OdooAPI()
-        res = []
-        for member_data in members_data:
-            member_id = int(member_data["member_id"])
-            f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
-            res_item = api.update('res.partner', [member_id], f)
-            res.append({
-                'mid': member_id,
-                'update': res_item
-            })
-
         return res
 
 class CagetteServices(models.Model):
@@ -1174,7 +1173,7 @@ class CagetteServices(models.Model):
                                  dateutil.parser.parse(s['date_begin_tz']).replace(tzinfo=None)
                                  ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
                 if with_members is True:
-                    cond = [['id', 'in', s['registration_ids']], ['state', '!=', 'cancel']]
+                    cond = [['id', 'in', s['registration_ids']], ['state', 'not in', ['cancel', 'waiting', 'draft']]]
                     fields = ['partner_id', 'shift_type', 'state', 'is_late']
                     members = api.search_read('shift.registration', cond, fields)
                     s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
