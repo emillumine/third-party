@@ -124,7 +124,7 @@ def get_list_shift_calendar(request, partner_id):
                 if company_code != "lacagette" and len(value['address_id']) == 2 and ',' in value['address_id'][1]:
                     title_prefix = str(value['address_id'][1]).split(",")[1] + " --"
                 elif company_code == "lacagette":
-                    title_prefix = " -- "
+                    title_prefix = " - "
 
                 event["title"] = title_prefix + str(value['seats_reserved']) + "/" + str(smax)
 
