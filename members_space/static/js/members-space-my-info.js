@@ -14,10 +14,10 @@ function init_my_info() {
     }
 
     $(".member_address").empty();
-    if (partner_data.street !== "") {
+    if (partner_data.street !== "" && partner_data.street !== "False") {
         $(".member_address")
             .append(partner_data.street + "<br/>");
-        if (partner_data.street2 !== "") {
+        if (partner_data.street2 !== "" && partner_data.street2 !== "False") {
             $(".member_address")
                 .append(partner_data.street2 + "<br/>");
         }
@@ -30,7 +30,8 @@ function init_my_info() {
     $(".member_mobile").empty();
     if (partner_data.mobile !== "" && partner_data.mobile !== "False" && partner_data.mobile !== false && partner_data.mobile !== null) {
         $(".member_mobile")
-            .append(partner_data.mobile);
+            .append(partner_data.mobile)
+            .show();
     } else {
         $(".member_mobile").hide();
     }
@@ -38,7 +39,8 @@ function init_my_info() {
     $(".member_phone").empty();
     if (partner_data.phone !== "" && partner_data.phone !== "False" && partner_data.phone !== false && partner_data.phone !== null) {
         $(".member_phone")
-            .append(partner_data.phone);
+            .append(partner_data.phone)
+            .show();
     } else {
         $(".member_phone").hide();
     }
@@ -51,6 +53,7 @@ function init_my_info() {
         .on('click', () => {
             $("#street_form").val(partner_data.street);
             // $("#street2_form").val(partner_data.street2);
+            $("#zip_form").val(partner_data.zip);
             $("#city_form").val(partner_data.city);
             $('#edit_address_value').hide();
             $('#edit_address_form').show();
@@ -65,6 +68,7 @@ function init_my_info() {
             data= [];
             data['street']= $("#street_form").val();
             // data['street2']= $("#street2_form").val();
+            data['zip']= $("#zip_form").val();
             data['city']= $("#city_form").val();
 
             saveInfo(data, 'address');
@@ -72,6 +76,8 @@ function init_my_info() {
 
     $('#edit_phone').off('click')
         .on('click', () => {
+            if (partner_data.phone === "False") partner_data.phone = "";
+            if (partner_data.mobile === "False") partner_data.mobile = "";
             $("#phone_form").val(partner_data.phone);
             $("#mobile_form").val(partner_data.mobile);
             $('#edit_phone_value').hide();
