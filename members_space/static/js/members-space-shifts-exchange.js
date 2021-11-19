@@ -136,7 +136,7 @@ function init_shifts_list() {
             } else {
                 shift_line_template.find(".selectable_shift_line").removeClass("btn");
                 shift_line_template.find(".selectable_shift_line").addClass("btn--primary");
-                shift_line_template.find(".checkbox").removeProp("disabled");
+                shift_line_template.find(".checkbox").prop("disabled", false);
                 shift_line_template.find(".checkbox").prop("value", shift.id);
             }
 
