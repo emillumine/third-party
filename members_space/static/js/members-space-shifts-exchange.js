@@ -120,7 +120,7 @@ function init_shifts_list() {
 
         for (shift of incoming_shifts) {
             let shift_line_template = $("#selectable_shift_line_template");
-            let datetime_shift_start = new Date(shift.date_begin);
+            let datetime_shift_start = new Date(shift.date_begin.replace(/\s/, 'T'));
 
             let f_date_shift_start = datetime_shift_start.toLocaleDateString("fr-fr", date_options);
 
