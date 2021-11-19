@@ -34,7 +34,7 @@ function init_my_info() {
     } else {
         $(".member_mobile").hide();
     }
-    
+
     $(".member_phone").empty();
     if (partner_data.phone !== "" && partner_data.phone !== "False" && partner_data.phone !== false && partner_data.phone !== null) {
         $(".member_phone")
@@ -47,59 +47,59 @@ function init_my_info() {
         $(".member_phone_line").hide();
     }
 
-    $('#edit_address').off('click').on('click', (e) => {
-        $("#street_form").val(partner_data.street);
-        $("#street2_form").val(partner_data.street2);
-        $("#city_form").val(partner_data.city);
-        $('#edit_address_value').hide();
-        $('#edit_address_form').show();
-    });
-    $('#cancel_edit_address').on('click', (e) => {
-        $('#edit_address_form').hide();
-        $('#edit_address_value').show();
-    });
-    $('#save_edit_address').off('click').on('click', (e) => {
-        data= [];
-        data['street']= $("#street_form").val();
-        data['street2']= $("#street2_form").val();
-        data['city']= $("#city_form").val();
+    $('#edit_address').off('click')
+        .on('click', () => {
+            $("#street_form").val(partner_data.street);
+            // $("#street2_form").val(partner_data.street2);
+            $("#city_form").val(partner_data.city);
+            $('#edit_address_value').hide();
+            $('#edit_address_form').show();
+        });
+    $('#cancel_edit_address').
+        on('click', () => {
+            $('#edit_address_form').hide();
+            $('#edit_address_value').show();
+        });
+    $('#save_edit_address').off('click')
+        .on('click', () => {
+            data= [];
+            data['street']= $("#street_form").val();
+            // data['street2']= $("#street2_form").val();
+            data['city']= $("#city_form").val();
 
-        saveInfo(data, 'address')
-    });
+            saveInfo(data, 'address');
+        });
 
-    $('#edit_phone').off('click').on('click', (e) => {
-        $("#phone_form").val(partner_data.phone);
-        $("#mobile_form").val(partner_data.mobile);
-        $('#edit_phone_value').hide();
-        $('#edit_phone_form').show();
-    });
-    $('#cancel_edit_phone').off('click').on('click', (e) => {
-        $('#edit_phone_form').hide();
-        $('#edit_phone_value').show();
-    });
-    $('#save_edit_phone').off('click').on('click', (e) => {
-        console.log('ici');
-        data =[];
-        data['phone']= $("#phone_form").val();
-        data['mobile']= $("#mobile_form").val();
-
-        
-        saveInfo(data, 'phone')
-    });
+    $('#edit_phone').off('click')
+        .on('click', () => {
+            $("#phone_form").val(partner_data.phone);
+            $("#mobile_form").val(partner_data.mobile);
+            $('#edit_phone_value').hide();
+            $('#edit_phone_form').show();
+        });
+    $('#cancel_edit_phone').off('click')
+        .on('click', () => {
+            $('#edit_phone_form').hide();
+            $('#edit_phone_value').show();
+        });
+    $('#save_edit_phone').off('click')
+        .on('click', () => {
+            console.log('ici');
+            data =[];
+            data['phone']= $("#phone_form").val();
+            data['mobile']= $("#mobile_form").val();
+            saveInfo(data, 'phone');
+        });
 
 }
 
-function saveInfo(data, field){
-
-        
-
+function saveInfo(data, field) {
     tData = '&idPartner=' + partner_data.partner_id
     + '&shift_type=' + partner_data.shift_type
-    + '&verif_token=' + partner_data.verif_token
-    for(d in data){
+    + '&verif_token=' + partner_data.verif_token;
+    for (d in data) {
         tData+="&"+d+"="+data[d];
     }
-
 
     tUrl = '/members/save_partner_info';
     $.ajax({
@@ -108,22 +108,22 @@ function saveInfo(data, field){
         dataType:"json",
         data: tData,
         timeout: 3000,
-        success: function(res) {
-            for(d in data){
-                partner_data[d]=data[d]
+        success: function() {
+            for (d in data) {
+                partner_data[d]=data[d];
             }
             init_my_info();
-            if(field == 'address'){
+            if (field == 'address') {
                 $('#edit_address_form').hide();
                 $('#edit_address_value').show();
             }
-            if(field == 'phone'){
+            if (field == 'phone') {
                 $('#edit_phone_form').hide();
                 $('#edit_phone_value').show();
             }
         },
         error: function(error) {
-            console.log(error)
+            console.log(error);
         }
     });
 }
