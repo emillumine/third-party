@@ -19,7 +19,7 @@
 
 @media screen and (min-width: 351px) and (max-width: 435px) {
     .my_info_line {
-        font-size:  80%;
+        font-size: 90%;
         padding: 2vw 0;
     }
 }
@@ -52,6 +52,9 @@
     margin-bottom: 0;
 }
 
+#my_info .member_shift_name_area {
+    margin-top: 0;
+}
 #attached_info {
     display: flex;
     flex-direction: column;
@@ -62,6 +65,24 @@
     flex-direction: column;
     gap: 10px;
 }
+
+.edit-btn{
+    cursor: pointer;
+}
+
+#edit_address_form {
+    display: none ;
+}
+#edit_address_form #zip_form {
+    margin: 5px 0;
+}
+#edit_phone_form {
+    display: none ;
+}
+#edit_phone_form #mobile_form {
+    margin: 5px 0;
+}
+
 
 @media screen and (max-width: 992px) {
     #my_info {
