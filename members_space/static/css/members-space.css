@@ -336,7 +336,8 @@ body {
 /* - No content page */
 
 .message_error {
-  padding: 8vw;
+    padding: 7vw;
+    font-size: 1.8rem;
 }
 
 .no_content_title {
