@@ -5,7 +5,7 @@
     <div class="tiles_container">
         <div class="tile full_width_tile" id="my_info_area">
             <div class="tile_title">
-                <i class="fas fa-user tile_icon"></i>
+                <i class="fas fa-user tile_icon"></i>   
                 <span class="member_info member_name"></span>
             </div>
             <div class="tile_content" id="my_info_content">
@@ -56,19 +56,34 @@
                 </div>
                 <div class="my_info_line member_address_line">
                     <div class="my_info_line_left">
-                        Adresse
+                        Adresse 
                     </div>
-                    <div class="my_info_line_right member_address_area">
-                        <span class="member_address member_info"></span>
+                    <div class="my_info_line_right member_address_area" id="edit_address_value">
+                        <span class="member_address member_info"></span><br>
+                        <span id="edit_address"><i class="fas fa-edit tile_icon edit-btn" ></i></span>
+                    </div>
+                    <div class="my_info_line_right member_address_area1" id="edit_address_form">
+                        <input type="text" name="street_form" id="street_form" placeholder="Rue"> 
+                        <input type="text" name="street2_form" id="street2_form" placeholder="Complément"> 
+                        <input type="text" name="city_form" id="city_form" placeholder="Ville"> <br>
+                        <span id="cancel_edit_address"><i class="fas fa-times tile_icon edit-btn"></i></span>
+                        <span id="save_edit_address"><i class="fas fa-check tile_icon edit-btn"></i></span>
                     </div>
                 </div>
                 <div class="my_info_line member_phone_line">
                     <div class="my_info_line_left">
                         Téléphone
                     </div>
-                    <div class="my_info_line_right member_phone_area">
+                    <div class="my_info_line_right member_phone_area" id="edit_phone_value">
                         <span class="member_phone member_info"></span>
                         <span class="member_mobile member_info"></span>
+                        <span id="edit_phone"><i class="fas fa-edit tile_icon edit-btn" ></i></span>
+                    </div>
+                    <div class="my_info_line_right member_phone_area1" id="edit_phone_form">
+                        <input type="text" name="phone" id="phone_form" placeholder="Tel fixe">
+                        <input type="text" name="mobile" id="mobile_form" placeholder="Tel mobile"><br>
+                        <span id="cancel_edit_phone"><i class="fas fa-times tile_icon edit-btn"></i></span>
+                        <span id="save_edit_phone"><i class="fas fa-check tile_icon edit-btn"></i></span>
                     </div>
                 </div>
             </div>

@@ -47,6 +47,17 @@
     gap: 10px;
 }
 
+.edit-btn{
+    cursor: pointer;
+}
+
+#edit_address_form{
+    display: none ;
+}
+#edit_phone_form{
+    display: none ;
+}
+
 @media screen and (max-width: 992px) {
     #my_info {
         font-size: 1.7rem;
@@ -83,4 +94,6 @@
     #my_info .member_shift_name_area {
         align-items: flex-start;
     }   
+
+    
 }

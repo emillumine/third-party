@@ -49,6 +49,9 @@ urlpatterns = [
     url(r'^easy_validate_shift_presence$', views.easy_validate_shift_presence),
     # conso / groupe recherche / socio
     url(r'^panel_get_purchases$', views.panel_get_purchases),
+    # BDM 
+    url(r'^save_partner_info$', views.save_partner_info),
+
     # BDM - members admin
     url(r'^admin$', admin.admin),
     url(r'^get_makeups_members$', admin.get_makeups_members),

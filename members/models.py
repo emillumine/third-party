@@ -63,19 +63,26 @@ class CagetteMember(models.Model):
 
     # def update_member_points(self, status):
 
-    #     fields = {'name': reason,
-    #               'shift_id': False,
-    #               'type': stype,
-    #               'partner_id': self.id,
-    #               'point_qty': pts
-    #              }
-    #     return self.o_api.create('shift.counter.event', fields)
+        #     fields = {'name': reason,
+        #               'shift_id': False,
+        #               'type': stype,
+        #               'partner_id': self.id,
+        #               'point_qty': pts
+        #              }
+        #     return self.o_api.create('shift.counter.event', fields)
 
-    #     if status not in ["suspended", "delay", "up_to_date", "unsuscribed", "alert"]:
-    #         raise Exception("Bad status")
+        #     if status not in ["suspended", "delay", "up_to_date", "unsuscribed", "alert"]:
+        #         raise Exception("Bad status")
 
-    #     f = { 'cooperative_state': "delay" }
-    #     return self.o_api.update('res.partner', [self.id], f)
+        #     f = { 'cooperative_state': "delay" }
+        #     return self.o_api.update('res.partner', [self.id], f)
+
+
+# # # BDM
+    def save_partner_info(self, partner_id, fieldsDatas):
+        print(fieldsDatas)
+        return self.o_api.update('res.partner', partner_id,  fieldsDatas)
+
 
     @staticmethod
     def retrieve_data_according_keys(keys, full=False):
@@ -1441,3 +1448,4 @@ class CagetteUser(models.Model):
                 pass
 
         return answer
+

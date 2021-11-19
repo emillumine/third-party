@@ -390,3 +390,23 @@ def panel_get_purchases(request):
                 message += ' ' + str(res['params'])
             response = HttpResponse(message)
     return response
+
+
+# # #  BDM # # #
+def save_partner_info(request):
+    """ Endpoint the front-end will call for saving partner information """
+    res = {}
+    credentials = CagetteMember.get_credentials(request)
+    if ('success' in credentials):
+        data = {}
+        for post in request.POST:
+            if post != "idPartner" and data != "verif_token" :
+                data[post]= request.POST[post]
+        
+        cm = CagetteMember(int(request.POST['idPartner']))
+        result = cm.save_partner_info(int(request.POST['idPartner']),data)
+        res['success']= result
+        return JsonResponse(res)
+    else:
+        res['error'] = "Forbidden"
+        return JsonResponse(res, safe=False)
