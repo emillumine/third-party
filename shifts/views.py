@@ -171,9 +171,14 @@ def get_list_shift_calendar(request, partner_id):
 def get_list_shift_partner(request, partner_id):
     cs = CagetteShift()
     shiftData = cs.get_shift_partner(partner_id)
+    empty_data = False
     for value in shiftData:
         value['date_begin'] = value['date_begin'] + "Z"
         value['date_end'] = value['date_end'] + "Z"
+        if "Services des comités" in value['shift_id'][1]:
+            empty_data = True
+    if empty_data is True:
+        shiftData = []
     return JsonResponse(shiftData, safe=False)
 
 def change_shift(request):
