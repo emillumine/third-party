@@ -61,21 +61,22 @@ class CagetteMember(models.Model):
             image = res[0]['image_medium']
         return image
 
-    # def update_member_points(self, status):
-
-        #     fields = {'name': reason,
-        #               'shift_id': False,
-        #               'type': stype,
-        #               'partner_id': self.id,
-        #               'point_qty': pts
-        #              }
-        #     return self.o_api.create('shift.counter.event', fields)
-
-        #     if status not in ["suspended", "delay", "up_to_date", "unsuscribed", "alert"]:
-        #         raise Exception("Bad status")
-
-        #     f = { 'cooperative_state': "delay" }
-        #     return self.o_api.update('res.partner', [self.id], f)
+    def update_member_points(self, data):
+        """
+            ex:
+            data = {
+                'name': reason,
+                'shift_id': False,
+                'type': stype,
+                'partner_id': self.id,
+                'point_qty': pts
+            }
+        """
+        
+        try:
+            return self.o_api.create('shift.counter.event', data)
+        except Exception as e:
+            print(str(e))
 
 
 # # # BDM

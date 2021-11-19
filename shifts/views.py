@@ -276,6 +276,7 @@ def request_delay(request):
     if 'verif_token' in request.POST:
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
             cs = CagetteShift()
+            partner_id = int(request.POST['idPartner'])
 
             use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
             if use_new_members_space is True:
@@ -285,7 +286,7 @@ def request_delay(request):
                     return JsonResponse(res, status=403)
             
             data = {
-                "idPartner": int(request.POST['idPartner']),
+                "idPartner": partner_id,
                 "start_date" : request.POST['start_date']
             }
             if ('extension_beginning' in request.POST):
@@ -299,6 +300,30 @@ def request_delay(request):
             try:
                 new_id = cs.create_delay(data, duration)
                 if (new_id):
+                    try:
+                        cm = CagetteMember(partner_id)
+
+                        # Add 0 pt to counter so odoo updates member status
+                        data = {
+                            'name': "Forcer l'entrée en délai",
+                            'shift_id': False,
+                            'type': "standard",
+                            'partner_id': partner_id,
+                            'point_qty': 0
+                        }
+                        cm.update_member_points(data)
+
+                        data = {
+                            'name': "Forcer l'entrée en délai",
+                            'shift_id': False,
+                            'type': "ftop",
+                            'partner_id': partner_id,
+                            'point_qty': 0
+                        }
+                        cm.update_member_points(data)
+                    except Exception as e:
+                        print(str(e))
+
                     response = {'result': True}
                 else:
                     coop_logger.error("request delay : %s, %s", str(new_id), str(data))
