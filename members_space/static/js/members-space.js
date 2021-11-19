@@ -55,7 +55,7 @@ function load_partner_shifts(partner_id) {
 /* - Navigation */
 
 /**
- * @param {String} page home | mes-infos | mes-services | echange-de-services
+ * @param {String} page home | mes-infos | mes-services | echange-de-services | faq
  */
 function goto(page) {
     if (window.location.pathname === base_location) {
@@ -68,8 +68,8 @@ function goto(page) {
 
 /**
  * Define which html content to load from server depending on the window location
- * 
- * WARNING: For the routing system to work, 
+ *
+ * WARNING: For the routing system to work,
  *          public urls (those the users will see & navigate to) must be different than the server urls used to fetch resources
  * (ex: public url: /members_space/mes-info ; server url: /members_space/my_info)
  */
@@ -88,6 +88,10 @@ function update_dom() {
         current_location = "my_shifts";
         $("#main_content").load("/members_space/my_shifts", update_content);
         $("#nav_my_shifts").addClass("active");
+    } else if (window.location.pathname === base_location + "faq") {
+        current_location = "faq";
+        $("#main_content").load("/members_space/faqBDM", update_content);
+        $("#nav_faq").addClass("active");
     } else if (window.location.pathname === base_location + "echange-de-services") {
         current_location = "shifts_exchange";
         $("#main_content").load("/members_space/shifts_exchange", update_content);
@@ -111,6 +115,9 @@ function update_content() {
         break;
     case 'my_shifts':
         init_my_shifts();
+        break;
+    case 'faq':
+        init_faq();
         break;
     case 'shifts_exchange':
         init_shifts_exchange();

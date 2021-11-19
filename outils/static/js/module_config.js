@@ -133,7 +133,6 @@ function get_module_settings() {
                     })
                     if (added_elts.length > 0) {
                         submit_btn.prependTo(main_content);
-                        submit_btn.clone().appendTo(main_content);
                     }
                     submit_btn.click(save_module_settings);
                     quill_containers.forEach(function(params){
