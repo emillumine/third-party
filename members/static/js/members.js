@@ -263,15 +263,18 @@ function fill_service_entry(s) {
 
     if (s.members) {
         m_list = '<ul class="members_list">';
-        if (typeof s.late != "undefined" && s.late == true) {
-            m_list = '<ul class="members_list late">';
-        }
+        // if (typeof s.late != "undefined" && s.late == true) {
+        //     m_list = '<ul class="members_list late">';
+        // }
         $.each(s.members, function(i, e) {
             var li_class = "btn";
             var li_data = "";
 
             if (e.state == "done") {
                 li_class += "--inverse";
+                if (e.is_late == true) {
+                    li_class += " late";
+                }
             } else {
                 li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
             }
