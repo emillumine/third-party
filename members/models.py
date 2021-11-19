@@ -1175,8 +1175,8 @@ class CagetteServices(models.Model):
                                  dateutil.parser.parse(s['date_begin_tz']).replace(tzinfo=None)
                                  ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
                 if with_members is True:
-                    cond = [['id', 'in', s['registration_ids']], ['state', '!=', 'cancel']]
-                    fields = ['partner_id', 'shift_type', 'state']
+                    cond = [['id', 'in', s['registration_ids']], ['state', 'not in', ['cancel', 'waiting', 'draft']]]
+                    fields = ['partner_id', 'shift_type', 'state', 'is_late']
                     members = api.search_read('shift.registration', cond, fields)
                     s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
                     if len(s['members']) > 0:
