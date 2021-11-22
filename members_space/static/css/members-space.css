@@ -237,12 +237,11 @@ body {
 }
 
 #see_more_info {
-    position: absolute;
-    bottom: 2rem;
-    right: 4rem;
+    white-space: normal;
 }
+
 #see_more_info_link {
-    color: #0275d8 !important;
+    width: 100%;
 }
 
 /* --Shifts exchange tile tile */
