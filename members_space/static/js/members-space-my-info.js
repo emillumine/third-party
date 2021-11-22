@@ -51,10 +51,10 @@ function init_my_info() {
 
     $('#edit_address').off('click')
         .on('click', () => {
-            $("#street_form").val(partner_data.street);
+            $("#street_form").val(partner_data.street.replace(/&#39;/g, "'"));
             // $("#street2_form").val(partner_data.street2);
-            $("#zip_form").val(partner_data.zip);
-            $("#city_form").val(partner_data.city);
+            $("#zip_form").val(partner_data.zip.replace(/&#39;/g, "'"));
+            $("#city_form").val(partner_data.city.replace(/&#39;/g, "'"));
             $('#edit_address_value').hide();
             $('#edit_address_form').show();
         });
