@@ -32,7 +32,7 @@ class CagetteMembersSpace(models.Model):
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'
             try:
                 res = self.o_api.search_read('shift.registration', cond, f, limit=limit, offset=offset,
-                            order='create_date DESC')
+                            order='date_begin DESC')
             except Exception as e:
                 if not (marshal_none_error in str(e)):
                     res['error'] = repr(e)
