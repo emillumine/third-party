@@ -194,7 +194,7 @@ def change_shift(request):
                     "idPartner": int(request.POST['idPartner']),
                     "idShift": int(request.POST['idNewShift']),
                     "shift_type": request.POST['shift_type'],
-                    "is_makeup": cs.shift_is_makeup(idOldShift)
+                    "is_makeup": cs.shift_is_makeup(listRegister)
                 }
                 
                 should_block_service_exchange = getattr(settings, 'BLOCK_SERVICE_EXCHANGE_24H_BEFORE', False)
