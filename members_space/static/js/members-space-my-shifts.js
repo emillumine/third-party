@@ -58,8 +58,7 @@ function prepare_server_data(data) {
         } else if (history_item.state === 'cancel') {
             history_item.details = "Annulé";
         }
-
-        history_item.shift_name = (history_item.shift_id === false) ? '' : history_item.shift_id[1];
+        if (history_item.is_amnesty == undefined) history_item.shift_name = (history_item.shift_id === false) ? '' : history_item.shift_id[1];
     }
 
     return data;
@@ -105,6 +104,8 @@ function init_history() {
                         $(row).addClass('row_partner_late');
                     } else if (cell.text() === "Absent") {
                         $(row).addClass('row_partner_absent');
+                    } else if (cell.text() === "Amnistie") {
+                        $(row).addClass('row_partner_amnistie');
                     }
                 }
             }
@@ -147,8 +148,14 @@ function init_my_shifts() {
             .then((data) => {
                 partner_history = data;
 
+                for (d of data) {
+                    d.create_date = Date.parse(d.create_date);
+                }
                 // Sort by date desc
-                partner_history.sort((a, b) => a.create_date - b.create_date);
+                partner_history.sort((a, b) => b.create_date - a.create_date);
+                if (partner_history.length>0 && partner_history[partner_history.length-1].is_amnesty != undefined) {
+                    partner_history.pop();
+                }
 
                 init_history();
             });
