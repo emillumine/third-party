@@ -165,7 +165,7 @@ function display_makeups_members() {
         openModal(
             `Enlever un rattrapage à ${member.name} ?`,
             () => {
-                decrement_makeups([member_id]);
+                update_members_makeups([member_id], "decrement");
             },
             "Confirmer",
             false
@@ -182,7 +182,7 @@ function display_makeups_members() {
         openModal(
             `Ajouter un rattrapage à ${member.name} ?`,
             () => {
-                increment_makeups([member_id]);
+                update_members_makeups([member_id], "increment");
             },
             "Confirmer",
             false
@@ -212,7 +212,7 @@ function display_makeups_members() {
                     openModal(
                         `Enlever un rattrapage aux membres sélectionnés ?`,
                         () => {
-                            decrement_makeups(selected_rows);
+                            update_members_makeups(selected_rows, "decrement");
                         },
                         "Confirmer",
                         false
@@ -228,19 +228,26 @@ function display_makeups_members() {
 
 /**
  * Send request to update members nb of makeups to do
+ * 
  * @param {Array} member_ids
+ * @param {String} action increment | decrement
  */
-function decrement_makeups(member_ids) {
+function update_members_makeups(member_ids, action) {
     openModal();
 
     data = [];
     for (mid of member_ids) {
         member_index = makeups_members.findIndex(m => m.id == mid);
-        makeups_members[member_index].makeups_to_do -= 1;
+        if (action === "increment") {
+            makeups_members[member_index].makeups_to_do += 1;
+        } else {
+            makeups_members[member_index].makeups_to_do -= 1;
+        }
 
         data.push({
             member_id: mid,
-            target_makeups_nb: makeups_members[member_index].makeups_to_do
+            target_makeups_nb: makeups_members[member_index].makeups_to_do,
+            member_shift_type: makeups_members[member_index].shift_type
         });
     }
 
@@ -265,52 +272,6 @@ function decrement_makeups(member_ids) {
 
             closeModal();
             alert('Erreur serveur pour décrémenter les rattrapages. Ré-essayez plus tard.');
-        }
-    });
-}
-/**
- * Send request to update members nb of makeups to do
- * @param {Array} member_ids
- */
-function increment_makeups(member_ids) {
-    openModal();
-
-    data = [];
-    for (mid of member_ids) {
-        member_index = makeups_members.findIndex(m => m.id == mid);
-        makeups_members[member_index].makeups_to_do += 1;
-
-        console.log(makeups_members[member_index]);
-
-        data.push({
-            member_id: mid,
-            target_makeups_nb: makeups_members[member_index].makeups_to_do,
-            decrement_pts: (makeups_members[member_index].makeups_to_do == 1),
-            member_shift_type: makeups_members[member_index].shift_type
-        });
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: "/members/update_members_makeups",
-        data: JSON.stringify(data),
-        dataType:"json",
-        traditional: true,
-        contentType: "application/json; charset=utf-8",
-        success: function() {
-            selected_rows = [];
-            display_makeups_members();
-            closeModal();
-        },
-        error: function(data) {
-            err = {msg: "erreur serveur pour incrémenter les rattrapages", ctx: 'increment_makeups'};
-            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                err.msg += ' : ' + data.responseJSON.error;
-            }
-            report_JS_error(err, 'members_admin');
-
-            closeModal();
-            alert('Erreur serveur pour incrémenter les rattrapages. Ré-essayez plus tard.');
         }
     });
 }
@@ -360,7 +321,7 @@ function display_possible_members() {
                         openModal(
                             `Ajouter un rattrapage à ${member.name} ?`,
                             () => {
-                                increment_makeups([member.id]);
+                                update_members_makeups([member.id], "increment");
                                 members_search_results = [];
                                 $('#search_member_input').val('');
                                 $('.search_member_results_area').hide();
