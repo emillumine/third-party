@@ -13,7 +13,8 @@ class CagetteMembersSpace(models.Model):
 
     def get_shifts_history(self, partner_id, limit, offset, date_from):
         """ Get partner shifts history """
-        res = {}
+        res = []
+        paginated_res = []
         today = str(datetime.date.today())
 
         try:
@@ -27,16 +28,15 @@ class CagetteMembersSpace(models.Model):
                 ['state', '!=', 'replaced'],
                 ['state', '!=', 'replacing'],
             ]
-            f = ['date_begin', 'shift_id', 'name', 'state', 'is_late', 'is_makeup']
+            f = ['create_date', 'date_begin', 'shift_id', 'name', 'state', 'is_late', 'is_makeup']
 
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'
             try:
-                res = self.o_api.search_read('shift.registration', cond, f, limit=limit, offset=offset,
-                            order='date_begin DESC')
+                res = self.o_api.search_read('shift.registration', cond, f, order='date_begin DESC')
             except Exception as e:
                 if not (marshal_none_error in str(e)):
-                    res['error'] = repr(e)
-                    coop_logger.error(res['error'] + ' : %s', str(partner_id))
+                    print(str(e))
+                    coop_logger.error(repr(e) + ' : %s', str(partner_id))
                 else:
                     res = []
 
@@ -49,12 +49,11 @@ class CagetteMembersSpace(models.Model):
             f = ['create_date']
 
             try:
-                # Don't bother having a global pagination, use the same
-                res_committees_shifts = self.o_api.search_read('shift.counter.event', cond, f, limit=limit, offset=offset,
-                            order='create_date DESC')
+                res_committees_shifts = self.o_api.search_read('shift.counter.event', cond, f, order='create_date DESC')
 
                 for committee_shift in res_committees_shifts:
                     item = {
+                        "create_date": committee_shift["create_date"],
                         "date_begin": committee_shift["create_date"],
                         "shift_id": False,
                         "name": "Services des comités",
@@ -63,20 +62,36 @@ class CagetteMembersSpace(models.Model):
                         "is_makeup": False,
                     }
 
-                    for index, res_item in enumerate(res):
-                        if (res_item["date_begin"] < item["date_begin"]):
-                            res.insert(index, item)
-                            break
+                    res.append(item)
 
             except Exception as e:
                 if not (marshal_none_error in str(e)):
-                    res['error'] = repr(e)
-                    coop_logger.error(res['error'] + ' : %s', str(partner_id))
+                    print(str(e))
+                    coop_logger.error(repr(e) + ' : %s', str(partner_id))
                 else:
                     res = res + []
+
+            # Add amnesty line
+            is_amnesty = getattr(settings, 'AMNISTIE_DATE', 'false')
+            company_code = getattr(settings, 'COMPANY_CODE', '')
+            if is_amnesty and company_code == "lacagette":
+                amnesty={}
+                amnesty['is_amnesty'] = True
+                amnesty['create_date'] = is_amnesty
+                amnesty['date_begin'] = is_amnesty
+                amnesty['shift_name'] = 'Amnistie'
+                amnesty['state'] = ''
+                res.append(amnesty)
+
+            # ordering
+            res.sort(key = lambda x: datetime.datetime.strptime(x['date_begin'], '%Y-%m-%d %H:%M:%S'), reverse=True)
+
+            # Paginate
+            end_index = offset + limit
+            paginated_res = res[offset:end_index]
 
         except Exception as e:
             print(str(e))
 
-        return res
+        return paginated_res
  

@@ -48,14 +48,21 @@ function prepare_server_data(data) {
     res = [];
 
     for (history_item of data) {
-        history_item.shift_name = (history_item.shift_id === false) ? '' : history_item.shift_id[1];
-        if (history_item.name === "Services des comités") {
+        if (history_item.is_amnesty !== undefined) {
             let shift_datetime = new Date(history_item.date_begin);
-
             let str_shift_datetime = `${("0" + shift_datetime.getDate()).slice(-2)}/${("0" + (shift_datetime.getMonth() + 1)).slice(-2)}/${shift_datetime.getFullYear()}`
-            str_shift_datetime = str_shift_datetime + " " + shift_datetime.toLocaleTimeString("fr-fr", time_options);
 
-            history_item.shift_name = `Services des comités ${str_shift_datetime}`
+            history_item.shift_name = `${history_item.shift_name} du ${str_shift_datetime}`
+        } else {
+            history_item.shift_name = (history_item.shift_id === false) ? '' : history_item.shift_id[1];
+            if (history_item.name === "Services des comités") {
+                let shift_datetime = new Date(history_item.date_begin);
+    
+                let str_shift_datetime = `${("0" + shift_datetime.getDate()).slice(-2)}/${("0" + (shift_datetime.getMonth() + 1)).slice(-2)}/${shift_datetime.getFullYear()}`
+                str_shift_datetime = str_shift_datetime + " " + shift_datetime.toLocaleTimeString("fr-fr", time_options);
+    
+                history_item.shift_name = `Services des comités ${str_shift_datetime}`
+            }
         }
 
         history_item.details = '';
@@ -68,7 +75,6 @@ function prepare_server_data(data) {
         } else if (history_item.state === 'cancel') {
             history_item.details = "Annulé";
         }
-        if (history_item.is_amnesty == undefined) history_item.shift_name = (history_item.shift_id === false) ? '' : history_item.shift_id[1];
     }
 
     return data;
@@ -114,7 +120,7 @@ function init_history() {
                         $(row).addClass('row_partner_late');
                     } else if (cell.text() === "Absent.e") {
                         $(row).addClass('row_partner_absent');
-                    } else if (cell.text() === "Amnistie") {
+                    } else if (cell.text().includes("Amnistie")) {
                         $(row).addClass('row_partner_amnistie');
                     }
                 }
