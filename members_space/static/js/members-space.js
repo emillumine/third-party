@@ -188,6 +188,12 @@ function init_my_info_data() {
                     $(this).removeClass('active');
                 });
             });
+    } else if (partner_data.cooperative_state === 'exempted') {
+      const d = new Date(Date.parse(partner_data.leave_stop_date));
+      const f_date_delay_stop = d.getDate()+'/'+("0" + (d.getMonth() + 1)).slice(-2)+'/'+d.getFullYear();
+
+      $(".delay_date_stop").text(f_date_delay_stop);
+      $(".delay_date_stop_container").show();
     }
 
     if (
