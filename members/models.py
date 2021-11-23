@@ -61,6 +61,18 @@ class CagetteMember(models.Model):
             image = res[0]['image_medium']
         return image
 
+    def get_member_points(self, shift_type):
+        points_field = 'final_standard_point' if shift_type == "standard" else 'final_ftop_point'
+
+        cond = [['id', '=', self.id]]
+        fields = ['id', points_field]
+        res = self.o_api.search_read('res.partner', cond, fields)
+
+        if res and len(res) == 1:
+            return res[0][points_field]
+        else:
+            return None
+
     def update_member_points(self, data):
         """
             ex:

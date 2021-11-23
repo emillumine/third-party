@@ -125,10 +125,22 @@
     margin: 1px 10px !important;
 }
 
+.fc-event {
+    background-color: #008AD9;
+    border-color: #008AD9;
+    color: white;
+}
+td{
+    --fc-list-event-hover-bg-color:#005BA6;
+}
+
 .fc-event.shift_booked {
     background-color: #585858;
     cursor: auto;
     border-color: #585858;
+}
+.fc-event.shift_booked td {
+    --fc-list-event-hover-bg-color:#585858;
 }
 
 .fc-list-event.shift_booked {
