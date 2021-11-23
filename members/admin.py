@@ -357,13 +357,31 @@ def update_members_makeups(request):
 
             res["res"].append(cm.update_member_makeups(member_data))
             
-            if "decrement_pts" in member_data and member_data["decrement_pts"] is True:
+            # Update member standard points, for standard members only
+            if member_data["member_shift_type"] == "standard":
+                # Set points to minus the number of makeups to do (limited to -2)
+                target_points = - int(member_data["target_makeups_nb"])
+                if (target_points < -2) :
+                    target_points = -2
+
+                member_points = cm.get_member_points("standard")
+                points_diff = abs(member_points - target_points)
+
+                # Don't update if no change
+                if points_diff == 0:
+                    continue
+
+                if member_points > target_points:
+                    points_update = - points_diff
+                else:
+                    points_update = points_diff
+
                 data = {
-                    'name': "Ajout manuel d'un rattrapage depuis l'admin BDM",
+                    'name': "Modif manuelle des rattrapages depuis l'admin BDM",
                     'shift_id': False,
                     'type': member_data["member_shift_type"],
                     'partner_id': int(member_data["member_id"]),
-                    'point_qty': -1
+                    'point_qty': points_update
                 }
 
                 cm.update_member_points(data)
