@@ -95,8 +95,12 @@ function init_home() {
         e.preventDefault();
         goto('mes-infos');
     });
-    $("#go_to_forms").prop("href", forms_link);
-
+    // $("#go_to_forms").prop("href", "forms_link");
+    $("#go_to_forms").on('click', (e) => {
+        e.preventDefault();
+        goto('faq');
+    });
+    
     if (partner_data.is_in_association === false) {
         $("#home .member_associated_partner_area").hide();
     } else {
