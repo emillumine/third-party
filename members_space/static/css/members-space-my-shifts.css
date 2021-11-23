@@ -83,6 +83,10 @@ table.dataTable.display tbody tr.row_partner_late {
 table.dataTable.display tbody tr.row_partner_absent {
     background-color: #ff847b;
 }
+table.dataTable.display tbody tr.row_partner_amnistie {
+    background-color: black;
+    color: white;
+}
 table.dataTable.display tbody tr.row_partner_ok td,
 table.dataTable.display tbody tr.row_partner_late td,
 table.dataTable.display tbody tr.row_partner_absent td {

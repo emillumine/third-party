@@ -221,5 +221,15 @@ def get_shifts_history(request):
     offset = int(request.GET.get('offset'))
     date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
     res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
+    
+    is_amnesty = getattr(settings, 'AMNISTIE_DATE', 'false')
+    company_code = getattr(settings, 'COMPANY_CODE', '')
+    if is_amnesty and company_code == "lacagette":
+        amnesty={}
+        amnesty['is_amnesty'] = True
+        amnesty['create_date'] = is_amnesty
+        amnesty['shift_name'] = 'Amnistie'
+        amnesty['state'] = ''
+        res["data"].append(amnesty)
 
     return JsonResponse(res)
