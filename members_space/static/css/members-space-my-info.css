@@ -46,6 +46,14 @@
     word-break: break-all;
 }
 
+.my_info_line_middle {
+    width: 70%;
+    max-width: 100%;
+    word-break: normal;
+    text-align: center;
+    margin: 3rem 0;
+}
+
 #my_info #member_status_action,
 #my_info .member_shift_name_area,
 #my_info .member_coop_number_area {
@@ -120,4 +128,11 @@
     #my_info .member_shift_name_area {
         align-items: flex-start;
     }   
+}
+
+
+.status_info_image {
+  display: block;
+  margin: 5rem auto 5rem auto;
+  width: 50%;
 }
