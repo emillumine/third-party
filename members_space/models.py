@@ -27,7 +27,7 @@ class CagetteMembersSpace(models.Model):
                 ['state', '!=', 'replaced'],
                 ['state', '!=', 'replacing'],
             ]
-            f = ['create_date', 'shift_id', 'name', 'state', 'is_late', 'is_makeup']
+            f = ['date_begin', 'shift_id', 'name', 'state', 'is_late', 'is_makeup']
 
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'
             try:
@@ -36,9 +36,44 @@ class CagetteMembersSpace(models.Model):
             except Exception as e:
                 if not (marshal_none_error in str(e)):
                     res['error'] = repr(e)
-                    coop_logger.error(res['error'] + ' : %s', str(payment_id))
+                    coop_logger.error(res['error'] + ' : %s', str(partner_id))
                 else:
                     res = []
+
+            # Get committees shifts
+            committees_shifts_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
+            cond = [
+                ['partner_id', '=', partner_id], 
+                ['name', '=', committees_shifts_name]
+            ]
+            f = ['create_date']
+
+            try:
+                # Don't bother having a global pagination, use the same
+                res_committees_shifts = self.o_api.search_read('shift.counter.event', cond, f, limit=limit, offset=offset,
+                            order='create_date DESC')
+
+                for committee_shift in res_committees_shifts:
+                    item = {
+                        "date_begin": committee_shift["create_date"],
+                        "shift_id": False,
+                        "name": "Services des comités",
+                        "state": "done",
+                        "is_late": False,
+                        "is_makeup": False,
+                    }
+
+                    for index, res_item in enumerate(res):
+                        if (res_item["date_begin"] < item["date_begin"]):
+                            res.insert(index, item)
+                            break
+
+            except Exception as e:
+                if not (marshal_none_error in str(e)):
+                    res['error'] = repr(e)
+                    coop_logger.error(res['error'] + ' : %s', str(partner_id))
+                else:
+                    res = res + []
 
         except Exception as e:
             print(str(e))
