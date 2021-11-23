@@ -125,6 +125,12 @@
     margin: 1px 10px !important;
 }
 
+.fc-event {
+    background-color: #008AD9;
+    border-color: #008AD9;
+    color: white;
+}
+
 .fc-event.shift_booked {
     background-color: #585858;
     cursor: auto;
