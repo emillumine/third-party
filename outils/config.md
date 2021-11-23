@@ -311,7 +311,7 @@
 
         Message shown to people when they connect to the Member Space
 
-- AMNISTIE_DATE = "2021-11-24"
+- AMNISTIE_DATE = "2021-11-24 00:00:00"
         In members_space history display a special activity about amnistie
 
 ### Reception
