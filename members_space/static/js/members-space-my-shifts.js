@@ -60,11 +60,11 @@ function prepare_server_data(data) {
 
         history_item.details = '';
         if (history_item.state === 'excused' || history_item.state === 'absent') {
-            history_item.details = "Absent";
+            history_item.details = "Absent.e";
         } else if (history_item.state === 'done' && history_item.is_late != false) {
-            history_item.details = "Présent (En Retard)";
+            history_item.details = "Présent.e (En Retard)";
         } else if (history_item.state === 'done') {
-            history_item.details = "Présent";
+            history_item.details = "Présent.e";
         } else if (history_item.state === 'cancel') {
             history_item.details = "Annulé";
         }
@@ -107,11 +107,11 @@ function init_history() {
                 for (var i = 0; i < row.cells.length; i++) {
                     const cell = $(row.cells[i]);
 
-                    if (cell.text() === "Présent") {
+                    if (cell.text() === "Présent.e") {
                         $(row).addClass('row_partner_ok');
                     } else if (cell.text() === "Retard") {
                         $(row).addClass('row_partner_late');
-                    } else if (cell.text() === "Absent") {
+                    } else if (cell.text() === "Absent.e") {
                         $(row).addClass('row_partner_absent');
                     }
                 }
