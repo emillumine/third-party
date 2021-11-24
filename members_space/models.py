@@ -17,15 +17,15 @@ class CagetteMembersSpace(models.Model):
         cond = [['partner_id.id', '=', partner_id]]
         fields = ['shift_template_id', 'is_current']
         shiftTemplate = self.o_api.search_read('shift.template.registration', cond, fields)
+        answer = False
         if (shiftTemplate and len(shiftTemplate) > 0):
             s_t_id = None
             for s_t in shiftTemplate:
                 if s_t['is_current'] is True:
                     s_t_id = s_t['shift_template_id'][0]
-        if s_t_id == CagetteServices.get_committees_shift_id():
-            return True
-        else:
-            return False
+            if s_t_id == CagetteServices.get_committees_shift_id():
+                answer = True
+        return answer
 
     def get_shifts_history(self, partner_id, limit, offset, date_from):
         """ Get partner shifts history """
