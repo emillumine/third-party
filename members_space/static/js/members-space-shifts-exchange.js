@@ -178,7 +178,7 @@ function init_shifts_list() {
 function init_calendar_page() {
     let template_explanations = $("#calendar_explaination_template");
 
-    if (vw <= 768) {
+    if (vw <= 992) {
         $(".loading-calendar").show();
 
         $("#calendar_explaination_area").hide();
@@ -188,10 +188,10 @@ function init_calendar_page() {
                 closeModal,
                 "J'ai compris"
             );
-        });
+        }).show();
     } else {
         $("#calendar_explaination_button").hide();
-        $("#calendar_explaination_area").html(template_explanations.html());
+        $("#calendar_explaination_area").html(template_explanations.html()).show();
     }
 
     if (incoming_shifts !== null) {
@@ -209,11 +209,18 @@ function init_calendar_page() {
     let default_initial_view = "";
     let header_toolbar = {};
 
-    if (vw <=768) {
+    if (vw <= 768) {
         default_initial_view = 'listWeek';
         header_toolbar = {
             left: 'title',
-            center: '',
+            center: 'listWeek,timeGridDay',
+            right: 'prev,next today'
+        };
+    } else if (vw <=992) {
+        default_initial_view = 'listWeek';
+        header_toolbar = {
+            left: 'title',
+            center: 'dayGridMonth,listWeek,timeGridDay',
             right: 'prev,next today'
         };
     } else {
@@ -313,12 +320,14 @@ function init_calendar_page() {
             }
         },
         eventDidMount: function() {
-            if (vw <= 768) {
-                $(".fc .fc-header-toolbar").addClass("resp-header-toolbar");
+            // Calendar is hidden at first on mobile to hide header change when data is loaded
+            $(".loading-calendar").hide();
+            $("#calendar").show();
 
-                // Calendar is hidden at first on mobile to hide header change when data is loaded
-                $(".loading-calendar").hide();
-                $("#calendar").show();
+            if (vw <= 992) {
+                $(".fc .fc-header-toolbar").addClass("resp-header-toolbar");
+            } else {
+                $(".fc .fc-header-toolbar").removeClass("resp-header-toolbar");
             }
         }
     });
@@ -386,4 +395,9 @@ function init_shifts_exchange() {
         $("#shifts_exchange_content").show();
         init_calendar_page();
     }
-}
+
+    $(window).smartresize(function(){
+        vw = window.innerWidth;
+        init_calendar_page();
+    });
+}  
