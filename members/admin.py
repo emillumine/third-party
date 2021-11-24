@@ -116,34 +116,6 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'class': 'link',
                                                 'sort_order': 16
                        },
-                       'helper_subscribe_form_link': {
-                                                'title': 'Rejoindre la Brigade Solidaire',
-                                                'type': 'text',
-                                                'value': '',
-                                                'class': 'link',
-                                                'sort_order': 17
-                       },
-                       'helper_unsubscribe_form_link': {
-                                                'title': 'Se désinscrire de la brigade solidaire',
-                                                'type': 'text',
-                                                'value': '',
-                                                'class': 'link',
-                                                'sort_order': 18
-                       },
-                       'covid_form_link': {
-                                                'title': 'J\'ai le Covid-19 !',
-                                                'type': 'text',
-                                                'value': '',
-                                                'class': 'link',
-                                                'sort_order': 19
-                       },
-                       'covid_end_form_link': {
-                                                'title': 'Fin d\'exemption: reprise de mes services',
-                                                'type': 'text',
-                                                'value': '',
-                                                'class': 'link',
-                                                'sort_order': 20
-                       },
                        'member_cant_have_delay_form_link': {
                                                 'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
                                                 'type': 'text',
