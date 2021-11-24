@@ -189,11 +189,11 @@ function init_my_info_data() {
                 });
             });
     } else if (partner_data.cooperative_state === 'exempted') {
-      const d = new Date(Date.parse(partner_data.leave_stop_date));
-      const f_date_delay_stop = d.getDate()+'/'+("0" + (d.getMonth() + 1)).slice(-2)+'/'+d.getFullYear();
+        const d = new Date(Date.parse(partner_data.leave_stop_date));
+        const f_date_delay_stop = d.getDate()+'/'+("0" + (d.getMonth() + 1)).slice(-2)+'/'+d.getFullYear();
 
-      $(".delay_date_stop").text(f_date_delay_stop);
-      $(".delay_date_stop_container").show();
+        $(".delay_date_stop").text(f_date_delay_stop);
+        $(".delay_date_stop_container").show();
     }
 
     if (
@@ -252,29 +252,33 @@ $(document).ready(function() {
     };
 });
 
-(function($,sr){
+(function($, sr) {
     // debouncing function from John Hann
     // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
         var timeout;
-  
+
         return function debounced () {
             var obj = this, args = arguments;
+
             function delayed () {
                 if (!execAsap)
                     func.apply(obj, args);
                 timeout = null;
-            };
-  
+            }
+
             if (timeout)
                 clearTimeout(timeout);
             else if (execAsap)
                 func.apply(obj, args);
-  
+
             timeout = setTimeout(delayed, threshold || 100);
         };
-    }
-    // smartresize 
-    jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
-  
-  })(jQuery,'smartresize');
+    };
+    // smartresize
+
+    jQuery.fn[sr] = function(fn) {
+        return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr);
+    };
+
+})(jQuery, 'smartresize');
