@@ -357,7 +357,14 @@ function init_shifts_exchange() {
                     $(this).removeClass('active');
                 });
             });
-    } else if (partner_data.cooperative_state === 'suspended'
+    } 
+    else if (
+        partner_data.comite === "True") {
+        let msg_template = $("#comite_template");
+        $(".comite_content_msg").html(msg_template.html());
+        $("#comite_content").show();
+    } 
+    else if (partner_data.cooperative_state === 'suspended'
                 && partner_data.date_delay_stop === 'False') {
         $("#suspended_content .makeups_nb").text(partner_data.makeups_to_do);
 
