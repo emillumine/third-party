@@ -110,6 +110,9 @@ def index(request, exception=None):
 
             partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 
+            m = CagetteMembersSpace()
+            partnerData["comite"] = m.is_comite(partner_id)
+
             context['partnerData'] = partnerData
 
             # Days to hide in the calendar

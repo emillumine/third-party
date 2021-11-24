@@ -188,10 +188,12 @@ function init_calendar_page() {
                 closeModal,
                 "J'ai compris"
             );
-        }).show();
+        })
+            .show();
     } else {
         $("#calendar_explaination_button").hide();
-        $("#calendar_explaination_area").html(template_explanations.html()).show();
+        $("#calendar_explaination_area").html(template_explanations.html())
+            .show();
     }
 
     if (incoming_shifts !== null) {
@@ -366,6 +368,12 @@ function init_shifts_exchange() {
                     $(this).removeClass('active');
                 });
             });
+    } else if (
+        partner_data.comite === "True") {
+        let msg_template = $("#comite_template");
+
+        $(".comite_content_msg").html(msg_template.html());
+        $("#comite_content").show();
     } else if (partner_data.cooperative_state === 'suspended'
                 && partner_data.date_delay_stop === 'False') {
         $("#suspended_content .makeups_nb").text(partner_data.makeups_to_do);
@@ -389,8 +397,8 @@ function init_shifts_exchange() {
         init_calendar_page();
     }
 
-    $(window).smartresize(function(){
+    $(window).smartresize(function() {
         vw = window.innerWidth;
         init_calendar_page();
     });
-}  
+}

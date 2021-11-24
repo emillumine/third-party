@@ -70,6 +70,9 @@
       <h3>Tu ne peux plus sélectionner de rattrapages sur ton espace membre pour le moment, 
           merci de contacter le bureau des membres pour résoudre ce problème en remplissant ce formulaire : </h3>
     </div>
+    <div id="comite_template">
+      <h3>Vous êtes inscrit.e dans le service des comités, vous n'avez pas accès au calendrier d'échange des services car vous vous organisez directement avec le responsable du comité. Si vous avez des rattrapages à réaliser, merci de contacter le responsable du comité qui vous aidera à planifier les rattrapages ou trouver une solution</h3>
+    </div>
   </div>
 </div>
 
@@ -117,7 +120,8 @@
     "associated_partner_id" : "{{partnerData.associated_partner_id}}",
     "associated_partner_name" : "{{partnerData.associated_partner_name}}",
     "verif_token" : "{{partnerData.verif_token}}",
-    "leave_stop_date": "{{partnerData.leave_stop_date}}"
+    "leave_stop_date": "{{partnerData.leave_stop_date}}",
+    "comite": "{{partnerData.comite}}"
   }
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>

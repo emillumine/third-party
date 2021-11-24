@@ -228,7 +228,7 @@ function display_makeups_members() {
 
 /**
  * Send request to update members nb of makeups to do
- * 
+ *
  * @param {Array} member_ids
  * @param {String} action increment | decrement
  */
