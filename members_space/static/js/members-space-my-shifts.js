@@ -96,18 +96,30 @@ function init_history() {
             data: partner_history,
             columns: [
                 {
+                    data: "date_begin",
+                    title: "",
+                    visible: false
+                },
+                {
                     data: "shift_name",
                     title: "<spans class='dt-body-center'>Service</span>",
-                    width: "60%"
+                    width: "60%",
+                    orderable: false
                 },
                 {
                     data: "details",
                     title: "Détails",
-                    className: "tablet-l desktop"
+                    className: "tablet-l desktop",
+                    orderable: false
                 }
             ],
             iDisplayLength: -1,
-            ordering: false,
+            order: [
+                [
+                    0,
+                    "desc"
+                ]
+            ],
             language: {url : '/static/js/datatables/french.json'},
             dom: "t",
             responsive: true,

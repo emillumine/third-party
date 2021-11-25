@@ -99,7 +99,7 @@ class CagetteMembersSpace(models.Model):
                 amnesty['state'] = ''
                 res.append(amnesty)
 
-            # ordering
+            # Ordering here is necessary for pagination
             res.sort(key = lambda x: datetime.datetime.strptime(x['date_begin'], '%Y-%m-%d %H:%M:%S'), reverse=True)
 
             # Paginate
