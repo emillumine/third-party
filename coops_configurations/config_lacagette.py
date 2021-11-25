@@ -2,6 +2,7 @@
 MAG_NAME = 'Cleme'
 OFFICE_NAME = ''
 MAX_BEGIN_HOUR = '19:00'
+COMPANY_CODE = 'lacagette'
 COMPANY_NAME = 'La Cagette'
 WELCOME_ENTRANCE_MSG = 'Bienvenue à La Cagette !'
 WELCOME_MAIL_SUBJECT = 'Dernière étape de votre inscription à la Cagette.'
@@ -54,6 +55,10 @@ EM_URL = ''
 
 
 RECEPTION_MERGE_ORDERS_PSWD = 'jpsrcp'
+RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \
+        Merci d'indiquer un maximum d'informations, le nom du produit et son code barre."
+DISPLAY_COL_AUTRES = False
+
 
 DAV_PATH = '/shared_dir/dav/'
 TOOLS_SERVER = 'https://outils.lacagette-coop.fr'
@@ -91,7 +96,7 @@ DISCOUNT_SHELFS_IDS = [74]
 FL_SHELFS = [16, 17, 18]
 VRAC_SHELFS = [20, 38]
 
-SHIFT_EXCHANGE_DAYS_TO_HIDE = ''
+SHIFT_EXCHANGE_DAYS_TO_HIDE = '0'
 SHIFT_INFO  = """A la cagette, un service est une plage de trois heures un jour en particulier, par exemple : le mardi 25/09/2018 à 13h15.
 <br />A l'inverse, un créneau est une plage de trois heures régulière, par exemple, tous les mardi de semaine A à 13h15."""
 PB_INSTRUCTIONS = """Si j'ai un problème, que je suis désinscrit, que je veux changer de créneaux ou quoi que ce soit, merci de vous rendre dans la section \"J'ai un problème\" sur le site web de <a href=\"https://lacagette-coop.fr/?MonEspaceMembre\">La Cagette</a>"""
@@ -99,9 +104,22 @@ PB_INSTRUCTIONS = """Si j'ai un problème, que je suis désinscrit, que je veux 
 ENTRANCE_COME_FOR_SHOPING_MSG = "Hey coucou toi ! Cet été nous sommes plus de <strong>1000 acheteur·euses</strong> pour seulement  <strong>300 coopérateur·rice·s</strong> en service. <br />Tu fais tes courses à La Cagette cet été ?<br/> Inscris-toi sur ton espace membre !"
 ENTRANCE_EXTRA_BUTTONS_DISPLAY = False
 ENTRANCE_EASY_SHIFT_VALIDATE = True
+ENTRANCE_MISSED_SHIFT_BEGIN_MSG = """La période pendant laquelle il est possible de s'enregistrer est close.<br />
+Merci de remplir le formulaire <em>"arrivé·e en retard"</em> <br/> 
+que vous trouverez <em>sur le site internet de La Cagette</em>
+dans la rubrique<br />
+"Espace Membre"  > "J\'ai un problème ou une demande".<br/>
+Le bureau des membres traitera votre demande !'
+"""
+ENTRANCE_EASY_SHIFT_VALIDATE_MSG = """Si vous faites un service dans un comité, merci de <br/>
+valider votre présence en cherchant<br/>
+votre nom ou numéro ci-dessous
+"""
 # Members space / shifts
+UNSUBSCRIBED_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLScWcpls-ruYIp7HdrjRF1B1TyuzdqhvlUIcUWynbEujfj3dTg/viewform'
 UNSUBSCRIBED_MSG = 'Vous êtes désincrit·e, merci de remplir <a href="https://docs.google.com/forms/d/e/1FAIpQLSfPiC2PkSem9x_B5M7LKpoFNLDIz0k0V5I2W3Mra9AnqnQunw/viewform">ce formulaire</a> pour vous réinscrire sur un créneau.<br />Vous pouvez également contacter le Bureau des Membres en remplissant <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZP0m5-EXPVJxEKJk6EjwSyZJtnbiGdYDuAeFI3ENsHAOikg/viewform">ce formulaire</a>'
 CONFIRME_PRESENT_BTN = 'Clique ici pour valider ta présence'
+
 
 RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \
         Merci d'indiquer un maximum d'informations, le nom du produit et son code barre. \
@@ -110,5 +128,11 @@ RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, 
 # display or not column "Autres" in reception process
 DISPLAY_COL_AUTRES = False
 
+# Should block service exchange if old service is happening in less than 24h
+BLOCK_SERVICE_EXCHANGE_24H_BEFORE = True
 # URL to the metabase dashboard for orders helper
-ORDERS_HELPER_METABASE_URL = "https://metabase.lacagette-coop.fr/dashboard/16"
+ORDERS_HELPER_METABASE_URL = "url_meta_base"
+# New members space
+USE_NEW_MEMBERS_SPACE = True
+START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
+AMNISTIE_DATE= "2021-11-24 00:00:00"

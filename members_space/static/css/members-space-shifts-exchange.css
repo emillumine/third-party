@@ -1,0 +1,197 @@
+.shifts_exchange_page_content {
+    width: 95%;
+    margin: 3rem auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* -- Suspended screen */
+
+#suspended_content, #unsuscribed_content {
+    align-items: center;
+    text-align: center;
+}
+
+#shifts_exchange .select_makeups, #shifts_exchange .unsuscribed_form_link, .cant_have_delay_form_link {
+    margin: 1.5rem 0;
+}
+
+/* -- Suspended can't have delay screen */
+
+#suspended_cant_have_delay_content {
+    align-items: center;
+    text-align: center;
+    width: 50%;
+}
+@media screen and (max-width:992px) {
+    #suspended_cant_have_delay_content {
+        align-items: center;
+        text-align: center;
+        width: 90%;
+    }
+}
+
+/* -- Calendar screen, area on top of the calendar */
+
+#calendar_top_info {
+    display: flex;
+    justify-content: space-between;
+}
+
+@media screen and (max-width:992px) {
+    #calendar_top_info {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }  
+}
+
+/* -- Calendar screen, shifts list */
+
+#shifts_list {
+    flex-direction: column;
+    display: none;
+    width: min-content;
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+@media screen and (max-width:992px) {
+    #partner_shifts_list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+.selectable_shift_line {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+    margin: 0.75rem 0;
+    border-radius: 5px;
+}
+
+.selectable_shift_line .checkbox {
+    margin-right: 10px;
+}
+
+.selectable_shift_line.btn {
+    cursor: not-allowed;
+}
+
+/* -- Calendar screen, makeups message */
+
+#need_to_select_makeups_message {
+    display: none;
+    align-self: center;
+    background-color: #d9534f;
+    color: white;
+    margin: 0 1rem 2rem 1rem;
+    padding: 1rem 1.25rem;
+    text-align: center;
+}
+
+.makeups_warning {
+    margin-right: 3px;
+}
+
+@media screen and (max-width:992px) {
+    .select_makeups_message_block {
+        display: block;
+    }
+}
+
+/* -- Calendar screen, calendar */
+
+#calendar {
+    margin: 2rem 1rem;
+}
+
+.loading-calendar {
+    margin: 3rem auto;
+    display: none;
+}
+
+@media screen and (max-width:992px) {
+    #calendar {
+        display: none;
+    }
+}
+
+.fc .fc-event {
+    cursor: pointer;
+    margin: 1px 10px !important;
+}
+
+.fc-event {
+    background-color: #008AD9;
+    border-color: #008AD9;
+    color: white;
+}
+td{
+    --fc-list-event-hover-bg-color:#005BA6;
+}
+
+.fc-event.shift_booked {
+    background-color: #585858;
+    cursor: auto;
+    border-color: #585858;
+}
+.fc-event.shift_booked td {
+    --fc-list-event-hover-bg-color:#585858;
+}
+
+.fc-list-event.shift_booked {
+    color: white;
+}
+
+#calendar .fc-list-table {
+    table-layout: auto;
+}
+
+.resp-header-toolbar {
+    display: flex;
+    flex-direction: column;
+}
+
+.resp-header-toolbar .fc-toolbar-chunk {
+    text-align: center;
+    margin: 0.25rem;
+}
+
+.date_old_shift, .time_old_shift, .date_new_shift, .time_new_shift {
+    font-weight: bold;
+}
+
+/* -- Explainations */
+
+#calendar_explaination_area {
+    max-width: 33%;
+    border: 2px solid #585858;
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.example-event {
+    max-width: 200px;
+    margin: 2rem 0 0.5rem 0;
+    font-size: 1.4rem !important;
+    padding: 0 !important;
+}
+
+@media screen and (max-width:992px) {
+    .example-event {
+        margin: 2rem auto 0.5rem auto;
+    }
+}
+
+.arrow_explanation_numbers {
+    margin: 0 3px;
+}
+
+#calendar_explaination_button {
+    max-width: 60%;
+    margin: 2rem auto 0.5rem auto;
+}

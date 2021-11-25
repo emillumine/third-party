@@ -1,0 +1,111 @@
+.page_body{
+    position: relative;
+}
+
+.header {
+    margin: 1.5rem 0;
+}
+
+.login_area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.tabs {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    overflow: hidden;
+}
+  
+.tabs .tab {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+.tabs .tab:hover {
+    background-color: #ccc;
+}
+
+.tabs .active {
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-width: 1px 0 0 0;
+}
+
+.tabs .active:hover {
+    background-color: white;
+}
+
+.tab_content {
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+/* Go from zero to full opacity */
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+#tab_makeups_content {
+    padding: 2rem 0;
+}
+
+#table_top_area {
+    display: flex;
+    justify-content: space-between;
+}
+
+#decrement_selected_members_makeups {
+    display: none;
+}
+
+.table_area {
+    margin-top: 20px;
+}
+
+.decrement_makeup {
+    margin-left: 10px;
+}
+
+.decrement_makeup, .increment_makeup {
+    padding: 0.4rem 1.25rem;
+}
+
+.select_member_cb {
+    cursor: pointer;
+}
+
+/* Search membres area */
+#add_members_area {
+    margin-top: 30px;
+}
+
+#add_members_form_area {
+    display:flex;
+    align-items: center;
+}
+
+#search_member_form {
+    margin-left: 10px;
+}
+
+.search_member_results_area {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.search_member_results {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.btn_possible_member {
+    margin: 0 1rem;
+}

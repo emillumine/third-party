@@ -3,6 +3,11 @@
 
 {% block additionnal_css %}
 <link rel="stylesheet" href="{% static 'css/module_config.css' %}">
+<link rel="stylesheet" href="{% static 'quill/quill.snow.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'quill/quill.min.js' %}"></script>
 {% endblock %}
 
 
@@ -20,11 +25,13 @@
     <div id="param">
       <div class="param">
         <label for="iname"></label>
-        <input type="text" name="iname" value="" />
-        <textarea name="iname" value="" cols="255" rows="10"></textarea>
+        <div class="input-container">
+          <input type="text" name="iname" value="" />
+          <textarea name="iname" value="" cols="255" rows="10"></textarea>
+        </div>
       </div>
     </div>
-    <div id="submit_button">
+    <div class="submit_button">
       <div>
         <button type="button" class="btn--primary">Enregistrer</button>
       </div>

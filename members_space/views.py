@@ -1,0 +1,228 @@
+from outils.common_imports import *
+from outils.for_view_imports import *
+
+from django.urls import reverse
+
+from outils.common import Verification
+from outils.common import MConfig
+from members.models import CagetteMember
+from shifts.models import CagetteShift
+from members_space.models import CagetteMembersSpace
+
+import hashlib
+
+
+def _get_response_according_to_credentials(request, credentials, context, template):
+    response = HttpResponse(template.render(context, request))
+    if ('token' in credentials and 'auth_token' in credentials):
+        response.set_cookie('id', credentials['id'])
+        response.set_cookie('token', credentials['token'])
+        response.set_cookie('auth_token', credentials['auth_token'])
+        response.set_cookie('deconnect_option', 'true')
+    return response
+
+def index(request, exception=None):
+    """Display main screen for the members space"""
+
+    credentials = CagetteMember.get_credentials(request)
+
+    context = {
+        'title': 'Espace Membre',
+    }
+
+    template = loader.get_template('members_space/index.html')
+
+    if ('failure' in credentials):
+        # Bad credentials (or none)
+        template = loader.get_template('website/connect.html')
+        context['msg'] = ''
+        if 'msg' in credentials:
+            context['msg'] = credentials['msg']
+        context['password_placeholder'] = 'Naissance (jjmmaaaa)'
+        context['is_member_space'] = True
+    elif ('validation_state' in credentials) and credentials['validation_state'] == 'waiting_validation_member':
+        # First connection, until the member validated his account
+        template = loader.get_template('members/validation_coop.html')
+
+        referer = request.META.get('HTTP_REFERER')
+
+        doc = CagetteMember.get_couchdb_data(credentials['login'])
+
+        if len(doc) > 1:
+            context = {'title': 'Validation inscription',
+                       'coop': json.dumps(doc),
+                       'coop_msg': doc.get('coop_msg'),
+                       'warning_placeholder':
+                       """Signaler ici une anomalie du formulaire,
+                       un problème lié à votre souscription""",
+                       'referer': referer,
+                       'mag_place_string': settings.MAG_NAME,
+                       'office_place_string': settings.OFFICE_NAME,
+                       'max_begin_hour': settings.MAX_BEGIN_HOUR,
+                       'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
+                       'em_url': settings.EM_URL,
+                       'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
+                       'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
+            if hasattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX'):
+                context['ask_for_sex'] = settings.SUBSCRIPTION_ASK_FOR_SEX
+            if hasattr(settings, 'SUBSCRIPTION_ADD_STREET2'):
+                context['ask_for_street2'] = settings.SUBSCRIPTION_ADD_STREET2
+            if hasattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE'):
+                context['ask_for_second_phone'] = settings.SUBSCRIPTION_ADD_SECOND_PHONE
+    else:
+        # Members space
+        if 'id' in request.COOKIES:
+            partner_id = request.COOKIES['id']
+        else:
+            partner_id = credentials['id']
+
+        cs = CagetteShift()
+
+        partnerData = cs.get_data_partner(partner_id)
+
+        if 'create_date' in partnerData:
+            md5_calc = hashlib.md5(partnerData['create_date'].encode('utf-8')).hexdigest()
+            partnerData['verif_token'] = md5_calc
+
+            # Error case encountered from Odoo: member in delay state and last extension is over -> member is suspended
+            try:
+                if partnerData['cooperative_state'] == "delay" and datetime.datetime.strptime(partnerData['date_delay_stop'], '%Y-%m-%d') < datetime.datetime.now():
+                    partnerData['cooperative_state'] = "suspended"
+            except:
+                pass
+
+            # look for parent for associated partner
+            if partnerData["parent_id"] is not False:
+                partnerData["parent_name"] = partnerData["parent_id"][1]
+                partnerData["parent_id"] = partnerData["parent_id"][0]
+            else:
+                partnerData["parent_name"] = False
+
+            # look for associated partner for parents
+            cm = CagetteMember(partner_id)
+            associated_partner = cm.search_associated_people()
+
+            partnerData["associated_partner_id"] = False if associated_partner is None else associated_partner["id"]
+            partnerData["associated_partner_name"] = False if associated_partner is None else associated_partner["name"]
+
+            if (associated_partner is not None and partnerData["associated_partner_name"].find(str(associated_partner["barcode_base"])) == -1):
+                partnerData["associated_partner_name"] = str(associated_partner["barcode_base"]) + ' - ' + partnerData["associated_partner_name"]
+
+            partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
+
+            m = CagetteMembersSpace()
+            partnerData["comite"] = m.is_comite(partner_id)
+
+            context['partnerData'] = partnerData
+
+            # Days to hide in the calendar
+            days_to_hide = "0"
+            context['ADDITIONAL_INFO_SHIFT_PAGE'] = getattr(settings, 'ADDITIONAL_INFO_SHIFT_PAGE', '')
+            if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
+                days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
+            context['daysToHide'] = days_to_hide
+
+            msettings = MConfig.get_settings('members')
+            context['forms_link'] = msettings['forms_link']['value'] if 'forms_link' in msettings else ''
+            context['unsuscribe_form_link'] = ( msettings['unsuscribe_form_link']['value'] 
+                if 'unsuscribe_form_link' in msettings 
+                else '')
+            context['member_cant_have_delay_form_link'] = ( msettings['member_cant_have_delay_form_link']['value'] 
+                if 'member_cant_have_delay_form_link' in msettings 
+                else '')
+            context['abcd_calendar_link'] = ( msettings['abcd_calendar_link']['value'] 
+                if 'abcd_calendar_link' in msettings 
+                else '')
+            context['request_form_link'] = msettings['request_form_link']['value'] if 'request_form_link' in msettings else ''
+            context['late_service_form_link'] = msettings['late_service_form_link']['value'] if 'late_service_form_link' in msettings else ''
+            context['change_template_form_link'] = msettings['change_template_form_link']['value'] if 'change_template_form_link' in msettings else ''
+            context['associated_subscribe_form_link'] = msettings['associated_subscribe_form_link']['value'] if 'associated_subscribe_form_link' in msettings else ''
+            context['associated_unsubscribe_form_link'] = msettings['associated_unsubscribe_form_link']['value'] if 'associated_unsubscribe_form_link' in msettings else ''
+            context['template_unsubscribe_form_link'] = msettings['template_unsubscribe_form_link']['value'] if 'template_unsubscribe_form_link' in msettings else ''
+            context['change_email_form_link'] = msettings['change_email_form_link']['value'] if 'change_email_form_link' in msettings else ''
+            context['coop_unsubscribe_form_link'] = msettings['coop_unsubscribe_form_link']['value'] if 'coop_unsubscribe_form_link' in msettings else ''
+            context['sick_leave_form_link'] = msettings['sick_leave_form_link']['value'] if 'sick_leave_form_link' in msettings else ''
+            context['underage_subscribe_form_link'] = msettings['underage_subscribe_form_link']['value'] if 'underage_subscribe_form_link' in msettings else ''
+            context['helper_subscribe_form_link'] = msettings['helper_subscribe_form_link']['value'] if 'helper_subscribe_form_link' in msettings else ''
+            context['helper_unsubscribe_form_link'] = msettings['helper_unsubscribe_form_link']['value'] if 'helper_unsubscribe_form_link' in msettings else ''
+            context['covid_form_link'] = msettings['covid_form_link']['value'] if 'covid_form_link' in msettings else ''
+            context['covid_end_form_link'] = msettings['covid_end_form_link']['value'] if 'covid_end_form_link' in msettings else ''
+        else:
+            # may arrive when switching database without cleaning cookie
+            return redirect('/website/deconnect')
+
+    return _get_response_according_to_credentials(request, credentials, context, template)
+
+def home(request):
+    """ 
+        Endpoint the front-end will call to load the "home" page. 
+
+        Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
+        then the front-end index will call this endpoint to load the home page
+    """
+    template = loader.get_template('members_space/home.html')
+    context = {
+        'title': 'Espace Membres',
+    }
+    # Get messages to display
+    msettings = MConfig.get_settings('members')
+    if 'msg_accueil' in msettings:
+        context['msg_accueil'] = msettings['msg_accueil']['value']
+    if 'shop_opening_hours' in msettings:
+        context['shop_opening_hours'] = msettings['shop_opening_hours']['value']
+    return HttpResponse(template.render(context, request))
+
+def my_info(request):
+    """ Endpoint the front-end will call to load the "My info" page. """
+    template = loader.get_template('members_space/my_info.html')
+    context = {
+        'title': 'Mes Infos',
+    }
+    return HttpResponse(template.render(context, request))
+
+def my_shifts(request):
+    """ Endpoint the front-end will call to load the "My shifts" page. """
+    template = loader.get_template('members_space/my_shifts.html')
+    context = {
+        'title': 'Mes Services',
+    }
+    return HttpResponse(template.render(context, request))
+
+def shifts_exchange(request):
+    """ Endpoint the front-end will call to load the "Shifts exchange" page. """
+    template = loader.get_template('members_space/shifts_exchange.html')
+    context = {
+        'title': 'Échange de Services',
+    }
+    return HttpResponse(template.render(context, request))
+
+def faqBDM(request):
+    template = loader.get_template('members_space/faq.html')
+    context = {
+        'title': 'foire aux questions',
+    }
+
+    msettings = MConfig.get_settings('members')
+    
+    return HttpResponse(template.render(context, request))
+
+def no_content(request):
+    """ Endpoint the front-end will call to load the "No content" page. """
+    template = loader.get_template('members_space/no_content.html')
+    context = {
+        'title': 'Contenu non trouvé',
+    }
+    return HttpResponse(template.render(context, request))
+
+def get_shifts_history(request):
+    res = {}
+    partner_id = int(request.GET.get('partner_id'))
+
+    m = CagetteMembersSpace()
+
+    limit = int(request.GET.get('limit'))
+    offset = int(request.GET.get('offset'))
+    date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
+    res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
+
+    return JsonResponse(res)

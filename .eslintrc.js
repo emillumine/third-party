@@ -41,7 +41,7 @@ module.exports = {
         "block-scoped-var": "off",
         "block-spacing": "warn",
         "brace-style": "warn",
-        "callback-return": "warn",
+        "callback-return": "off",
         "camelcase": "off",
         "capitalized-comments": "off",
         "class-methods-use-this": "error",

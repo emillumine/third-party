@@ -22,6 +22,10 @@
 
         Used to draw weeks planning
 
+- COMPANY_NAME = 'lgds'
+
+        Used for company spesific code
+
 - COMPANY_NAME = 'Les Grains de Sel'
 
 - ADMIN_IDS = [13]
@@ -113,6 +117,14 @@
 - PHONE_PAIRS_SEPARATOR = "."
         Character which by used to separate every 2 phone figures (04.67.23.89.21 for example)
         Default is " "
+
+- SHOW_FTOP_BUTTON = True (by default)
+
+        If True, in shift_template calendar choice view, "Volant" button is included
+
+- USE_STANDARD_SHIFT = True (by default)
+
+        La Cagette use False to implement custom rules
 
 ### Scales and labels files generation
 
@@ -244,6 +256,23 @@
 
         (makes sens if ENTRANCE_EASY_SHIFT_VALIDATE is True)
 
+- ENTRANCE_WITH_LATE_MODE = True
+
+        (If member is coming within the grace delay)
+
+- ENTRANCE_VALIDATION_GRACE_DELAY = 60
+
+        (if not set, 60 minutes is the default)
+
+- ENTRANCE_VALIDATE_PRESENCE_MESSAGE = """
+    <div class="explanations">
+     Ta présence a bien été validée ! Merci de te diriger au fond du magasin pour le lancement du créneau !
+    </div>
+    Ton prochain service <span class="service_verb">est prévu</span> le <span class="next_shift"></span>
+"""
+
+        (La Cagette message, where no point data is displayed)
+
 ### Member space
 
 - EM_URL = ''
@@ -263,7 +292,7 @@
 
         If not set, default view is 'dayGridMonth'
 
-- SHIFT_EXCHANGE_DAYS_TO_HIDE = ''
+- SHIFT_EXCHANGE_DAYS_TO_HIDE = '0'
 
         By default, if this variable is not set, sunday is hidden
         To hide Sunday and Monday, set this to "0,1"
@@ -277,6 +306,7 @@
 
 - PB_INSTRUCTIONS = """Si j'ai un problème, que je suis désinscrit, que je veux changer de créneaux ou quoi que ce soit, merci de vous rendre dans la section \"J'ai un problème\" sur le site web de <a href=\"https://lacagette-coop.fr/?MonEspaceMembre\">La Cagette</a>"""
 
+- UNSUBSCRIBED_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLScWcpls-ruYIp7HdrjRF1B1TyuzdqhvlUIcUWynbEujfj3dTg/viewform'
 - UNSUBSCRIBED_MSG = 'Vous êtes désincrit·e, merci de remplir <a href="https://docs.google.com/forms/d/e/1FAIpQLSfPiC2PkSem9x_B5M7LKpoFNLDIz0k0V5I2W3Mra9AnqnQunw/viewform">ce formulaire</a> pour vous réinscrire sur un créneau.<br />Vous pouvez également contacter le Bureau des Membres en remplissant <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZP0m5-EXPVJxEKJk6EjwSyZJtnbiGdYDuAeFI3ENsHAOikg/viewform">ce formulaire</a>'
 
         Message shown to people when they connect to the Member Space
@@ -325,7 +355,16 @@
 
 - MEALS_PICKING_TYPE_ID = 10
 
+### New members space
 
+- USE_NEW_MEMBERS_SPACE = True
+
+        Should be set to False by default if parameter not set
+
+- START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
+
+- AMNISTIE_DATE = "2021-11-24 00:00:00"
+        In members_space history display a special activity about amnistie
 
 
 ### Miscellious

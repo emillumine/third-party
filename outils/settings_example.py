@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     'shop',
     'shelfs',
     'sales',
+    'members_space',
     #  'tests'
 
 )
@@ -100,6 +101,7 @@ STATICFILES_DIRS = (
     "shop/static",
     "shelfs/static",
     "orders/static",
+    "members_space/static",
     # "tests/static"
 
 )
@@ -225,3 +227,5 @@ DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True # Needed to make dev test with different IP and ports
 
 ADMIN_IDS = [1]
+
+APP_ENV = 'dev' # Default is prod
