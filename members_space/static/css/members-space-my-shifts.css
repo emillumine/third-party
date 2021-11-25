@@ -34,11 +34,11 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before  {
     color: #0275d8;
     background-color: white;
     font-weight: bold;
-    border: none;
+    /* border: none;
     font-size: 1.6rem;
     height: 16px;
     width: 16px;
-    border-radius: 2em;
+    border-radius: 2em; */
 }
 
 @media screen {
@@ -49,11 +49,11 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th:first-child:before  {
     color: #d8534f;
     background-color: white;
     font-weight: bold;
-    border: none;
+    /* border: none;
     font-size: 1.6rem;
     height: 16px;
     width: 16px;
-    border-radius: 2em;
+    border-radius: 2em; */
 }
 
 .loading-more-history {
