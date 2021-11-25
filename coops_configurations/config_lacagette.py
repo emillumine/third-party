@@ -125,7 +125,6 @@ RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, 
         Merci d'indiquer un maximum d'informations, le nom du produit et son code barre. \
         Dans le cas de produits déteriorés, merci d'envoyer une photo avec votre téléphone à [Adresse_email]"
 
-AMNISTIE_DATE= "2021-11-24 00:00:00"
 # display or not column "Autres" in reception process
 DISPLAY_COL_AUTRES = False
 
@@ -136,4 +135,4 @@ ORDERS_HELPER_METABASE_URL = "url_meta_base"
 # New members space
 USE_NEW_MEMBERS_SPACE = True
 START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
-
+AMNISTIE_DATE= "2021-11-24 00:00:00"

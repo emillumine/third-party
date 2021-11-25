@@ -91,7 +91,7 @@ function fill_member_slide(member) {
     }
     html_elts.image_medium.html('<img src="'+img_src+'" width="128" />');
     html_elts.cooperative_state.html(member.cooperative_state);
-    if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red');
+    if (member.cooperative_state == 'Désinscrit(e)' || member.cooperative_state == 'Rattrapage') coop_info.addClass('b_red');
     else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé') coop_info.addClass('b_orange');
 
     if (member.shifts.length > 0) {

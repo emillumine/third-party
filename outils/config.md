@@ -311,9 +311,6 @@
 
         Message shown to people when they connect to the Member Space
 
-- AMNISTIE_DATE = "2021-11-24 00:00:00"
-        In members_space history display a special activity about amnistie
-
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True
@@ -366,7 +363,8 @@
 
 - START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
 
-
+- AMNISTIE_DATE = "2021-11-24 00:00:00"
+        In members_space history display a special activity about amnistie
 
 
 ### Miscellious
