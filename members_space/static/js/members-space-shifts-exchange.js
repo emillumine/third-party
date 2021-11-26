@@ -234,7 +234,7 @@ function init_calendar_page() {
         };
     }
 
-    const hidden_days = $.map(days_to_hide.split(", "), Number);
+    const hidden_days = days_to_hide.length > 0 ? $.map(days_to_hide.split(", "), Number) : [];
 
     const calendarEl = document.getElementById('calendar');
 
