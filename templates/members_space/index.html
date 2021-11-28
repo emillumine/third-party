@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/datatables/responsive.dataTables.min.css' %}">
+<link rel="stylesheet" href="{% static 'fullcalendar-5.9.0/lib/main.min.css' %}">
+<link rel="stylesheet" href="{% static "css/members-space.css" %}?v=">
+<link rel="stylesheet" href="{% static "css/members-space-my-shifts.css" %}?v=">
+<link rel="stylesheet" href="{% static "css/members-space-faq.css" %}?v=">
+<link rel="stylesheet" href="{% static "css/members-space-my-info.css" %}?v=">
+<link rel="stylesheet" href="{% static "css/members-space-shifts-exchange.css" %}?v=">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.responsive.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'fullcalendar-5.9.0/lib/main.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'fullcalendar-5.9.0/lib/locales/fr.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="page_body">
+  {% include "members_space/header.html" %}
+
+  <div id="main_content" class="page_content">
+  </div>
+
+  <div id="templates" style="display:none;">
+    <div id="shift_line_template">
+      <div class="shift_line">
+        <i class="fas fa-chevron-right shift_line_chevron"></i>
+        <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+      </div>
+    </div>
+
+    <div id="selectable_shift_line_template">
+      <div class="selectable_shift_line btn--primary">
+        <input type="checkbox" class="checkbox">
+        <div class="selectable_shift_line_text">
+          <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal_shift_exchange_template">
+      <div>Je suis sur le point d'échanger le service du : </div>
+      <div><span class="date_old_shift"></span> à <span class="time_old_shift"></span></div>
+      <div>par celui du : </div>
+      <div><span class="date_new_shift"></span> à <span class="time_new_shift"></span></div>
+    </div>
+
+    <div id="modal_add_shift_template">
+      <div>Je suis sur le point de m'inscrire au service du : <span class="date_new_shift"></span> à <span class="time_new_shift"></span></div>
+    </div>
+
+    <div id="calendar_explaination_template"> 
+      <h4>Légende du calendrier</h4>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">06:00</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;- 9/12</div></div></div></div></a>
+      <p>Un service colorié en noir : je suis déjà inscrit.e à ce service.</p>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_less_alf"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">10:45</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;- 3/12</div></div></div></div></a>
+      <p>Un service colorié en bleu : je peux m'inscrire à ce service.</p>
+      <p>3/12 <i class="arrow_explanation_numbers fas fa-arrow-right"></i> il y a déjà 3 places réservées à ce service sur 12 disponibles.
+          <b>Plus le chiffre de gauche est petit, plus on a besoin de coopérateurs.rices à ce service !</b></p>
+    </div>
+
+    <div id="cant_have_delay_msg_template">
+      <h3>Bonjour, tu avais 6 mois pour rattraper tes services manqués et il semblerait que tu ne l'aies pas fait.</h3>
+      <h3>Tu ne peux plus sélectionner de rattrapages sur ton espace membre pour le moment, 
+          merci de contacter le bureau des membres pour résoudre ce problème en remplissant ce formulaire : </h3>
+    </div>
+    <div id="comite_template">
+      <h3>Vous êtes inscrit.e dans le service des comités, vous n'avez pas accès au calendrier d'échange des services car vous vous organisez directement avec le responsable du comité. Si vous avez des rattrapages à réaliser, merci de contacter le responsable du comité qui vous aidera à planifier les rattrapages ou trouver une solution</h3>
+    </div>
+  </div>
+</div>
+
+<script>
+  var app_env = '{{app_env}}';
+  var forms_link = '{{forms_link}}';
+  var unsuscribe_form_link = '{{unsuscribe_form_link}}';
+  var request_form_link = '{{request_form_link}}';
+  var late_service_form_link = '{{late_service_form_link}}';
+  var change_template_form_link = '{{change_template_form_link}}';
+  var associated_subscribe_form_link = '{{associated_subscribe_form_link}}';
+  var associated_unsubscribe_form_link = '{{associated_unsubscribe_form_link}}';
+  var template_unsubscribe_form_link = '{{template_unsubscribe_form_link}}';
+  var change_email_form_link = '{{change_email_form_link}}';
+  var coop_unsubscribe_form_link = '{{coop_unsubscribe_form_link}}';
+  var sick_leave_form_link = '{{sick_leave_form_link}}';
+  var underage_subscribe_form_link = '{{underage_subscribe_form_link}}';
+  var helper_subscribe_form_link = '{{helper_subscribe_form_link}}';
+  var helper_unsubscribe_form_link = '{{helper_unsubscribe_form_link}}';
+  var covid_form_link = '{{covid_form_link}}';
+  var covid_end_form_link = '{{covid_end_form_link}}';
+  var member_cant_have_delay_form_link = '{{member_cant_have_delay_form_link}}';
+  var abcd_calendar_link = "{{abcd_calendar_link}}"
+  var days_to_hide = "{{daysToHide}}"
+  var partner_data = {
+    "partner_id":"{{partnerData.id}}",
+    "name":"{{partnerData.display_name}}",
+    "shift_type":"{{partnerData.shift_type}}",
+    "date_delay_stop":"{{partnerData.date_delay_stop}}",
+    "cooperative_state":"{{partnerData.cooperative_state}}",
+    "regular_shift_name":"{{partnerData.regular_shift_name}}",
+    "can_have_delay" : "{{partnerData.can_have_delay}}",
+    "makeups_to_do" : "{{partnerData.makeups_to_do}}",
+    "barcode_base" : "{{partnerData.barcode_base}}",
+    "street" : "{{partnerData.street}}",
+    "street2" : "{{partnerData.street2}}",
+    "zip" : "{{partnerData.zip}}",
+    "city" : "{{partnerData.city}}",
+    "mobile" : "{{partnerData.mobile}}",
+    "phone" : "{{partnerData.phone}}",
+    "email" : "{{partnerData.email}}",
+    "is_associated_people" : "{{partnerData.is_associated_people}}",
+    "parent_id" : "{{partnerData.parent_id}}",
+    "parent_name" : "{{partnerData.parent_name}}",
+    "associated_partner_id" : "{{partnerData.associated_partner_id}}",
+    "associated_partner_name" : "{{partnerData.associated_partner_name}}",
+    "verif_token" : "{{partnerData.verif_token}}",
+    "leave_stop_date": "{{partnerData.leave_stop_date}}",
+    "comite": "{{partnerData.comite}}"
+  }
+</script>
+<script src="{% static "js/all_common.js" %}?v="></script>
+<script src="{% static "js/members-space-home.js" %}?v="></script>
+<script src="{% static "js/members-space-my-info.js" %}?v="></script>
+<script src="{% static "js/members-space-my-shifts.js" %}?v="></script>
+<script src="{% static "js/members-space-faq.js" %}?v="></script>
+<script src="{% static "js/members-space-shifts-exchange.js" %}?v="></script>
+<script src="{% static "js/members-space.js" %}?v="></script>
+{% endblock %}

@@ -6,6 +6,7 @@ OPEN_ON_SUNDAY = True
 
 MAG_NAME = ''
 OFFICE_NAME = ''
+COMPANY_CODE = 'lgds'
 COMPANY_NAME = 'Les Grains de Sel'
 MAX_BEGIN_HOUR = '19:00'
 WELCOME_ENTRANCE_MSG = 'Bienvenue aux Grains de Sel!'
@@ -92,3 +93,6 @@ ENTRANCE_FTOP_BUTTON_DISPLAY = False
 
 CUSTOM_CSS_FILES = {'all': ['common_lgds.css'],
                     'members': ['inscription_lgds.css','member_lgds.css']}
+
+# Should block service exchange if old service is happening in less than 24h
+BLOCK_SERVICE_EXCHANGE_24H_BEFORE = False

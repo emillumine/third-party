@@ -28,8 +28,11 @@ def index(request):
                                                    "La période pendant laquelle il est possible de s'enregistrer est close."),
         'ENTRANCE_EASY_SHIFT_VALIDATE_MSG': getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE_MSG',
                                                     'Je valide mon service "Comité"'),
-        'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e')
+        'CONFIRME_PRESENT_BTN' : getattr(settings, 'CONFIRME_PRESENT_BTN', 'Présent.e'),
+        'LATE_MODE': getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False),
+        'ENTRANCE_VALIDATE_PRESENCE_MESSAGE' : getattr(settings, 'ENTRANCE_VALIDATE_PRESENCE_MESSAGE', '')
     }
+
     for_shoping_msg = getattr(settings, 'ENTRANCE_COME_FOR_SHOPING_MSG', '')
 
     msettings = MConfig.get_settings('members')
@@ -39,6 +42,13 @@ def index(request):
     context['ftop_btn_display'] = getattr(settings, 'ENTRANCE_FTOP_BUTTON_DISPLAY', True)
     context['extra_btns_display'] = getattr(settings, 'ENTRANCE_EXTRA_BUTTONS_DISPLAY', True)
     context['easy_shift_validate'] = getattr(settings, 'ENTRANCE_EASY_SHIFT_VALIDATE', False)
+    if context['easy_shift_validate'] is True:
+        committees_shift_id = CagetteServices.get_committees_shift_id()
+        if committees_shift_id is None:
+            return HttpResponse("Le créneau des comités n'est pas configuré dans Odoo !")
+        else:
+            context['committees_shift_id'] = committees_shift_id
+
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:
             context['no_picture_member_advice'] = msettings['no_picture_member_advice']['value']
@@ -86,6 +96,7 @@ def inscriptions(request, type=1):
                'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
                'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
                'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
+               'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member']}
 
     response = HttpResponse(template.render(context, request))
@@ -114,6 +125,7 @@ def prepa_odoo(request):
                'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
+               'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member']}
 
     # with_addr_complement
@@ -147,6 +159,7 @@ def validation_inscription(request, email):
                    'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
                    'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                    'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
+                   'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                    'em_url': settings.EM_URL,
                    'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
                    'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
@@ -222,7 +235,7 @@ def update_couchdb_barcodes(request):
 # Borne accueil
 
 
-def search(request, needle):
+def search(request, needle, shift_id):
     """Search member has been requested."""
     try:
         key = int(needle)
@@ -234,7 +247,7 @@ def search(request, needle):
         key = needle
         k_type = 'name'
 
-    res = CagetteMember.search(k_type, key)
+    res = CagetteMember.search(k_type, key, shift_id)
     return JsonResponse({'res': res})
 
 
@@ -262,7 +275,15 @@ def record_service_presence(request):
         mid = int(request.POST.get("mid", 0))  # member id
         sid = int(request.POST.get("sid", 0))  # shift id
         stid = int(request.POST.get("stid", 0))  # shift_ticket_id
+        app_env = getattr(settings, 'APP_ENV', "prod")
         if (rid > -1 and mid > 0):
+            overrided_date = ""
+            if app_env != "prod":
+                import re
+                o_date = re.search(r'/([^\/]+?)$', request.META.get('HTTP_REFERER'))
+                if o_date:
+                    overrided_date = re.sub(r'(%20)',' ', o_date.group(1))
+
             # rid = 0 => C'est un rattrapage, sur le service
             if sid > 0 and stid > 0:
                 # Add member to service and take presence into account
@@ -270,7 +291,7 @@ def record_service_presence(request):
                 if res['rattrapage'] is True:
                     res['update'] = 'ok'
             else:
-                if (CagetteServices.registration_done(rid) is True):
+                if (CagetteServices.registration_done(rid, overrided_date) is True):
                     res['update'] = 'ok'
                 else:
                     res['update'] = 'ko'
@@ -305,8 +326,8 @@ def easy_validate_shift_presence(request):
     else:
         return JsonResponse(res, safe=False)
 
-def record_absences(request):
-    return JsonResponse({'res': CagetteServices.record_absences()})
+def record_absences(request, date):
+    return JsonResponse({'res': CagetteServices.record_absences(date)})
 
 def close_ftop_service(request):
     """Close the closest past FTOP service"""
@@ -369,3 +390,23 @@ def panel_get_purchases(request):
                 message += ' ' + str(res['params'])
             response = HttpResponse(message)
     return response
+
+
+# # #  BDM # # #
+def save_partner_info(request):
+    """ Endpoint the front-end will call for saving partner information """
+    res = {}
+    credentials = CagetteMember.get_credentials(request)
+    if ('success' in credentials):
+        data = {}
+        for post in request.POST:
+            if post != "idPartner" and data != "verif_token" :
+                data[post]= request.POST[post]
+        
+        cm = CagetteMember(int(request.POST['idPartner']))
+        result = cm.save_partner_info(int(request.POST['idPartner']),data)
+        res['success']= result
+        return JsonResponse(res)
+    else:
+        res['error'] = "Forbidden"
+        return JsonResponse(res, safe=False)

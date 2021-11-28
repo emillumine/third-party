@@ -9,12 +9,121 @@ from outils.common import MConfig
 
 default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
-                                             'value': ''
+                                             'value': '',
+                                             'sort_order': 1
                                             },
                      'no_picture_member_advice': {'title': 'Message avertissement membre sans photo',
                                              'type': 'textarea',
-                                             'value': ''
+                                             'value': '',
+                                             'sort_order': 2
                                       },
+                     'shop_opening_hours': {
+                                                'title': 'Horaires ouverture magasin',
+                                                'type': 'textarea',
+                                                'value': '',
+                                                'sort_order': 3
+                                            },
+                      'abcd_calendar_link': {
+                                                'title': 'Lien vers le calendrier ABCD',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 4
+                       },
+                       'forms_link': {
+                                                'title': 'Lien vers la page des formulaires',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 5
+                       },
+                       'unsuscribe_form_link': {
+                                                'title': 'Lien vers le formulaire de ré-inscription',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 6
+                       },
+                       'request_form_link': {
+                                                'title': 'Faire une demande au Bureau Des Membres',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 7
+                       },
+                       'late_service_form_link': {
+                                                'title': 'Retard à mon service ou oubli validation',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 8
+                       },
+                       'change_template_form_link': {
+                                                'title': 'Demande de changement de créneau',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 9
+                       },
+                       #TODO vérifier le nom d'un "binome"
+                       'associated_subscribe_form_link': {
+                                                'title': 'Demande de création de binôme',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 10
+                       },
+                       #TODO vérifier le nom d'un "binome"
+                       'associated_unsubscribe_form_link': {
+                                                'title': 'Se désolidariser de son binôme',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 11
+                       },
+                       'template_unsubscribe_form_link': {
+                                                'title': 'Se désinscrire de son créneau',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 12
+                       },
+                       'change_email_form_link': {
+                                                'title': 'Changer d\'adresse mail',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 13
+                       },
+                       'coop_unsubscribe_form_link': {
+                                                'title': 'Demande de démission de la coopérative et/ou de remboursement de mes parts sociales',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 14
+                       },
+                       'sick_leave_form_link': {
+                                                'title': 'Demande de congé maladie ou parental',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 15
+                       },
+                       'underage_subscribe_form_link': {
+                                                'title': 'Demande de création d’un compte mineur rattaché',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 16
+                       },
+                       'member_cant_have_delay_form_link': {
+                                                'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
+                                                'type': 'text',
+                                                'value': '',
+                                                'class': 'link',
+                                                'sort_order': 21
+                       }
+
                     }
 
 def config(request):
@@ -38,7 +147,9 @@ def get_settings(request):
             for k, v in default_msettings.items():
                 if not (k in msettings):
                     msettings[k] = v
-            result['settings'] = msettings
+
+            result['settings'] = dict(sorted(msettings.items(), key=lambda k_v: k_v[1]['sort_order']))
+            # on preprod server, dict order (through JsonResponse ??) is not respected !!
         except Exception as e:
             result['error'] = str(e)
     else:
@@ -71,14 +182,14 @@ def add_pts_to_everybody(request, pts, reason):
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
         try:
-            fields = ['in_ftop_team']
+            fields = ['shift_type']
             cond = [['is_member', '=', True]]
             all_members = CagetteMembers.get(cond, fields)
             if all_members and len(all_members) > 0:
                 ftop_ids = []
                 standard_ids = []
                 for m in all_members:
-                    if m['in_ftop_team'] is True:
+                    if m['shift_type'] == 'ftop':
                         ftop_ids.append(m['id'])
                     else:
                         standard_ids.append(m['id'])
@@ -188,5 +299,67 @@ def create_envelops(request):
             res['error'] = str(e)
         response = JsonResponse(res, safe=False)
     else:
+        response = JsonResponse(res, status=403)
+    return response
+
+# # # ADMIN / BDM # # #
+
+def admin(request):
+    """ Administration des membres """
+    template = loader.get_template('members/admin/index.html')
+    context = {'title': 'BDM',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
+def get_makeups_members(request):
+    """ Récupération des membres qui doivent faire des rattrapages """
+    res = CagetteMembers.get_makeups_members()
+    return JsonResponse({ 'res' : res })
+
+def update_members_makeups(request):
+    """ Met à jour les rattrapages des membres passés dans la requête """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        members_data = json.loads(request.body.decode())
+
+        res["res"] = []
+        for member_data in members_data:
+            cm = CagetteMember(int(member_data["member_id"]))
+
+            res["res"].append(cm.update_member_makeups(member_data))
+            
+            # Update member standard points, for standard members only
+            if member_data["member_shift_type"] == "standard":
+                # Set points to minus the number of makeups to do (limited to -2)
+                target_points = - int(member_data["target_makeups_nb"])
+                if (target_points < -2) :
+                    target_points = -2
+
+                member_points = cm.get_member_points("standard")
+                points_diff = abs(member_points - target_points)
+
+                # Don't update if no change
+                if points_diff == 0:
+                    continue
+
+                if member_points > target_points:
+                    points_update = - points_diff
+                else:
+                    points_update = points_diff
+
+                data = {
+                    'name': "Modif manuelle des rattrapages depuis l'admin BDM",
+                    'shift_id': False,
+                    'type': member_data["member_shift_type"],
+                    'partner_id': int(member_data["member_id"]),
+                    'point_qty': points_update
+                }
+
+                cm.update_member_points(data)
+
+        response = JsonResponse(res)
+    else:
+        res["message"] = "Unauthorized"
         response = JsonResponse(res, status=403)
     return response

@@ -66,9 +66,12 @@
     {% block content %}{% endblock %}
     {% csrf_token %}
     <br class="mtop25" />
+    {% if app_env != "prod" %}
     <footer>
         Lit et écrit sur : {{odoo}}
     </footer>
+    {% endif %}
+
 
   </body>
 </html>

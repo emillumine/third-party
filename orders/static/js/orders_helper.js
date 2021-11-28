@@ -1264,9 +1264,9 @@ function _compute_product_data(product) {
         days_covered = (product.qty_available + product.incoming_qty + purchase_qty) / product.daily_conso;
         days_covered = Math.floor(days_covered);
     }
-    
+
     item.qty_not_covered = qty_not_covered;
-    item.days_covered = days_covered; 
+    item.days_covered = days_covered;
 
     return item;
 }
