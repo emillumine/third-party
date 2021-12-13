@@ -1888,6 +1888,9 @@ function update_main_screen(params) {
     }
 }
 
+function display_average_consumption_explanation() {
+     openModal($('#explanations').html())
+}
 /**
  * Update DOM display on the order selection screen
  */
@@ -2259,6 +2262,8 @@ $(document).ready(function() {
 
             return 0;
         });
+
+        $(document).on("click",".fa-info-circle", display_average_consumption_explanation)
 
         $.datepicker.regional['fr'] = {
             monthNames: [

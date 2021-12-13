@@ -224,6 +224,10 @@
     margin-left: 5px;
 }
 
+.main.fa-info-circle {
+    color: #0275d8;
+    cursor:  pointer;
+}
 .custom_cell_content {
     display: flex;
     flex-direction: column;
@@ -391,6 +395,8 @@
     width: 100%;
     padding: 15px;
 }
+
+
 
 /* - Miscellaneous */
 

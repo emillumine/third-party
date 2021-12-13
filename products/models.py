@@ -256,6 +256,7 @@ class CagetteProduct(models.Model):
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
 
+
     @staticmethod
     def get_simple_list():
         res = []

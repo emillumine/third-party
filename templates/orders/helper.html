@@ -94,7 +94,7 @@
             </form>
             <form action="javascript:;" id="coverage_form" class="order_form_item">
                 <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
-                <button type="submit" class='btn--primary'>Calculer les besoins</button>
+                <button type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg'></i>
             </form>
         </div>
     
@@ -294,7 +294,9 @@
             <br/>
             <hr/>
         </div>
-
+        <div id="explanations">
+            {% include "orders/explanations.html" %}
+        </div>
         <div id="modal_create_order__supplier_date_planned">
             <div class="modal_input_area">
                 <span class="modal_input_label supplier_name"></span>
