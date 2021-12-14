@@ -1625,12 +1625,17 @@ function display_products(params) {
                         top: $(window).scrollTop() - $("#suppliers_container").outerHeight()
                     });
                 }
-            } else if (e.which == 13, 40) {
+            } else if (e.which == 40) {
                 e.preventDefault();
 
                 // On arrow down pressed, focus previous row input
                 $(this).closest("tr").next().find(".product_qty_input").focus();
-            } 
+            } else if (e.which == 13) {
+                e.preventDefault();
+
+                // On arrow down pressed, focus previous row input
+                $(this).closest("tr").next().find(".product_qty_input").focus();
+            }
         });
 
     // Associate product to supplier on click on 'X' in the table
