@@ -1605,12 +1605,6 @@ function display_products(params) {
         // Since data change is saved on blur, set focus on change in case of arrows pressed
             $(this).focus();
         })
-        .on('keypress', 'tbody td .product_qty_input', function(e) {
-            // Validate on Enter pressed
-            if (e.which == 13) {
-                $(this).blur();
-            }
-        })
         .on('keydown', 'tbody td .product_qty_input', function(e) {
             if (e.which == 38) {
                 e.preventDefault();
@@ -1631,7 +1625,7 @@ function display_products(params) {
                         top: $(window).scrollTop() - $("#suppliers_container").outerHeight()
                     });
                 }
-            } else if (e.which == 40) {
+            } else if (e.which == 13, 40) {
                 e.preventDefault();
 
                 // On arrow down pressed, focus previous row input
