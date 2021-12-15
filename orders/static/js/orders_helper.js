@@ -1601,9 +1601,11 @@ function display_products(params) {
             }
         }
     })
-        .on('change', 'tbody td .product_qty_input', function () {
-        // Since data change is saved on blur, set focus on change in case of arrows pressed
-            $(this).focus();
+        .on('keypress', 'tbody td .product_qty_input', function(e) {
+            // Validate on Enter pressed
+            if (e.which == 13) {
+                $(this).blur();
+            }
         })
         .on('keydown', 'tbody td .product_qty_input', function(e) {
             if (e.which == 38) {
