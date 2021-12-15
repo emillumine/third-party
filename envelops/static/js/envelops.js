@@ -16,6 +16,10 @@ function toggle_success_alert() {
     $('#envelop_cashing_success').toggle(250);
 }
 
+function toggle_deleted_alert() {
+    $('#envelop_deletion_success').toggle(250);
+}
+
 // Set an envelop content on the document
 function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_index) {
     var envelops_section = $('#' + envelop.type + '_envelops');
@@ -39,7 +43,7 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
     }
 
     new_html += '</div>'
-            + '<div class="panel"><ol id="' + envelop_content_id + '"></ol></div>'
+            + '<div class="panel panel_' + envelop_content_id + '"><ol id="' + envelop_content_id + '"></ol></div>'
           + '</div>';
 
     $(new_html).appendTo(envelops_section);
@@ -58,6 +62,9 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
         li_node.appendChild(textnode); // Append the text to <li>
         document.getElementById(envelop_content_id).appendChild(li_node);
     }
+
+    let envelop_panel = $(`.panel_${envelop_content_id}`);
+    envelop_panel.append('<button class="btn--danger delete_envelop_button item-fluid" onClick="openModal(\'<h3>Supprimer enveloppe ?</h3>\', function() {delete_envelop(\'' + envelop.type + '\', ' + envelop_index + ');}, \'Supprimer\')">Supprimer l\'enveloppe</button>');
 }
 
 // Set the envelops data according to their type
@@ -118,67 +125,94 @@ function set_envelops(envelops) {
     }
 }
 
-function archive_envelop(type, index) {
-    $('#envelop_cashing_error').hide();
-    $('#envelop_cashing_success').hide();
-    // Loading on
-    openModal();
+function delete_envelop(type, index) {
+    if (is_time_to('delete_envelop', 1000)) {
+        openModal();
 
-    if (type == "cash") {
-        envelop = cash_envelops[index];
-    } else {
-        envelop = ch_envelops[index];
-    }
-
-    // Proceed to envelop cashing
-    $.ajax({
-        type: "POST",
-        url: "/envelops/archive_envelop",
-        headers: { "X-CSRFToken": getCookie("csrftoken") },
-        dataType: "json",
-        traditional: true,
-        contentType: "application/json; charset=utf-8",
-        data: JSON.stringify(envelop),
-        success: function(response) {
-            closeModal();
-
-            var display_success_alert = true;
-            // Handle errors when saving payments
-            var error_payments = response.error_payments;
-            var error_message = "";
-
-            for (var i = 0; i < error_payments.length; i++) {
-                if (error_payments[i].done == false) {
-                    error_message += "<p>Erreur lors de l'enregistrement du paiement de <b>" + error_payments[i]['partner_name']
-            + "</b> (id odoo : " + error_payments[i]['partner_id'] + ", valeur à encaisser : " + error_payments[i]['amount'] + "€).";
-                    error_message += "<br/><b>L'opération est à reprendre manuellement dans Odoo pour ce paiement.</b></p>";
-                }
-            }
-
-            // If error during envelop deletion
-            var response_envelop = response.envelop;
-
-            if (response_envelop == "error") {
-                error_message += "<p>Erreur lors de la suppression de l'enveloppe.<br/>";
-                error_message += "<b>Sauf contre-indication explicite, les paiements ont bien été enregistrés.</b><br/>";
-                error_message += "Les paiements déjà comptabilisés ne le seront pas à nouveau, vous pouvez ré-essayer. Si l'erreur persiste, l'enveloppe devra être supprimée manuellement.</p>";
-                display_success_alert = false;
-            }
-
-            if (error_message !== "") {
-                $('#error_alert_txt').html(error_message);
-                toggle_error_alert();
-            }
-
-            if (display_success_alert) {
-                toggle_success_alert();
-            }
-        },
-        error: function() {
-            closeModal();
-            alert('Erreur serveur. Merci de ne pas ré-encaisser l\'enveloppe qui a causé l\'erreur.');
+        var envelop = null;
+        if (type == "cash") {
+            envelop = cash_envelops[index];
+        } else {
+            envelop = ch_envelops[index];
         }
-    });
+
+        envelop._deleted = true;
+        dbc.put(envelop, function callback(err, result) {
+            if (!err && result !== undefined) {
+                toggle_deleted_alert();
+                get_envelops();
+            } else {
+                alert("Erreur lors de la suppression de l'enveloppe... Essaye de recharger la page et réessaye.");
+                console.log(err);
+            }
+        });
+
+    }
+}
+
+function archive_envelop(type, index) {
+    if (is_time_to('archive_envelop', 1000)) {
+        $('#envelop_cashing_error').hide();
+        $('#envelop_cashing_success').hide();
+        // Loading on
+        openModal();
+
+        if (type == "cash") {
+            envelop = cash_envelops[index];
+        } else {
+            envelop = ch_envelops[index];
+        }
+
+        // Proceed to envelop cashing
+        $.ajax({
+            type: "POST",
+            url: "/envelops/archive_envelop",
+            headers: { "X-CSRFToken": getCookie("csrftoken") },
+            dataType: "json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(envelop),
+            success: function(response) {
+                closeModal();
+
+                var display_success_alert = true;
+                // Handle errors when saving payments
+                var error_payments = response.error_payments;
+                var error_message = "";
+
+                for (var i = 0; i < error_payments.length; i++) {
+                    if (error_payments[i].done == false) {
+                        error_message += "<p>Erreur lors de l'enregistrement du paiement de <b>" + error_payments[i]['partner_name']
+                + "</b> (id odoo : " + error_payments[i]['partner_id'] + ", valeur à encaisser : " + error_payments[i]['amount'] + "€).";
+                        error_message += "<br/><b>L'opération est à reprendre manuellement dans Odoo pour ce paiement.</b></p>";
+                    }
+                }
+
+                // If error during envelop deletion
+                var response_envelop = response.envelop;
+
+                if (response_envelop == "error") {
+                    error_message += "<p>Erreur lors de la suppression de l'enveloppe.<br/>";
+                    error_message += "<b>Sauf contre-indication explicite, les paiements ont bien été enregistrés.</b><br/>";
+                    error_message += "Les paiements déjà comptabilisés ne le seront pas à nouveau, vous pouvez ré-essayer. Si l'erreur persiste, l'enveloppe devra être supprimée manuellement.</p>";
+                    display_success_alert = false;
+                }
+
+                if (error_message !== "") {
+                    $('#error_alert_txt').html(error_message);
+                    toggle_error_alert();
+                }
+
+                if (display_success_alert) {
+                    toggle_success_alert();
+                }
+            },
+            error: function() {
+                closeModal();
+                alert('Erreur serveur. Merci de ne pas ré-encaisser l\'enveloppe qui a causé l\'erreur.');
+            }
+        });
+    }
 }
 
 // Get all the envelops from couch db

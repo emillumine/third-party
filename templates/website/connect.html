@@ -35,4 +35,19 @@
             }
         </script>
 </div>
+
+<script>
+    // For the members space, reset url to home when accessing connect page
+    const is_member_space = '{{is_member_space}}';
+
+    if (is_member_space === "True") {
+        var app_env = '{{app_env}}';
+        var base_location = (app_env === 'dev') ? '/members_space/' : '/';
+        if (window.location.pathname === base_location) {
+            history.pushState({}, '', 'home');
+        } else {
+            history.replaceState({}, '', 'home');
+        }
+    }
+</script>
 {% endblock %}

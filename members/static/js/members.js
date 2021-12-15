@@ -33,7 +33,6 @@ var shift_members = $('#current_shift_members');
 var service_validation = $('#service_validation');
 var validation_last_call = 0;
 var rattrapage_wanted = $('[data-next="rattrapage_1"]');
-var rattrapage_validation = $('#rattrapage_validation');
 var webcam_is_attached = false;
 var photo_advice = $('#photo_advice');
 var photo_studio = $('#photo_studio');
@@ -92,7 +91,7 @@ function fill_member_slide(member) {
     }
     html_elts.image_medium.html('<img src="'+img_src+'" width="128" />');
     html_elts.cooperative_state.html(member.cooperative_state);
-    if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red');
+    if (member.cooperative_state == 'Désinscrit(e)' || member.cooperative_state == 'Rattrapage') coop_info.addClass('b_red');
     else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé') coop_info.addClass('b_orange');
 
     if (member.shifts.length > 0) {
@@ -264,12 +263,18 @@ function fill_service_entry(s) {
 
     if (s.members) {
         m_list = '<ul class="members_list">';
+        // if (typeof s.late != "undefined" && s.late == true) {
+        //     m_list = '<ul class="members_list late">';
+        // }
         $.each(s.members, function(i, e) {
             var li_class = "btn";
             var li_data = "";
 
             if (e.state == "done") {
                 li_class += "--inverse";
+                if (e.is_late == true) {
+                    li_class += " late";
+                }
             } else {
                 li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
             }
@@ -392,7 +397,7 @@ function fill_service_entry_sucess(member) {
 
     var points = member.display_std_points;
 
-    if (member.in_ftop_team == true) {
+    if (member.shift_type == 'ftop') {
         points = member.display_ftop_points;
     }
     pages.service_entry_success.find('span.points').text(points);
@@ -408,7 +413,7 @@ function fill_service_entry_sucess(member) {
     var service_verb = 'est prévu';
 
     if (member.next_shift) {
-        if (member.in_ftop_team == true
+        if (member.shift_type == 'ftop'
             && member.next_shift.shift_type == "ftop") {
             var start_elts = member.next_shift.start.split(' à ');
 
@@ -451,6 +456,8 @@ function record_service_presence() {
                         goto_page(pages.service_entry_success);
                     } else if (rData.res.error) {
                         alert(rData.res.error);
+                    } else {
+                        alert("Un problème est survenu. S'il persiste merci de le signaler à un responsable du magasin.");
                     }
                 }
                 loading2.hide();
@@ -464,7 +471,7 @@ function fill_rattrapage_2() {
     var msg = "Bienvenue pour ton rattrapage !";
     var shift_ticket_id = selected_service.shift_ticket_ids[0];
 
-    if (current_displayed_member.in_ftop_team == true) {
+    if (current_displayed_member.shift_type == 'ftop') {
         msg ="Bienvenue dans ce service !";
         if (selected_service.shift_ticket_ids[1])
             shift_ticket_id = selected_service.shift_ticket_ids[1];
@@ -488,20 +495,6 @@ function fill_rattrapage_2() {
 
 function init_webcam() {
     try {
-
-        /*
-        Webcam.set({
-            width: $('#img_width').val(),
-            height: $('#img_height').val(),
-            dest_width: $('#img_dest_width').val(),
-            dest_height: $('#img_dest_height').val(),
-            crop_width: $('#img_crop_width').val(),
-            crop_height: $('#img_crop_height').val(),
-            image_format: 'jpeg',
-            jpeg_quality: 90
-
-        });
-        */
         Webcam.set({
             width: 320,
             height: 240,
@@ -646,7 +639,7 @@ shift_members.on("click", '.btn[data-rid]', function() {
 
 });
 
-pages.shopping_entry.on('css', function(e) {
+pages.shopping_entry.on('css', function() {
     photo_advice.hide();
     photo_studio.hide();
     search_box_clear_html_elts();
@@ -654,14 +647,14 @@ pages.shopping_entry.on('css', function(e) {
     move_search_box(pages.rattrapage_1, pages.shopping_entry);
 });
 
-pages.service_entry.on('css', function(e) {
+pages.service_entry.on('css', function() {
     photo_advice.hide();
     photo_studio.hide();
     clean_service_entry();
     get_service_entry_data();
 });
 
-pages.rattrapage_1.on('css', function(e) {
+pages.rattrapage_1.on('css', function() {
     search_box_clear_html_elts();
     var msg = "Vous venez pour un rattrapage.";
 
@@ -691,7 +684,7 @@ function ask_for_easy_shift_validation() {
                 {
                     coop_id: operator.id
                 },
-                function(err, result) {
+                function(err) {
                     if (!err) {
                         alert("1 point volant vient d'être ajouté.");
                         clean_search_for_easy_validate_zone();
@@ -795,11 +788,10 @@ $(document).ready(function() {
             let search_str = sm_search_member_input.val();
 
             $.ajax({
-                url: '/members/search/' + search_str,
+                url: '/members/search/' + search_str + '/' + window.committees_shift_id,
                 dataType : 'json',
                 success: function(data) {
                     members_search_results = [];
-
                     for (member of data.res) {
                         if (member.shift_type == 'ftop') {
                             members_search_results.push(member);
@@ -808,7 +800,7 @@ $(document).ready(function() {
 
                     display_possible_members();
                 },
-                error: function(data) {
+                error: function() {
                     err = {
                         msg: "erreur serveur lors de la recherche de membres",
                         ctx: 'easy_validate.search_members'

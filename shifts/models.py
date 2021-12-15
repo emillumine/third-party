@@ -17,13 +17,28 @@ class CagetteShift(models.Model):
         self.tz = pytz.timezone("Europe/Paris")
         self.o_api = OdooAPI()
 
+    def get_shift(self, id):
+        """Get one shift by id"""
+        cond = [['id', '=', id]]
+
+        fields = ['date_begin_tz']
+        listService = self.o_api.search_read('shift.shift', cond, fields)
+
+        try:
+            return listService[0]
+        except Exception as e:
+            print(str(e))
+            return None
+
     def get_data_partner(self, id):
         """Retrieve partner data useful to make decision about shift options"""
         cond = [['id', '=', id]]
         fields = ['display_name', 'display_std_points',
                   'shift_type', 'date_alert_stop', 'date_delay_stop', 'extension_ids',
                   'cooperative_state', 'final_standard_point', 'create_date',
-                  'final_ftop_point', 'in_ftop_team', 'leave_ids']
+                  'final_ftop_point', 'shift_type', 'leave_ids', 'makeups_to_do', 'barcode_base',
+                  'street', 'street2', 'zip', 'city', 'mobile', 'phone', 'email',
+                  'is_associated_people', 'parent_id']
         partnerData = self.o_api.search_read('res.partner', cond, fields, 1)
         if partnerData:
             partnerData = partnerData[0]
@@ -74,6 +89,15 @@ class CagetteShift(models.Model):
         shiftData = self.o_api.search_read('shift.registration', cond, fields, order ="date_begin ASC")
         return shiftData
 
+    def shift_is_makeup(self, id):
+        """vérifie si une shift est un rattrapage"""
+        fields = ["is_makeup", "id"] 
+        cond = [['id', '=', id]]
+        shiftData = self.o_api.search_read('shift.registration', cond, fields)
+        return shiftData[0]["is_makeup"]
+
+         
+
     def get_shift_calendar(self, id, start, end):
         """Récupère les shifts à partir de maintenant pour le calendier"""
         cond = [['date_begin', '>', datetime.datetime.now().isoformat()],
@@ -105,12 +129,14 @@ class CagetteShift(models.Model):
         fields = ['stop_date', 'id', 'start_date']
         return self.o_api.search_read('shift.leave', cond, fields)
 
-    def get_shift_ticket(self,idShift, in_ftop_team):
+    def get_shift_ticket(self,idShift, shift_type):
         """Récupérer le shift_ticket suivant le membre et flotant ou pas"""
+        if getattr(settings, 'USE_STANDARD_SHIFT', True) == False:
+            shift_type = "ftop"
         fields = ['shift_ticket_ids']
         cond = [['id', "=", idShift]]
         listeTicket = self.o_api.search_read('shift.shift', cond, fields)
-        if in_ftop_team == "True":
+        if shift_type == "ftop":
             return listeTicket[0]['shift_ticket_ids'][1]
         else:
             return listeTicket[0]['shift_ticket_ids'][0]
@@ -119,11 +145,15 @@ class CagetteShift(models.Model):
         """Shift registration"""
         st_r_id = False
         try:
+            shift_type = "standard"
+            if data['shift_type'] == "ftop" or getattr(settings, 'USE_STANDARD_SHIFT', True) == False:
+                shift_type = "ftop"
             fieldsDatas = { "partner_id": data['idPartner'],
                             "shift_id": data['idShift'],
-                            "shift_ticket_id": self.get_shift_ticket(data['idShift'], data['in_ftop_team']),
-                            "shift_type": "standard",  # ftop
-                            "related_shift_state": 'confirm',
+                            "shift_ticket_id": self.get_shift_ticket(data['idShift'], data['shift_type']),
+                            "shift_type": shift_type,  
+                            "origin": 'memberspace',
+                            "is_makeup": data['is_makeup'],
                             "state": 'open'}
 
             st_r_id = self.o_api.create('shift.registration', fieldsDatas)
@@ -160,21 +190,23 @@ class CagetteShift(models.Model):
             coop_logger.error("Reopen shift : %s", str(e))
         return response
 
-    def create_delay(self, data):
-        """Create a delay for a member.
-        A delay is 28 days from the given start_date.
+    def create_delay(self, data, duration=28):
+        """
+        Create a delay for a member.
+        If no duration is specified, a delay is by default 28 days from the given start_date.
 
-        If the partner already has a current extension: extend it by 28 days.
+        If the partner already has a current extension: extend it by [duration] days.
         Else, create a 28 days delay.
 
         Args:
             idPartner: int
             start_date: string date at iso format (eg. "2019-11-19")
-                Date from which the 28 days delay is calculated
+                Date from which the delay end date is calculated
             (optionnal) extension_beginning: string date at iso format
                 If specified, will be the actual starting date of the extension.
                 Should be inferior than start_date.
                 (at creation only: odoo ignores delays if today's not inside)
+            duration: nb of days
         """
         action = 'create'
 
@@ -205,7 +237,7 @@ class CagetteShift(models.Model):
         # Update current extension
         if action == 'update':
             ext_date_stop = datetime.datetime.strptime(extension['date_stop'], '%Y-%m-%d').date()
-            ext_new_date_stop = (ext_date_stop + datetime.timedelta(days=28))
+            ext_new_date_stop = (ext_date_stop + datetime.timedelta(days=duration))
 
             update_data = {
                 'date_stop': ext_new_date_stop.isoformat()
@@ -220,14 +252,13 @@ class CagetteShift(models.Model):
             for val in extension_types:
                 if val['name'] == 'Extension':
                     ext_type_id = val['id']
-
+            
             starting_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-            ending_date = (starting_date + datetime.timedelta(days=28))
+            ending_date = (starting_date + datetime.timedelta(days=duration))
 
             if 'extension_beginning' in data:
                 starting_date = datetime.datetime.strptime(data['extension_beginning'], '%Y-%m-%d').date()
 
-            #TODO : bloquer si nextmonth > date_end_alert+5months ? (blocage js)
             fields= {
                 "partner_id":   data['idPartner'],
                 "type_id":      ext_type_id,
@@ -279,3 +310,21 @@ class CagetteShift(models.Model):
 
     def get_test(self, odooModel, cond, fieldsDatas):
         return self.o_api.search_read(odooModel, cond, fieldsDatas, limit = 1000)
+
+    def decrement_makeups_to_do(self, partner_id):
+        """ Decrements partners makeups to do if > 0 """
+        cond = [['id', '=', partner_id]]
+        fields = ['makeups_to_do']
+        makeups_to_do = self.o_api.search_read('res.partner', cond, fields)[0]["makeups_to_do"]
+
+        if makeups_to_do > 0:
+            makeups_to_do -= 1
+            f = { "makeups_to_do": makeups_to_do }
+
+            return self.o_api.update('res.partner', [partner_id],  f)
+        else:
+            return "makeups already at 0"
+
+    def member_can_have_delay(self, partner_id):
+        """ Can a member have a delay? """
+        return self.o_api.execute('res.partner', 'can_have_extension', [partner_id])

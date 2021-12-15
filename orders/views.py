@@ -19,7 +19,8 @@ def helper(request):
         'title': 'Aide à la commande',
         'couchdb_server': settings.COUCHDB['url'],
         'db': settings.COUCHDB['dbs']['orders'],
-        'odoo_server': settings.ODOO['url']
+        'odoo_server': settings.ODOO['url'],
+        'metabase_url':  getattr(settings, 'ORDERS_HELPER_METABASE_URL', '')
     }
 
     template = loader.get_template('orders/helper.html')
@@ -42,7 +43,8 @@ def get_supplier_products(request):
     """ Get supplier products """
 
     suppliers_id = request.GET.getlist('sids', '')
-    res = CagetteProducts.get_products_for_order_helper(suppliers_id)
+    stats_from = request.GET.get('stats_from')
+    res = CagetteProducts.get_products_for_order_helper(suppliers_id, [], stats_from)
     
     if 'error' in res:
         return JsonResponse(res, status=500)
@@ -52,14 +54,28 @@ def get_supplier_products(request):
 def associate_supplier_to_product(request):
     """ This product is now supplied by this supplier """
     res = {}
-    try:
-        data = json.loads(request.body.decode())
-        res = CagetteProduct.associate_supplier_to_product(data)
-    except Exception as e:
-        res["error"] = str(e)
+
+    data = json.loads(request.body.decode())
+    res = CagetteProduct.associate_supplier_to_product(data)
+
+    if 'error' in res:
         return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
 
     return JsonResponse({'res': res})
+
+def end_supplier_product_association(request):
+    """ This product is now unavailable from this supplier """
+    res = {}
+
+    data = json.loads(request.body.decode())
+    res = CagetteProduct.end_supplier_product_association(data)
+
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
 
 def create_orders(request):
     """ Create products orders """

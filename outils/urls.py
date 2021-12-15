@@ -45,6 +45,7 @@ urlpatterns = [
     url(r'^shop/', include('shop.urls')),
     url(r'^shelfs/', include('shelfs.urls')),
     url(r'^sales/', include('sales.urls')),
+    url(r'^members_space/', include('members_space.urls')),
 ]
 
 try:

@@ -35,7 +35,7 @@ function get_shift_name(s_data) {
 
     if (s_data && s_data.week) {
         shift_name = weeks_name[s_data.week];
-        if (s_data.type == 2) {
+        if (s_data.type == 2 && typeof manage_ftop != "undefined" && manage_ftop == true) {
             shift_name = 'Volant';
         } else {
             shift_name += s_data.day + ' - ' + s_data.begin;

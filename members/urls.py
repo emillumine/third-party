@@ -36,11 +36,11 @@ urlpatterns = [
     url(r'^verify_final_state$', views.verify_final_state),
     url(r'^update_couchdb_barcodes$', views.update_couchdb_barcodes),
     #  Borne accueil
-    url(r'^search/(.+)', views.search),
+    url(r'^search/([^\/.]+)/?([0-9]*)', views.search),
     url(r'^save_photo/([0-9]+)$', views.save_photo, name='save_photo'),
     url(r'^services_at_time/([0-9TZ\-\: \.]+)/([0-9\-]+)$', views.services_at_time),
     url(r'^service_presence/$', views.record_service_presence),
-    url(r'^record_absences$', views.record_absences),
+    url(r'^record_absences/?([0-9\-\ \:]*)$', views.record_absences),
     url(r'^close_ftop_service$', views.close_ftop_service),
     url(r'^get_credentials$', views.get_credentials),
     url(r'^remove_data_from_couchdb$', views.remove_data_from_CouchDB),
@@ -49,4 +49,11 @@ urlpatterns = [
     url(r'^easy_validate_shift_presence$', views.easy_validate_shift_presence),
     # conso / groupe recherche / socio
     url(r'^panel_get_purchases$', views.panel_get_purchases),
+    # BDM 
+    url(r'^save_partner_info$', views.save_partner_info),
+
+    # BDM - members admin
+    url(r'^admin$', admin.admin),
+    url(r'^get_makeups_members$', admin.get_makeups_members),
+    url(r'^update_members_makeups$', admin.update_members_makeups),
 ]

@@ -4,9 +4,11 @@
    </div>
    <div class="col-1 lat_menu">
      <button class="flex-container--column highlighted" data-select="{{mag_place_string}}">Magasin</button>
+     {% if show_ftop_button %}
      ou ...
      <br />
      <button class="flex-container--column" data-select="Volant">Volant</button>
+     {% endif %}
      <div class="info"></div>
    </div>
    <div class="col-5 main_content">

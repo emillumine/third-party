@@ -8,7 +8,7 @@
  <script type="text/javascript">
     // Prevent back page
     // Add actual page to history
-    history.pushState(null, null, location.pathname)
+    history.pushState(null, null, location.pathname);
 
     // Register back button click
     window.onpopstate = function (e) {
@@ -16,12 +16,17 @@
         e.preventDefault()
         // Add actual page to history again
         history.pushState(null, null, location.pathname)
-    }
+    };
+    window.late_mode = {% if LATE_MODE %}true{% else %}false{% endif %};
+    {% if committees_shift_id %}
+       window.committees_shift_id = {{committees_shift_id}};
+    {% endif %} 
   </script>
   <script src="{% static "js/webcam.min.js" %}">
   </script>
   <script src="{% static "js/JsBarcode.all.min.js" %}">
   </script>
+  <script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
   <script defer src="{% static "fontawesome/js/fontawesome-all.js" %}"></script>
 
 {% endblock %}
@@ -183,6 +188,9 @@
     <h1 class="col-6 txtcenter">Bon service !</h1>
     <section class="col-6 txtcenter">
         <span class="member_name"></span><br />
+        {% if ENTRANCE_VALIDATE_PRESENCE_MESSAGE != '' %}
+        {{ENTRANCE_VALIDATE_PRESENCE_MESSAGE|safe}}
+        {% else %}
         Votre présence est bien enregistrée ! <br />
         <div class="compteur">
             Votre compteur est dorénavant à <span class="points"></span> point(s).<br />
@@ -195,6 +203,7 @@
             </div>
         </div>
         Votre prochain service <span class="service_verb">est prévu</span> le <span class="next_shift"></span>
+        {% endif %}
     </section>
     <div class="col-2"></div>
     <a class="btn col-2" data-next="first_page">Coopérateur suivant</a>

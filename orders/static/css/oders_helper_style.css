@@ -19,7 +19,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 5px 30px 5px 30px;
+    padding: 7px 30px 7px 30px;
     margin: 0 10px 5px 10px;
 }
 
@@ -29,6 +29,26 @@
 
 .disabled:hover {
     background-color: #a1a2a3;
+}
+
+.link_as_button:hover {
+    text-decoration: none;
+    color: white;
+}
+.link_as_button:active {
+    text-decoration: none;
+    color: white;
+}
+.link_as_button:focus {
+    text-decoration: none;
+    color: white;
+}
+
+.remove_order_modal_text {
+    font-size: 2rem;
+}
+.remove_order_name {
+    font-weight: bold;
 }
 
 /* - Order selection screen */
@@ -48,6 +68,25 @@
     width: 80%;
     margin: 0 auto;
     padding-top: 15px;
+}
+
+.order_pill {
+    flex-direction: row;
+}
+
+.pill_order_name {
+    flex: 3 0 auto;
+}
+.remove_order_icon {
+    flex: 0 1 auto;
+    color: #912930;
+    margin-left: 5px;
+    cursor: pointer;
+    z-index: 2;
+    transform: scale(1.2);
+}
+.remove_order_icon:hover {
+    color: #e62720;
 }
 
 .order_last_update {
@@ -82,6 +121,48 @@
     justify-content: flex-start;
 }
 
+.right_action_buttons {
+    display: flex;
+}
+
+#actions_buttons_wrapper {
+    position: relative;
+    margin-right: 5px;
+}
+
+#toggle_action_buttons {
+    width: 250px;
+    position: relative;
+}
+
+.toggle_action_buttons_icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 15px;
+}
+
+#actions_buttons_container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    display: none;
+}
+
+.action_button {
+    width: 100%;
+    min-height: 45px;
+}
+
+#do_inventory {
+    border-top: 1px solid #004aa6;
+}
+#refresh_order {
+    border-top: 1px solid #004aa6;
+    border-bottom: 1px solid #004aa6;
+}
+
 /* -- Order data */
 #order_data_container {
     font-size: 1.8rem;
@@ -92,9 +173,14 @@
 }
 
 #order_forms_container {
-    margin-top: 30px;
+    margin-top: 20px;
     display: flex;  
+    flex-wrap: wrap;
     justify-content: space-evenly;
+}
+
+.order_form_item {
+    margin-top: 10px;
 }
 
 #supplier_input {
@@ -102,7 +188,12 @@
     border-radius: 3px;
 }
 
-#date_planned_input, #coverage_days_input {
+#stats_date_period_select {
+    margin-left: 5px;
+    min-width: 200px;
+}
+
+#date_planned_input, #coverage_days_input, #stats_date_period_select {
     border-radius: 3px;
 }
 
@@ -144,18 +235,27 @@
     width: 100px;
 }
 
+.product_ref_input {
+    padding: .5rem .5rem;
+}
+
 .supplier_package_qty {
     font-style: italic;
     font-size: 1.3rem;
 }
 
 .product_not_from_supplier {
-    background-color: #e7e9ed;
+    background-color: #e8ebf0;
     cursor: pointer;
 }
 
 .product_not_from_supplier:hover {
-    background-color: #c7cace;
+    background-color: #d3d7db;
+}
+
+.product_ref_cell:hover {
+    background-color: #d3d7db;
+    cursor: pointer;
 }
 
 .product_name, .supplier_name, .product_npa {
@@ -164,6 +264,18 @@
 
 .select_product_cb, .product_npa_cb {
     cursor: pointer;
+}
+
+.focused_line {
+    background-color: #76cf71 !important;
+}
+
+.dataTables_scrollHead {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    top: 0;
+    z-index: 3;
+    background-color: white;
 }
 
 /* -- Footer */
@@ -185,19 +297,24 @@
     align-items: center;
     flex-wrap: wrap; 
     margin: 30px 0 20px 0;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 140px;
+    z-index: 5;
 }
 
 .supplier_pill {
-    background-color: #e7e9edc5;
-    border: 1px solid black;
+    background-color: #a0daff;
+    border: 1px solid #6ea8cc;
 }
 
 .pill_supplier_name {
     font-weight: bold;
 }
 
-.supplier_total_value_container {
+.supplier_data {
     font-size: 1.5rem;
+    display: flex;
 }
 
 .remove_supplier_icon {
@@ -253,19 +370,6 @@
     margin-top: 10px;
 }
 
-.download_order_file_button:hover {
-    text-decoration: none;
-    color: white;
-}
-.download_order_file_button:active {
-    text-decoration: none;
-    color: white;
-}
-.download_order_file_button:focus {
-    text-decoration: none;
-    color: white;
-}
-
 #recap_delivery_date {
     font-weight: bold;
 }
@@ -286,4 +390,10 @@
     background-color: #e7e9ed;
     width: 100%;
     padding: 15px;
+}
+
+/* - Miscellaneous */
+
+footer {
+    display: none;
 }

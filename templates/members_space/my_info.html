@@ -1,0 +1,118 @@
+<div id="my_info">
+    <div class="page_title txtcenter">
+        <h1>Mes Infos</h1>
+    </div>
+    <div class="tiles_container">
+        <div class="tile full_width_tile" id="my_info_area">
+            <div class="tile_title">
+                <i class="fas fa-user tile_icon"></i>   
+                <span class="member_info member_name"></span>
+            </div>
+            <div class="tile_content" id="my_info_content">
+                <div class="my_info_line">
+                    <div class="my_info_line_left">
+                        Statut
+                    </div>
+                    <div class="my_info_line_right">
+                        <p class="member_info member_status"></p>
+                        <div class="delay_date_stop_container">
+                            ( jusqu'au <span class="delay_date_stop"></span> )
+                        </div>
+                        <div id="member_status_action">
+                            <a href="#" target="_blank" class="btn--warning unsuscribed_form_link">
+                                J'accède au formulaire
+                            </a>
+                            <button type="button" class="btn--danger choose_makeups">
+                                Je sélectionne mes rattrapages
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="my_info_line">
+                    <div class="my_info_line_left">
+                        Créneau
+                    </div>
+                    <div class="my_info_line_right member_shift_name_area">
+                        <span class="member_shift_name member_info"></span>
+                    </div>
+                </div>
+                <div class="my_info_line">
+                    <div class="my_info_line_left">
+                        Numéro de coop
+                    </div>
+                    <div class="my_info_line_right member_coop_number_area">
+                        <span class="member_coop_number member_info"></span>
+                    </div>
+                </div>
+                <div class="my_info_line member_email_line">
+                    <div class="my_info_line_left">
+                        Email
+                    </div>
+                    <div class="my_info_line_right member_email_area">
+                        <span class="member_email member_info"></span>
+                    </div>
+                </div>
+                <div class="my_info_line member_address_line">
+                    <div class="my_info_line_left">
+                        Adresse 
+                    </div>
+                    <div class="my_info_line_right member_address_area" id="edit_address_value">
+                        <span class="member_address member_info"></span><br>
+                        <span id="edit_address"><i class="fas fa-edit tile_icon edit-btn" ></i></span>
+                    </div>
+                    <div class="my_info_line_right member_address_area1" id="edit_address_form">
+                        <input type="text" name="street_form" id="street_form" placeholder="Rue"> <br>
+                        <!-- <input type="text" name="street2_form" id="street2_form" placeholder="Complément">  -->
+                        <input type="text" name="zip_form" id="zip_form" placeholder="Code postal"> <br>
+                        <input type="text" name="city_form" id="city_form" placeholder="Ville"> <br>
+                        <span id="cancel_edit_address"><i class="fas fa-times tile_icon edit-btn"></i></span>
+                        <span id="save_edit_address"><i class="fas fa-check tile_icon edit-btn"></i></span>
+                    </div>
+                </div>
+                <div class="my_info_line member_phone_line">
+                    <div class="my_info_line_left">
+                        Téléphone
+                    </div>
+                    <div class="my_info_line_right member_phone_area" id="edit_phone_value">
+                        <span class="member_phone member_info"></span>
+                        <span class="member_mobile member_info"></span>
+                        <span id="edit_phone"><i class="fas fa-edit tile_icon edit-btn" ></i></span>
+                    </div>
+                    <div class="my_info_line_right member_phone_area1" id="edit_phone_form">
+                        <input type="text" name="phone" id="phone_form" placeholder="Tel fixe"> <br>
+                        <input type="text" name="mobile" id="mobile_form" placeholder="Tel mobile"><br>
+                        <span id="cancel_edit_phone"><i class="fas fa-times tile_icon edit-btn"></i></span>
+                        <span id="save_edit_phone"><i class="fas fa-check tile_icon edit-btn"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tile full_width_tile" id="attached_info_area">
+            <div class="tile_title">
+                Mon Binôme
+            </div>
+            <div class="tile_content" id="attached_info">
+                <div class="my_info_line attached_partner_name_line">
+                    <div class="my_info_line_left">
+                        Je suis en binôme avec :
+                    </div>
+                    <div class="my_info_line_right attached_partner_name_area">
+                        <span class="attached_partner_name member_info"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tile full_width_tile">
+            <div class="tile_title">
+                Comprendre mon statut
+            </div>
+            <div class="my_info_line_middle">
+                Il existe différents statuts à La Cagette donnant ou non le droit de faire ses courses. Voici un schéma explicatif expliquant le passage d'un statut à un autre. Pour toute question relative aux statuts, rendez&#x2011;vous dans la rubrique <a href='faq'>Problèmes&nbsp;&&nbsp;Demandes</a>.
+            </div>
+            <a href="/static/img/diagramme_etat_statut_cooperateurs.png" target=”_blank”>
+                <img class="status_info_image" src="/static/img/diagramme_etat_statut_cooperateurs.png" alt="diagramme_etat_statut_cooperateurs"/>
+            </a>
+
+        </div>
+    </div>
+</div>

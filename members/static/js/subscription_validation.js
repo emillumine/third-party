@@ -92,7 +92,7 @@ function process_form_submission(event) {
             openModal();
             post_form(
                 '/members/coop_validated_data', form_data,
-                function(err, result) {
+                function(err) {
                     closeModal();
 
                     if (!err) {
@@ -119,7 +119,7 @@ function process_form_submission(event) {
         openModal();
         post_form(
             '/members/coop_warning_msg', data,
-            function(err, result) {
+            function(err) {
                 closeModal();
                 if (!err) {
                     $('#main_content').remove();
