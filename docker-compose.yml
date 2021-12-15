@@ -31,18 +31,24 @@ services:
     image: "postgres:10"
     env_file: .env
     restart: always
+    ports:
+      - "5432:5432" # Expose port for data restore
     volumes:
       - "odoo-pg-data:/var/lib/postgresql/data"
+
   odoo:
-    image: "registry.gitlab.com/lgds/foodcoops:9.0-cooperatic-2021-04-02"
-    env_file: .env
+    image: odoo/foodcoops # First create this image locally from odoo's repo
     restart: always
     ports:
       - "8069:8069"
     links:
       - "database:database"
     volumes:
-      - "odoo-shared-data:/home/app/.local/share/Odoo"
+      - "odoo-shared-data:/root/.local/share/Odoo"
+      - "./data/:/external-data/" # Create a volume binding local fs to container to restore data
+    command: python ./odoo/odoo.py --db_host=database --database=lacagette_anon --db_user=foodcoops --db_password=foodcoops --addons-path=odoo/addons,lacagette_addons,extra_addons,smile_addons,intercoop_addons,louve_addons,supercafoutch_addons
+    depends_on:
+      - "database"
 
 volumes:
   odoo-shared-data:
