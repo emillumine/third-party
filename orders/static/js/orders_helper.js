@@ -227,7 +227,7 @@ function check_products_data() {
 
         if (suppliers_id.length > 0) {
             $.notify(
-                "Vérfication des informations produits...",
+                "Vérification des informations produits...",
                 {
                     globalPosition:"top left",
                     className: "info"
@@ -1611,10 +1611,11 @@ function display_products(params) {
 
                 // On arrow up pressed, focus next row input
                 let next_input = $(this).closest("tr").prev().find(".product_qty_input");
+                  next_input;
                 next_input.focus();
 
                 // Scroll to a position where the target input is not hidden by the sticky suppliers container
-                const suppliers_container_top_offset = 
+                const suppliers_container_top_offset =
                     $("#suppliers_container").offset().top
                     - $(window).scrollTop()
                     + $("#suppliers_container").outerHeight();
@@ -1630,10 +1631,11 @@ function display_products(params) {
 
                 // On arrow down pressed, focus previous row input
                 $(this).closest("tr").next().find(".product_qty_input").focus();
+
             } else if (e.which == 13) {
                 e.preventDefault();
 
-                // On arrow down pressed, focus previous row input
+                // On enter pressed, focus previous row input
                 $(this).closest("tr").next().find(".product_qty_input").focus();
             }
         });
