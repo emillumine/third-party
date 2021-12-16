@@ -16,7 +16,8 @@ const possible_cooperative_state = {
     alert: "En alerte",
     up_to_date: "À jour",
     unsubscribed: "Désinscrit.e des créneaux",
-    delay: "En délai"
+    delay: "En délai",
+    gone: "Parti.e"
 };
 
 /* - Data */
@@ -177,7 +178,7 @@ function init_my_info_data() {
 
         $(".delay_date_stop").text(f_date_delay_stop);
         $(".delay_date_stop_container").show();
-    } else if (partner_data.cooperative_state === 'unsubscribed') {
+    } else if (partner_data.cooperative_state === 'unsubscribed' || partner_data.cooperative_state === 'gone') {
         $(".member_shift_name").text('X');
 
         $(".unsuscribed_form_link")
