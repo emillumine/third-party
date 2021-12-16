@@ -197,6 +197,23 @@
     border-radius: 3px;
 }
 
+#coverage_form > div {
+    display:inline-block;
+    float:left;
+}
+
+#coverage_form .input-wrapper {
+    margin-right: 3px;
+}
+
+#coverage_days_input, #percent_adjust_input {
+    display:  block;
+}
+
+#coverage_days_input {
+    margin-bottom: 3px;
+}
+
 /* -- Table */
 #products_table_filter{
     text-align: right !important;

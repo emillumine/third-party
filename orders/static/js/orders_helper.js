@@ -189,7 +189,14 @@ function add_product() {
  * Set the computed qty for the first supplier only.
  */
 function compute_products_coverage_qties() {
+    const pc_adjust = $('#percent_adjust_input').val();
+    let coeff = 1;
+    if (!isNaN(parseFloat(pc_adjust))) {
+        coeff = (1 + parseFloat(pc_adjust) /100);
+    }
+
     if (order_doc.coverage_days != null) {
+        order_doc.coeff = coeff;
         for (const [
             key,
             product
@@ -202,12 +209,16 @@ function compute_products_coverage_qties() {
                 const incoming_qty = product.incoming_qty;
                 const daily_conso = product.daily_conso;
 
+
                 purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
                 purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
 
                 // Reduce to nb of packages to purchase
                 purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
 
+                if (order_doc.coeff != 1) {
+                    purchase_package_qty_for_coverage *= order_doc.coeff;
+                }
                 // Round up to unit for all products
                 purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
 
@@ -1883,6 +1894,10 @@ function update_main_screen(params) {
         $("#coverage_days_input").val(order_doc.coverage_days);
     } else {
         $("#coverage_days_input").val('');
+    }
+
+    if (order_doc.coeff && order_doc.coeff != 1) {
+        $("#percent_adjust_input").val(-Math.ceil((1 - order_doc.coeff) * 100));
     }
 
     if (order_doc.stats_date_period !== undefined && order_doc.stats_date_period !== null) {
