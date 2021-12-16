@@ -1478,7 +1478,7 @@ function display_products(params) {
 
     const data = prepare_datatable_data();
     const columns = prepare_datatable_columns();
-    let sort_order_dir = "asc";
+    let sort_order_dir = "desc";
 
     if (params != undefined && typeof params.sort_order_dir != "undefined") {
         sort_order_dir = params.sort_order_dir;
@@ -1488,10 +1488,11 @@ function display_products(params) {
         columns: columns,
         order: [
             [
-                6, // Order by default by first supplier
+                5, // Order by default by first supplier
                 sort_order_dir
             ]
         ],
+        stateSave: true,
         orderClasses: false,
         aLengthMenu: [
             [
