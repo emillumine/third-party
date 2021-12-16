@@ -87,64 +87,69 @@ L'adresse d'écoute et le numero de port peuvent être modifiés  en les passant
 
 ## Docker (not suitable for production)
 
-1. Uniquement l'application third-party avec le reste installé sur l'hôte.
+  1. Uniquement l'application third-party avec le reste installé sur l'hôte.
 
-```
-docker build -t third-party -f ./dockerfiles/Dockerfile .
-```
+      ```
+      docker build -t third-party -f ./dockerfiles/Dockerfile .
+      ```
 
-Puis créer un container à partir de l'image.
-```
-docker run third-party
-```
+      Puis créer un container à partir de l'image.
 
-note: Pour accéder au services installés sur l'hôte remplacer `localhost` par `host.docker.internal`
+      ```
+      docker run third-party
+      ```
 
-2. Lancer la pile de développement complète avec docker-compose
-
-    1. Dans le repo odoo, créer l'image odoo/foodcoops
-
-    ```
-    docker build -t odoo/foodcoops .
-    ```
-    Modifier la valeur `POSTGRES_DB=lacagette_anon` dans le `.env`
-
-    2. Depuis le repo third-party
-    ```
-    docker-compose up
-    ```
-
-    3. Une fois tout les services lancés appuyez sur crtl+C
-    4. Relancer la base de données uniquement pour charger les données
-    ```
-    docker-compose start database
-    ```
-    5. Recharger les données depuis PgAdmin
-
-      - Il est nécessaire de recréer les rôles
-   ```
-    CREATE ROLE lacagette;
-    CREATE ROLE visu;
-    ```
-      - Supprimer complètement la base.
-      - Recréer la base `cagette_anon` puis restorer les données.
+      note: Pour accéder au services installés sur l'hôte remplacer `localhost` par `host.docker.internal`
 
 
-    6. Placer le fichier FScontent.zip dans le dossier data
-    7. Arrêter la pile de développement avec `docker-compose down`
-    8. Relancer la pile complète en arrière plan `docker-compose up -d`
-    9. Se connecter au container docker odoo et déziper le FScontent
-    ```
-    docker-compose exec odoo /bin/bash
-    root@<instance>:/usr/src/odoo#cd /external-data
-    root@<instance>:/external-data#cp FScontent.zip /root/.local/share/Odoo/filestore/lacagette_anon/
-    root@<instance>:/external-data#cd /root/.local/share/Odoo/filestore/lacagette_anon/
-    root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#unzip FScontent.zip
-    root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#rm FScontent.zip
-    root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#exit
-    ```
-    10. redémarrer la pile complète `docker-compose down` suivi de `docker-compose up -d`
+  2. Lancer la pile de développement complète avec docker-compose
 
-    L'application est dispo sur localhost:8080 et odoo sur localhost:8069
+      1. Dans le repo odoo, créer l'image odoo/foodcoops
 
-note: les données sont persistantes (stockées dans des volumes docker)
+          ```
+          docker build -t odoo/foodcoops .
+          ```
+          Modifier la valeur `POSTGRES_DB=lacagette_anon` dans le `.env`
+
+      2. Depuis le repo third-party
+
+          ```
+          docker-compose up
+          ```
+
+      3. Une fois tout les services lancés appuyez sur crtl+C
+      4. Relancer la base de données uniquement pour charger les données
+
+          ```
+          docker-compose start database
+          ```
+      5. Recharger les données depuis PgAdmin
+
+            - Il est nécessaire de recréer les rôles
+
+               ```
+                CREATE ROLE lacagette;
+                CREATE ROLE visu;
+                ```
+            - Supprimer complètement la base.
+            - Recréer la base `cagette_anon` puis restorer les données.
+
+
+      6. Placer le fichier FScontent.zip dans le dossier data
+      7. Arrêter la pile de développement avec `docker-compose down`
+      8. Relancer la pile complète en arrière plan `docker-compose up -d`
+      9. Se connecter au container docker odoo et déziper le FScontent
+          ```
+          docker-compose exec odoo /bin/bash
+          root@<instance>:/usr/src/odoo#cd /external-data
+          root@<instance>:/external-data#cp FScontent.zip /root/.local/share/Odoo/filestore/lacagette_anon/
+          root@<instance>:/external-data#cd /root/.local/share/Odoo/filestore/lacagette_anon/
+          root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#unzip FScontent.zip
+          root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#rm FScontent.zip
+          root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#exit
+          ```
+      10. redémarrer la pile complète `docker-compose down` suivi de `docker-compose up -d`
+
+          L'application est dispo sur localhost:8080 et odoo sur localhost:8069
+
+          note: les données sont persistantes (stockées dans des volumes docker)
