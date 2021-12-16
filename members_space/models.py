@@ -36,7 +36,7 @@ class CagetteMembersSpace(models.Model):
         try:
             cond = [
                 ['partner_id', '=', partner_id], 
-                ['create_date', '>', date_from],
+                ['date_begin', '>', date_from],
                 ['date_begin', '<', today],
                 ['state', '!=', 'draft'],
                 ['state', '!=', 'open'],
@@ -88,10 +88,10 @@ class CagetteMembersSpace(models.Model):
                     res = res + []
 
             # Add amnesty line
-            is_amnesty = getattr(settings, 'AMNISTIE_DATE', 'false')
+            is_amnesty = getattr(settings, 'AMNISTIE_DATE', False)
             company_code = getattr(settings, 'COMPANY_CODE', '')
             if is_amnesty and company_code == "lacagette":
-                amnesty={}
+                amnesty = {}
                 amnesty['is_amnesty'] = True
                 amnesty['create_date'] = is_amnesty
                 amnesty['date_begin'] = is_amnesty
@@ -107,7 +107,7 @@ class CagetteMembersSpace(models.Model):
             paginated_res = res[offset:end_index]
 
         except Exception as e:
-            print(str(e))
+            coop_logger.error("get_shifts_history : %s", str(e))
 
         return paginated_res
  
