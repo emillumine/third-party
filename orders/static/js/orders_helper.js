@@ -688,35 +688,32 @@ function _compute_total_values_by_supplier() {
 
 /* - PRODUCT */
 
-/**
- * Update 'purchase_ok' of a product
- *
- * @param {int} p_id product id
- * @param {Boolean} npa value to set purchase_ok to
- */
-function set_product_npa(p_id, npa) {
-    openModal();
-
-    const data = {
-        product_tmpl_id: p_id,
-        purchase_ok: !npa
-    };
-
-    // Fetch supplier products
+function save_products_npa_minimal_stock(product, inputs) {
+    let actions = {npa: [], minimal_stock: 0, id: product.id, name: product.name};
+    inputs.each(function (i,e) {
+        const input = $(e)
+        if (input.attr('type') == 'checkbox') {
+            if (input.prop('checked') == true) {
+                actions.npa.push(input.val())
+            }
+        } else if (input.attr('name') == "minimal_stock") {
+            actions.minimal_stock = input.val()
+        }
+    });
     $.ajax({
         type: "POST",
-        url: "/products/update_product_purchase_ok",
+        url: "/products/update_npa_and_minimal_stock",
         dataType: "json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
-        data: JSON.stringify(data),
+        data: JSON.stringify(actions),
         success: () => {
-            const index = products.findIndex(p => p.id == p_id);
+            const index = products.findIndex(p => p.id == product.id);
 
             // Give time for modal to fade
             setTimeout(function() {
                 $(".actions_buttons_area .right_action_buttons").notify(
-                    "Produit passé en NPA !",
+                    "Actions enregistrées !",
                     {
                         elementPosition:"bottom right",
                         className: "success",
@@ -724,19 +721,21 @@ function set_product_npa(p_id, npa) {
                     }
                 );
             }, 500);
-
-            // Remove NPA products
-            products.splice(index, 1);
-            update_main_screen();
-            update_cdb_order();
+            products[index].minimal_stock = actions.minimal_stock;
+            if (actions.npa.length > 0) {
+                // Remove NPA products
+                products.splice(index, 1);
+                update_main_screen();
+                update_cdb_order();
+            }
 
             closeModal();
         },
         error: function(data) {
-            let msg = "erreur serveur lors de la sauvegarde du NPA".
-                msg += ` (product_tmpl_id: ${p_id})`;
+            let msg = "erreur serveur lors de la sauvegarde".
+                msg += ` (product_tmpl_id: ${product.id})`;
 
-            err = {msg: msg, ctx: 'set_product_npa'};
+            err = {msg: msg, ctx: 'save_products_npa_minimal_stock'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
@@ -747,7 +746,9 @@ function set_product_npa(p_id, npa) {
             update_main_screen();
         }
     });
+
 }
+
 
 /* - INVENTORY */
 
@@ -1327,8 +1328,8 @@ function prepare_datatable_columns() {
         {
             data: "id",
             title: `<div id="table_header_select_all" class="txtcenter">
-                        <span class="select_all_text">Sélectionner</span>
-                        <label for="select_all_products_cb">- Tout</label>
+                        <!--<span class="select_all_text">Sélectionner</span>-->
+                        <label for="select_all_products_cb">Tout</label>
                         <input type="checkbox" class="select_product_cb" id="select_all_products_cb" name="select_all_products_cb" value="all">
                     </div>`,
             className: "dt-body-center",
@@ -1453,12 +1454,11 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
-        data: "purchase_ok",
-        title: `NPA`,
+        title: ``,
         className: "dt-body-center",
         orderable: false,
         render: function (data) {
-            return `<input type="checkbox" class="product_npa_cb" value="purchase_ok" ${data ? '' : 'checked'}>`;
+            return `<button type="button" class="btn--primary product_actions">Actions</button>`;
         },
         width: "4%"
     });
@@ -1625,7 +1625,6 @@ function display_products(params) {
 
                 // On arrow up pressed, focus next row input
                 let next_input = $(this).closest("tr").prev().find(".product_qty_input");
-                  next_input;
                 next_input.focus();
 
                 // Scroll to a position where the target input is not hidden by the sticky suppliers container
@@ -1652,6 +1651,31 @@ function display_products(params) {
                 // On enter pressed, focus previous row input
                 $(this).closest("tr").next().find(".product_qty_input").focus();
             }
+        })
+        .on('click', 'tbody td .product_actions', function(e){
+             // Save / unsave selected row
+            const p_id = products_table.row($(this).closest('tr')).data().id;
+
+            const product = products.find(p => p.id == p_id);
+
+            let modal_product_actions = $('#templates #modal_product_actions');
+
+            modal_product_actions.find(".product_name").text(product.name);
+
+            //modal_product_actions.find(".product_npa").text(null ? 'Ne Pas Acheter' : 'Peut Être Acheté');
+
+            openModal(
+                modal_product_actions.html(),
+                () => {
+                    if (is_time_to('validate_product_actions')) {
+                        save_products_npa_minimal_stock(product, modal.find('input'));
+                    }
+                },
+                'Valider',
+                false
+            );
+            modal.find('input[name="minimal_stock"]').val(product.minimal_stock)
+
         });
 
     // Associate product to supplier on click on 'X' in the table
@@ -1783,34 +1807,7 @@ function display_products(params) {
         }
     });
 
-    // Set product is NPA (Ne Pas Acheter)
-    $('#products_table').on('click', 'tbody td .product_npa_cb', function () {
-        // Save / unsave selected row
-        const p_id = products_table.row($(this).closest('tr')).data().id;
-        const npa = this.checked;
 
-        const product = products.find(p => p.id == p_id);
-
-        let modal_product_npa = $('#templates #modal_product_npa');
-
-        modal_product_npa.find(".product_name").text(product.name);
-        modal_product_npa.find(".product_npa").text(npa ? 'Ne Pas Acheter' : 'Peut Être Acheté');
-
-        openModal(
-            modal_product_npa.html(),
-            () => {
-                if (is_time_to('validate_set_product_npa')) {
-                    set_product_npa(p_id, npa);
-                }
-            },
-            'Valider',
-            false,
-            true,
-            () => {
-                this.checked = !this.checked;
-            }
-        );
-    });
 
     return 0;
 }

@@ -275,14 +275,21 @@
             <hr/>
         </div>
 
-        <div id="modal_product_npa">
-            <h3>Attention !</h3>
+        <div id="modal_product_actions">
+            Actions sur <h3><span class="product_name"></span></h3>
             <p>
-                Vous vous apprêtez à passer le produit <span class="product_name"></span> en <span class="product_npa"></span>.<br/>
-                Dès que vous aurez cliqué sur "Valider", le produit sera retiré du tableau et l'information sera enregistrée dans Odoo.
+                <h4>NPA</h4>
+                <div class="npa-options">
+                    <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
+                    <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
+                    <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+                </div>
             </p>
-            <p>Êtez-vous sûr ?</p>
-            <hr/>
+            <p>
+                <h4>Stock minimum</h4>
+                <input type="number" name="minimal_stock" value="" />
+            </p>
+
         </div>
 
         <div id="modal_create_order">

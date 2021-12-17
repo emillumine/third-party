@@ -367,6 +367,15 @@
     width: 90%;
 }
 
+/* product actions modal*/
+.npa-options {
+    width: fit-content;
+    text-align: left;
+    margin: auto;
+}
+.npa-options label {
+    display:  block;
+}
 /* - Orders created screen */
 
 .order_created_header {
