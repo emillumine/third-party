@@ -74,6 +74,18 @@ class OdooAPI:
     def authenticate(self, login, password):
         return self.common.authenticate(self.db, login, password, {})
 
+    def get_system_param(self, key):
+        value = ''
+        try:
+            res = self.search_read('ir.config_parameter',
+                                   [['key', '=', key]],
+                                   ['value'])
+            if res:
+                value = res[0]['value']
+        except Exception as e:
+            coop_logger.error('get_system_param: (%s) %s', key, str(e))
+        return value
+
 class CouchDB:
     """Class to handle interactions with CouchDB"""
 

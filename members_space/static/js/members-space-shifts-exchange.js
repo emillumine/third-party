@@ -91,8 +91,10 @@ function add_or_change_shift(new_shift_id) {
                 selected_shift = null;
 
                 if (error.status === 400) {
-                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. ` +
-                            `Il n'est plus possible de l'échanger.`);
+                    alert(`Désolé ! Le service que tu souhaites échanger démarre dans moins de 24h. ` +
+                          `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
+                          `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
+                          `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
                 } else {
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +

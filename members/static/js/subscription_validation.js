@@ -96,14 +96,7 @@ function process_form_submission(event) {
                     closeModal();
 
                     if (!err) {
-                        var msg = "Vous êtes maintenant enregistré ! ";
-
-                        msg += "<a href='" + em_url + "'>Cliquez ici</a> ";
-                        msg += "pour découvrir l'espace membre";
-                        $('p.intro').remove();
-                        vform.remove();
-                        display_msg_box(msg);
-
+                        window.location.href = em_url;
                     }
 
                 }

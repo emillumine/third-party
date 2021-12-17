@@ -197,6 +197,23 @@
     border-radius: 3px;
 }
 
+#coverage_form > div {
+    display:inline-block;
+    float:left;
+}
+
+#coverage_form .input-wrapper {
+    margin-right: 3px;
+}
+
+#coverage_days_input, #percent_adjust_input {
+    display:  block;
+}
+
+#coverage_days_input {
+    margin-bottom: 3px;
+}
+
 /* -- Table */
 #products_table_filter{
     text-align: right !important;
@@ -224,6 +241,10 @@
     margin-left: 5px;
 }
 
+.main.fa-info-circle {
+    color: #0275d8;
+    cursor:  pointer;
+}
 .custom_cell_content {
     display: flex;
     flex-direction: column;
@@ -346,6 +367,15 @@
     width: 90%;
 }
 
+/* product actions modal*/
+.npa-options {
+    width: fit-content;
+    text-align: left;
+    margin: auto;
+}
+.npa-options label {
+    display:  block;
+}
 /* - Orders created screen */
 
 .order_created_header {
@@ -391,6 +421,8 @@
     width: 100%;
     padding: 15px;
 }
+
+
 
 /* - Miscellaneous */
 
