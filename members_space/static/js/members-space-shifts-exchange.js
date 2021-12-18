@@ -439,7 +439,7 @@ function init_shifts_exchange() {
     $(".shifts_exchange_page_content").hide();
     vw = window.innerWidth;
 
-    if (partner_data.cooperative_state === 'unsubscribed') {
+    if (partner_data.cooperative_state === 'unsubscribed' || partner_data.cooperative_state === 'gone') {
         $("#unsuscribed_content").show();
 
         $(".unsuscribed_form_link")
