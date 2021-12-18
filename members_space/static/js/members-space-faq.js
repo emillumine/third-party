@@ -20,21 +20,6 @@ function init_faq() {
     $("#request_form_link_btn").prop("href", request_form_link);
 }
 
-$(document).on('click', '.accordion', function() {
-    /* Toggle between adding and removing the "active" class,
-    to highlight the button that controls the panel */
-    this.classList.toggle("active");
-
-    /* Toggle between hiding and showing the active panel */
-    var panel = this.nextElementSibling;
-
-    if (panel.style.display === "block") {
-        panel.style.display = "none";
-    } else {
-        panel.style.display = "block";
-    }
-
-    $("#shift_exchange_btn").on("click", () => {
+$(document).on('click', "#shift_exchange_btn", () => {
         goto('echange-de-services');
-    });
 });
