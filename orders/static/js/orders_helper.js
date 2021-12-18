@@ -210,7 +210,7 @@ function compute_products_coverage_qties() {
                 const daily_conso = product.daily_conso;
 
 
-                purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty;
+                purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty + product.minimal_stock;
                 purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
 
                 // Reduce to nb of packages to purchase

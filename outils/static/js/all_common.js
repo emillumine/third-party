@@ -460,6 +460,19 @@ for (i = 0; i < acc.length; i++) {
     });
 }
 
+$(document).on('click', '.accordion', function(){
+    /* Toggle between adding and removing the "active" class,
+    to highlight the button that controls the panel */
+    this.classList.toggle("active");
+
+    /* Toggle between hiding and showing the active panel */
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+});
 function report_JS_error(e, m) {
     try {
         $.post('/log_js_error', {module: m, error: JSON.stringify(e)});
