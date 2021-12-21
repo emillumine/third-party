@@ -47,7 +47,7 @@ class OdooAPI:
                     order='id ASC'):
         """Main api request, retrieving data according search conditions."""
         fields_and_context = {'fields': fields,
-                              'context': {'lang': 'fr_FR','tz':'Europe/Paris'},
+                              'context': {'lang': 'fr_FR', 'tz': 'Europe/Paris'},
                               'limit': limit,
                               'offset': offset,
                               'order': order
@@ -59,8 +59,11 @@ class OdooAPI:
 
     def update(self, entity, ids, fields):
         """Update entities which have ids, with new fields values."""
+        context = {
+                    'context': {'lang': 'fr_FR', 'tz': 'Europe/Paris'}
+                  }
         return self.models.execute_kw(self.db, self.uid, self.passwd,
-                                      entity, 'write', [ids, fields])
+                                      entity, 'write', [ids, fields], context)
 
     def create(self, entity, fields):
         """Create entity instance with given fields values."""

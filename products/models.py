@@ -268,17 +268,15 @@ class CagetteProduct(models.Model):
                 f['name'] = data['name'] if ('[NPA]' in data['name']) else data['name'] + " [NPA]"
                 f['purchase_ok'] = 0
             elif '[NPA]' in data['name']:
-                #  Remove [NPA] from name
+                # Remove [NPA] from name
                 f['name'] = re.sub(r'( \[NPA\])', '', data['name'])
 
             current_name = data['name'] if ('name' not in f) else f['name']
-
             if 'fds-in-name' in data['npa']:
                 f['name'] = current_name if '[FDS]' in data['name'] else current_name + " [FDS]"
                 f['purchase_ok'] = 0
             elif '[FDS]' in current_name:
                 f['name'] = re.sub(r'( \[FDS\])', '', current_name)
-
             if len(data['npa']) == 0:
                 f['purchase_ok'] = 1
             res["update"] = api.update('product.template', data['id'], f)
