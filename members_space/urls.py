@@ -12,5 +12,5 @@ urlpatterns = [
     url(r'^faqBDM$', views.faqBDM),
     url(r'^no_content$', views.no_content),
     url(r'^get_shifts_history$', views.get_shifts_history),
-    url('/*$', views.index),  # Urls unknown from the server will redirect to index
+    url(r'^.*', views.index)  # Urls unknown from the server will redirect to index
 ]
