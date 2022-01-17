@@ -16,5 +16,6 @@ urlpatterns = [
     url(r'^reception_qtiesValidated', views.reception_qtiesValidated),
     url(r'^reception_pricesValidated', views.reception_pricesValidated),
     # url(r'^update_order_status/([0-9]+)$', views.tmp_update_order_status),
-    url(r'^po_process_picking$', views.po_process_picking)
+    url(r'^po_process_picking$', views.po_process_picking),
+    url(r'^send_mail_no_barcode', views.send_mail_no_barcode)
 ]

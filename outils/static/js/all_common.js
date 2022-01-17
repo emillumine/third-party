@@ -386,7 +386,7 @@ try {
 }
 
 if (getCookie('deconnect_option') && $('#deconnect').length == 0) {
-    //Add deconnect button
+    // Add deconnect button
     //$('body').prepend($('<button>').attr('id','password_change').text('Changer mon mot de passe'));
     $('body').prepend($('<button>').attr('id', 'deconnect')
         .attr('type', 'button')
@@ -396,6 +396,11 @@ if (getCookie('deconnect_option') && $('#deconnect').length == 0) {
     });
     $('#password_change').click(function() {
         window.location.href = '/website/change_pwd';
+    });
+} else if (getCookie('deconnect_option') && $('#deconnect').length !== 0) {
+    // If a deconnect button already exists
+    $('#deconnect').click(function() {
+        window.location.href = "/website/deconnect";
     });
 }
 
@@ -454,6 +459,22 @@ for (i = 0; i < acc.length; i++) {
         }
     });
 }
+
+$(document).on('click', '.accordion', function(){
+    /* Toggle between adding and removing the "active" class,
+    to highlight the button that controls the panel */
+    this.classList.toggle("active");
+
+    /* Toggle between hiding and showing the active panel */
+    var panel = this.nextElementSibling;
+
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+     console.log(panel)
+});
 
 function report_JS_error(e, m) {
     try {

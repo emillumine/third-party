@@ -47,7 +47,7 @@ class OdooAPI:
                     order='id ASC'):
         """Main api request, retrieving data according search conditions."""
         fields_and_context = {'fields': fields,
-                              'context': {'lang': 'fr_FR','tz':'Europe/Paris'},
+                              'context': {'lang': 'fr_FR', 'tz': 'Europe/Paris'},
                               'limit': limit,
                               'offset': offset,
                               'order': order
@@ -59,8 +59,11 @@ class OdooAPI:
 
     def update(self, entity, ids, fields):
         """Update entities which have ids, with new fields values."""
+        context = {
+                    'context': {'lang': 'fr_FR', 'tz': 'Europe/Paris'}
+                  }
         return self.models.execute_kw(self.db, self.uid, self.passwd,
-                                      entity, 'write', [ids, fields])
+                                      entity, 'write', [ids, fields], context)
 
     def create(self, entity, fields):
         """Create entity instance with given fields values."""
@@ -73,6 +76,18 @@ class OdooAPI:
 
     def authenticate(self, login, password):
         return self.common.authenticate(self.db, login, password, {})
+
+    def get_system_param(self, key):
+        value = ''
+        try:
+            res = self.search_read('ir.config_parameter',
+                                   [['key', '=', key]],
+                                   ['value'])
+            if res:
+                value = res[0]['value']
+        except Exception as e:
+            coop_logger.error('get_system_param: (%s) %s', key, str(e))
+        return value
 
 class CouchDB:
     """Class to handle interactions with CouchDB"""

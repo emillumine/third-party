@@ -40,10 +40,32 @@
             <button type="button" class="btn--danger" id="back_to_order_selection_from_main">
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
-            <div class="rights_buttons">
-                <button type="button" class='btn--primary' id="do_inventory" style="display:none;">
-                    Faire un inventaire
-                </button>
+            <div class="right_action_buttons">
+                
+                <div id="actions_buttons_wrapper">
+                    <button type="button" class='btn--primary' id="toggle_action_buttons">
+                        <span class="button_content">
+                            Actions
+                        </span>
+                        <span class="toggle_action_buttons_icon">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div id="actions_buttons_container">
+                        <button type="button" class='btn--primary action_button' id="do_inventory" style="display:none;">
+                            Faire un inventaire
+                        </button>
+                        <button type="button" class='btn--primary action_button' id="refresh_order">
+                            Rafraîchir la commande
+                        </button>
+                        <button type="button" class='btn--danger action_button' id="delete_order_button">
+                            Supprimer la commande
+                        </button>
+                    </div>
+                </div>
+                <a class='btn--warning link_as_button' id="access_metabase" style="display:none;" href="{{metabase_url}}" target="_blank">
+                    Stats Métabase
+                </a>
             </div>
         </div>
     
@@ -57,13 +79,27 @@
         </div>
     
         <div class="txtcenter" id="order_forms_container">
-            <form action="javascript:;" id="coverage_form">
-                <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
-                <button type="submit" class='btn--primary'>Calculer les besoins</button>
-            </form>
-            <form action="javascript:;" id="supplier_form">
+            <form action="javascript:;" id="supplier_form" class="order_form_item">
                 <input type="text" name="supplier" id="supplier_input" placeholder="Rechercher un fournisseur par son nom">
                 <button type="submit" class='btn--primary'>Ajouter le fournisseur</button>
+            </form>
+            <form action="javascript:;" id="stats_date_from_form" class="order_form_item">
+                <label for="stats_date_period_select">Période de calcul de la conso moyenne </label>
+
+                <select name="stats_date_period_select" id="stats_date_period_select">
+                    <option value="">Par défaut</option>
+                    <option value="1week">1 semaine</option>
+                    <option value="2weeks">2 semaines</option>
+                </select>
+            </form>
+            <form action="javascript:;" id="coverage_form" class="order_form_item">
+                <div class="input-wrapper">
+                    <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
+                    <input type="number" name="percent_adjustement" id="percent_adjust_input" placeholder="ajustement en %">
+                </div>
+                <div>
+                    <button  type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg'></i>
+                </div>
             </form>
         </div>
     
@@ -125,8 +161,14 @@
                     <span class="pill_supplier_name"></span>
                     <i class="fas fa-times remove_supplier_icon"></i>
                 </div>
-                <div class="supplier_total_value_container">
-                    Total: <span class="supplier_total_value">0</span>€
+                <div class="supplier_data">
+                    <div class="supplier_total_value_container">
+                        Total : <span class="supplier_total_value">0</span>€
+                    </div>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <div class="supplier_total_packages_container">
+                        Nb colis : <span class="supplier_total_packages">0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -134,6 +176,7 @@
         <div id="order_pill_template">
             <div class="pill order_pill btn btn--primary">
                 <span class="pill_order_name"></span>
+                <i class="fas fa-times remove_order_icon"></i>
             </div>
         </div>
 
@@ -144,7 +187,7 @@
                 <h4 class="new_order_date_planned"></h4>
                 <div class='download_order_file'>
                     <i class="fas fa-spinner fa-spin download_order_file_loading"></i>
-                    <a class='btn--success download_order_file_button' style="display:none;" href="#">
+                    <a class='btn--success download_order_file_button link_as_button' style="display:none;" href="#">
                         Télécharger le fichier de commande
                     </a>
                 </div>
@@ -162,6 +205,15 @@
                 nous conseillons fortement de ne pas accéder à la commande afin d'éviter les conflits.
             </p><br/>
             <p>Voulez-vous quand même y accéder ?</p>
+            <hr/>
+        </div>
+
+        <div id="modal_remove_order">
+            <h3>Attention !</h3>
+            <p class="remove_order_modal_text">
+                Vous vous apprêtez à <b style="color: #d9534f;">supprimer</b> cette commande en cours : <span class="remove_order_name"></span>.<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
             <hr/>
         </div>
     
@@ -201,6 +253,19 @@
             <p>Êtez-vous sûr ?</p>
             <hr/>
         </div>
+
+        <div id="modal_end_supplier_product_association">
+            <h3>Attention !</h3>
+            <p> 
+                Vous vous apprêtez à rendre le produit <span class="product_name"></span> 
+                indisponible chez le fournisseur <span class="supplier_name"></span>.
+            </p>
+            <p> 
+                L'association sera supprimée dès que vous aurez cliqué sur "Valider".<br/>
+            </p>
+            <p>Êtez-vous sûr ?</p>
+            <hr/>
+        </div>
     
         <div id="modal_create_inventory">
             <p> 
@@ -210,14 +275,21 @@
             <hr/>
         </div>
 
-        <div id="modal_product_npa">
-            <h3>Attention !</h3>
+        <div id="modal_product_actions">
+            Actions sur <h3><span class="product_name"></span></h3>
             <p>
-                Vous vous apprêtez à passer le produit <span class="product_name"></span> en <span class="product_npa"></span>.<br/>
-                Dès que vous aurez cliqué sur "Valider", le produit sera retiré du tableau et l'information sera enregistrée dans Odoo.
+                <h4>NPA</h4>
+                <div class="npa-options">
+                    <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
+                    <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
+                    <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+                </div>
             </p>
-            <p>Êtez-vous sûr ?</p>
-            <hr/>
+            <p>
+                <h4>Stock minimum</h4>
+                <input type="number" name="minimal_stock" value="" />
+            </p>
+
         </div>
 
         <div id="modal_create_order">
@@ -234,7 +306,9 @@
             <br/>
             <hr/>
         </div>
-
+        <div id="explanations">
+            {% include "orders/explanations.html" %}
+        </div>
         <div id="modal_create_order__supplier_date_planned">
             <div class="modal_input_area">
                 <span class="modal_input_label supplier_name"></span>
@@ -252,6 +326,7 @@
     var couchdb_dbname = '{{db}}';
     var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
     var odoo_server = '{{odoo_server}}';
+    var metabase_url = '{{metabase_url}}';
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script type="text/javascript" src="{% static 'js/orders_helper.js' %}?v="></script>

@@ -55,10 +55,10 @@ sync.on('change', function (info) {
         update_completed_count();
         online = true;
     })
-    .on('denied', function (err) {
+    .on('denied', function () {
     // a document failed to replicate (e.g. due to permissions)
     })
-    .on('complete', function (info) {
+    .on('complete', function () {
     // handle complete
     })
     .on('error', function (err) {
@@ -87,9 +87,7 @@ function new_coop_validation() {
     coop_list_view.hide();
     schoice_view.hide();
     ncoop_view.hide();
-    var barcode_base = current_coop.barcode_base;
     var st = get_shift_name(current_coop.shift_template.data);
-    //coop_registration_details.find('.numbox').text('N° '+ barcode_base);
 
     coop_registration_details.find('.shift_template').text(st);
     process_state.html(current_coop.firstname + ' ' +current_coop.lastname);
@@ -148,12 +146,13 @@ function _really_save_new_coop(email, fname, lname, cap, pm, cn, bc, msex) {
         if (email != current_email) {
             //delete current_coop after copying revelant data
 
-            dbc.remove(current_email, coop._rev, function(err, response) {
+            dbc.remove(current_email, coop._rev, function(err) {
 
                 if (err) {
                     return console.log(err);
                 }
-                //console.log(response);
+
+                return null;
 
             });
             delete coop._rev;
@@ -414,6 +413,8 @@ function get_latest_odoo_coop_bb() {
         return latest_odoo_coop_bb;
 
     }
+
+    return null;
 }
 
 function generate_email() {
@@ -461,7 +462,7 @@ function setLocalInProcess(lip) {
     localStorage.setItem("in_process", JSON.stringify(lip));
 }
 
-function keep_in_process_work(event) {
+function keep_in_process_work() {
     //If data registration is in process, save it in localStorage
     if (current_coop != null && typeof (current_coop.shift_template) == "undefined") {
         local_in_process = getLocalInProcess();

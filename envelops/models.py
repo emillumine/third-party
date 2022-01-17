@@ -91,7 +91,7 @@ class CagetteEnvelops(models.Model):
             if not ('error' in res):
                 try:
                     if int(float(data['amount']) * 100) == int(float(invoice['residual_signed']) * 100):
-                        # This payment is what it was left to pay, so change invoice state
+                        # This payment is what was left to pay, so change invoice state
                         self.o_api.update('account.invoice', [invoice['id']], {'state': 'paid'})
                 except Exception as e:
                     res['error'] = repr(e)

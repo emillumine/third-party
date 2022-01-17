@@ -1,26 +1,18 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
-
-
-
-from shifts.models import CagetteShift
-
-
 from outils.common import Verification
 
+from shifts.models import CagetteShift
+from members.models import CagetteMember
 
 # working_state = ['up_to_date', 'alert', 'exempted', 'delay', 'suspended']
-
-
 state_shift_allowed = ["up_to_date", "alert", "delay"]
-
 
 tz = pytz.timezone("Europe/Paris")
 
 def dateIsoUTC(myDate):
     tDate = tz.localize(datetime.datetime.strptime(myDate, '%Y-%m-%d %H:%M:%S'))
     return tDate.isoformat()
-
 
 def home(request, partner_id, hashed_date):
     import hashlib
@@ -106,6 +98,8 @@ def get_list_shift_calendar(request, partner_id):
     cs = CagetteShift()
     registerPartner = cs.get_shift_partner(partner_id)
 
+    use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
+
     listRegisterPartner = []
     for v in registerPartner:
         listRegisterPartner.append(v['id'])
@@ -117,35 +111,55 @@ def get_list_shift_calendar(request, partner_id):
     events = []
     for value in listService:
         events.append(value)
-        if value['shift_type_id'][0] == 1:
+        if value['shift_type_id'][0] == 1 or getattr(settings, 'USE_STANDARD_SHIFT', True) is False:
             l = set(value['registration_ids']) & set(listRegisterPartner)
             # if (int(value['seats_reserved']) == int(value['seats_max']) and len(l) > 0 ) or (int(value['seats_reserved']) < int(value['seats_max'])):
             if (int(value['seats_available']) > 0 or len(l) > 0 ):
                 event = {}
                 event["id"] = value['id']
                 smax = int(value['seats_available']) + int(value['seats_reserved'])
+ 
+                company_code = getattr(settings, 'COMPANY_CODE', '')
                 title_prefix = ''
-                if len(value['address_id']) == 2 and ',' in value['address_id'][1]:
-                    title_prefix = str(value['address_id'][1]).split(",")[1] + " -- "
+                if company_code != "lacagette" and len(value['address_id']) == 2 and ',' in value['address_id'][1]:
+                    title_prefix = str(value['address_id'][1]).split(",")[1] + " --"
+                elif company_code == "lacagette":
+                    title_prefix = " - "
+
                 event["title"] = title_prefix + str(value['seats_reserved']) + "/" + str(smax)
 
+
                 event["start"] = dateIsoUTC(value['date_begin_tz'])
-                event["end"] = dateIsoUTC(value['date_begin_tz'])
+
+                datetime_object = datetime.datetime.strptime(value['date_end_tz'], "%Y-%m-%d %H:%M:%S") - datetime.timedelta(minutes=15)
+                event["end"] = dateIsoUTC(datetime_object.strftime("%Y-%m-%d %H:%M:%S"))
 
                 if len(l) > 0:
-                    event["className"] = "shift_booked"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_booked"]
+                    else:
+                        event["className"] = "shift_booked"
                     event["changed"] = False
                 # elif int(value['seats_reserved']) == int(value['seats_max']):
                 #     event["className"] = "shift_full"
                 #     event["changed"] = False
                 elif int(value['seats_reserved']) == 0:
-                    event["className"] = "shift_empty"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_empty"]
+                    else:
+                        event["className"] = "shift_empty"
                     event["changed"] = True
                 elif _is_middled_filled_considered(value['seats_reserved'], smax) is True:
-                    event["className"] = "shift_less_alf"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_less_alf"]
+                    else:
+                        event["className"] = "shift_less_alf"
                     event["changed"] = True
                 else:
-                    event["className"] = "shift_other"
+                    if use_new_members_space is True:
+                        event["classNames"] = ["shift_other"]
+                    else:
+                        event["className"] = "shift_other"
                     event["changed"] = True
 
                 event["registration_ids"] = value['registration_ids']
@@ -157,9 +171,14 @@ def get_list_shift_calendar(request, partner_id):
 def get_list_shift_partner(request, partner_id):
     cs = CagetteShift()
     shiftData = cs.get_shift_partner(partner_id)
+    empty_data = False
     for value in shiftData:
         value['date_begin'] = value['date_begin'] + "Z"
         value['date_end'] = value['date_end'] + "Z"
+        if "Services des comités" in value['shift_id'][1]:
+            empty_data = True
+    if empty_data is True:
+        shiftData = []
     return JsonResponse(shiftData, safe=False)
 
 def change_shift(request):
@@ -170,7 +189,26 @@ def change_shift(request):
 
             if 'idNewShift' in request.POST and 'idOldShift' in request.POST:
                 idOldShift = request.POST['idOldShift']
-                data = {"idPartner": int(request.POST['idPartner']), "idShift":int(request.POST['idNewShift']), "in_ftop_team":request.POST['in_ftop_team']}
+                listRegister = [int(request.POST['idRegister'])]
+                data = {
+                    "idPartner": int(request.POST['idPartner']),
+                    "idShift": int(request.POST['idNewShift']),
+                    "shift_type": request.POST['shift_type'],
+                    "is_makeup": cs.shift_is_makeup(listRegister[0])
+                }
+                
+                should_block_service_exchange = getattr(settings, 'BLOCK_SERVICE_EXCHANGE_24H_BEFORE', False)
+                if should_block_service_exchange:
+                    # Block change if old shift is to happen in less than 24 hours
+                    now = datetime.datetime.now(tz)
+
+                    old_shift = cs.get_shift(idOldShift)
+                    day_before_old_shift_date_start = tz.localize(datetime.datetime.strptime(old_shift['date_begin_tz'], '%Y-%m-%d %H:%M:%S') - datetime.timedelta(hours=24))
+
+                    if now > day_before_old_shift_date_start:
+                        response = {'msg': "Old service in less than 24hours."}
+                        return JsonResponse(response, status=400)
+
                 st_r_id = False
                 #Insertion du nouveau shift
                 try:
@@ -179,7 +217,8 @@ def change_shift(request):
                     coop_logger.error("Change shift : %s, %s", str(e), str(data))
                 if st_r_id:
                     listRegister = [int(request.POST['idRegister'])]
-                # Annul l'ancien shift
+
+                    # Annule l'ancien shift
                     response = cs.cancel_shift(listRegister)
 
                     response = {'result': True}
@@ -199,18 +238,37 @@ def add_shift(request):
             cs = CagetteShift()
 
             if 'idNewShift' in request.POST and 'idPartner' in request.POST:
-
-                data = {"idPartner": int(request.POST['idPartner']), "idShift":int(request.POST['idNewShift']), "in_ftop_team":request.POST['in_ftop_team']}
+                data = {
+                    "idPartner": int(request.POST['idPartner']), 
+                    "idShift":int(request.POST['idNewShift']), 
+                    "shift_type":request.POST['shift_type'],
+                    "is_makeup":True
+                }
+                
                 #Insertion du nouveau shift
                 st_r_id = False
                 try:
                     st_r_id = cs.set_shift(data)
                 except Exception as e:
                     coop_logger.error("Add shift : %s, %s", str(e), str(data))
+
                 if st_r_id:
                     response = {'result': True}
                 else:
                     response = {'result': False}
+
+                # decrement makeups_to_do
+                res_decrement = False
+                try:
+                    res_decrement = cs.decrement_makeups_to_do(int(request.POST['idPartner']))
+                except Exception as e:
+                    coop_logger.error("Decrement makeups to do : %s, %s", str(e), str(data))
+
+                if res_decrement:
+                    response["decrement_makeups"] = res_decrement
+                else:
+                    response["decrement_makeups"] = False
+
             else:
                 response = {'result': False}
             return JsonResponse(response)
@@ -223,22 +281,60 @@ def request_delay(request):
     if 'verif_token' in request.POST:
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
             cs = CagetteShift()
+            partner_id = int(request.POST['idPartner'])
+
+            use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
+            if use_new_members_space is True:
+                member_can_have_delay = cs.member_can_have_delay(int(request.POST.get('idPartner')))
+                if member_can_have_delay is False:
+                    res = { 'message' : 'delays limit reached'}
+                    return JsonResponse(res, status=403)
+            
             data = {
-                "idPartner": int(request.POST['idPartner']),
+                "idPartner": partner_id,
                 "start_date" : request.POST['start_date']
             }
             if ('extension_beginning' in request.POST):
                 data['extension_beginning'] = request.POST['extension_beginning']
+            duration = 28
+            if ('duration' in request.POST):
+                duration = int(request.POST['duration'])
 
             response = {'result': False}
 
             try:
-                new_id = cs.create_delay(data)
+                new_id = cs.create_delay(data, duration)
                 if (new_id):
+                    try:
+                        cm = CagetteMember(partner_id)
+
+                        # Add 0 pt to counter so odoo updates member status
+                        data = {
+                            'name': "Forcer l'entrée en délai",
+                            'shift_id': False,
+                            'type': "standard",
+                            'partner_id': partner_id,
+                            'point_qty': 0
+                        }
+                        cm.update_member_points(data)
+
+                        data = {
+                            'name': "Forcer l'entrée en délai",
+                            'shift_id': False,
+                            'type': "ftop",
+                            'partner_id': partner_id,
+                            'point_qty': 0
+                        }
+                        cm.update_member_points(data)
+                    except Exception as e:
+                        print(str(e))
+
                     response = {'result': True}
                 else:
+                    coop_logger.error("request delay : %s, %s", str(new_id), str(data))
                     return HttpResponseServerError()
             except Exception as e:
+                coop_logger.error("request delay : %s, %s", str(e), str(data))
                 return HttpResponseServerError()
 
             return JsonResponse(response)

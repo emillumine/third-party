@@ -21,5 +21,7 @@ def custom_css(request):
 
 def context_setting(request):
     """adding settings variable to context (can be overloaded in views)."""
-    context = {'odoo': settings.ODOO['url']}
+    context = {'odoo': settings.ODOO['url'], 
+               'app_env': getattr(settings, 'APP_ENV', "prod"),
+               'company_code': getattr(settings, 'COMPANY_CODE', '')}
     return context
