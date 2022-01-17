@@ -92,18 +92,11 @@ function process_form_submission(event) {
             openModal();
             post_form(
                 '/members/coop_validated_data', form_data,
-                function(err, result) {
+                function(err) {
                     closeModal();
 
                     if (!err) {
-                        var msg = "Vous êtes maintenant enregistré ! ";
-
-                        msg += "<a href='" + em_url + "'>Cliquez ici</a> ";
-                        msg += "pour découvrir l'espace membre";
-                        $('p.intro').remove();
-                        vform.remove();
-                        display_msg_box(msg);
-
+                        window.location.href = em_url;
                     }
 
                 }
@@ -119,7 +112,7 @@ function process_form_submission(event) {
         openModal();
         post_form(
             '/members/coop_warning_msg', data,
-            function(err, result) {
+            function(err) {
                 closeModal();
                 if (!err) {
                     $('#main_content').remove();

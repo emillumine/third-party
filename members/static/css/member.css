@@ -36,14 +36,16 @@ video {max-width:none;}
 #barcode_base {width:50px;float:left;}
 .coop-info {min-width: 300px;padding:5px;}
 #lat_menu button {margin-bottom:5px;}
-.col-6.big {font-size:200%; border: 2px solid red; padding:10px; text-align:center; background: #ffffff;}
+.col-6.big {font-size:200%; border: 2px solid red; padding:10px; text-align:center; background: #FFF;}
 #cooperative_state {font-size:150%; font-weight:bold;}
 h1 .member_name {font-weight: bold;}
 #current_shift_title, .members_list
 {border:1px solid #000; border-radius: 5px; padding:5px; margin-bottom:15px;background:#FFF;}
 .members_list {list-style: none;}
 .members_list li {display:block;margin-bottom:5px;}
-.members_list li.btn--inverse {background: #449d44 !important; cursor:not-allowed;}
+
+.members_list li.btn--inverse {background: #449d44; cursor:not-allowed; color: #FFF; }
+.members_list li.btn--inverse.late {background-color: #de9b00; color: white}
 
 #service_entry_success {font-size: x-large;}
 #service_entry_success .explanations {margin: 25px 0; font-size: 18px;}
@@ -58,7 +60,8 @@ h1 .member_name {font-weight: bold;}
  #member_slide .btn[data-next]
   {margin-top: 35px; background: #449d44; color:#FFF;}
  [data-next="rattrapage_1"] {float:right;color:#171A17 !important; margin-top: 25px;}
- #service_en_cours .info a {line-height: 24px; font-size:18px; margin-top:15px;}
+ #service_en_cours .info {font-size: 26px;}
+ #service_en_cours .info a {line-height: 24px; font-size:14px; margin-top:15px;}
  .outside_list a {margin-left:15px;}
  #rattrapage_1 .advice {margin-top:15px;}
  .btn.present {background:#50C878;}
@@ -67,3 +70,5 @@ h1 .member_name {font-weight: bold;}
 .msg-big {font-size: xx-large; background: #fff; padding:25px; text-align: center;}
 
 #member_advice {background: #FFF; color: red;}
+
+.easy_shift_validate {text-align: center; margin-top: 3em;}

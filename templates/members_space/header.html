@@ -1,0 +1,40 @@
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/members-space-header.css' %}">
+{% endblock %}
+    
+{% block content %}
+    <div class="topnav" id="topnav">
+        <a href="javascript:void(0);" class="nav_item active" id="nav_home">Espace Membre</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_my_info">Mes Infos</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_my_shifts">Mes Services</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_shifts_exchange">Échange de services</a>
+        <a href="javascript:void(0);" class="nav_item" id="nav_faq">Problèmes et Demandes</a>
+
+        <a 
+            href="javascript:void(0);"
+            target="_blank"
+            class="nav_item" 
+            id="nav_calendar"
+        >
+            Calendrier ABCD
+        </a>
+
+        {# Disconnection button must have this id (logic in all_common.js) #}
+        <a href="javascript:void(0);" id="deconnect">Déconnexion</a>
+        <a href="javascript:void(0);" class="icon" onclick="toggleHeader()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </div>
+    <div class="pairs_info">
+        <span>
+            <i class="fas fa-exclamation-circle"></i> Je suis en binôme.
+            Toutes les actions (changement de service, choix d'un rattrapage...) 
+            ne sont faisables que sur l'espace membre du <b>binôme principal</b>.
+            Dans mon espace membre, les infos ne sont visibles qu'en lecture seule.
+        </span>
+    </div>
+
+    <script type="text/javascript" src="{% static 'js/members-space-header.js' %}"></script>
+{% endblock %}

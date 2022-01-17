@@ -43,7 +43,6 @@ def custom_list_inventory(request, id):
     products = CagetteInventory.get_custom_list_products(id)
 
     if 'error' in products:
-        print(products)
         products['data'] = []
 
     context = {'title': 'Inventaire',
@@ -112,10 +111,25 @@ def do_custom_list_inventory(request):
 def generate_inventory_list(request):
     """Responding to Odoo ajax call (no csrf)."""
     res = {}
+    default_partners_id = []
     try:
         lines = json.loads(request.POST.get('lines'))
         ltype = request.POST.get('type')
-        res = CagetteInventory.create_custom_inv_file(lines, ltype)
+    except Exception as e:
+        try:
+            # POST.get() returns None when request from django
+            data = json.loads(request.body.decode())
+            lines = data["lines"]
+            ltype = data["type"]
+            if "partners_id" in data:
+                default_partners_id = data["partners_id"]
+        except Exception as ee:
+            res['error'] = str(ee)
+            coop_looger.error("generate_inventory_list : %s", str(e))
+            return JsonResponse(res, status=500)
+        
+    try:
+        res = CagetteInventory.create_custom_inv_file(lines, ltype, default_partners_id)
     except Exception as e:
         res['error'] = str(e)
         coop_looger.error("generate_inventory_list : %s", str(e))

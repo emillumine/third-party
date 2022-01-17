@@ -1,4 +1,13 @@
+stages: 
+  - test
+
+variables:
+  COUCHDB_USER: "ci-only"
+  COUCHDB_PASSWORD: "ci-only"
+  DJANGO_SETTINGS_MODULE: "outils.settings"
+
 lint:js:
+  stage: test
   image: node:14
   cache:
     key: node-modules
@@ -6,3 +15,19 @@ lint:js:
       - node_modules/
   script:
     - make lint-js
+
+unit:django:
+  stage: test
+  image: python:3
+  services: 
+    - couchdb:3
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
+  cache:
+    paths:
+      - "$CI_PROJECT_DIR/pip-cache"
+  before_script: 
+    - ./scripts/ci/unit_setup.sh
+  script: 
+    - python manage.py test 
+

@@ -162,7 +162,6 @@ function init_datatable() {
         // Listener on inputs
         $('#products_table tbody').on('change', '.stock_edit_input', function () {
             let qty = $(this).val();
-
             let row = products_table.row($(this).parents('tr'));
             let data = row.data();
 
@@ -172,24 +171,7 @@ function init_datatable() {
                 data.qty = validated_data;
                 row.remove().draw();
                 products_table.row.add(data).draw();
-            } else {
-                data.qty = null;
-                row.remove().draw();
-                products_table.row.add(data).draw();
-
-                if (validated_data == -2) {
-                    $.notify("Ce produit est vendu à l'unité : la valeur doit être un nombre entier !", {
-                        globalPosition:"top right",
-                        className: "error"
-                    });
-                } else if (validated_data == -1 || validated_data == -3) {
-                    $.notify("Valeur invalide.", {
-                        globalPosition:"top right",
-                        className: "error"
-                    });
-                }
             }
-
             update_total_value();
         });
 
@@ -203,7 +185,7 @@ function init_datatable() {
         });
 
         // Show validation button
-        $('.footer').show();
+        $('.movement_validation_area').show();
     }
 }
 
@@ -318,6 +300,7 @@ function fetch_product_from_bc(barcode) {
 
     if (p_existing !== null) {
         without_consent_update_product(p_existing, product.qty);
+
         return 0;
     } else {
         add_product(product);
@@ -350,7 +333,7 @@ var add_product = function(product) {
         }
 
         update_total_value();
-        $('.footer').show(); // if is a second or more access, footer is hidden (init_datatable is not fired)
+        $('.movement_validation_area').show(); // if is a second or more access, movement_validation_area is hidden (init_datatable is not fired)
     } catch (e) {
         err = {msg: e.name + ' : ' + e.message, ctx: 'add_product'};
         console.error(err);
@@ -440,20 +423,34 @@ var update_existing_product = function(product, added_qty, undo_option = false) 
  */
 function qty_validation(qty, uom_id) {
     if (qty == null || qty == '') {
+        $.notify("Il n'y a pas de quantité indiquée, ou ce n'est pas un nombre", {
+            globalPosition:"top right",
+            className: "error"});
+
         return -1;
     }
 
     if (uom_id == 1) {
-        if (qty/parseInt(qty) != 1 && qty != 0)
+        if (qty/parseInt(qty) != 1 && qty != 0) {
+            $.notify("Une quantité avec décimale est indiquée alors que c'est un article à l'unité", {
+                globalPosition:"top right",
+                className: "error"});
+
             return -2;
+        }
 
         qty = parseInt(qty); // product by unit
     } else {
         qty = parseFloat(qty).toFixed(2);
     }
 
-    if (isNaN(qty))
+    if (isNaN(qty)) {
+        $.notify("Une quantité n'est pas un nombre", {
+            globalPosition:"top right",
+            className: "error"});
+
         return -3;
+    }
 
     return qty;
 }
@@ -705,7 +702,7 @@ function do_stock_movement() {
 
                 products = [];
                 products_table.clear().draw();
-                $('.footer').hide();
+                $('.movement_validation_area').hide();
 
 
             },

@@ -48,22 +48,28 @@
       <p><i>Vous pouvez également taper le codebarre, puis appuyer sur la touche Entrée.</i></p>
     </div>
 
-    <div class="barcode_search_area txtcenter">
-      <input type="text" id="sm_barcode_selector" placeholder="Codebarre">
-      <div id="icon_product_not_found" class="tooltip" style="display:none;">
-        <span class="tooltiptext tooltip-lg tt_twolines">Aucun produit trouvé avec ce code-barre.</span>
-        <span style="color: #d9534f;"> <i class="fas fa-ban"></i>
+    <div class="top_content">
+      <div class="top_content_item top_content_left">
+        <div class="movement_validation_area txtcenter" style="display:none">
+          <h4>Total (H.T.) : <span class="total_value">0</span> €</h4>
+          <button type="button" class="btn--primary" id="movement_validation_button" name="button">Validation du total des produits saisis</button>
         </div>
+      </div>
+      <div class="barcode_search_area txtcenter top_content_item top_content_left">
+        <input type="text" id="sm_barcode_selector" placeholder="Codebarre">
+        <div id="icon_product_not_found" class="tooltip" style="display:none;">
+          <span class="tooltiptext tooltip-lg tt_twolines">Aucun produit trouvé avec ce code-barre.</span>
+          <span style="color: #d9534f;"> <i class="fas fa-ban"></i>
+          </div>
+      </div>
+      <div class="top_content_item top_content_left"></div>
     </div>
 
     <div class="main">
       <table id="products_table" class="display" cellspacing="0" ></table>
     </div>
 
-    <div class="footer txtcenter" style="display:none">
-      <h4>Total (H.T.) : <span class="total_value">0</span> €</h4>
-      <button type="button" class="btn--primary" id="movement_validation_button" name="button">Validation du total des produits saisis</button>
-    </div>
+    
     <input type="hidden" name="barcode"/>
   </div>
 
@@ -83,16 +89,7 @@
       <hr />
       <section class="set_member_to_movement">
         <p>Avant de valider l'opération, merci de nous dire qui vous êtes :</p>
-        <form id="sm_search_member_form" action="javascript:;" method="post">
-          <input type="text" id="sm_search_member_input" value="" placeholder="Votre nom ou numéro..." required>
-          <button type="submit" class="btn--primary" id="sm_search_member_button">Recherche</button>
-        </form>
-        <div class="search_member_results_area" style="display:none;">
-          <div>
-            <p>Vous êtes (cliquez sur votre nom) :</p>
-          </div>
-          <div class="search_member_results"></div>
-        </div>
+        {% include "members/member_selection.html" %}
       </section>
       <hr />
     </div>

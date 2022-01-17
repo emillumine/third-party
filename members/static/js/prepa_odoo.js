@@ -46,10 +46,10 @@ sync.on('change', function (info) {
     // replicate resumed (e.g. new changes replicating, user went back online)
         online = true;
     })
-    .on('denied', function (err) {
+    .on('denied', function () {
     // a document failed to replicate (e.g. due to permissions)
     })
-    .on('complete', function (info) {
+    .on('complete', function () {
     // handle complete
     })
     .on('error', function (err) {
@@ -113,7 +113,7 @@ function put_current_coop_in_buffer_db(callback) {
     var can_continue = true;
 
     if (typeof current_coop._old_id != "undefined") {
-        dbc.remove(current_coop._old_id, current_coop._rev, function(err, response) {
+        dbc.remove(current_coop._old_id, current_coop._rev, function(err) {
             if (err) {
                 console.log(err); can_continue = false;
             }
@@ -131,7 +131,6 @@ function put_current_coop_in_buffer_db(callback) {
 function process_new_warning(event) {
     event.preventDefault();
     var msg = warning_msg.val();
-    var btn = $(event.target).find('button');
 
     openModal();
     if (msg.length > 0) {
@@ -208,7 +207,7 @@ function submit_full_coop_form() {
         }
         post_form(
             '/members/coop_validated_data', form_data,
-            function(err, result) {
+            function(err) {
                 if (!err) {
                     setTimeout(after_save, 1500);
                 } else {
@@ -258,21 +257,21 @@ function save_current_coop(callback) {
             sex_error = false;
 
         if (/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/.exec(birthdate)) {
-            try{
+            try {
                 var jj = RegExp.$1,
-                mm = RegExp.$2,
-                aaaa = RegExp.$3;
+                    mm = RegExp.$2,
+                    aaaa = RegExp.$3;
 
                 let tmp_date = aaaa + "-" + mm + "-" + jj;
                 // try to create a date object
+
                 date_test = new Date(tmp_date);
                 // if date is invalid a correction is apply in date object. Check it
                 // january start at 0, so we add + 1 for the month
-                if ((date_test.getDate() !== parseInt(jj)) || ((date_test.getMonth()+1) !== parseInt(mm)) || (date_test.getFullYear() !== parseInt(aaaa)) || !date_test.isValid())
-                {
+                if ((date_test.getDate() !== parseInt(jj)) || ((date_test.getMonth()+1) !== parseInt(mm)) || (date_test.getFullYear() !== parseInt(aaaa)) || !date_test.isValid()) {
                     birthdate_error = true;
                 }
-            }catch(Exception){
+            } catch (Exception) {
                 birthdate_error = true;
             }
 
@@ -551,6 +550,8 @@ function open_coop_form(e) {
         console.error(error);
         report_JS_error(error, 'prepa-odoo');
     }
+
+    return null;
 }
 
 function ask_for_deletion() {
@@ -693,6 +694,8 @@ function retrieve_all_coops() {
                 return b.timestamp - a.timestamp;
             });
             dispatch_coops_in_boxes();
+
+            return null;
         });
     } catch (err) {
         error = {msg: err.name + ' : ' + err.message, ctx: 'retrieve_all_coops'};

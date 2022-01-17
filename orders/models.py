@@ -222,6 +222,88 @@ class Order(models.Model):
                 labels_data['total'] += l['product_qty']
         return labels_data
 
+    def get_order_attachment_id(self):
+        res = {}
+        f = ["id"]
+        c = [['res_model', '=', 'purchase.order'], ['res_id', '=', self.id], ['type', 'in', ['binary', 'url']]]
+
+        try:
+            attachment = self.o_api.search_read('ir.attachment', c, f)
+            res = attachment[0]
+        except Exception as e:
+            res["id_po"] = self.id
+            res["error"] = str(e)
+
+        return res
+
+    @staticmethod
+    def create(supplier_id, date_planned, order_lines):
+        order_data = {
+            "partner_id": int(supplier_id),
+            "partner_ref": False,
+            "currency_id": 1,
+            "date_order": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "origin": "Aide à la commande",
+            "company_id": 1,
+            "order_line": [],
+            "notes": False,
+            "date_planned": date_planned,
+            "picking_type_id": 1,
+            "dest_address_id": False,
+            "incoterm_id": False,
+            "payment_term_id": False,
+            "fiscal_position_id": False,
+            "message_follower_ids": False,
+            "message_ids": False
+        }
+
+        for line in order_lines:
+            product_line_name =  line["name"]
+            if "product_code" in line and line["product_code"] is not False:
+                product_code = str(line["product_code"])
+                product_line_name = "[" + product_code + "] " + product_line_name
+
+            order_data["order_line"].append(
+                [
+                    0,
+                    False,
+                    {
+                        "package_qty": line["package_qty"],
+                        "price_policy": "uom",
+                        "indicative_package": True,
+                        "product_id": line["product_variant_ids"][0],
+                        "name": product_line_name,
+                        "date_planned": date_planned,
+                        "account_analytic_id": False,
+                        "product_qty_package":line["product_qty_package"],
+                        "product_qty": line["product_qty"],
+                        "product_uom": line["product_uom"],
+                        "price_unit": line["price_unit"],
+                        "discount": 0,
+                        "taxes_id": [
+                            [
+                                6,
+                                False,
+                                line["supplier_taxes_id"]
+                            ]
+                        ]
+                    }
+                ]
+            )
+
+        api = OdooAPI()
+        id_po = api.create('purchase.order', order_data)
+        res_confirm = api.execute('purchase.order', 'button_confirm', [id_po])
+
+        res = {
+            'id_po': id_po,
+            'confirm_po': True,
+            'supplier_id': supplier_id,
+            'date_planned': date_planned
+        }
+
+        return res
+
 class Orders(models.Model):
 
     @staticmethod
@@ -268,3 +350,15 @@ class Orders(models.Model):
             coop_logger.error('Orders get_custom_barcode_labels_to_print(oids) : %s', str(e))
 
         return labels_data
+
+class CagetteSuppliers(models.Model):
+
+    @staticmethod
+    def get_suppliers():
+        api = OdooAPI()
+
+        f = ['id', 'name', 'display_name']
+        c = [['supplier', '=', 1], ['parent_id', '=', False]]
+        res = api.search_read('res.partner', c, f)
+
+        return res

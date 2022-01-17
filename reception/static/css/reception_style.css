@@ -11,6 +11,10 @@ input[type="number"] {
 }
 
 /* INDEX */
+.group_line {
+  margin-bottom: 5px;
+}
+
 #orders tbody tr {
   cursor: pointer;
 }
@@ -29,6 +33,15 @@ input[type="number"] {
   border: 2px solid #555;
   border-radius:15px;
   margin-bottom: 1em;
+}
+
+.order_last_update {
+  font-weight: bold;
+}
+
+.order_modified_msg {
+  font-size: 2rem;
+  color: #e62720;
 }
 
 /* PRODUITS */

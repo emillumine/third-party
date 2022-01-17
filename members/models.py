@@ -9,10 +9,10 @@ from products.models import OFF
 from envelops.models import CagetteEnvelops
 
 import sys
-from pytz import timezone
+import pytz
 import locale
 import re
-
+import dateutil.parser
 
 
 
@@ -20,9 +20,9 @@ FUNDRAISING_CAT_ID = {'A': 1, 'B': 2, 'C': 3}
 
 class CagetteMember(models.Model):
     """Class to handle cagette Odoo member."""
-    m_default_fields = ['name', 'sex', 'image_medium', 'active',
-                        'barcode_base', 'barcode', 'in_ftop_team',
-                        'is_associated_people', 'is_member',
+    m_default_fields = ['name', 'parent_name', 'sex', 'image_medium', 'active',
+                        'barcode_base', 'barcode', 'shift_type',
+                        'is_associated_people', 'is_member', 'shift_type',
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
 
@@ -61,6 +61,42 @@ class CagetteMember(models.Model):
             image = res[0]['image_medium']
         return image
 
+    def get_member_points(self, shift_type):
+        points_field = 'final_standard_point' if shift_type == "standard" else 'final_ftop_point'
+
+        cond = [['id', '=', self.id]]
+        fields = ['id', points_field]
+        res = self.o_api.search_read('res.partner', cond, fields)
+
+        if res and len(res) == 1:
+            return res[0][points_field]
+        else:
+            return None
+
+    def update_member_points(self, data):
+        """
+            ex:
+            data = {
+                'name': reason,
+                'shift_id': False,
+                'type': stype,
+                'partner_id': self.id,
+                'point_qty': pts
+            }
+        """
+        
+        try:
+            return self.o_api.create('shift.counter.event', data)
+        except Exception as e:
+            print(str(e))
+
+
+# # # BDM
+    def save_partner_info(self, partner_id, fieldsDatas):
+        print(fieldsDatas)
+        return self.o_api.update('res.partner', partner_id,  fieldsDatas)
+
+
     @staticmethod
     def retrieve_data_according_keys(keys, full=False):
         api = OdooAPI()
@@ -95,19 +131,33 @@ class CagetteMember(models.Model):
             api = OdooAPI()
             cond = [['email', '=', login]]
             if getattr(settings, 'ALLOW_NON_MEMBER_TO_CONNECT', False) is False:
+                cond.append('|')
                 cond.append(['is_member', '=', True])
-            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state']
+                cond.append(['is_associated_people', '=', True])
+
+            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
-                for coop in res:
-                    y, m, d = coop['birthdate'].split('-')
-                    password = password.replace('/', '')
-                    if (password == d + m + y):
-                        data['id'] = coop['id']
-                        auth_token_seed = fp + coop['create_date']
-                        data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
-                        data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
-                        data['coop_state'] = coop['cooperative_state']
+                coop_id = None
+                for item in res:
+                    coop = item
+                    if item["birthdate"] is not False:
+                        coop_birthdate = item['birthdate']
+                        coop_state = item['cooperative_state']
+                    if item["is_associated_people"] == True:
+                        coop_id = item['id']
+
+                y, m, d = coop_birthdate.split('-')
+                password = password.replace('/', '')
+                if (password == d + m + y):
+                    if coop_id is None:
+                        coop_id = coop['id']
+                    data['id'] = coop_id 
+                    auth_token_seed = fp + coop['create_date']
+                    data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
+                    data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
+                    data['coop_state'] = coop_state
+
                 if not ('auth_token' in data):
                     data['failure'] = True
                     data['msg'] = "Erreur dans le mail ou le mot de passe"
@@ -593,12 +643,17 @@ class CagetteMember(models.Model):
     @staticmethod
     def get_state_fr(coop_state):
         """Return french version of given coop_state."""
+        company = getattr(settings, 'COMPANY_CODE', '')
+
         if coop_state == 'alert':
             fr_state = 'En alerte'
         elif coop_state == 'delay':
             fr_state = 'Délai accordé'
         elif coop_state == 'suspended':
-            fr_state = 'Suspendu(e)'
+            if company == 'lacagette':
+                fr_state = 'Rattrapage'
+            else:
+                fr_state = 'Suspendu(e)'
         elif coop_state == 'not_concerned':
             fr_state = 'Non concerné(e)'
         elif coop_state == 'blocked':
@@ -629,7 +684,7 @@ class CagetteMember(models.Model):
         locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
         if len(res) > 0:
-            local_tz = timezone('Europe/Paris')
+            local_tz = pytz.timezone('Europe/Paris')
             for s in res:
                 date, t = s['date_begin'].split(' ')
                 year, month, day = date.split('-')
@@ -663,7 +718,7 @@ class CagetteMember(models.Model):
         return m_list
 
     @staticmethod
-    def search(k_type, key):
+    def search(k_type, key, shift_id=None):
         """Search member according 3 types of key."""
         api = OdooAPI()
         if k_type == 'id':
@@ -675,23 +730,41 @@ class CagetteMember(models.Model):
         else:
             cond = [['name', 'ilike', str(key)]]
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
-
-        res = api.search_read('res.partner', cond, CagetteMember.m_default_fields)
+        fields = CagetteMember.m_default_fields
+        if not shift_id is None:
+            CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
+        res = api.search_read('res.partner', cond, fields)
         members = []
         if len(res) > 0:
             for m in res:
-                try:
-                    img_code = base64.b64decode(m['image_medium'])
-                    extension = imghdr.what('', img_code)
-                    m['image_extension'] = extension
-                except Exception as e:
-                    coop_logger.info("Img error : %s", e)
-                m['state'] = m['cooperative_state']
-                m['cooperative_state'] = \
-                    CagetteMember.get_state_fr(m['cooperative_state'])
-                # member = CagetteMember(m['id'], m['email'])
-                # m['next_shifts'] = member.get_next_shift()
-                members.append(m)
+                keep_it = False
+                if not shift_id is None and len(shift_id) > 0:
+                    # Only member registred to shift_id will be returned
+                    cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
+                    fields = ['shift_template_id']
+                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                    if (len(shift_templ_res) > 0
+                        and
+                        int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
+                        keep_it = True
+                else:
+                    keep_it = True
+                if keep_it is True:
+                    try:
+                        img_code = base64.b64decode(m['image_medium'])
+                        extension = imghdr.what('', img_code)
+                        m['image_extension'] = extension
+                    except Exception as e:
+                        coop_logger.info("Img error : %s", e)
+                    m['state'] = m['cooperative_state']
+                    m['cooperative_state'] = \
+                        CagetteMember.get_state_fr(m['cooperative_state'])
+                    # member = CagetteMember(m['id'], m['email'])
+                    # m['next_shifts'] = member.get_next_shift()
+                    if not m['parent_name'] is False:
+                        m['name'] += ' / ' + m['parent_name']
+                        del m['parent_name']
+                    members.append(m)
 
         return CagetteMember.add_next_shifts_to_members(members)
 
@@ -752,6 +825,33 @@ class CagetteMember(models.Model):
             res['error'] = str(e)
         return res
 
+    def search_associated_people(self):
+        """ Search for an associated partner """
+        res = {}
+
+        c = [["parent_id", "=", self.id]]
+        f = ["id", "name", "barcode_base"]
+
+        res = self.o_api.search_read('res.partner', c, f)
+
+        try:
+            return res[0]
+        except:
+            return None
+
+    def update_member_makeups(self, member_data):
+        api = OdooAPI()
+        res = {}
+        
+        f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
+        res_item = api.update('res.partner', [self.id], f)
+        res = {
+            'mid': self.id,
+            'update': res_item
+        }
+
+        return res
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 
@@ -760,6 +860,7 @@ class CagetteMembers(models.Model):
         """Search partner with missing elements"""
         api = OdooAPI()
         return []
+
 
     @staticmethod
     def raw_search(needle):
@@ -972,7 +1073,13 @@ class CagetteMembers(models.Model):
             res['error'] = str(e)
         return res
 
-
+    @staticmethod
+    def get_makeups_members():
+        api = OdooAPI()
+        cond = [['makeups_to_do','>', 0]]
+        fields = ['id', 'name', 'makeups_to_do','shift_type']
+        res = api.search_read('res.partner', cond, fields)
+        return res
 
 class CagetteServices(models.Model):
     """Class to handle cagette Odoo services."""
@@ -1035,7 +1142,7 @@ class CagetteServices(models.Model):
         res = api.search_read('shift.shift', c, f, 1, 0, 'date_begin ASC')
         if (res and res[0]):
             locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
-            local_tz = timezone('Europe/Paris')
+            local_tz = pytz.timezone('Europe/Paris')
             date, t = res[0]['date_begin'].split(' ')
             year, month, day = date.split('-')
             start = datetime.datetime(int(year), int(month), int(day),
@@ -1045,35 +1152,83 @@ class CagetteServices(models.Model):
         return shift
 
     @staticmethod
-    def get_services_at_time(time, tz_offset):
+    def get_services_at_time(time, tz_offset, with_members=True):
         """Retrieve present services with member linked."""
-        import dateutil.parser
-        # import operator
+
+        default_acceptable_minutes_after_shift_begins = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_AFTER_SHIFT_BEGINS', 15)
+        minutes_before_shift_starts_delay = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_BEFORE_SHIFT', 15)
+        minutes_after_shift_starts_delay = default_acceptable_minutes_after_shift_begins
+        late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        max_duration = getattr(settings, 'MAX_DURATION', 180)
+        if late_mode is True:
+            minutes_after_shift_starts_delay = getattr(settings, 'ENTRANCE_VALIDATION_GRACE_DELAY', 60)
         api = OdooAPI()
         now = dateutil.parser.parse(time) - datetime.timedelta(minutes=tz_offset)
-        start1 = now - datetime.timedelta(minutes=20)
-        start2 = now + datetime.timedelta(minutes=25)
-        cond = [['date_begin_tz', '>=', start1.isoformat()],
-                ['date_begin_tz', '<=', start2.isoformat()]]
+        start1 = now + datetime.timedelta(minutes=minutes_before_shift_starts_delay)
+        start2 = now - datetime.timedelta(minutes=minutes_after_shift_starts_delay)
+        end = start1 + datetime.timedelta(minutes=max_duration)
+        cond = [['date_end_tz', '<=', end.isoformat()]]
+        cond.append('|')
+        cond.append(['date_begin_tz', '>=', start1.isoformat()])
+        cond.append(['date_begin_tz', '>=', start2.isoformat()])
         fields = ['name', 'week_number', 'registration_ids',
                   'standard_registration_ids',
                   'shift_template_id', 'shift_ticket_ids',
                   'date_begin_tz', 'date_end_tz']
-        # return (start1.isoformat(), start2.isoformat())
-        services = api.search_read('shift.shift', cond, fields)
+        services = api.search_read('shift.shift', cond, fields,order ="date_begin_tz ASC")
         for s in services:
             if (len(s['registration_ids']) > 0):
-                cond = [['id', 'in', s['registration_ids']], ['state', '!=', 'cancel']]
-                fields = ['partner_id', 'shift_type', 'state']
-                members = api.search_read('shift.registration', cond, fields)
-                s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
+                if late_mode is True:
+                    s['late'] = (
+                                 now.replace(tzinfo=None)
+                                 -
+                                 dateutil.parser.parse(s['date_begin_tz']).replace(tzinfo=None)
+                                 ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
+                if with_members is True:
+                    cond = [['id', 'in', s['registration_ids']], ['state', 'not in', ['cancel', 'waiting', 'draft']]]
+                    fields = ['partner_id', 'shift_type', 'state', 'is_late']
+                    members = api.search_read('shift.registration', cond, fields)
+                    s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
+                    if len(s['members']) > 0:
+                        # search for associated people linked to these members
+                        mids = []
+                        for m in s['members']:
+                            mids.append(m['partner_id'][0])
+                        cond = [['parent_id', 'in', mids]]
+                        fields = ['parent_id', 'name']
+                        associated = api.search_read('res.partner', cond, fields)
+
+                        if len(associated) > 0:
+                            for m in s['members']:
+                                for a in associated:
+                                    if int(a['parent_id'][0]) == int(m['partner_id'][0]):
+                                        m['partner_id'][1] += ' / ' + a['name']
+
         return services
 
     @staticmethod
-    def registration_done(registration_id):
+    def registration_done(registration_id, overrided_date=""):
         """Equivalent to click present in presence form."""
         api = OdooAPI()
         f = {'state': 'done'}
+        late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        if late_mode is True:
+            # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
+            if len(overrided_date) > 0 and getattr(settings, 'APP_ENV', "prod") != "prod":
+                now = overrided_date
+            else:
+                local_tz = pytz.timezone('Europe/Paris')
+                now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(local_tz).strftime("%H:%MZ")
+            # coop_logger.info("Maintenant = %s (overrided %s) %s", now, overrided_date)
+            services = CagetteServices.get_services_at_time(now, 0, with_members=False)
+            if len(services) > 0:
+                # Notice : Despite is_late is defined as boolean in Odoo, 0 or 1 is needed for api call
+                is_late = 0
+                if services[0]['late'] is True:
+                    is_late = 1
+                f['is_late'] = is_late
+            else:
+                return False
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
@@ -1096,15 +1251,24 @@ class CagetteServices(models.Model):
         return api.update('shift.registration', [int(reg_id)], f)
 
     @staticmethod
-    def record_absences():
+    def record_absences(date):
         """Called by cron script."""
         import dateutil.parser
-        now = datetime.datetime.now()
+        if len(date) > 0:
+            now = dateutil.parser.parse(date)
+        else:
+            now = datetime.datetime.now()
         # now = dateutil.parser.parse('2020-09-15T15:00:00Z')
         date_24h_before = now - datetime.timedelta(hours=24)
         # let authorized people time to set presence for those who came in late
-        end_date = now - datetime.timedelta(hours=3)
+        end_date = now - datetime.timedelta(hours=2)
         api = OdooAPI()
+        absence_status = 'excused'
+        res_c = api.search_read('ir.config_parameter',
+                                [['key', '=', 'lacagette_membership.absence_status']],
+                                ['value'])
+        if len(res_c) == 1:
+            absence_status = res_c[0]['value']
         cond = [['date_begin', '>=', date_24h_before.isoformat()],
                 ['date_begin', '<=', end_date.isoformat()],
                 ['state', '=', 'open']]
@@ -1128,8 +1292,11 @@ class CagetteServices(models.Model):
                 (_h, _m, _s) = h.split(':')
                 if int(_h) < 21:
                     ids.append(int(r['id']))
-        f = {'state': 'excused'}
-        return {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        f = {'state': absence_status}
+        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
+        return update_shift_reg_result
 
     @staticmethod
     def close_ftop_service():
@@ -1175,6 +1342,71 @@ class CagetteServices(models.Model):
         else:
             result['service_found'] = False
         return result
+
+    @staticmethod
+    def get_committees_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('ir.config_parameter',
+                                  [['key','=', 'lacagette_membership.committees_shift_id']],
+                                  ['value'])
+            if len(res) > 0:
+                try:
+                    shift_id = int(res[0]['value'])
+                except:
+                    pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
+    def easy_validate_shift_presence(coop_id):
+        """Add a presence point if the request is valid."""
+        res = {}
+        try:
+            committees_shift_id = CagetteServices.get_committees_shift_id()
+            api = OdooAPI()
+            # let verify coop_id is corresponding to a ftop subscriber
+            cond = [['id', '=', coop_id]]
+            fields = ['tmpl_reg_line_ids']
+            coop = api.search_read('res.partner', cond, fields)
+            if coop:
+                if len(coop[0]['tmpl_reg_line_ids']) > 0 :
+                    cond = [['id', '=', coop[0]['tmpl_reg_line_ids'][0]]]
+                    fields = ['shift_template_id']
+                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                    if (len(shift_templ_res) > 0
+                        and
+                        shift_templ_res[0]['shift_template_id'][0] == committees_shift_id):
+
+                        evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
+                        c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
+                        f = ['create_date']
+                        last_point_mvts = api.search_read('shift.counter.event', c, f,
+                                                          order ="create_date DESC", limit=1)
+                        ok_for_adding_pt = False
+                        if len(last_point_mvts):
+                            now = datetime.datetime.now()
+                            past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
+                                                               '%Y-%m-%d %H:%M:%S')
+                            if (now - past).total_seconds() >= 3600 * 24:
+                                ok_for_adding_pt = True
+                        else:
+                            ok_for_adding_pt = True
+                        if ok_for_adding_pt is True:
+                            res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
+                        else:
+                            res['error'] = "One point has been added less then 24 hours ago"
+                    else:
+                        res['error'] = "Unallowed coop"
+                else:
+                    res['error'] = "Unregistred coop"
+            else:
+                res['error'] = "Invalid coop id"
+        except Exception as e:
+            coop_logger.error("easy_validate_shift_presence :  %s %s", str(coop_id), str(e))
+        return res
 
 class CagetteUser(models.Model):
 
@@ -1227,3 +1459,4 @@ class CagetteUser(models.Model):
                 pass
 
         return answer
+

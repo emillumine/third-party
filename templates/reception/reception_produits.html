@@ -19,7 +19,7 @@
 {% endif %}
 <div class="page_body">
   <header class="flex-container">
-    <button class="right btn--danger" onclick="back()">Retour</button>
+    <button class="right btn--danger" id="back_button">Retour</button>
     <div class="w33 arrow-block txtcenter" id="header_step_one">
       <h4 id="header_step_one_content">Produits à compter </h4>
     </div>
@@ -177,12 +177,23 @@
     <div id="modal_FAQ_content"></div>
     <div id="modal_qtiesValidated"></div>
     <div id="modal_pricesValidated"></div>
+    <div id="modal_confirm_price_to_weight">
+      <h3>Confirmation du prix</h3>
+      <p>Est ce que le prix au kilo du produit <b><span id="product_to_verify"></span></b>
+      est bien <b><span id="price_to_verify"></span></b> euros/Kg ?</p>
+      <input type="number" name="Prix au Kilo" id="new_price_to_weight">
+    </div>
   </div>
   <br/>
 </div>
+
+<script src="{% static 'js/pouchdb.min'|add:POUCHDB_VERSION|add:'.js' %}"></script>        
 <script type="text/javascript">
   var tools_server = '{{TOOLS_SERVER}}'
   var fixed_barcode_prefix = '{{FIXED_BARCODE_PREFIX}}'
+  var couchdb_dbname = '{{db}}';
+  var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+  var display_autres = "{{DISPLAY_AUTRES}}";
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src='{% static "js/barcodes.js" %}?v='></script>

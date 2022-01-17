@@ -1067,16 +1067,18 @@ var shouldCategoryBeShown = function (cat_id) {
         answer = false;
     }
     if (typeof cat_nb_pdts != "undefined") {
-        let list =  cat_nb_pdts.list;
-        let cat_ids = Object.keys(list).map(x => parseInt(x,10));
+        let list = cat_nb_pdts.list;
+        let cat_ids = Object.keys(list).map(x => parseInt(x, 10));
         //cat_ids is now an array of category ids which have product
+
         if (cat_ids.indexOf(cat_id) < 0) {
             // cat_id is corresponding to a category which have no product
             answer = false;
         }
     }
+
     return answer;
-}
+};
 var appendChildrenCatToMenu = function (catdiv, children) {
     var ul = catdiv.find('ul');
 
@@ -1400,28 +1402,29 @@ var showSentCart = function() {
         content = $('<div>'),
         table = $('<table>');
     let header = $('<tr><th>Article</th><th>Qté</th><th>Prix Total (T.T.C)</th></tr>');
-    let bottom_msg = $('<p>').html("<em>Contenu non modifiable.</em>")
+    let bottom_msg = $('<p>').html("<em>Contenu non modifiable.</em>");
+
     table.append(header);
-    $.each(my_sent_orders, function(i,e) {
+    $.each(my_sent_orders, function(i, e) {
         if (e._id == id) {
-            $.each(e.products, function (j,p) {
+            $.each(e.products, function (j, p) {
                 let tr = $('<tr>'),
                     name = $('<td>').text(p.name),
                     qty = $('<td>').text(p.qty),
-                    total = $('<td>').text(p.total)
+                    total = $('<td>').text(p.total);
 
                 tr.append(name);
                 tr.append(qty);
                 tr.append(total);
                 table.append(tr);
-            })
+            });
         }
-    })
+    });
 
     content.append(table);
     content.append(bottom_msg);
     displayMsg(content.html());
-}
+};
 
 var destroySentCart = function() {
     var clicked = $(this);

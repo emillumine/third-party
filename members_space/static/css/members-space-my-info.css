@@ -1,0 +1,138 @@
+/* We override some styles defined on the home page for the specific needs of the My Info page */
+
+#my_info {
+    font-size: 2rem;
+}
+
+#my_info_content {
+    display: flex;
+    flex-direction: column;
+    margin: 2rem 0;
+}
+
+.my_info_line {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 1.5rem 0;
+}
+
+@media screen and (min-width: 351px) and (max-width: 435px) {
+    .my_info_line {
+        font-size: 90%;
+        padding: 2vw 0;
+    }
+}
+
+@media screen and (max-width: 350px) {
+    .my_info_line {
+        font-size:  3.5vw;
+        padding: 2vw 0;
+    }
+}
+
+.my_info_line_left {
+    width: 50%;
+    text-align: right;
+    padding-right: 2rem;
+    font-weight: bold;
+}
+
+
+.my_info_line_right {
+    width: 50%;
+    padding-left: 2rem;
+    max-width: 100%;
+    word-break: break-all;
+}
+
+.my_info_line_middle {
+    width: 70%;
+    max-width: 100%;
+    word-break: normal;
+    text-align: center;
+    margin: 3rem 0;
+}
+
+#my_info #member_status_action,
+#my_info .member_shift_name_area,
+#my_info .member_coop_number_area {
+    margin-bottom: 0;
+}
+
+#my_info .member_shift_name_area {
+    margin-top: 0;
+}
+#attached_info {
+    display: flex;
+    flex-direction: column;
+}
+
+.member_phone_area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-btn{
+    cursor: pointer;
+}
+
+#edit_address_form {
+    display: none ;
+}
+#edit_address_form #zip_form {
+    margin: 5px 0;
+}
+#edit_phone_form {
+    display: none ;
+}
+#edit_phone_form #mobile_form {
+    margin: 5px 0;
+}
+
+
+@media screen and (max-width: 992px) {
+    #my_info {
+        font-size: 1.7rem;
+    }
+    .my_info_line_left {
+        width: 30%;
+        padding-right: 1rem;
+    }
+    .my_info_line_right {
+        width: 70%;
+        padding-left: 1rem;
+    }
+
+    #attached_info .my_info_line_left {
+        width: 100%;
+        text-align: left;
+        padding: 0;
+    }
+    #attached_info .my_info_line_right {
+        width: 100%;
+        padding: 0;
+    }
+
+    #my_info .choose_makeups,
+    #my_info .unsuscribed_form_link {
+        white-space: normal;
+    }
+
+    #my_info .delay_date_stop_container {
+        white-space: nowrap;
+    }
+
+    #my_info .member_coop_number_area,
+    #my_info .member_shift_name_area {
+        align-items: flex-start;
+    }   
+}
+
+
+.status_info_image {
+  display: block;
+  margin: 5rem auto 5rem auto;
+  width: 50%;
+}

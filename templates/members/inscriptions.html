@@ -20,6 +20,8 @@
     {% if open_on_sunday %}
     let open_on_sunday = true
     {% endif %}
+    let manage_ftop = {% if show_ftop_button %}true{% else %}false{% endif %};
+
   </script>
 {% endblock %}
 {% block content %}

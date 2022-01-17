@@ -1,17 +1,131 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
+from outils.common import OdooAPI
 
-from orders.models import Order, Orders
-from products.models import CagetteProduct
+from orders.models import Order, Orders, CagetteSuppliers
+from products.models import CagetteProduct, CagetteProducts
 
 from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
 
+import datetime
 
 def as_text(value): return str(value) if value is not None else ""
 
 def index(request):
 	return HttpResponse('Orders')
+
+def helper(request):
+    context = {
+        'title': 'Aide à la commande',
+        'couchdb_server': settings.COUCHDB['url'],
+        'db': settings.COUCHDB['dbs']['orders'],
+        'odoo_server': settings.ODOO['url'],
+        'metabase_url': getattr(settings, 'ORDERS_HELPER_METABASE_URL', ''),
+        'nb_past_days_to_compute_sales_average': OdooAPI().get_system_param('lacagette_products.nb_past_days_to_compute_sales_average'),
+        'nb_of_consecutive_non_sale_days_considered_as_break': OdooAPI().get_system_param('lacagette_products.nb_of_consecutive_non_sale_days_considered_as_break')
+    }
+
+    template = loader.get_template('orders/helper.html')
+
+    return HttpResponse(template.render(context, request))
+
+def get_suppliers(request):
+    """ Get suppliers list """
+    res = {}
+
+    try:
+        res = CagetteSuppliers.get_suppliers()
+    except Exception as e:
+        res["error"] = str(e)
+        return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
+
+def get_supplier_products(request):
+    """ Get supplier products """
+
+    suppliers_id = request.GET.getlist('sids', '')
+    stats_from = request.GET.get('stats_from')
+    res = CagetteProducts.get_products_for_order_helper(suppliers_id, [], stats_from)
+    
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+def associate_supplier_to_product(request):
+    """ This product is now supplied by this supplier """
+    res = {}
+
+    data = json.loads(request.body.decode())
+    res = CagetteProduct.associate_supplier_to_product(data)
+
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+    return JsonResponse({'res': res})
+
+def end_supplier_product_association(request):
+    """ This product is now unavailable from this supplier """
+    res = {}
+
+    data = json.loads(request.body.decode())
+    res = CagetteProduct.end_supplier_product_association(data)
+
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+def create_orders(request):
+    """ Create products orders """
+    res = { "created": [] }
+    try:
+        data = json.loads(request.body.decode())
+
+        # suppliers id are keys in request data
+        for supplier_id in data["suppliers_data"].keys():
+            supplier_data = data["suppliers_data"][supplier_id]
+
+            res_created = Order.create(
+                supplier_id, 
+                supplier_data["date_planned"], 
+                supplier_data["lines"]
+            )
+            res["created"].append(res_created)
+            
+    except Exception as e:
+        res["error"] = str(e)
+        return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
+
+def get_orders_attachment(request):
+    """ Get order attachment: order file created after PO is finalized """
+    res = []
+    
+    po_ids = request.GET.getlist('po_ids')
+
+    for id_po in po_ids:
+        m = Order(int(id_po))
+        attachment = m.get_order_attachment_id()
+
+        if 'error' in attachment:
+            res.append(attachment)
+        else:
+            res.append({
+                'id_po': id_po,
+                'id_attachment': attachment["id"]
+            })
+
+    for item in res:
+        if 'error' in item:
+            return JsonResponse(res, status=500)
+
+    return JsonResponse({'res': res})
 
 def export_one(request, oid):
     msg = ''
@@ -20,7 +134,6 @@ def export_one(request, oid):
         order = Order(oid)
         order_data = order.export()
         if ('success' in order_data) and (order_data['success'] is True):
-            import datetime
             now = datetime.datetime.now()
             taxes = 0
             company_name = ''
