@@ -91,6 +91,7 @@ function select_product_from_bc(barcode) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == scannedProduct.data[barcodes['keys']['id']]) {
                         foundProduct.data = JSON.parse(JSON.stringify(e));
+                        foundProduct.data.product_qty = null;
                         foundProduct.place = 'processed';
                     }
                 });
@@ -941,6 +942,7 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
             newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
+            newValue = newValue.isFinite() ? newValue : 0;
         }
 
         $.each(list_processed, function(i, e) {
