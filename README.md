@@ -117,7 +117,7 @@ L'adresse d'écoute et le numero de port peuvent être modifiés  en les passant
 
         `docker build -t odoo/foodcoops .`
 
-        Si sur mac : `docker build -t odoo/foodcoops --platform linux/amd64 .`
+        Si c'est sur mac avec une puce apple : `docker build -t odoo/foodcoops --platform linux/amd64 .`
 
     2. Dans le repo third-party, modifier la valeur POSTGRES_DB=lacagette_anon dans le .env
     3. Depuis le repo third-party
