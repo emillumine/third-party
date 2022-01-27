@@ -87,69 +87,99 @@ L'adresse d'écoute et le numero de port peuvent être modifiés  en les passant
 
 ## Docker (not suitable for production)
 
-  1. Uniquement l'application third-party avec le reste installé sur l'hôte.
+1. Dupliquer les fichiers config_example, setting, setting_secret dans `third-party/outils`
 
-      ```
-      docker build -t third-party -f ./dockerfiles/Dockerfile .
-      ```
+    changer le port de Odoo et vérifier celui de couchdb :
 
-      Puis créer un container à partir de l'image.
+    ```python
+    ODOO = {
+     'url': '[http://odoo:8069](http://odoo:8069/)',
+    ...
+    }
 
-      ```
-      docker run third-party
-      ```
+    COUCHDB = {
+     'private_url': 'http://couchdb:5984',
+    ...
+    }
+    ```
 
-      note: Pour accéder au services installés sur l'hôte remplacer `localhost` par `host.docker.internal`
+2. Pour commencer, créer l’image sur third-party
 
+    `docker build -t third-party -f ./dockerfiles/Dockerfile .`
 
-  2. Lancer la pile de développement complète avec docker-compose
+3.  Puis créer un container à partir de l'image.
 
-      1. Dans le repo odoo, créer l'image odoo/foodcoops
+    `docker run third-party`
+    note : Pour accéder au services installés sur l'hôte remplacer localhost par host.docker.internal
 
-          ```
-          docker build -t odoo/foodcoops .
-          ```
-          Modifier la valeur `POSTGRES_DB=lacagette_anon` dans le `.env`
+4.  Lancer la pile de développement complète avec docker-compose
+    1. Dans le repo odoo, créer l'image odoo/foodcoops
 
-      2. Depuis le repo third-party
+        `docker build -t odoo/foodcoops .`
 
-          ```
-          docker-compose up
-          ```
+        Si sur mac : `docker build -t odoo/foodcoops --platform linux/amd64 .`
 
-      3. Une fois tout les services lancés appuyez sur crtl+C
-      4. Relancer la base de données uniquement pour charger les données
+    2. Dans le repo third-party, modifier la valeur POSTGRES_DB=lacagette_anon dans le .env
+    3. Depuis le repo third-party
 
-          ```
-          docker-compose start database
-          ```
-      5. Recharger les données depuis PgAdmin
-
-            - Il est nécessaire de recréer les rôles
-
-               ```
-                CREATE ROLE lacagette;
-                CREATE ROLE visu;
-                ```
-            - Supprimer complètement la base.
-            - Recréer la base `cagette_anon` puis restorer les données.
+        `docker-compose up`
 
 
-      6. Placer le fichier FScontent.zip dans le dossier data
-      7. Arrêter la pile de développement avec `docker-compose down`
-      8. Relancer la pile complète en arrière plan `docker-compose up -d`
-      9. Se connecter au container docker odoo et déziper le FScontent
-          ```
-          docker-compose exec odoo /bin/bash
-          root@<instance>:/usr/src/odoo#cd /external-data
-          root@<instance>:/external-data#cp FScontent.zip /root/.local/share/Odoo/filestore/lacagette_anon/
-          root@<instance>:/external-data#cd /root/.local/share/Odoo/filestore/lacagette_anon/
-          root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#unzip FScontent.zip
-          root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#rm FScontent.zip
-          root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#exit
-          ```
-      10. redémarrer la pile complète `docker-compose down` suivi de `docker-compose up -d`
+    Une fois tous les services sont lancés appuyer sur crtl+C
 
-          L'application est dispo sur localhost:8080 et odoo sur localhost:8069
+5.  Relancer la base de données uniquement pour charger les données
 
-          note: les données sont persistantes (stockées dans des volumes docker)
+    `docker-compose start database`
+
+6. Depuis PgAdmin :
+    - Créer le serveur `lacagette`
+        - General : mettre en name lacagette
+        - Connection : en hostname : localhost, garder le port 5432, en username et mot de passe, mettre ceux du fichier .env puis sauvegarder.
+    - Une fois le serveur lacagette créé, créer une nouvelle database au nom de `lacagette_anon`
+    - Puis cliquer sur `lacagette_anon`pour créer les rôles :
+
+    ```
+     CREATE ROLE lacagette;
+     CREATE ROLE visu;
+    ```
+
+7. Placer le fichier FScontent.zip dans le dossier `third-party/data` puis :
+
+    Arrêter la pile de développement avec `docker-compose down`
+    Relancer la pile complète en arrière plan `docker-compose up -d`
+
+
+Ouvrir la console shell du container docker odoo et déziper le FScontent :
+
+```python
+docker-compose exec odoo /bin/bash
+root@<instance>:/usr/src/odoo#cd /external-data
+root@<instance>:/external-data#cp FScontent.zip /root/.local/share/Odoo/filestore/lacagette_anon/
+root@<instance>:/external-data#cd /root/.local/share/Odoo/filestore/lacagette_anon/
+root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#unzip FScontent.zip
+root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#rm FScontent.zip
+root@<instance>:~/.local/share/Odoo/filestore/lacagette_anon#exit
+```
+
+Redémarrer la pile complète `docker-compose down` suivi de `docker-compose up -d`
+
+1. Configurer Odoo :
+
+    Se connecter à Odoo via l’utilisateur admin
+
+    Modifier le mot de passe de l’utilisateur api :
+
+    Se rendre dans configuration puis à gauche, utilisateurs
+
+    Ouvrir l’utilisateur api, cliquer sur modifier le mot de passe et mettre celui indiqué dans le fichier `setting secret`
+
+    Mettre à jour les applications lacagette :
+
+    Se rendre dans applications, dans la barre de recherches, décocher applications, remplacer par lacagette
+
+    A gauche cliquer sur Mettre à jour la liste des Applications
+
+
+L'application est dispo sur localhost:8080 et odoo sur localhost:8069
+
+note: les données sont persistantes (stockées dans des volumes docker)
