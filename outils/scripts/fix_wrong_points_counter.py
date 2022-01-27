@@ -14,11 +14,19 @@ def main():
     """For coops in alert state, reajust points counter so they get to 0 after adding their makeups to their actual calculated total"""
     api = OdooAPI()
 
-    cond = [['cooperative_state','=', 'alert']]
-    fields = ['id', 'name', 'makeups_to_do']
+    cond = [
+        '|',
+        '|',
+        '|',
+        ['cooperative_state','=', 'alert'],
+        ['cooperative_state','=', 'unsubscribed'],
+        ['cooperative_state','=', 'suspended'],
+        ['cooperative_state','=', 'delay']
+    ]
+    fields = ['id', 'name', 'makeups_to_do', 'cooperative_state']
     res = api.search_read('res.partner', cond, fields)
 
-    print("Nb en alerte avant action : " + str(len(res)))
+    cpt = 0
 
     for p in res:
         # Get real points count
@@ -42,13 +50,22 @@ def main():
 
         final_theoric_pts = total_pts + p['makeups_to_do'] + len(res_shift_reg)
 
-        if final_theoric_pts != 0:
+        if final_theoric_pts < 0:
+            cpt += 1
+
             print(p["name"])
             print('theoric total : ' + str(final_theoric_pts))
             print('>> total_pts : ' + str(total_pts))
             print('>> makeups_to_do : ' + str(p['makeups_to_do']))
             print('>> nb future makeups : ' + str(len(res_shift_reg)))
 
+            """
+                For unsubscribed people, 
+                adding a point and going through run_process_target_status may lead them to be suspended 
+                whereas they're not subscribed to any shift.
+                Adding a fake point will lead odoo to reset Unsuscribed status.
+            """
+            add_second_corrective_pt = p['cooperative_state'] == 'unsubscribed'
 
             # Add/remove points so their final theoric points is 0
             points_to_add = -final_theoric_pts
@@ -61,7 +78,22 @@ def main():
             }
             api.create('shift.counter.event', fields)
             print('===> Pts ajoutés : ' + str(points_to_add))
+
+            if add_second_corrective_pt is True:
+                api.execute('res.partner', 'run_process_target_status', [])
+                fields = {
+                    'name': "Correction de l'historique - Sécurité pour les désinscrit.es",
+                    'shift_id': False,
+                    'type': 'standard',
+                    'partner_id': p['id'],
+                    'point_qty': 0
+                }
+                api.create('shift.counter.event', fields)
+                print('===> Pt correctif pour désinscrits')
+
             print('--------')
+
+    print('Nb de personnes concernées : ' + str(cpt))
 
 if __name__ == "__main__":
     main()
