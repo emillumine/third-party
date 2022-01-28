@@ -729,6 +729,7 @@ class CagetteMember(models.Model):
             cond = [['barcode', '=', str(key)]]
         else:
             cond = [['name', 'ilike', str(key)]]
+        cond.append(['is_member', '=', True])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
         fields = CagetteMember.m_default_fields
         if not shift_id is None:
