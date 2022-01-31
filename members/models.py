@@ -743,13 +743,14 @@ class CagetteMember(models.Model):
                 keep_it = False
                 if not shift_id is None and len(shift_id) > 0:
                     # Only member registred to shift_id will be returned
-                    cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
-                    fields = ['shift_template_id']
-                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
-                    if (len(shift_templ_res) > 0
-                        and
-                        int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
-                        keep_it = True
+                    if len(m['tmpl_reg_line_ids']) > 0:
+                        cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
+                        fields = ['shift_template_id']
+                        shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                        if (len(shift_templ_res) > 0
+                            and
+                            int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
+                            keep_it = True
                 else:
                     keep_it = True
                 if keep_it is True:
