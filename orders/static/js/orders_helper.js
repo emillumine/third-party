@@ -29,7 +29,7 @@ var dbc = null,
 
 var clicked_order_pill = null;
 
-
+var timerId
 /* - UTILS */
 
 /**
@@ -116,6 +116,11 @@ function _compute_stats_date_from() {
     return val;
 }
 
+function debounceFunction(func, delay = 1000) {
+  clearTimeout(timerId)
+
+  timerId = setTimeout(func, delay)
+}
 /* - PRODUCTS */
 
 /**
@@ -165,7 +170,7 @@ function add_product() {
                 res.default_code = ' ';
                 products.unshift(res);
                 update_main_screen({'sort_order_dir':'desc'});
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
             } else {
                 alert("L'article n'a pas toutes les caractéristiques pour être ajouté.");
             }
@@ -346,7 +351,7 @@ function update_product_ref(input_el, p_id, p_index) {
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(data),
             success: () => {
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
 
                 $(".actions_buttons_area .right_action_buttons").notify(
                     "Référence sauvegardée !",
@@ -424,7 +429,7 @@ function add_supplier() {
             save_supplier_products(supplier, data.res.products);
             update_main_screen();
             $("#supplier_input").val("");
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             closeModal();
         },
         error: function(data) {
@@ -460,7 +465,7 @@ function remove_supplier(supplier_id) {
     products = products.filter(product => product.suppliersinfo.length > 0);
 
     update_main_screen();
-    update_cdb_order();
+    debounceFunction(update_cdb_order);
 }
 
 
@@ -527,7 +532,7 @@ function save_supplier_product_association(product, supplier, cell) {
             products_table.row(row).data(new_row_data)
                 .draw();
 
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             closeModal();
         },
         error: function(data) {
@@ -581,7 +586,7 @@ function end_supplier_product_association(product, supplier) {
             // Update table
             display_products();
 
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             closeModal();
         },
         error: function(data) {
@@ -726,7 +731,7 @@ function save_products_npa_minimal_stock(product, inputs) {
                 // Remove NPA products
                 products.splice(index, 1);
                 update_main_screen();
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
             }
 
             closeModal();
@@ -1160,7 +1165,7 @@ function goto_main_screen(doc) {
 
     check_products_data()
         .then(() => {
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             update_main_screen();
             switch_screen();
         });
@@ -1606,7 +1611,7 @@ function display_products(params) {
                 products_table.row($(this).closest('tr')).data(new_row_data)
                     .draw();
 
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
                 display_total_values();
             } else {
                 $(this).val('');
@@ -2100,7 +2105,7 @@ $(document).ready(function() {
                 if (!isNaN(val)) {
                     order_doc.coverage_days = val;
                     compute_products_coverage_qties();
-                    update_cdb_order();
+                    debounceFunction(update_cdb_order);
                     update_main_screen();
                 } else {
                     $("#coverage_days_input").val(order_doc.coverage_days);
@@ -2160,7 +2165,7 @@ $(document).ready(function() {
                     .then(() => {
                         compute_products_coverage_qties();
                         update_main_screen();
-                        update_cdb_order();
+                        debounceFunction(update_cdb_order);
                         closeModal();
                     });
             }
@@ -2177,7 +2182,7 @@ $(document).ready(function() {
                 openModal();
                 check_products_data()
                     .then(() => {
-                        update_cdb_order();
+                        debounceFunction(update_cdb_order);
                         update_main_screen();
                         $("#toggle_action_buttons").click();
                         closeModal();
