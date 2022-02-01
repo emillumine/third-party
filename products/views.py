@@ -100,7 +100,7 @@ def update_product_stock(request):
         'products': [p]
     }
 
-    res['inventory'] = CagetteInventory.update_stock_with_shelf_inventory_data(inventory_data)
+    res['inventory'] = CagetteInventory.update_products_stock(inventory_data)
 
     return JsonResponse({"res": res})
 
@@ -134,13 +134,44 @@ def update_product_internal_ref(request):
     else:
         return JsonResponse(res, status=403)
 
-def update_npa_and_minimal_stock(request):
+def commit_actions_on_product(request):
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
         try:
             data = json.loads(request.body.decode())
-            res = CagetteProduct.update_npa_and_minimal_stock(data)
+            product_data = CagetteProducts.get_products_for_order_helper(None, [data["id"]])["products"][0]
+
+            # Don't allow to archive product if incomin qty > 0
+            if data["to_archive"] is True and product_data["incoming_qty"] > 0:
+                res["code"] = "archiving_with_incoming_qty"
+                return JsonResponse(res, status=500)
+            
+            res = CagetteProduct.commit_actions_on_product(data)
+
+            # If stock > 0: do inventory to set stock to 0
+            if data["to_archive"] is True and product_data["qty_available"] != 0:
+                try:
+                    p = { 
+                        'id': product_data['product_variant_ids'][0],  # Need product id
+                        'uom_id': product_data['uom_id'],
+                        'qty': -product_data["qty_available"]
+                    }
+
+                    inventory_data = {
+                        'name': 'Archivage - ' + product_data['name'],
+                        'products': [p]
+                    }
+
+                    res_inventory = CagetteInventory.update_products_stock(inventory_data)
+                    if res_inventory['errors'] or res_inventory['missed']:
+                        res["code"] = "error_stock_update"
+                        res["error"] = res_inventory['errors']
+                        return JsonResponse(res, status=500)
+
+                except Exception as e:
+                    res["code"] = "error_stock_update"
+                    return JsonResponse(res, status=500)
         except Exception as e:
             res['error'] = str(e)
             coop_logger.error("Update npa and minimal stock : %s", res['error'])

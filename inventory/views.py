@@ -94,7 +94,7 @@ def do_custom_list_inventory(request):
             full_inventory_data = CagetteInventory.get_full_inventory_data(inventory_data)
 
             # Proceed with inventory
-            res['inventory'] = CagetteInventory.update_stock_with_shelf_inventory_data(full_inventory_data)
+            res['inventory'] = CagetteInventory.update_products_stock(full_inventory_data)
 
             # remove file
             CagetteInventory.remove_custom_inv_file(inventory_data['id'])

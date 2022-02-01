@@ -148,6 +148,10 @@ footer { position: fixed;
   width: 230px !important;
 }
 
+.tooltip .tooltip-xl {
+  width: 320px !important;
+}
+
 .tooltip .tt_twolines {
   top: -15px !important;
 }

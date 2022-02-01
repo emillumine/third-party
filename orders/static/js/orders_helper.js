@@ -688,23 +688,33 @@ function _compute_total_values_by_supplier() {
 
 /* - PRODUCT */
 
-function save_products_npa_minimal_stock(product, inputs) {
-    let actions = {npa: [], minimal_stock: 0, id: product.id, name: product.name};
+function commit_actions_on_product(product, inputs) {
+    let actions = {
+        npa: [],
+        to_archive: false,
+        minimal_stock: 0,
+        id: product.id,
+        name: product.name
+    };
     inputs.each(function (i,e) {
         const input = $(e)
-        if (input.attr('type') == 'checkbox') {
+        if (input.attr('name') == 'npa-actions') {
             if (input.prop('checked') == true) {
-                actions.npa.push(input.val())
+                actions.npa.push(input.val());
             }
         } else if (input.attr('name') == "minimal_stock") {
-            actions.minimal_stock = input.val()
+            actions.minimal_stock = input.val();
+        } else if (input.attr('name') == "archive-action") {
+            if (input.prop('checked') == true && product.incoming_qty === 0) {
+                actions.to_archive = true;
+            }
         }
     });
 
     openModal();
     $.ajax({
         type: "POST",
-        url: "/products/update_npa_and_minimal_stock",
+        url: "/products/commit_actions_on_product",
         dataType: "json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -741,18 +751,32 @@ function save_products_npa_minimal_stock(product, inputs) {
             let msg = "erreur serveur lors de la sauvegarde".
                 msg += ` (product_tmpl_id: ${product.id})`;
 
-            err = {msg: msg, ctx: 'save_products_npa_minimal_stock'};
+            err = {msg: msg, ctx: 'commit_actions_on_product'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
             report_JS_error(err, 'orders');
 
-            closeModal();
-            alert('Erreur lors de la sauvegarde de la donnée. Veuillez ré-essayer plus tard.');
-            update_main_screen();
+            try {
+                if (data.responseJSON.code === "archiving_with_incoming_qty") {
+                    alert("Ce produit a des quantités entrantes, vous ne pouvez pas l'archiver.")  
+                } else if (data.responseJSON.code === "error_stock_update") {
+                    alert('Erreur lors de la mise à zéro du stock du produit archivé. Les actions ont bien été réalisées.');
+                } else {
+                    alert('Erreur lors de la sauvegarde des données. Veuillez ré-essayer plus tard.');
+                }
+            } catch (error) {
+                alert('Erreur lors de la sauvegarde des données. Veuillez ré-essayer plus tard.');
+            }
+
+            check_products_data()
+                .then(() => {
+                    update_cdb_order();
+                    update_main_screen();
+                    closeModal();
+                });
         }
     });
-
 }
 
 
@@ -1661,20 +1685,25 @@ function display_products(params) {
         .on('click', 'tbody td .product_actions', function(e){
              // Save / unsave selected row
             const p_id = products_table.row($(this).closest('tr')).data().id;
-
             const product = products.find(p => p.id == p_id);
 
             let modal_product_actions = $('#templates #modal_product_actions');
-
             modal_product_actions.find(".product_name").text(product.name);
 
-            //modal_product_actions.find(".product_npa").text(null ? 'Ne Pas Acheter' : 'Peut Être Acheté');
+            const product_can_be_archived = product.incoming_qty === 0;
+            if (product_can_be_archived == true) {
+                modal_product_actions.find('input[name="archive-action"]').prop( "disabled", false );
+                modal_product_actions.find('input[name="archive-action"]').closest("label").removeClass( "checkbox_action_disabled" );
+            } else {
+                modal_product_actions.find('input[name="archive-action"]').prop( "disabled", true );
+                modal_product_actions.find('input[name="archive-action"]').closest("label").addClass( "checkbox_action_disabled" );
+            }
 
             openModal(
                 modal_product_actions.html(),
                 () => {
                     if (is_time_to('validate_product_actions')) {
-                        save_products_npa_minimal_stock(product, modal.find('input'));
+                        commit_actions_on_product(product, modal.find('input'));
                     }
                 },
                 'Valider',
@@ -2285,7 +2314,7 @@ $(document).ready(function() {
             return 0;
         });
 
-        $(document).on("click",".fa-info-circle", display_average_consumption_explanation)
+        $(document).on("click",".average_consumption_explanation_icon", display_average_consumption_explanation)
 
         $.datepicker.regional['fr'] = {
             monthNames: [

@@ -1,3 +1,9 @@
+/* Comments : */
+/* - Screens */
+/* -- Sections */
+
+/* - Common */
+
 .page_body{
     position: relative;
 }
@@ -8,8 +14,6 @@
     left: 0;
     right: 0;
 }
-
-/* - Common */
 
 .pill {
     border-radius: 30px;
@@ -198,7 +202,7 @@
 }
 
 #coverage_form > div {
-    display:inline-block;
+    display:block;
     float:left;
 }
 
@@ -367,7 +371,7 @@
     width: 90%;
 }
 
-/* product actions modal*/
+/* -- Product actions modal*/
 .npa-options {
     width: fit-content;
     text-align: left;
@@ -376,6 +380,27 @@
 .npa-options label {
     display:  block;
 }
+
+.modal_product_actions_section {
+    margin: 1em 0;
+}
+
+.modal_product_actions_section .tooltip {
+    margin-left: 5px;
+}
+
+.modal_product_actions_title {
+    font-weight: bold;
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.checkbox_action_disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+
+
 /* - Orders created screen */
 
 .order_created_header {
