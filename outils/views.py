@@ -189,34 +189,51 @@ class ExportPOS(View):
                     kept_sessions_id.append(s['id'])
                     key = y + '-' + m + '-' + d
                     if not (key in totals):
-                        totals[key] = {'CB': 0, 'CSH': 0, 'CHQ': 0, 'TOTAL': 0}
+                        totals[key] = {'CB': 0,
+                                       'CSH': 0,
+                                       'CHQ': 0,
+                                       'CB_DEJ': 0,
+                                       'CHQ_DEJ': 0,
+                                       'TOTAL': 0}
                     sub_total = 0
-                    cb = chq = csh = 0
+                    cb = chq = csh = cbd = chqd = 0
                     for p in s['payments']:
+                        # p['name'] is a sequence generated string
+                        # Test order is important as CHEQDEJ contains CHEQ for ex.
+                        # p['journal'] could be used but easier to change in Odoo interface
+                        sub_amount = round(p['total_amount'], 2)
                         if 'CSH' in p['name']:
-                            csh = round(p['total_amount'], 2)
+                            csh = sub_amount
+                        elif 'CHEQDEJ' in  p['name']:
+                            chqd = sub_amount
                         elif 'CHEQ' in p['name']:
-                            chq = round(p['total_amount'], 2)
+                            chq = sub_amount
+                        elif 'CBDEJ' in p['name']:
+                            cbd = sub_amount
                         elif 'CB' in p['name']:
-                            cb = round(p['total_amount'], 2)
-                        sub_total += round(p['total_amount'], 2)
+                            cb = sub_amount
+                        sub_total += sub_amount
                     totals[key]['CB'] += cb
                     totals[key]['CSH'] += csh
                     totals[key]['CHQ'] += chq
+                    totals[key]['CB_DEJ'] += cbd
+                    totals[key]['CHQ_DEJ'] += chqd
                     totals[key]['TOTAL'] += round(sub_total, 2)
                     details_lines.append([mois, s['mm_dates']['min'], s['mm_dates']['min'], s['caisse'], s['name'],
-                                         cb, csh, chq, sub_total])
+                                         cb, csh, chq, cbd, chqd, sub_total])
         wb = Workbook()
         ws1 = wb.create_sheet("Totaux " + mois, 0)
         ws2 = wb.create_sheet("Détails " + mois, 1)
-        ws1.append(['date', 'CB', 'CSH', 'CHQ', 'Total'])
+        ws1.append(['date', 'CB', 'CSH', 'CHQ', 'CB_DEJ', 'CHQ_DEJ', 'Total'])
         for day in sorted(totals):
             cb = totals[day]['CB']
             csh = totals[day]['CSH']
             chq = totals[day]['CHQ']
+            cbd = totals[day]['CB_DEJ']
+            chqd = totals[day]['CHQ_DEJ']
             total = totals[day]['TOTAL']
-            ws1.append([day, cb, csh, chq, total])
-        ws2.append(['mois', 'min_date', 'max_date', 'Caisse', 'session', 'CB', 'CSH','CHQ', 'total'])
+            ws1.append([day, cb, csh, chq, cbd, chqd, total])
+        ws2.append(['mois', 'min_date', 'max_date', 'Caisse', 'session', 'CB', 'CSH','CHQ', 'CB_DEJ', 'CHQ_DEJ', 'total'])
         for row in details_lines:
             ws2.append(row)
         wb_name = 'export_sessions__' + mois + '.xlsx'

@@ -705,6 +705,8 @@ function save_products_npa_minimal_stock(product, inputs) {
             actions.minimal_stock = input.val()
         }
     });
+
+    openModal();
     $.ajax({
         type: "POST",
         url: "/products/update_npa_and_minimal_stock",
@@ -715,17 +717,6 @@ function save_products_npa_minimal_stock(product, inputs) {
         success: () => {
             const index = products.findIndex(p => p.id == product.id);
 
-            // Give time for modal to fade
-            setTimeout(function() {
-                $(".actions_buttons_area .right_action_buttons").notify(
-                    "Actions enregistrées !",
-                    {
-                        elementPosition:"bottom right",
-                        className: "success",
-                        arrowShow: false
-                    }
-                );
-            }, 500);
             products[index].minimal_stock = actions.minimal_stock;
             if (actions.npa.length > 0) {
                 // Remove NPA products
@@ -734,7 +725,24 @@ function save_products_npa_minimal_stock(product, inputs) {
                 debounceFunction(update_cdb_order);
             }
 
-            closeModal();
+            check_products_data()
+                .then(() => {
+                    update_cdb_order();
+                    update_main_screen();
+                    closeModal();
+
+                    // Give time for modal to fade
+                    setTimeout(function() {
+                        $(".actions_buttons_area .right_action_buttons").notify(
+                            "Actions enregistrées !",
+                            {
+                                elementPosition:"bottom right",
+                                className: "success",
+                                arrowShow: false
+                            }
+                        );
+                    }, 500);
+                });
         },
         error: function(data) {
             let msg = "erreur serveur lors de la sauvegarde".
