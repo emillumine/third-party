@@ -38,17 +38,23 @@ function display_orders(orders) {
         columns:[
             {
                 data:"create_date",
-                title:"Date de vente",
+                title:"Date enregistrement",
                 width: "10%"
             },
             {
+                data:"pos_order_name",
+                title:"Ref. Caisse",
+                width: "10%"
+            },
+
+            {
                 data:"partner",
                 title:"Membre",
-                width: "50%"
+                width: "40%"
             },
             {
                 data:"total_amount",
-                title: "Montant du panier",
+                title: "Montant dû",
                 className:"dt-body-center",
                 render: function (data) {
                     return parseFloat(data).toFixed(2) + ' €';

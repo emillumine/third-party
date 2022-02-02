@@ -16,36 +16,27 @@ class CagetteSales(models.Model):
 
         # Get pos orders
         cond = [['date_order', '>=', date_from], ['date_order', '<=', date_to]]
-        fields = ['partner_id', 'statement_ids']
+        fields = ['partner_id', 'statement_ids', 'name']
         orders = self.o_api.search_read('pos.order', cond, fields)
         # Get bank statements of these sessions
         statements = []
         statements_partners = {}
+        statements_orders = {}
         for o in orders:
             statements = statements + o["statement_ids"]
             for s in o["statement_ids"]:
                 statements_partners[s] = o["partner_id"][1]
+                statements_orders[s] = o["name"]
         # Get payment lines
         cond = [['id', 'in', statements]]
-        fields = ["amount", "journal_id", "create_date", "date"]
+        fields = ["amount", "journal_id", "create_date"]
         payments = self.o_api.search_read('account.bank.statement.line', cond, fields, order="create_date ASC", limit=50000)
-        item = None
         try:
             for payment in payments:
-                # POS session can contain payments from another day (closing session on next morning, ...)
-                if payment["date"] >= date_from and payment["date"] <= date_to:
-                    # If the consecutive payment in the results is from the same partner on the same day, we consider it's the same basket
-                    if item is not None and item["partner"] == statements_partners[payment["id"]] and item["date"] == payment["date"]:
-                        res[len(res)-1]["total_amount"] += round(float(payment["amount"]), 2)
-                        res[len(res)-1]["payments"].append({
-                            "amount": round(float(payment["amount"]), 2),
-                            "journal_id": payment["journal_id"]
-                        })
-                    else:
-                        item = {
+                res.append({
                             "partner": statements_partners[payment["id"]],
                             "create_date": payment["create_date"],
-                            "date": payment["date"],
+                            "pos_order_name": statements_orders[payment["id"]],
                             "total_amount": round(float(payment["amount"]), 2),
                             "payments": [
                                 {
@@ -53,9 +44,7 @@ class CagetteSales(models.Model):
                                     "journal_id": payment["journal_id"]
                                 }
                             ]
-                        }
-
-                        res.append(item)
+                           })
         except Exception as e:
             coop_logger.error("get_sales %s", str(e))
 
