@@ -98,7 +98,7 @@
                     <input type="number" name="percent_adjustement" id="percent_adjust_input" placeholder="ajustement en %">
                 </div>
                 <div>
-                    <button  type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg'></i>
+                    <button  type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg average_consumption_explanation_icon'></i>
                 </div>
             </form>
         </div>
@@ -277,19 +277,28 @@
 
         <div id="modal_product_actions">
             Actions sur <h3><span class="product_name"></span></h3>
-            <p>
-                <h4>NPA</h4>
+            <div class="modal_product_actions_section">
+                <h4 class="modal_product_actions_title">NPA</h4>
                 <div class="npa-options">
                     <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
                     <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
                     <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
                 </div>
-            </p>
-            <p>
-                <h4>Stock minimum</h4>
+            </div>
+            <div class="modal_product_actions_section">
+                <h4 class="modal_product_actions_title">Archiver le produit</h4>
+                <label class="checkbox_action_disabled"><input type="checkbox" name="archive-action" value="archive" disabled /> Archiver </label>
+                <div class="tooltip">
+                    <i class='main fa fa-info-circle'></i>
+                    <span class="tooltiptext tooltip-xl tt_twolines">
+                        Un produit ne peut pas être archivé si une quantité entrante est prévue.
+                    </span>
+                </div>
+            </div>
+            <div class="modal_product_actions_section">
+                <h4 class="modal_product_actions_title">Stock minimum</h4>
                 <input type="number" name="minimal_stock" value="" />
-            </p>
-
+            </div>
         </div>
 
         <div id="modal_create_order">

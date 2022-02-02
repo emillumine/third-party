@@ -254,13 +254,20 @@ class CagetteProduct(models.Model):
         return res
 
     @staticmethod
-    def update_npa_and_minimal_stock(data):
-        """Update NPA (ne pas acheter) and minimal stock data"""
+    def commit_actions_on_product(data):
+        """ Update: 
+            - NPA (ne pas acheter) 
+            - Product is active
+            - Minimal stock
+        """
         res = {}
         try:
             api = OdooAPI()
+
+            # Minimal stock
             f = {'minimal_stock': data['minimal_stock']}
 
+            # NPA
             if 'simple-npa' in data['npa']:
                 f['purchase_ok'] = 0
             if 'npa-in-name' in data['npa']:
@@ -279,6 +286,10 @@ class CagetteProduct(models.Model):
                 f['name'] = re.sub(r'( \[FDS\])', '', current_name)
             if len(data['npa']) == 0:
                 f['purchase_ok'] = 1
+            
+            # Active
+            f["active"] = not data['to_archive']
+
             res["update"] = api.update('product.template', data['id'], f)
         except Exception as e:
             res["error"] = str(e)
@@ -612,7 +623,7 @@ class CagetteProducts(models.Model):
                 "product_variant_ids",
                 "minimal_stock"
             ]
-            c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
+            c = [['id', 'in', ptids], ['purchase_ok', '=', True], ['active', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
 
