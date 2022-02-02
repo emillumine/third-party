@@ -766,7 +766,6 @@ function commit_actions_on_product(product, inputs) {
             if (actions.npa.length > 0 || actions.to_archive === true) {
                 // Remove NPA & archived products
                 products.splice(index, 1);
-                update_main_screen();
                 debounceFunction(update_cdb_order);
             }
 
