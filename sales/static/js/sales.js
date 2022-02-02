@@ -42,12 +42,9 @@ function display_orders(orders) {
                 width: "10%"
             },
             {
-                data:"partner_id",
+                data:"partner",
                 title:"Membre",
-                width: "50%",
-                render: function (data) {
-                    return data[1];
-                }
+                width: "50%"
             },
             {
                 data:"total_amount",
