@@ -289,7 +289,6 @@ class CagetteProduct(models.Model):
             
             # Active
             f["active"] = not data['to_archive']
-            # TODO if to archive, set stock to 0
 
             res["update"] = api.update('product.template', data['id'], f)
         except Exception as e:
