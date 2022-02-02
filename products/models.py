@@ -624,7 +624,7 @@ class CagetteProducts(models.Model):
                 "product_variant_ids",
                 "minimal_stock"
             ]
-            c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
+            c = [['id', 'in', ptids], ['purchase_ok', '=', True], ['active', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
 

@@ -261,8 +261,12 @@ function check_products_data() {
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
                 success: function(data) {
+                    let loaded_products_ids = products.map(p => p.id);
+
+                    // Going through products fetched from server
                     for (let product of data.res.products) {
-                        const p_index = products.findIndex(p => p.id == product.id);
+                        const p_id = product.id;
+                        const p_index = products.findIndex(p => p.id == p_id);
 
                         if (p_index === -1) {
                             // Add product if it wasn't fetched before (made available since last access to order)
@@ -283,9 +287,39 @@ function check_products_data() {
                                 }
                             }
                         }
+
+                        // Remove fetched product id from loaded products list
+                        const loaded_p_index = loaded_products_ids.indexOf(p_id);
+                        if (loaded_p_index > -1) {
+                            loaded_products_ids.splice(loaded_p_index, 1);
+                        }
+                    }
+                    
+                    $('.notifyjs-wrapper').trigger('notify-hide');
+
+                    /**
+                     * If loaded p_ids are remaining: 
+                     *  these products were loaded but don't match the conditions to be fetched anymore.
+                     * Remove them.
+                     */
+                    if (loaded_products_ids.length > 0) {
+                        for (pid of loaded_products_ids) {
+                            const p_index = products.findIndex(p => p.id == pid);
+                            const p_name = products[p_index].name;
+                            products.splice(p_index, 1);
+                            
+                            $.notify(
+                                `Produit "${p_name}" retiré de la commande.\nIl a probablement été passé en archivé ou en NPA sur un autre poste.`,
+                                {
+                                    globalPosition:"top left",
+                                    className: "info",
+                                    autoHideDelay: 12000,
+                                    clickToHide: false
+                                }
+                            );
+                        }
                     }
 
-                    $('.notifyjs-wrapper').trigger('notify-hide');
                     resolve();
                 },
                 error: function(data) {
@@ -723,8 +757,9 @@ function commit_actions_on_product(product, inputs) {
             const index = products.findIndex(p => p.id == product.id);
 
             products[index].minimal_stock = actions.minimal_stock;
-            if (actions.npa.length > 0) {
-                // Remove NPA products
+
+            if (actions.npa.length > 0 || actions.to_archive === true) {
+                // Remove NPA & archived products
                 products.splice(index, 1);
             }
 
