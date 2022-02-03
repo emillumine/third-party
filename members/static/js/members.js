@@ -146,8 +146,14 @@ function preview_results() {
 
     for (i in results) {
 
-        if (results[i].is_member != false || results[i].is_associated_people != false) {
-            var m = $('<button>').attr('data-i', i)
+        if (results[i].is_member != false) {
+            var m = $('<button style="background-color: #00A573;">').attr('data-i', i)
+                .text(results[i].name);
+
+            html_elts.multi_results.append(m);
+        }
+        if (results[i].is_associated_people != false) {
+            var m = $('<button style="background: #0275D8;">').attr('data-i', i)
                 .text(results[i].name);
 
             html_elts.multi_results.append(m);
