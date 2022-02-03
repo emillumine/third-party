@@ -84,7 +84,7 @@ class CagetteMember(models.Model):
                 'point_qty': pts
             }
         """
-        
+
         try:
             return self.o_api.create('shift.counter.event', data)
         except Exception as e:
@@ -152,7 +152,7 @@ class CagetteMember(models.Model):
                 if (password == d + m + y):
                     if coop_id is None:
                         coop_id = coop['id']
-                    data['id'] = coop_id 
+                    data['id'] = coop_id
                     auth_token_seed = fp + coop['create_date']
                     data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
                     data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
@@ -508,7 +508,7 @@ class CagetteMember(models.Model):
                             stype = shift_template['data']['type']
                             res['shift'] = \
                                 m.create_coop_shift_subscription(shift_t_id, stype)
-                            m.add_first_point(stype)
+                            # m.add_first_point(stype) # Not needed anymore
 
                             # Update couchdb do with new data
                             try:
@@ -846,7 +846,7 @@ class CagetteMember(models.Model):
     def update_member_makeups(self, member_data):
         api = OdooAPI()
         res = {}
-        
+
         f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
         res_item = api.update('res.partner', [self.id], f)
         res = {
@@ -1463,4 +1463,3 @@ class CagetteUser(models.Model):
                 pass
 
         return answer
-
