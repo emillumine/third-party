@@ -57,7 +57,13 @@ function get_envelop_name(envelop, name_type = 'short') {
     return envelop_name;
 }
 
-// Set an envelop content on the document
+/**
+ * Set the envelops contents on the document (could use a little cleanup someday: don't generate html in js, etc...)
+ * @param {Object} envelop 
+ * @param {String} envelop_name 
+ * @param {Int} envelop_content_id 
+ * @param {Int} envelop_index 
+ */
 function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_index) {
     var envelops_section = $('#' + envelop.type + '_envelops');
 
@@ -135,7 +141,10 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
 
 }
 
-// Set the envelops data according to their type
+/**
+ * Given the raw list of envelop documents, generate the cash and cheque lists
+ * @param {Array} envelops 
+ */
 function set_envelops(envelops) {
     var cash_index = 0;
     var ch_index = 0;
@@ -376,7 +385,9 @@ function archive_envelop(type, index) {
     }
 }
 
-// Get all the envelops from couch db
+/**
+ * Get all the envelops from couchdb
+ */
 function get_envelops() {
     dbc.allDocs({
         include_docs: true,
@@ -390,20 +401,20 @@ function get_envelops() {
     });
 }
 
-// Hande change in couc db
-sync.on('change', function (info) {
-    // handle change
-    if (info.direction == 'pull') {
-        get_envelops();
-    }
-}).on('error', function (err) {
-    // handle error
-    console.log('erreur sync');
-    console.log(err);
-});
-
 $(document).ready(function() {
     if (typeof must_identify == "undefined" || coop_is_connected()) {
         get_envelops();
+
+        // Hande change in couc db
+        sync.on('change', function (info) {
+            // handle change
+            if (info.direction == 'pull') {
+                get_envelops();
+            }
+        }).on('error', function (err) {
+            // handle error
+            console.log('erreur sync');
+            console.log(err);
+        });
     }
 });
