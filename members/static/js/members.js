@@ -93,8 +93,9 @@ function fill_member_slide(member) {
     html_elts.image_medium.html('<img src="'+img_src+'" width="128" />');
     html_elts.cooperative_state.html(member.cooperative_state);
     if (member.cooperative_state == 'Rattrapage') {
-      var explanation = "Tu as dû manquer un service! Pour pouvoir faire tes courses aujourd'hui, tu dois d'abord sélectionner un rattrapage sur ton espace membre."
-      html_elts.status_explanation.html(explanation)
+        var explanation = "Tu as dû manquer un service! Pour pouvoir faire tes courses aujourd'hui, tu dois d'abord sélectionner un rattrapage sur ton espace membre.";
+
+        html_elts.status_explanation.html(explanation);
     }
     if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red');
     else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé' || member.cooperative_state == 'Rattrapage') coop_info.addClass('b_orange');
