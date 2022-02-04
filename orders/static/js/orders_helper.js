@@ -2492,6 +2492,21 @@ $(document).ready(function() {
                 alert('Erreur lors de la récupération des articles, rechargez la page plus tard');
             }
         });
+
+        $(document).on('click', '.accordion', function(){
+            /* Toggle between adding and removing the "active" class,
+            to highlight the button that controls the panel */
+            this.classList.toggle("active");
+        
+            /* Toggle between hiding and showing the active panel */
+            var panel = this.nextElementSibling;
+        
+            if (panel.style.display === "block") {
+              panel.style.display = "none";
+            } else {
+              panel.style.display = "block";
+            }
+        });
     } else {
         $('#not_connected_content').show();
     }

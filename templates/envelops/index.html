@@ -17,7 +17,7 @@
     <div style="width: 10%" class="fr txtright"><i class="fas fa-times"></i></div>
 </div>
 <div id="envelop_cashing_success" class="alert--success clearfix custom_alert" onClick="toggle_success_alert()">
-  <div style="width: 90%" class="fl txtleft">Enveloppe encaissée !</div>
+  <div style="width: 90%" class="fl txtleft success_alert_content">Enveloppe encaissée !</div>
   <div style="width: 10%" class="fr txtright"><i class="fas fa-times"></i></div>
 </div>
 <div id="envelop_deletion_success" class="alert--success clearfix custom_alert" onClick="toggle_deleted_alert()">
@@ -40,6 +40,33 @@
     </div>
   </section>
 </section>
+
+<div id="templates" style="display:none;">
+  <div id="modal_update_envelop">
+    <div class="modal_update_envelop_content">
+      <h3 class="envelop_name"></h3>
+      <div class="envelop_lines"></div>
+      <div class="envelop_comments_area">
+        <p>Commentaires</p>
+        <textarea class="envelop_comments"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="update_envelop_line_template">
+    <div class="update_envelop_line">
+      <div class="line_partner_name_container">
+        <span class="line_number"></span>
+        <span class="line_partner_name"></span>
+      </div>
+      <div class="line_partner_input_container">
+        <input type="text" class="line_partner_amount" placeholder="Montant">
+        <i class="fas fa-trash-alt fa-lg delete_envelop_line_icon"></i>
+      </div>
+      <div class="deleted_line_through"></div>
+    </div>
+  </div>
+</div>
 
 <script src="{% static "js/pouchdb.min.js" %}"></script>
 <script type="text/javascript">
