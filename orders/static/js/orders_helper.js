@@ -29,7 +29,7 @@ var dbc = null,
 
 var clicked_order_pill = null;
 
-var timerId
+var timerId;
 /* - UTILS */
 
 /**
@@ -117,9 +117,9 @@ function _compute_stats_date_from() {
 }
 
 function debounceFunction(func, delay = 1000) {
-  clearTimeout(timerId)
+    clearTimeout(timerId);
 
-  timerId = setTimeout(func, delay)
+    timerId = setTimeout(func, delay);
 }
 /* - PRODUCTS */
 
@@ -196,6 +196,7 @@ function add_product() {
 function compute_products_coverage_qties() {
     const pc_adjust = $('#percent_adjust_input').val();
     let coeff = 1;
+
     if (!isNaN(parseFloat(pc_adjust))) {
         coeff = (1 + parseFloat(pc_adjust) /100);
     }
@@ -295,15 +296,16 @@ function check_products_data() {
 
                         // Remove fetched product id from loaded products list
                         const loaded_p_index = loaded_products_ids.indexOf(p_id);
+
                         if (loaded_p_index > -1) {
                             loaded_products_ids.splice(loaded_p_index, 1);
                         }
                     }
-                    
+
                     $('.notifyjs-wrapper').trigger('notify-hide');
 
                     /**
-                     * If loaded p_ids are remaining: 
+                     * If loaded p_ids are remaining:
                      *  these products were loaded but don't match the conditions to be fetched anymore.
                      * Remove them.
                      */
@@ -311,8 +313,9 @@ function check_products_data() {
                         for (pid of loaded_products_ids) {
                             const p_index = products.findIndex(p => p.id == pid);
                             const p_name = products[p_index].name;
+
                             products.splice(p_index, 1);
-                            
+
                             $.notify(
                                 `Produit "${p_name}" retiré de la commande.\nIl a probablement été passé en archivé ou en NPA sur un autre poste.`,
                                 {
@@ -735,8 +738,10 @@ function commit_actions_on_product(product, inputs) {
         id: product.id,
         name: product.name
     };
-    inputs.each(function (i,e) {
-        const input = $(e)
+
+    inputs.each(function (i, e) {
+        const input = $(e);
+
         if (input.attr('name') == 'npa-actions') {
             if (input.prop('checked') == true) {
                 actions.npa.push(input.val());
@@ -800,7 +805,7 @@ function commit_actions_on_product(product, inputs) {
 
             try {
                 if (data.responseJSON.code === "archiving_with_incoming_qty") {
-                    alert("Ce produit a des quantités entrantes, vous ne pouvez pas l'archiver.")  
+                    alert("Ce produit a des quantités entrantes, vous ne pouvez pas l'archiver.");
                 } else if (data.responseJSON.code === "error_stock_update") {
                     alert('Erreur lors de la mise à zéro du stock du produit archivé. Les actions ont bien été réalisées.');
                 } else {
@@ -1695,7 +1700,10 @@ function display_products(params) {
                 e.preventDefault();
 
                 // On arrow up pressed, focus next row input
-                let next_input = $(this).closest("tr").prev().find(".product_qty_input");
+                let next_input = $(this).closest("tr")
+                    .prev()
+                    .find(".product_qty_input");
+
                 next_input.focus();
 
                 // Scroll to a position where the target input is not hidden by the sticky suppliers container
@@ -1703,7 +1711,7 @@ function display_products(params) {
                     $("#suppliers_container").offset().top
                     - $(window).scrollTop()
                     + $("#suppliers_container").outerHeight();
-                    const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
+                const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
 
                 if (next_input_top_offset < suppliers_container_top_offset) {
                     window.scrollTo({
@@ -1714,30 +1722,40 @@ function display_products(params) {
                 e.preventDefault();
 
                 // On arrow down pressed, focus previous row input
-                $(this).closest("tr").next().find(".product_qty_input").focus();
+                $(this).closest("tr")
+                    .next()
+                    .find(".product_qty_input")
+                    .focus();
 
             } else if (e.which == 13) {
                 e.preventDefault();
 
                 // On enter pressed, focus previous row input
-                $(this).closest("tr").next().find(".product_qty_input").focus();
+                $(this).closest("tr")
+                    .next()
+                    .find(".product_qty_input")
+                    .focus();
             }
         })
-        .on('click', 'tbody td .product_actions', function(e){
-             // Save / unsave selected row
+        .on('click', 'tbody td .product_actions', function(e) {
+            // Save / unsave selected row
             const p_id = products_table.row($(this).closest('tr')).data().id;
             const product = products.find(p => p.id == p_id);
 
             let modal_product_actions = $('#templates #modal_product_actions');
+
             modal_product_actions.find(".product_name").text(product.name);
 
             const product_can_be_archived = product.incoming_qty === 0;
+
             if (product_can_be_archived == true) {
-                modal_product_actions.find('input[name="archive-action"]').prop( "disabled", false );
-                modal_product_actions.find('input[name="archive-action"]').closest("label").removeClass( "checkbox_action_disabled" );
+                modal_product_actions.find('input[name="archive-action"]').prop("disabled", false);
+                modal_product_actions.find('input[name="archive-action"]').closest("label")
+                    .removeClass("checkbox_action_disabled");
             } else {
-                modal_product_actions.find('input[name="archive-action"]').prop( "disabled", true );
-                modal_product_actions.find('input[name="archive-action"]').closest("label").addClass( "checkbox_action_disabled" );
+                modal_product_actions.find('input[name="archive-action"]').prop("disabled", true);
+                modal_product_actions.find('input[name="archive-action"]').closest("label")
+                    .addClass("checkbox_action_disabled");
             }
 
             openModal(
@@ -1750,7 +1768,7 @@ function display_products(params) {
                 'Valider',
                 false
             );
-            modal.find('input[name="minimal_stock"]').val(product.minimal_stock)
+            modal.find('input[name="minimal_stock"]').val(product.minimal_stock);
 
         });
 
@@ -1981,7 +1999,7 @@ function update_main_screen(params) {
 }
 
 function display_average_consumption_explanation() {
-     openModal($('#explanations').html())
+    openModal($('#explanations').html());
 }
 /**
  * Update DOM display on the order selection screen
@@ -2355,7 +2373,7 @@ $(document).ready(function() {
             return 0;
         });
 
-        $(document).on("click",".average_consumption_explanation_icon", display_average_consumption_explanation)
+        $(document).on("click", ".average_consumption_explanation_icon", display_average_consumption_explanation);
 
         $.datepicker.regional['fr'] = {
             monthNames: [
@@ -2493,18 +2511,18 @@ $(document).ready(function() {
             }
         });
 
-        $(document).on('click', '.accordion', function(){
+        $(document).on('click', '.accordion', function() {
             /* Toggle between adding and removing the "active" class,
             to highlight the button that controls the panel */
             this.classList.toggle("active");
-        
+
             /* Toggle between hiding and showing the active panel */
             var panel = this.nextElementSibling;
-        
+
             if (panel.style.display === "block") {
-              panel.style.display = "none";
+                panel.style.display = "none";
             } else {
-              panel.style.display = "block";
+                panel.style.display = "block";
             }
         });
     } else {

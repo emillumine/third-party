@@ -14,7 +14,8 @@ function toggle_error_alert() {
 }
 
 function toggle_success_alert(message) {
-    $('#envelop_cashing_success').find(".success_alert_content").text(message);
+    $('#envelop_cashing_success').find(".success_alert_content")
+        .text(message);
     $('#envelop_cashing_success').toggle(250);
 }
 
@@ -24,9 +25,9 @@ function toggle_deleted_alert() {
 
 /**
  * Get an envelop from the cash or cheque lists dependings on the params
- * @param {String} type 
- * @param {String} index 
- * @returns 
+ * @param {String} type
+ * @param {String} index
+ * @returns
  */
 function get_envelop_from_type_index(type, index) {
     if (type === "cash") {
@@ -38,9 +39,9 @@ function get_envelop_from_type_index(type, index) {
 
 /**
  * Define a name for an envelop depending on its type, with or with its type
- * @param {Object} envelop 
+ * @param {Object} envelop
  * @param {String} name_type short | long
- * @returns 
+ * @returns
  */
 function get_envelop_name(envelop, name_type = 'short') {
     let envelop_name = "";
@@ -59,10 +60,10 @@ function get_envelop_name(envelop, name_type = 'short') {
 
 /**
  * Set the envelops contents on the document (could use a little cleanup someday: don't generate html in js, etc...)
- * @param {Object} envelop 
- * @param {String} envelop_name 
- * @param {Int} envelop_content_id 
- * @param {Int} envelop_index 
+ * @param {Object} envelop
+ * @param {String} envelop_name
+ * @param {Int} envelop_content_id
+ * @param {Int} envelop_index
  */
 function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_index) {
     var envelops_section = $('#' + envelop.type + '_envelops');
@@ -107,25 +108,28 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
     }
 
     let envelop_panel = $(`.panel_${envelop_content_id}`);
+
     envelop_panel.append(`<button class="btn--danger delete_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Supprimer l'enveloppe</button>`);
     envelop_panel.append(`<button class="btn--primary update_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Modifier</button>`);
 
     $(".update_envelop_button").off("click");
     $(".update_envelop_button").on("click", function() {
-        let el_id = $(this).attr("id").split("_");
+        let el_id = $(this).attr("id")
+            .split("_");
 
         envelop_to_update = {
             type: el_id[2],
             index: el_id[3],
             lines_to_delete: []
-        }
-        
+        };
+
         set_update_envelop_modal();
     });
 
     $(".delete_envelop_button").off("click");
     $(".delete_envelop_button").on("click", function() {
-        let el_id = $(this).attr("id").split("_");
+        let el_id = $(this).attr("id")
+            .split("_");
         let type = el_id[2];
         let index = el_id[3];
         let envelop = get_envelop_from_type_index(type, index);
@@ -143,7 +147,7 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
 
 /**
  * Given the raw list of envelop documents, generate the cash and cheque lists
- * @param {Array} envelops 
+ * @param {Array} envelops
  */
 function set_envelops(envelops) {
     var cash_index = 0;
@@ -208,15 +212,17 @@ function set_update_envelop_modal() {
     let envelop_name = get_envelop_name(envelop, 'long');
 
     let modal_update_envelop = $('#templates #modal_update_envelop');
+
     modal_update_envelop.find(".envelop_name").text(envelop_name);
     modal_update_envelop.find(".envelop_lines").empty();
 
     let update_line_template = $('#templates #update_envelop_line_template');
 
     let cpt = 1;
+
     for (let partner_id in envelop.envelop_content) {
         let line = envelop.envelop_content[partner_id];
-    
+
         update_line_template.find(".update_envelop_line").attr('id', `update_line_${partner_id}`);
         update_line_template.find(".line_number").html(`${cpt}.&nbsp;`);
         update_line_template.find(".line_partner_name").text(line.partner_name);
@@ -243,21 +249,26 @@ function set_update_envelop_modal() {
     for (let partner_id in envelop.envelop_content) {
         let line = envelop.envelop_content[partner_id];
 
-        $(`#update_line_${partner_id}`).find('.line_partner_amount').val(line.amount);
+        $(`#update_line_${partner_id}`).find('.line_partner_amount')
+            .val(line.amount);
     }
 
     modal.find('.envelop_comments').val((envelop.comments !== undefined) ? envelop.comments : '');
 
     $(".delete_envelop_line_icon").off("click");
     $(".delete_envelop_line_icon").on("click", function() {
-        let line_id = $(this).closest(".update_envelop_line").attr("id").split("_");
+        let line_id = $(this).closest(".update_envelop_line")
+            .attr("id")
+            .split("_");
         let partner_id = line_id[line_id.length-1];
-        
+
         envelop_to_update.lines_to_delete.push(partner_id);
-        
+
         $(this).hide();
-        $(this).closest(".update_envelop_line").find(".deleted_line_through").show();
-    })
+        $(this).closest(".update_envelop_line")
+            .find(".deleted_line_through")
+            .show();
+    });
 }
 
 /**
@@ -269,8 +280,11 @@ function update_envelop() {
 
         // Update lines amounts
         let amount_inputs = modal.find('.line_partner_amount');
-        amount_inputs.each(function (i,e) {
-            let line_id = $(e).closest(".update_envelop_line").attr("id").split("_");
+
+        amount_inputs.each(function (i, e) {
+            let line_id = $(e).closest(".update_envelop_line")
+                .attr("id")
+                .split("_");
             let partner_id = line_id[line_id.length-1];
 
             envelop.envelop_content[partner_id].amount = parseInt($(e).val());
@@ -278,12 +292,12 @@ function update_envelop() {
 
         // Delete lines
         for (let partner_id of envelop_to_update.lines_to_delete) {
-            delete(envelop.envelop_content[partner_id])
+            delete(envelop.envelop_content[partner_id]);
         }
 
         // Envelop comments
         envelop.comments = modal.find('.envelop_comments').val();
-        
+
         dbc.put(envelop, function callback(err, result) {
             envelop_to_update = null;
 
@@ -300,7 +314,7 @@ function update_envelop() {
 
 /**
  * Delete an envelop from couchdb.
- * @param {Object} envelop 
+ * @param {Object} envelop
  */
 function delete_envelop(envelop) {
     if (is_time_to('delete_envelop', 1000)) {
@@ -321,8 +335,8 @@ function delete_envelop(envelop) {
 
 /**
  * Send the request to save an envelop payments in Odoo. The envelop will be deleted from couchdb.
- * @param {String} type 
- * @param {String} index 
+ * @param {String} type
+ * @param {String} index
  */
 function archive_envelop(type, index) {
     if (is_time_to('archive_envelop', 5000)) {
@@ -383,7 +397,7 @@ function archive_envelop(type, index) {
             }
         });
     } else {
-        alert("Par sécurité, il faut attendre 5s entre l'encaissement de deux enveloppes.")
+        alert("Par sécurité, il faut attendre 5s entre l'encaissement de deux enveloppes.");
     }
 }
 
@@ -397,10 +411,10 @@ function get_envelops() {
     }).then(function (result) {
         set_envelops(result.rows);
     })
-    .catch(function (err) {
-        alert('Erreur lors de la récupération des enveloppes.');
-        console.log(err);
-    });
+        .catch(function (err) {
+            alert('Erreur lors de la récupération des enveloppes.');
+            console.log(err);
+        });
 }
 
 $(document).ready(function() {
