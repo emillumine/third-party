@@ -766,7 +766,7 @@ class CagetteMember(models.Model):
                     # member = CagetteMember(m['id'], m['email'])
                     # m['next_shifts'] = member.get_next_shift()
                     if not m['parent_name'] is False:
-                        m['name'] += ' / ' + m['parent_name']
+                        m['name'] += ' en binôme avec ' + m['parent_name']
                         del m['parent_name']
                     members.append(m)
 
@@ -1206,7 +1206,7 @@ class CagetteServices(models.Model):
                             for m in s['members']:
                                 for a in associated:
                                     if int(a['parent_id'][0]) == int(m['partner_id'][0]):
-                                        m['partner_id'][1] += ' / ' + a['name']
+                                        m['partner_id'][1] += ' en binôme avec ' + a['name']
 
         return services
 
