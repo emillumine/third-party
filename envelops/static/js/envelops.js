@@ -325,7 +325,7 @@ function delete_envelop(envelop) {
  * @param {String} index 
  */
 function archive_envelop(type, index) {
-    if (is_time_to('archive_envelop', 1000)) {
+    if (is_time_to('archive_envelop', 5000)) {
         $('#envelop_cashing_error').hide();
         $('#envelop_cashing_success').hide();
         // Loading on
@@ -382,6 +382,8 @@ function archive_envelop(type, index) {
                 alert('Erreur serveur. Merci de ne pas ré-encaisser l\'enveloppe qui a causé l\'erreur.');
             }
         });
+    } else {
+        alert("Par sécurité, il faut attendre 5s entre l'encaissement de deux enveloppes.")
     }
 }
 
