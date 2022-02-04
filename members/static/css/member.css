@@ -73,5 +73,5 @@ h1 .member_name {font-weight: bold;}
 
 .easy_shift_validate {text-align: center; margin-top: 3em;}
 
-.button_is_member {background-color: #439D44;}
-.button_is_associated_people {background: #0275D8;}
+.button_is_member {background-color: #439D44; color:  #fff;}
+.button_is_associated_people {background: #0275D8; color:  #fff;}
