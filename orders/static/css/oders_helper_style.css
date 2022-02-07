@@ -197,7 +197,7 @@
     min-width: 200px;
 }
 
-#date_planned_input, #coverage_days_input, #stats_date_period_select {
+#date_planned_input, #coverage_days_input, #targeted_amount_input, #percent_adjust_input, #stats_date_period_select {
     border-radius: 3px;
 }
 
@@ -210,11 +210,11 @@
     margin-right: 3px;
 }
 
-#coverage_days_input, #percent_adjust_input {
+#coverage_days_input, #targeted_amount_input, #percent_adjust_input {
     display:  block;
 }
 
-#coverage_days_input {
+#coverage_days_input, #targeted_amount_input {
     margin-bottom: 3px;
 }
 

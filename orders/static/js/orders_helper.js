@@ -16,6 +16,7 @@ var dbc = null,
     order_doc = {
         _id: null,
         coverage_days: null,
+        targeted_amount: null,
         stats_date_period: '',
         last_update: {
             timestamp: null,
@@ -43,6 +44,7 @@ function reset_data() {
     order_doc = {
         _id: null,
         coverage_days: null,
+        targeted_amount: null,
         stats_date_period: '',
         last_update : {
             timestamp: null,
@@ -188,51 +190,105 @@ function add_product() {
 
     return 0;
 }
+function compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days) {
+    let purchase_qty_for_coverage = null;
+    purchase_qty_for_coverage = days * daily_conso - stock - incoming_qty + product.minimal_stock;
+    purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+
+    // Reduce to nb of packages to purchase
+    purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+
+    if (coeff != 1) {
+        purchase_package_qty_for_coverage *= coeff;
+    }
+    // return Round up to unit for all products
+    return Math.ceil(purchase_package_qty_for_coverage);
+}
+
+function compute_and_affect_product_supplier_quantities(coeff, days) {
+    for (const [
+                key,
+                product
+            ] of Object.entries(products)) {
+                if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
+                    let purchase_qty_for_coverage = null;
+
+                    // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
+                    const stock = product.qty_available;
+                    const incoming_qty = product.incoming_qty;
+                    const daily_conso = product.daily_conso;
+                    purchase_package_qty_for_coverage = compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days);
+                    // Set qty to purchase for first supplier only
+                    products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
+                }
+    }
+}
+
+
 
 /**
  * Compute the qty to buy for each product, depending the coverage days.
  * Set the computed qty for the first supplier only.
  */
 function compute_products_coverage_qties() {
-    const pc_adjust = $('#percent_adjust_input').val();
-    let coeff = 1;
-
-    if (!isNaN(parseFloat(pc_adjust))) {
-        coeff = (1 + parseFloat(pc_adjust) /100);
-    }
-
-    if (order_doc.coverage_days != null) {
-        order_doc.coeff = coeff;
-        for (const [
-            key,
-            product
-        ] of Object.entries(products)) {
-            if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
-                let purchase_qty_for_coverage = null;
-
-                // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
-                const stock = product.qty_available;
-                const incoming_qty = product.incoming_qty;
-                const daily_conso = product.daily_conso;
-
-
-                purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty + product.minimal_stock;
-                purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-
-                // Reduce to nb of packages to purchase
-                purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-
-                if (order_doc.coeff != 1) {
-                    purchase_package_qty_for_coverage *= order_doc.coeff;
-                }
-                // Round up to unit for all products
-                purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
-
-                // Set qty to purchase for first supplier only
-                products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
-            }
+   return new Promise((resolve) => {
+        const pc_adjust = $('#percent_adjust_input').val();
+        let coeff = 1;
+        if (!isNaN(parseFloat(pc_adjust))) {
+            coeff = (1 + parseFloat(pc_adjust) /100);
         }
-    }
+        order_doc.coeff = coeff;
+        if (order_doc.coverage_days != null) {
+            compute_and_affect_product_supplier_quantities(coeff, order_doc.coverage_days);
+            resolve();
+        } else if (order_doc.targeted_amount != null) {
+            const small_step = 0.1,
+                  max_iter = 182; // Assume that no more than 1/2 year coverage is far enough
+            let go_on = true,
+                iter = 0,
+                days = 1,
+                step = 1; 
+
+            //Let's compute the nearst amount, by changing days quantity
+            while(go_on == true && iter < max_iter) {
+                order_total_value = 0;
+                compute_and_affect_product_supplier_quantities(coeff, days);
+                _compute_total_values_by_supplier();
+                for (let supplier of selected_suppliers) {
+                    order_total_value += supplier.total_value;
+                 }
+                let order_total_value_f = parseFloat(order_total_value),
+                    targeted_amount_f = parseFloat(order_doc.targeted_amount);
+
+                if (order_total_value_f >= targeted_amount_f) {
+                    if (order_total_value_f != targeted_amount_f && iter < max_iter) {
+                        step = small_step; // we have gone too far, let's go back, using small step
+                        days -= step;
+                    } 
+                   /* console.log(iter)
+                    console.log(order_total_value_f + '/' + targeted_amount_f)
+                    console.log(days)
+                    console.log(go_on)*/
+                } else {
+                    if (step == small_step) {
+                        // amount was above the target, let's compute again with the previous value
+                        go_on = false;
+                        compute_and_affect_product_supplier_quantities(coeff, days + step);
+                    } else {
+                        days += step;
+                    }
+                }
+
+                iter++;
+            }
+
+        resolve();
+        }
+/*        console.log(rder_doc.coverage_days);
+        console.log(order_doc.targeted_amount)*/
+    });
+
+   
 }
 
 /**
@@ -1986,7 +2042,11 @@ function update_main_screen(params) {
     } else {
         $("#coverage_days_input").val('');
     }
-
+    if (order_doc.targeted_amount !== null) {
+        $('#targeted_amount_input').val(order_doc.targeted_amount);
+    } else {
+        $('#targeted_amount_input').val('');
+    }
     if (order_doc.coeff && order_doc.coeff != 1) {
         $("#percent_adjust_input").val(-Math.ceil((1 - order_doc.coeff) * 100));
     }
@@ -2187,18 +2247,28 @@ $(document).ready(function() {
         $("#coverage_form").on("submit", function(e) {
             e.preventDefault();
             if (is_time_to('submit_coverage_form', 1000)) {
-                let val = $("#coverage_days_input").val();
+                let days_val = $("#coverage_days_input").val(),
+                    amount_val = $('#targeted_amount_input').val();
 
-                val = parseInt(val);
+                days_val = parseInt(days_val);
+                amount_val = parseInt(amount_val);
+                if (isNaN(days_val)) days_val = null;
+                if (isNaN(amount_val)) amount_val = null;
 
-                if (!isNaN(val)) {
-                    order_doc.coverage_days = val;
-                    compute_products_coverage_qties();
-                    debounceFunction(update_cdb_order);
-                    update_main_screen();
+                if (days_val !== null || amount_val !== null) {
+                    order_doc.coverage_days = days_val;
+                    order_doc.targeted_amount = amount_val;
+                    compute_products_coverage_qties()
+                    .then(() => {
+                        debounceFunction(update_cdb_order);
+                        update_main_screen();
+                    })
+
                 } else {
-                    $("#coverage_days_input").val(order_doc.coverage_days);
-                    alert(`Valeur non valide pour le nombre de jours de couverture !`);
+                    $("#coverage_days_input").val(order_doc.coverage_days || '');
+                    $('#targeted_amount_input').val(order_doc.targeted_amount || '');
+                    alert("Ni le nombre de jours de couverture, ni le montant à atteindre sont correctement renseignés")
+
                 }
             }
         });
@@ -2252,10 +2322,13 @@ $(document).ready(function() {
 
                 check_products_data()
                     .then(() => {
-                        compute_products_coverage_qties();
-                        update_main_screen();
-                        debounceFunction(update_cdb_order);
-                        closeModal();
+                        compute_products_coverage_qties()
+                        .then(() => {
+                            update_main_screen();
+                            debounceFunction(update_cdb_order);
+                            closeModal();
+                        })
+
                     });
             }
         });
