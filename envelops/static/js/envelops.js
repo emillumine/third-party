@@ -130,7 +130,6 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
 
         envelop_panel.append(`<button class="btn--danger delete_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Supprimer l'enveloppe</button>`);
         envelop_panel.append(`<button class="btn--primary update_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Modifier</button>`);
-
         $(".update_envelop_button").off("click");
         $(".update_envelop_button").on("click", function() {
             let el_id = $(this).attr("id")
@@ -403,7 +402,7 @@ function delete_envelop(envelop) {
  * @param {String} index
  */
 function archive_envelop(type, index) {
-    if (is_time_to('archive_envelop', 1000)) {
+    if (is_time_to('archive_envelop', 5000)) {
         $('#envelop_cashing_error').hide();
         $('#envelop_cashing_success').hide();
         // Loading on
@@ -460,6 +459,8 @@ function archive_envelop(type, index) {
                 alert('Erreur serveur. Merci de ne pas ré-encaisser l\'enveloppe qui a causé l\'erreur.');
             }
         });
+    } else {
+        alert("Par sécurité, il faut attendre 5s entre l'encaissement de deux enveloppes.");
     }
 }
 

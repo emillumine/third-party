@@ -52,7 +52,7 @@ def archive_envelop(request):
                 # Immediately save a token than this payment has been saved
                 #   If an error occurs, this payment won't be saved again
                 envelop['envelop_content'][partner_id]['payment_id'] = res['payment_id']
-                updated_envelop = m.c_db.updateDoc(envelop);
+                updated_envelop = m.c_db.updateDoc(envelop)
                 envelop['_rev'] = updated_envelop['_rev']
             else:
                 # Handling error when saving payment, return data to display error message
