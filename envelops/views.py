@@ -27,7 +27,7 @@ def archive_envelop(request):
     res_envelop = ""
 
     envelop = json.loads(request.body.decode())
-
+    
     # save each partner payment
     for partner_id in envelop['envelop_content']:
         # If payment_id in payment details: payment already saved. Skip saving.
@@ -75,8 +75,8 @@ def archive_envelop(request):
                     coop_logger.error("Cannot attach payment error message to member : %s",  str(e))
 
     try:
-        # Delete envelop from couchdb
-        res_envelop = m.delete_envelop(envelop)
+        # archive envelop from couchdb
+        res_envelop = m.archive_envelop(envelop)
     except Exception as e:
         res_envelop = "error"
 
