@@ -12,7 +12,7 @@
   margin-bottom: 15px;
 }
 
-#cash_envelops {
+#cash_envelops, #ch_envelops, #archive_cash_envelops, #archive_ch_envelops {
   margin-top: 30px;
 }
 
@@ -20,8 +20,8 @@
   margin-top: 30px;
 }
 
-.update_envelop_button, .delete_envelop_button {
-  margin: 0 0 10px 15px;
+.update_envelop_button, .delete_envelop_button, .envelop_comment {
+  margin: 0 0 15px 15px;
 }
 
 .envelop_content_list {

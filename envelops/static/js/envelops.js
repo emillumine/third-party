@@ -95,7 +95,7 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
         new_html += '<button class="accordion w80">' + envelop_name + ' - <i>' + total_amount + '€</i></button>'
     + '<button class="btn--success archive_button item-fluid" onClick="openModal(\'<h3>Êtes-vous sûr ?</h3>\', function() {archive_envelop(\'' + envelop.type + '\', ' + envelop_index + ');}, \'Encaisser\', false)">Encaisser</button>';
     } else if (envelop.archive && envelop.canceled) {
-        new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€</i> (Enveloppe supprimée) </button>';
+        new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€ (Enveloppe supprimée) </i></button>';
     } else {
         new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€</i></button>';
     }
@@ -112,7 +112,7 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
         var content = envelop.envelop_content[node].partner_name + ' : ' + envelop.envelop_content[node].amount + '€';
 
         if ('payment_id' in envelop.envelop_content[node]) {
-            content += " - déjà comptabilisé.";
+            content += " -- paiement comptabilisé.";
         }
 
         var textnode = document.createTextNode(content); // Create a text node
@@ -123,7 +123,7 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
 
     let envelop_panel = $(`.panel_${envelop_content_id}`);
 
-    if (envelop.comments) envelop_panel.append(`<p> Commentaire : ${envelop.comments}</p>`);
+    if (envelop.comments) envelop_panel.append(`<p class="envelop_comment"> <b>Commentaire :</b> ${envelop.comments}</p>`);
 
     if (!envelop.archive) {
         let envelop_panel = $(`.panel_${envelop_content_id}`);
