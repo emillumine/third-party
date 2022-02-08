@@ -111,6 +111,10 @@ class CagetteEnvelops(models.Model):
     def delete_envelop(self, envelop):
         return self.c_db.delete(envelop)
 
+    def archive_envelop(self, envelop):
+        envelop['archive'] = True
+        return self.c_db.dbc.update([envelop])
+
     def generate_envelop_display_id(self):
         """Generate a unique incremental id to display"""
         c_db = CouchDB(arg_db='envelops')
@@ -172,7 +176,7 @@ class CagetteEnvelops(models.Model):
         else:
             # Get the oldest check envelops, limited by the number of checks
             docs = []
-            for item in c_db.dbc.view('index/by_type', key='ch', include_docs=True, limit=payment_data['checks_nb']):
+            for item in c_db.dbc.view('index/by_type_not_archive', key='ch', include_docs=True, limit=payment_data['checks_nb']):
                 docs.append(item.doc)
 
             # If only 1 check to save

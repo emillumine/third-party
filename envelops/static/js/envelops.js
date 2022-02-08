@@ -1,10 +1,16 @@
 var cash_envelops = [];
+var archive_cash_envelops = [];
 var ch_envelops = [];
+var archive_ch_envelops = [];
 var envelop_to_update = null;
 
 function reset() {
     $('#cash_envelops').empty();
     $('#ch_envelops').empty();
+    $('#archive_cash_envelops').empty();
+    $('#archive_ch_envelops').empty();
+    archive_cash_envelops = [];
+    archive_ch_envelops = [];
     cash_envelops = [];
     ch_envelops = [];
 }
@@ -66,7 +72,13 @@ function get_envelop_name(envelop, name_type = 'short') {
  * @param {Int} envelop_index
  */
 function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_index) {
-    var envelops_section = $('#' + envelop.type + '_envelops');
+    var envelops_section ="";
+
+    if (!envelop.archive)
+        envelops_section = $('#' + envelop.type + '_envelops');
+
+    else
+        envelops_section = $('#archive_' + envelop.type + '_envelops');
 
     // Calculate envelop total amount
     var total_amount = 0;
@@ -79,9 +91,11 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
     + '<div class="flex-container">';
 
     // Allow checking for all cash and first check envelops
-    if (envelop.type == 'cash' || envelop.type == 'ch' && envelop_index == 0) {
+    if ((envelop.type == 'cash' || envelop.type == 'ch' && envelop_index == 0) && !envelop.archive) {
         new_html += '<button class="accordion w80">' + envelop_name + ' - <i>' + total_amount + '€</i></button>'
     + '<button class="btn--success archive_button item-fluid" onClick="openModal(\'<h3>Êtes-vous sûr ?</h3>\', function() {archive_envelop(\'' + envelop.type + '\', ' + envelop_index + ');}, \'Encaisser\', false)">Encaisser</button>';
+    } else if (envelop.archive && envelop.canceled) {
+        new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€ (Enveloppe supprimée) </i></button>';
     } else {
         new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€</i></button>';
     }
@@ -98,7 +112,7 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
         var content = envelop.envelop_content[node].partner_name + ' : ' + envelop.envelop_content[node].amount + '€';
 
         if ('payment_id' in envelop.envelop_content[node]) {
-            content += " - déjà comptabilisé.";
+            content += " -- paiement comptabilisé.";
         }
 
         var textnode = document.createTextNode(content); // Create a text node
@@ -109,40 +123,44 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
 
     let envelop_panel = $(`.panel_${envelop_content_id}`);
 
-    envelop_panel.append(`<button class="btn--danger delete_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Supprimer l'enveloppe</button>`);
-    envelop_panel.append(`<button class="btn--primary update_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Modifier</button>`);
+    if (envelop.comments) envelop_panel.append(`<p class="envelop_comment"> <b>Commentaire :</b> ${envelop.comments}</p>`);
 
-    $(".update_envelop_button").off("click");
-    $(".update_envelop_button").on("click", function() {
-        let el_id = $(this).attr("id")
-            .split("_");
+    if (!envelop.archive) {
+        let envelop_panel = $(`.panel_${envelop_content_id}`);
 
-        envelop_to_update = {
-            type: el_id[2],
-            index: el_id[3],
-            lines_to_delete: []
-        };
+        envelop_panel.append(`<button class="btn--danger delete_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Supprimer l'enveloppe</button>`);
+        envelop_panel.append(`<button class="btn--primary update_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Modifier</button>`);
+        $(".update_envelop_button").off("click");
+        $(".update_envelop_button").on("click", function() {
+            let el_id = $(this).attr("id")
+                .split("_");
 
-        set_update_envelop_modal();
-    });
+            envelop_to_update = {
+                type: el_id[2],
+                index: el_id[3],
+                lines_to_delete: []
+            };
 
-    $(".delete_envelop_button").off("click");
-    $(".delete_envelop_button").on("click", function() {
-        let el_id = $(this).attr("id")
-            .split("_");
-        let type = el_id[2];
-        let index = el_id[3];
-        let envelop = get_envelop_from_type_index(type, index);
+            set_update_envelop_modal();
+        });
 
-        openModal(
-            "<h3>Supprimer l'enveloppe ?</h3>",
-            function() {
-                delete_envelop(envelop);
-            },
-            'Supprimer'
-        );
-    });
+        $(".delete_envelop_button").off("click");
+        $(".delete_envelop_button").on("click", function() {
+            let el_id = $(this).attr("id")
+                .split("_");
+            let type = el_id[2];
+            let index = el_id[3];
+            let envelop = get_envelop_from_type_index(type, index);
 
+            openModal(
+                "<h3>Supprimer l'enveloppe ?</h3>",
+                function() {
+                    archive_canceled_envelop(envelop);
+                },
+                'Supprimer'
+            );
+        });
+    }
 }
 
 /**
@@ -152,12 +170,17 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
 function set_envelops(envelops) {
     var cash_index = 0;
     var ch_index = 0;
+    var archive_cash_index = 0;
+    var archive_ch_index = 0;
 
     reset();
     for (var i= 0; i < envelops.length; i++) {
         var envelop = envelops[i].doc;
 
-        if (envelop.type == "cash") {
+        //If the envelop is archived and more than 1 year old we delete it
+        if (envelop.archive && (new Date()-new Date(envelop.creation_date))/ (1000 * 3600 * 24 * 365)>1) {
+            delete_envelop(envelop);
+        } else if (envelop.type == "cash" && envelop.archive != true) {
             cash_envelops.push(envelop);
 
             let envelop_name = get_envelop_name(envelop);
@@ -166,7 +189,16 @@ function set_envelops(envelops) {
             set_envelop_dom(envelop, envelop_name, envelop_content_id, cash_index);
 
             cash_index += 1;
-        } else if (envelop.type == "ch") {
+        } else if (envelop.type == "cash" && envelop.archive == true) {
+            archive_cash_envelops.push(envelop);
+
+            let envelop_name = get_envelop_name(envelop);
+            let envelop_content_id = 'content_archive_cash_list_' + archive_cash_index;
+
+            set_envelop_dom(envelop, envelop_name, envelop_content_id, archive_cash_index);
+            archive_cash_index += 1;
+
+        } else if (envelop.type == "ch" && envelop.archive != true) {
             ch_envelops.push(envelop);
 
             let envelop_name = get_envelop_name(envelop);
@@ -175,6 +207,16 @@ function set_envelops(envelops) {
             set_envelop_dom(envelop, envelop_name, envelop_content_id, ch_index);
 
             ch_index += 1;
+        } else if (envelop.type == "ch" && envelop.archive == true) {
+            archive_ch_envelops.push(envelop);
+
+            let envelop_name = get_envelop_name(envelop);
+            let envelop_content_id = 'content_archive_ch_list_' + archive_ch_index;
+
+            set_envelop_dom(envelop, envelop_name, envelop_content_id, archive_ch_index);
+
+            archive_ch_index += 1;
+
         }
     }
 
@@ -313,6 +355,28 @@ function update_envelop() {
 }
 
 /**
+ * archive and canceled an envelop from couchdb.
+ * @param {Object} envelop
+ */
+function archive_canceled_envelop(envelop) {
+    if (is_time_to('archive_canceled_envelop', 1000)) {
+        envelop.archive = true;
+        envelop.canceled = true;
+
+        dbc.put(envelop, function callback(err, result) {
+            if (!err && result !== undefined) {
+                toggle_deleted_alert();
+                get_envelops();
+            } else {
+                alert("Erreur lors de la suppression de l'enveloppe... Essaye de recharger la page et réessaye.");
+                console.log(err);
+            }
+        });
+
+    }
+}
+
+/**
  * Delete an envelop from couchdb.
  * @param {Object} envelop
  */
@@ -322,7 +386,6 @@ function delete_envelop(envelop) {
 
         dbc.put(envelop, function callback(err, result) {
             if (!err && result !== undefined) {
-                toggle_deleted_alert();
                 get_envelops();
             } else {
                 alert("Erreur lors de la suppression de l'enveloppe... Essaye de recharger la page et réessaye.");
