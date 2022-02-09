@@ -46,7 +46,7 @@ def do_movement(request):
             'products': products
         }
 
-        res = CagetteInventory.update_stock_with_shelf_inventory_data(inventory_data)
+        res = CagetteInventory.update_products_stock(inventory_data)
     else:
         res = CagetteStock.do_stock_movement(data)
 

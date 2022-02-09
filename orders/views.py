@@ -1,5 +1,6 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
+from outils.common import OdooAPI
 
 from orders.models import Order, Orders, CagetteSuppliers
 from products.models import CagetteProduct, CagetteProducts
@@ -20,7 +21,9 @@ def helper(request):
         'couchdb_server': settings.COUCHDB['url'],
         'db': settings.COUCHDB['dbs']['orders'],
         'odoo_server': settings.ODOO['url'],
-        'metabase_url':  getattr(settings, 'ORDERS_HELPER_METABASE_URL', '')
+        'metabase_url': getattr(settings, 'ORDERS_HELPER_METABASE_URL', ''),
+        'nb_past_days_to_compute_sales_average': OdooAPI().get_system_param('lacagette_products.nb_past_days_to_compute_sales_average'),
+        'nb_of_consecutive_non_sale_days_considered_as_break': OdooAPI().get_system_param('lacagette_products.nb_of_consecutive_non_sale_days_considered_as_break')
     }
 
     template = loader.get_template('orders/helper.html')

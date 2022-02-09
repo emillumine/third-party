@@ -1,0 +1,35 @@
+<div>
+    <button type="button" class="accordion" style="width:100%"><label>Comment sont calculées les conso. moyennes / jour ?</label></button>
+    <div class="txtleft" style="display: none;">
+        <p>
+            La fonction qui calcule les consommations moyennes prend en paramètre une date de départ. <br/>
+            Si elle n'est pas indiquée, la date prise en compte sera "<em>aujourd'hui - nb de jours paramétré dans Odoo</em>".<br/>
+            Ce nombre de jours paramétrable se trouve en suivant les menus suivants :<br>
+            Configuration > Technique > Paramètres > Paramètres systèmes. <br/>
+            La valeur est définie avec la clef "<em>lacagette_products.nb_past_days_to_compute_sales_average</em>".<br/>
+            Ce paramètre vaut <strong>{{nb_past_days_to_compute_sales_average}}</strong> au moment du chargement de cette page.<br/>
+            Les ventes du dimanche sont exclues du calcul.<br/>
+        </p>
+        <p>
+            Une requête est faite sur l'ensemble des passages en caisse, de la date de départ à hier, récupérant pour tous les jours de la période (dimanches exclus) les quantités vendues des articles achetés chez le fournisseur.<br/>
+            Pour chaque article, le nombre de jours considérés pour faire la moyenne est défini commme suit :<br/>
+            <em>Nb de jours ouvrés de la période - Nb de jours des périodes de rupture</em><br/>
+            Les périodes de ruptures sont caractérisées par un nombre de jours consécutifs assez important de jours sans vente de l'article.<br/>
+            Le nombre de jours consécutifs sans vente pour considérer l'article en rupture est actuellement de <strong>{{nb_of_consecutive_non_sale_days_considered_as_break}}</strong><br/>
+            (c'est le paramètre système avec la clef "<em>lacagette_products.nb_of_consecutive_non_sale_days_considered_as_break</em>").<br/>
+        </p>
+        <p>
+            Pour chaque article, la consommation moyenne par jour est obtenue en divisant la quantité totale vendue sur la période par le nombre de jours significatifs.
+        </p>
+    </div>
+</div>
+<div>
+    <button type="button" class="accordion" style="width:100%"><label>Comment sont calculés les besoins ?</label></button>
+    <div class="txtleft" style="display: none;">
+        La quantité à commander pour couvrir les besoins (en jours) est le résultat de :
+        <p>
+            (<em>nb_jours</em> <strong>x</strong> <em>conso_moyenne</em>) <strong>-</strong> <em>stock_existant</em> <strong>-</strong> <em>quantités_entrantes</em> <strong>+</strong> <em>stock_minimum</em>
+        </p>
+
+    </div>
+</div>

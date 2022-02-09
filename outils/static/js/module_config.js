@@ -150,7 +150,6 @@ function get_module_settings() {
 }
 
 get_module_settings();
-
 $(document).on('click', '.accordion', function(){
     /* Toggle between adding and removing the "active" class,
     to highlight the button that controls the panel */
@@ -164,3 +163,4 @@ $(document).on('click', '.accordion', function(){
       panel.style.display = "block";
     }
 });
+

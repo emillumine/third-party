@@ -53,9 +53,17 @@ class Command(BaseCommand):
         byTypeMapFunction = '''function(doc) {
           emit(doc.type);
         }'''
+        byTypeNotArchiveMapFunction = '''function(doc) {
+            if(doc.archive != true){
+                emit(doc.type); 
+            }
+        }'''
         views = {
             "by_type": {
                 "map": byTypeMapFunction
+            },
+            "by_type_not_archive": {
+                "map": byTypeNotArchiveMapFunction
             }
         }
         self.createView(dbConn, "index", views)

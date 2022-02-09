@@ -84,7 +84,7 @@ class CagetteMember(models.Model):
                 'point_qty': pts
             }
         """
-        
+
         try:
             return self.o_api.create('shift.counter.event', data)
         except Exception as e:
@@ -152,7 +152,7 @@ class CagetteMember(models.Model):
                 if (password == d + m + y):
                     if coop_id is None:
                         coop_id = coop['id']
-                    data['id'] = coop_id 
+                    data['id'] = coop_id
                     auth_token_seed = fp + coop['create_date']
                     data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
                     data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
@@ -508,7 +508,7 @@ class CagetteMember(models.Model):
                             stype = shift_template['data']['type']
                             res['shift'] = \
                                 m.create_coop_shift_subscription(shift_t_id, stype)
-                            m.add_first_point(stype)
+                            # m.add_first_point(stype) # Not needed anymore
 
                             # Update couchdb do with new data
                             try:
@@ -729,6 +729,9 @@ class CagetteMember(models.Model):
             cond = [['barcode', '=', str(key)]]
         else:
             cond = [['name', 'ilike', str(key)]]
+        cond.append('|')
+        cond.append(['is_member', '=', True])
+        cond.append(['is_associated_people', '=', True])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
         fields = CagetteMember.m_default_fields
         if not shift_id is None:
@@ -740,13 +743,14 @@ class CagetteMember(models.Model):
                 keep_it = False
                 if not shift_id is None and len(shift_id) > 0:
                     # Only member registred to shift_id will be returned
-                    cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
-                    fields = ['shift_template_id']
-                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
-                    if (len(shift_templ_res) > 0
-                        and
-                        int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
-                        keep_it = True
+                    if len(m['tmpl_reg_line_ids']) > 0:
+                        cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
+                        fields = ['shift_template_id']
+                        shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                        if (len(shift_templ_res) > 0
+                            and
+                            int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
+                            keep_it = True
                 else:
                     keep_it = True
                 if keep_it is True:
@@ -762,7 +766,7 @@ class CagetteMember(models.Model):
                     # member = CagetteMember(m['id'], m['email'])
                     # m['next_shifts'] = member.get_next_shift()
                     if not m['parent_name'] is False:
-                        m['name'] += ' / ' + m['parent_name']
+                        m['name'] += ' (en binôme avec ' + m['parent_name'] + ')'
                         del m['parent_name']
                     members.append(m)
 
@@ -842,7 +846,7 @@ class CagetteMember(models.Model):
     def update_member_makeups(self, member_data):
         api = OdooAPI()
         res = {}
-        
+
         f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
         res_item = api.update('res.partner', [self.id], f)
         res = {
@@ -1202,7 +1206,7 @@ class CagetteServices(models.Model):
                             for m in s['members']:
                                 for a in associated:
                                     if int(a['parent_id'][0]) == int(m['partner_id'][0]):
-                                        m['partner_id'][1] += ' / ' + a['name']
+                                        m['partner_id'][1] += ' en binôme avec ' + a['name']
 
         return services
 
@@ -1459,4 +1463,3 @@ class CagetteUser(models.Model):
                 pass
 
         return answer
-

@@ -30,15 +30,3 @@ input.link {min-width: 50em;}
   overflow: hidden;
 }
 
-button.accordion::after {
-    content: '\002B';
-    color: #777;
-    font-weight: bold;
-    float: right;
-    margin-left: 5px;
-}
-
-button.accordion.active::after {
-    content: "\2212";
-}
-

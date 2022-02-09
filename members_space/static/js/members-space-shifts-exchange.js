@@ -91,8 +91,10 @@ function add_or_change_shift(new_shift_id) {
                 selected_shift = null;
 
                 if (error.status === 400) {
-                    alert(`Désolé ! Le service que vous souhaitez échanger démarre dans moins de 24h. ` +
-                            `Il n'est plus possible de l'échanger.`);
+                    alert(`Désolé ! Le service que tu souhaites échanger démarre dans moins de 24h. ` +
+                          `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
+                          `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
+                          `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
                 } else {
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +
@@ -234,7 +236,7 @@ function init_calendar_page() {
         };
     }
 
-    const hidden_days = $.map(days_to_hide.split(", "), Number);
+    const hidden_days = days_to_hide.length > 0 ? $.map(days_to_hide.split(", "), Number) : [];
 
     const calendarEl = document.getElementById('calendar');
 
@@ -337,11 +339,107 @@ function init_calendar_page() {
     calendar.render();
 }
 
+function init_read_only_calendar_page() {
+    let template_explanations = $("#calendar_explaination_template");
+
+    if (vw <= 992) {
+        $(".loading-calendar").show();
+
+        $("#calendar_explaination_area").hide();
+        $("#calendar_explaination_button").on("click", () => {
+            openModal(
+                template_explanations.html(),
+                closeModal,
+                "J'ai compris"
+            );
+        })
+            .show();
+    } else {
+        $("#calendar_explaination_button").hide();
+        $("#calendar_explaination_area").html(template_explanations.html())
+            .show();
+    }
+
+    if (incoming_shifts !== null) {
+        init_shifts_list();
+    } else {
+        load_partner_shifts(partner_data.concerned_partner_id)
+            .then(init_shifts_list);
+    }
+
+    if (should_select_makeup()) {
+        $(".makeups_nb").text(partner_data.makeups_to_do);
+        $("#need_to_select_makeups_message").show();
+    }
+
+    let default_initial_view = "";
+    let header_toolbar = {};
+
+    if (vw <= 768) {
+        default_initial_view = 'listWeek';
+        header_toolbar = {
+            left: 'title',
+            center: 'listWeek,timeGridDay',
+            right: 'prev,next today'
+        };
+    } else if (vw <=992) {
+        default_initial_view = 'listWeek';
+        header_toolbar = {
+            left: 'title',
+            center: 'dayGridMonth,listWeek,timeGridDay',
+            right: 'prev,next today'
+        };
+    } else {
+        default_initial_view = 'dayGridMonth';
+        header_toolbar = {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,listWeek,timeGridDay'
+        };
+    }
+
+    const hidden_days = days_to_hide.length > 0 ? $.map(days_to_hide.split(", "), Number) : [];
+
+    const calendarEl = document.getElementById('read_only_calendar');
+    console.log(calendarEl)
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'fr',
+        initialView: default_initial_view,
+        headerToolbar: header_toolbar,
+        buttonText: {
+            list: "Semaine"
+        },
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit'
+        },
+        allDaySlot: false,
+        contentHeight: "auto",
+        eventDisplay: "block",
+        hiddenDays: hidden_days,
+        events: '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id,
+        eventDidMount: function() {
+            // Calendar is hidden at first on mobile to hide header change when data is loaded
+            $(".loading-calendar").hide();
+            $("#calendar").show();
+
+            if (vw <= 992) {
+                $(".fc .fc-header-toolbar").addClass("resp-header-toolbar");
+            } else {
+                $(".fc .fc-header-toolbar").removeClass("resp-header-toolbar");
+            }
+        }
+    });
+
+    calendar.render();
+}
+
 function init_shifts_exchange() {
     $(".shifts_exchange_page_content").hide();
     vw = window.innerWidth;
 
-    if (partner_data.cooperative_state === 'unsubscribed') {
+    if (partner_data.cooperative_state === 'unsubscribed' || partner_data.cooperative_state === 'gone') {
         $("#unsuscribed_content").show();
 
         $(".unsuscribed_form_link")
@@ -371,9 +469,9 @@ function init_shifts_exchange() {
     } else if (
         partner_data.comite === "True") {
         let msg_template = $("#comite_template");
-
         $(".comite_content_msg").html(msg_template.html());
         $("#comite_content").show();
+        init_read_only_calendar_page();
     } else if (partner_data.cooperative_state === 'suspended'
                 && partner_data.date_delay_stop === 'False') {
         $("#suspended_content .makeups_nb").text(partner_data.makeups_to_do);

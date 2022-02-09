@@ -3,6 +3,7 @@
 from outils.common_imports import *
 from outils.for_view_imports import *
 
+from members.models import CagetteUser
 from products.models import CagetteProduct
 from products.models import CagetteProducts
 from inventory.models import CagetteInventory
@@ -99,31 +100,88 @@ def update_product_stock(request):
         'products': [p]
     }
 
-    res['inventory'] = CagetteInventory.update_stock_with_shelf_inventory_data(inventory_data)
+    res['inventory'] = CagetteInventory.update_products_stock(inventory_data)
 
     return JsonResponse({"res": res})
 
 def update_product_purchase_ok(request):
     res = {}
-    data = json.loads(request.body.decode())
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        data = json.loads(request.body.decode())
 
-    res = CagetteProduct.update_product_purchase_ok(data["product_tmpl_id"], data["purchase_ok"])
+        res = CagetteProduct.update_product_purchase_ok(data["product_tmpl_id"], data["purchase_ok"])
 
-    if ('error' in res):
-        return JsonResponse(res, status=500)
+        if ('error' in res):
+            return JsonResponse(res, status=500)
+        else:
+            return JsonResponse({"res": res})
     else:
-        return JsonResponse({"res": res})
+        return JsonResponse(res, status=403)
 
 def update_product_internal_ref(request):
     res = {}
-    data = json.loads(request.body.decode())
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        data = json.loads(request.body.decode())
 
-    res = CagetteProduct.update_product_internal_ref(data["product_tmpl_id"], data["default_code"])
+        res = CagetteProduct.update_product_internal_ref(data["product_tmpl_id"], data["default_code"])
 
-    if ('error' in res):
-        return JsonResponse(res, status=500)
+        if ('error' in res):
+            return JsonResponse(res, status=500)
+        else:
+            return JsonResponse({"res": res})
     else:
-        return JsonResponse({"res": res})
+        return JsonResponse(res, status=403)
+
+def commit_actions_on_product(request):
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        try:
+            data = json.loads(request.body.decode())
+            product_data = CagetteProducts.get_products_for_order_helper(None, [data["id"]])["products"][0]
+
+            # Don't allow to archive product if incomin qty > 0
+            if data["to_archive"] is True and product_data["incoming_qty"] > 0:
+                res["code"] = "archiving_with_incoming_qty"
+                return JsonResponse(res, status=500)
+            
+            res = CagetteProduct.commit_actions_on_product(data)
+
+            # If stock > 0: do inventory to set stock to 0
+            if data["to_archive"] is True and product_data["qty_available"] != 0:
+                try:
+                    p = { 
+                        'id': product_data['product_variant_ids'][0],  # Need product id
+                        'uom_id': product_data['uom_id'],
+                        'qty': -product_data["qty_available"]
+                    }
+
+                    inventory_data = {
+                        'name': 'Archivage - ' + product_data['name'],
+                        'products': [p]
+                    }
+
+                    res_inventory = CagetteInventory.update_products_stock(inventory_data)
+                    if res_inventory['errors'] or res_inventory['missed']:
+                        res["code"] = "error_stock_update"
+                        res["error"] = res_inventory['errors']
+                        return JsonResponse(res, status=500)
+
+                except Exception as e:
+                    res["code"] = "error_stock_update"
+                    return JsonResponse(res, status=500)
+        except Exception as e:
+            res['error'] = str(e)
+            coop_logger.error("Update npa and minimal stock : %s", res['error'])
+
+        if ('error' in res):
+            return JsonResponse(res, status=500)
+        else:
+            return JsonResponse({"res": res})
+    else:
+        return JsonResponse(res, status=403)
 
 def labels_appli_csv(request, params):
     """Generate files to put in DAV directory to be retrieved by scales app."""

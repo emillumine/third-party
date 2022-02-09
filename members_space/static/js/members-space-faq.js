@@ -1,5 +1,4 @@
 
-
 function init_faq() {
     $("#unsuscribe_form_link_btn").prop("href", unsuscribe_form_link);
     $("#unsuscribe_form_link_btn2").prop("href", unsuscribe_form_link);
@@ -20,6 +19,10 @@ function init_faq() {
     $("#request_form_link_btn").prop("href", request_form_link);
 }
 
+$(document).on('click', "#shift_exchange_btn", () => {
+        goto('echange-de-services');
+});
+
 $(document).on('click', '.accordion', function() {
     /* Toggle between adding and removing the "active" class,
     to highlight the button that controls the panel */
@@ -33,8 +36,4 @@ $(document).on('click', '.accordion', function() {
     } else {
         panel.style.display = "block";
     }
-
-    $("#shift_exchange_btn").on("click", () => {
-        goto('echange-de-services');
-    });
 });

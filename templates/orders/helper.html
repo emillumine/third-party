@@ -55,6 +55,9 @@
                         <button type="button" class='btn--primary action_button' id="do_inventory" style="display:none;">
                             Faire un inventaire
                         </button>
+                        <button type="button" class='btn--primary action_button' id="refresh_order">
+                            Rafraîchir la commande
+                        </button>
                         <button type="button" class='btn--danger action_button' id="delete_order_button">
                             Supprimer la commande
                         </button>
@@ -90,8 +93,14 @@
                 </select>
             </form>
             <form action="javascript:;" id="coverage_form" class="order_form_item">
-                <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
-                <button type="submit" class='btn--primary'>Calculer les besoins</button>
+                <div class="input-wrapper">
+                    <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
+                    <input type="number" name="targeted_amount" id="targeted_amount_input" placeholder="Montant en €" min="1">
+                    <input type="number" name="percent_adjustement" id="percent_adjust_input" placeholder="ajustement en %">
+                </div>
+                <div>
+                    <button  type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg average_consumption_explanation_icon'></i>
+                </div>
             </form>
         </div>
     
@@ -267,14 +276,30 @@
             <hr/>
         </div>
 
-        <div id="modal_product_npa">
-            <h3>Attention !</h3>
-            <p>
-                Vous vous apprêtez à passer le produit <span class="product_name"></span> en <span class="product_npa"></span>.<br/>
-                Dès que vous aurez cliqué sur "Valider", le produit sera retiré du tableau et l'information sera enregistrée dans Odoo.
-            </p>
-            <p>Êtez-vous sûr ?</p>
-            <hr/>
+        <div id="modal_product_actions">
+            Actions sur <h3><span class="product_name"></span></h3>
+            <div class="modal_product_actions_section">
+                <h4 class="modal_product_actions_title">NPA</h4>
+                <div class="npa-options">
+                    <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
+                    <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
+                    <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+                </div>
+            </div>
+            <div class="modal_product_actions_section">
+                <h4 class="modal_product_actions_title">Archiver le produit</h4>
+                <label class="checkbox_action_disabled"><input type="checkbox" name="archive-action" value="archive" disabled /> Archiver </label>
+                <div class="tooltip">
+                    <i class='main fa fa-info-circle'></i>
+                    <span class="tooltiptext tooltip-xl tt_twolines">
+                        Un produit ne peut pas être archivé si une quantité entrante est prévue.
+                    </span>
+                </div>
+            </div>
+            <div class="modal_product_actions_section">
+                <h4 class="modal_product_actions_title">Stock minimum</h4>
+                <input type="number" name="minimal_stock" value="" />
+            </div>
         </div>
 
         <div id="modal_create_order">
@@ -291,7 +316,9 @@
             <br/>
             <hr/>
         </div>
-
+        <div id="explanations">
+            {% include "orders/explanations.html" %}
+        </div>
         <div id="modal_create_order__supplier_date_planned">
             <div class="modal_input_area">
                 <span class="modal_input_label supplier_name"></span>

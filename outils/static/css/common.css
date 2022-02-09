@@ -148,6 +148,10 @@ footer { position: fixed;
   width: 230px !important;
 }
 
+.tooltip .tooltip-xl {
+  width: 320px !important;
+}
+
 .tooltip .tt_twolines {
   top: -15px !important;
 }
@@ -194,3 +198,16 @@ footer { position: fixed;
 }
 .notifyjs-cancelable-base .buttons {width: 190px; margin: 5px auto;}
 .notifyjs-cancelable-base button {width: 90px;text-align: center; margin: 3px;}
+
+button.accordion::after {
+    content: '\002B';
+    color: #777;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+}
+
+button.accordion.active::after {
+    content: "\2212";
+}
+
