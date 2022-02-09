@@ -1,5 +1,4 @@
 
-
 function init_faq() {
     $("#unsuscribe_form_link_btn").prop("href", unsuscribe_form_link);
     $("#unsuscribe_form_link_btn2").prop("href", unsuscribe_form_link);
@@ -22,4 +21,19 @@ function init_faq() {
 
 $(document).on('click', "#shift_exchange_btn", () => {
         goto('echange-de-services');
+});
+
+$(document).on('click', '.accordion', function() {
+    /* Toggle between adding and removing the "active" class,
+    to highlight the button that controls the panel */
+    this.classList.toggle("active");
+
+    /* Toggle between hiding and showing the active panel */
+    var panel = this.nextElementSibling;
+
+    if (panel.style.display === "block") {
+        panel.style.display = "none";
+    } else {
+        panel.style.display = "block";
+    }
 });
