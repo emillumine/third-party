@@ -178,6 +178,7 @@ def my_info(request):
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
+        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True)
     }
     return HttpResponse(template.render(context, request))
 
