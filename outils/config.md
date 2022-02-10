@@ -311,6 +311,10 @@
 
         Message shown to people when they connect to the Member Space
 
+- MEMBERS_SPACE_FAQ_TEMPLATE = None
+
+        If set to None, "FAQ menu" will not be shown. To use a custom content add a template and set it's relative path
+
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True

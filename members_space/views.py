@@ -111,6 +111,7 @@ def index(request, exception=None):
             partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 
             m = CagetteMembersSpace()
+            context['show_faq'] = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
             partnerData["comite"] = m.is_comite(partner_id)
 
             context['partnerData'] = partnerData
@@ -197,14 +198,16 @@ def shifts_exchange(request):
     return HttpResponse(template.render(context, request))
 
 def faqBDM(request):
-    template = loader.get_template('members_space/faq.html')
-    context = {
-        'title': 'foire aux questions',
-    }
+    template_path = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
+    content = ''
+    if template_path:
+        template = loader.get_template(template_path)
+        context = {
+            'title': 'foire aux questions',
+        }
+        content = template.render(context, request)
 
-    msettings = MConfig.get_settings('members')
-    
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(content)
 
 def no_content(request):
     """ Endpoint the front-end will call to load the "No content" page. """
