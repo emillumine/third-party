@@ -28,6 +28,9 @@
 
 - COMPANY_NAME = 'Les Grains de Sel'
 
+- COMPANY_LOGO = 'https://domaine.name/img/logo.png'
+
+
 - ADMIN_IDS = [13]
 
         Used to show hidden things. for example, input barcode in shelf adding product (Odoo user id array)
