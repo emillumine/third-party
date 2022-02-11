@@ -3,6 +3,8 @@ var archive_cash_envelops = [];
 var ch_envelops = [];
 var archive_ch_envelops = [];
 var envelop_to_update = null;
+var members_search_results = [];
+var selected_member = null;
 
 function reset() {
     $('#cash_envelops').empty();
@@ -129,7 +131,21 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
         let envelop_panel = $(`.panel_${envelop_content_id}`);
 
         envelop_panel.append(`<button class="btn--danger delete_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Supprimer l'enveloppe</button>`);
-        envelop_panel.append(`<button class="btn--primary update_envelop_button item-fluid" id="update_envelop_${envelop.type}_${envelop_index}">Modifier</button>`);
+        envelop_panel.append(`
+            <button 
+                class="btn--primary update_envelop_button item-fluid" 
+                id="update_envelop_${envelop.type}_${envelop_index}"
+            >
+                Modifier
+            </button>`);
+        envelop_panel.append(`
+            <button 
+                class="btn--primary add_to_envelop_button item-fluid" 
+                id="add_to_envelop_${envelop.type}_${envelop_index}"
+            >
+                Ajouter un paiement ou des parts sociales
+            </button>`);
+
         $(".update_envelop_button").off("click");
         $(".update_envelop_button").on("click", function() {
             let el_id = $(this).attr("id")
@@ -159,6 +175,64 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
                 },
                 'Supprimer'
             );
+        });
+
+        $(".add_to_envelop_button").off("click");
+        $(".add_to_envelop_button").on("click", function() {
+            let el_id = $(this).attr("id")
+                .split("_");
+
+            envelop_to_update = {
+                type: el_id[el_id.length-2],
+                index: el_id[el_id.length-1]
+            };
+
+            let envelop = get_envelop_from_type_index(envelop_to_update.type, envelop_to_update.index);
+            let envelop_name = get_envelop_name(envelop, 'long');
+
+            let modal_add_to_envelop = $('#templates #modal_add_to_envelop');
+
+            modal_add_to_envelop.find(".envelop_name").text(envelop_name);
+
+            openModal(
+                modal_add_to_envelop.html(),
+                () => {},
+                '',
+                false,
+                true,
+                () => {
+                    envelop_to_update = null;
+                    selected_member = null;
+                    modal.find(".btn-modal-ok").show();
+                }
+            );
+
+            // No validation button
+            modal.find(".btn-modal-ok").hide();
+            modal.find(".add_to_envelop_lines").empty();
+
+            // Set action to search for the member
+            modal.find('.search_member_form').submit(function() {
+                let search_str = modal.find('.search_member_input').val();
+
+                $.ajax({
+                    url: '/members/search/' + search_str + "?search_type=short",
+                    dataType : 'json',
+                    success: function(data) {
+                        members_search_results = data.res;
+                        display_possible_members();
+                    },
+                    error: function() {
+                        err = {
+                            msg: "erreur serveur lors de la recherche de membres",
+                            ctx: 'add_payment_to_envelop.search_members'
+                        };
+                        report_JS_error(err, 'envelops');
+
+                        alert("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...");
+                    }
+                });
+            });
         });
     }
 }
@@ -277,7 +351,7 @@ function set_update_envelop_modal() {
     openModal(
         modal_update_envelop.html(),
         () => {
-            update_envelop();
+            update_envelop_action();
         },
         'Mettre à jour',
         true,
@@ -314,10 +388,10 @@ function set_update_envelop_modal() {
 }
 
 /**
- * Update an envelop in couchdb
+ * Update an envelop data with modal data
  */
-function update_envelop() {
-    if (is_time_to('update_envelop', 1000)) {
+function update_envelop_action() {
+    if (is_time_to('update_envelop_action', 1000)) {
         let envelop = get_envelop_from_type_index(envelop_to_update.type, envelop_to_update.index);
 
         // Update lines amounts
@@ -340,12 +414,22 @@ function update_envelop() {
         // Envelop comments
         envelop.comments = modal.find('.envelop_comments').val();
 
+        update_envelop(envelop);
+        toggle_success_alert("Enveloppe modifiée !");
+    }
+}
+
+/**
+ * Update an envelop in couchdb
+ * @param {Object} envelop
+ */
+function update_envelop(envelop) {
+    if (is_time_to('update_envelop', 1000)) {
         dbc.put(envelop, function callback(err, result) {
             envelop_to_update = null;
 
             if (!err && result !== undefined) {
                 get_envelops();
-                toggle_success_alert("Enveloppe modifiée !");
             } else {
                 alert("Erreur lors de la mise à jour de l'enveloppe. Si l'erreur persiste contactez un administrateur svp.");
                 console.log(err);
@@ -431,7 +515,13 @@ function archive_envelop(type, index) {
                     if (error_payments[i].done == false) {
                         error_message += "<p>Erreur lors de l'enregistrement du paiement de <b>" + error_payments[i]['partner_name']
                 + "</b> (id odoo : " + error_payments[i]['partner_id'] + ", valeur à encaisser : " + error_payments[i]['amount'] + "€).";
-                        error_message += "<br/><b>L'opération est à reprendre manuellement dans Odoo pour ce paiement.</b></p>";
+                        error_message += "<br/><b>L'opération est à reprendre manuellement dans Odoo pour ce paiement.</b>";
+
+                        if ('error' in error_payments[i]) {
+                            error_message += `<br/>(error: ${error_payments[i]['error']})`;
+                        }
+
+                        error_message += "</p>";
                     }
                 }
 
@@ -478,6 +568,194 @@ function get_envelops() {
             alert('Erreur lors de la récupération des enveloppes.');
             console.log(err);
         });
+}
+
+/**
+ * Display the members from the search result in the "add payments to envelop" modal
+ */
+function display_possible_members() {
+    modal.find('.search_member_results_area').show();
+    modal.find('.search_member_results').empty();
+
+    if (members_search_results.length > 0) {
+        $(".search_results_text").show();
+
+        for (member of members_search_results) {
+            // Display results (possible members) as buttons
+            var member_button = '<button class="btn--success btn_possible_member" member_id="'
+                + member.id + '">'
+                + member.barcode_base + ' - ' + member.name
+                + '</button>';
+
+            $('.search_member_results').append(member_button);
+        }
+
+        // Set action on member button click
+        $('.btn_possible_member').on('click', function() {
+            const mid = $(this).attr('member_id');
+
+            selected_member = members_search_results.find(m => m.id == mid);
+            members_search_results = [];
+
+            modal.find('.search_member_input').val('');
+            modal.find('.search_member_results').empty();
+            modal.find('.search_member_results_area').hide();
+
+            // Adding line for this member in modal...
+            display_line_add_payment();
+        });
+    } else {
+        $(".search_results_text").hide();
+        $('.search_member_results').html(`<p>
+            <i>Aucun résultat ! Vérifiez votre recherche...</i>
+        </p>`);
+    }
+}
+
+/**
+ * Display a line for adding a member's payment in the "add payments to envelop" modal
+ */
+function display_line_add_payment() {
+    let envelop = get_envelop_from_type_index(envelop_to_update.type, envelop_to_update.index);
+
+    // Block adding payment if member is already in the envelop
+    for (let env_partner_id in envelop.envelop_content) {
+        if (env_partner_id == selected_member.id) {
+            alert("Ce membre est déjà dans l'enveloppe, impossible de lui rajouter un paiement.\nVous pouvez modifier le montant de son paiement dans la fenêtre de modification de l'enveloppe.");
+
+            return -1;
+        }
+    }
+
+    modal.find('.search_member_area').hide();
+
+    let modal_line = $('#templates #add_to_envelop_line_template');
+
+    modal_line.find(".line_partner_name").text(selected_member.name);
+
+    modal.find(".add_to_envelop_lines").append(modal_line.html());
+    modal.find(".add_to_envelop_lines_area").show();
+
+    // Add payment button
+    $('.add_payment_button').off('click');
+    $('.add_payment_button').on('click', function() {
+        let amount = parseInt(modal.find(".line_partner_amount").val(), 10);
+
+        if (isNaN(amount)) {
+            modal.find(".line_partner_amount_error").show();
+        } else {
+            modal.find(".line_partner_amount_error").hide();
+
+            let modal_confirm_add_payment = $('#templates #modal_confirm_add_payment');
+
+            modal_confirm_add_payment.find(".amount").text(amount);
+            modal_confirm_add_payment.find(".member").text(selected_member.name);
+            modal_confirm_add_payment.find(".envelop").text(get_envelop_name(envelop, 'long'));
+
+            openModal(
+                modal_confirm_add_payment.html(),
+                () => {
+                    add_payment_to_envelop(amount, envelop);
+                },
+                "Confirmer"
+            );
+
+            modal.find(".btn-modal-ok").show();
+        }
+    });
+
+    // Add shares button
+    $('.add_shares_button').off('click');
+    $('.add_shares_button').on('click', function() {
+        let amount = parseInt(modal.find(".line_partner_amount").val(), 10);
+
+        if (isNaN(amount)) {
+            modal.find(".line_partner_amount_error").show();
+        } else {
+            modal.find(".line_partner_amount_error").hide();
+
+            let modal_confirm_add_shares = $('#templates #modal_confirm_add_shares');
+
+            modal_confirm_add_shares.find(".amount").text(amount);
+            modal_confirm_add_shares.find(".member").text(selected_member.name);
+            modal_confirm_add_shares.find(".envelop").text(get_envelop_name(envelop, 'long'));
+
+            openModal(
+                modal_confirm_add_shares.html(),
+                () => {
+                    add_shares_to_member(amount, envelop);
+                },
+                "Confirmer",
+                false
+            );
+
+            modal.find(".btn-modal-ok").show();
+        }
+    });
+
+    return null;
+}
+
+/**
+ * Add a payment in an envelop & save in couchdb
+ * @param {Int} amount
+ * @param {Object} envelop
+ * @param {Int} invoice_id
+ * @param {String} message
+ */
+function add_payment_to_envelop(amount, envelop, invoice_id=null, message="Paiement ajouté !") {
+    if (is_time_to('add_payment_to_envelop', 1000)) {
+        envelop.envelop_content[selected_member.id] = {
+            partner_name: selected_member.name,
+            amount: amount
+        };
+        if (invoice_id != null) {
+            envelop.envelop_content[selected_member.id].invoice_id = invoice_id;
+        }
+        update_envelop(envelop);
+        toggle_success_alert(message);
+
+        envelop_to_update = null;
+        selected_member = null;
+
+        get_envelops();
+    }
+}
+
+/**
+ * Send request to add shares & then add payment
+ * @param {Int} amount
+ * @param {Object} envelop
+ */
+function add_shares_to_member(amount, envelop) {
+    if (is_time_to('add_shares_to_member', 1000)) {
+        openModal();
+
+        data = {
+            partner_id: selected_member.id,
+            amount: amount
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "/members/add_shares_to_member",
+            headers: { "X-CSRFToken": getCookie("csrftoken") },
+            dataType: "json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function(response) {
+                closeModal();
+
+                invoice_id = response[0];
+                add_payment_to_envelop(amount, envelop, invoice_id, "Parts sociales ajoutées !");
+            },
+            error: function() {
+                closeModal();
+                alert('Un erreur est survenue lors de l\'ajout de parts sociales.');
+            }
+        });
+    }
 }
 
 $(document).ready(function() {

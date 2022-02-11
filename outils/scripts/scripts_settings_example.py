@@ -1,7 +1,7 @@
 SECRET_KEY = 'Mettre_plein_de_caracteres_aleatoires_iezezezeezezci'
 
 ODOO = {
-    'url': 'http://127.0.0.1:8069'
+    'url': 'http://127.0.0.1:8069',
     'user': 'api',
     'passwd': 'xxxxxxxxxxxx',
     'db': 'bd_test',
