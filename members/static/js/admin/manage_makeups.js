@@ -331,6 +331,7 @@ $(document).ready(function() {
 
     $('#back_to_admin_index').on('click', function() {
         let base_location = window.location.href.split("manage_makeups")[0].slice(0, -1);
+
         window.location.assign(base_location);
     });
 
