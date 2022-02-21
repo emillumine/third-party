@@ -376,6 +376,9 @@
 - AMNISTIE_DATE = "2021-11-24 00:00:00"
         In members_space history display a special activity about amnistie
 
+- BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE = False
+        Attached people can or not change his services
+
 
 ### Miscellious
 
