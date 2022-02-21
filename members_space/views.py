@@ -28,7 +28,8 @@ def index(request, exception=None):
 
     context = {
         'title': 'Espace Membre',
-        'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None)
+        'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None),
+        'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True)
     }
 
     template = loader.get_template('members_space/index.html')
