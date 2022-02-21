@@ -3,33 +3,6 @@ var makeups_members_table = null,
     members_search_results = [],
     selected_rows = []; // Contain members id
 
-function switch_active_tab() {
-    // Set tabs
-    $('.tab').removeClass('active');
-    $(this).addClass('active');
-
-    // Tabs content
-    $('.tab_content').hide();
-
-    let tab = $(this).attr('id');
-
-    if (tab == 'tab_makeups') {
-        $('#tab_makeups_content').show();
-    }
-
-    load_tab_data();
-}
-
-/**
- * Load data for the current tab
- */
-function load_tab_data() {
-    let current_tab = $('.tab .active').attr('id');
-
-    if (current_tab === 'tab_makeups' && makeups_members === null) {
-        load_makeups_members();
-    }
-}
 
 /**
  * Load partners who have makeups to do
@@ -352,11 +325,14 @@ $(document).ready(function() {
 
         $(".page_content").show();
         load_makeups_members();
-
-        $(".tabs .tab").on('click', switch_active_tab);
     } else {
         $(".page_content").hide();
     }
+
+    $('#back_to_admin_index').on('click', function() {
+        let base_location = window.location.href.split("manage_makeups")[0].slice(0, -1);
+        window.location.assign(base_location);
+    });
 
     // Set action to search for the member
     $('#search_member_form').submit(function() {
