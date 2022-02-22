@@ -395,24 +395,19 @@ def panel_get_purchases(request):
 
 def add_shares_to_member(request):
     res = {}
-    is_connected_user = CagetteUser.are_credentials_ok(request)
-    if is_connected_user is True:
-        try:
-            data = json.loads(request.body.decode())
-            partner_id = int(data["partner_id"])
-            amount = int(data["amount"])
-            
-        except Exception as e:
-            res['error'] = "Wrong params"
-            return JsonResponse(res, safe=False, status=400)
+    try:
+        data = json.loads(request.body.decode())
+        partner_id = int(data["partner_id"])
+        amount = int(data["amount"])
+        
+    except Exception as e:
+        res['error'] = "Wrong params"
+        return JsonResponse(res, safe=False, status=400)
 
-        m = CagetteMember(partner_id)
-        today = datetime.date.today().strftime("%Y-%m-%d")
-        res = m.create_capital_subscription_invoice(amount, today)
-        return JsonResponse(res, safe=False)
-    else:
-        res['error'] = "Forbidden"
-        return JsonResponse(res, safe=False, status=403)
+    m = CagetteMember(partner_id)
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    res = m.create_capital_subscription_invoice(amount, today)
+    return JsonResponse(res, safe=False)
 
 # # #  BDM # # #
 def save_partner_info(request):
