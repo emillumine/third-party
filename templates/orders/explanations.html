@@ -5,14 +5,14 @@
             La fonction qui calcule les consommations moyennes prend en paramètre soit :
         </p>
         <ul>
-          <li>unnombre de jours de couverture</li>
+          <li>un nombre de jours de couverture</li>
           <li>un montant en €</li>
         </ul>
         <p>
             qu'il sera ensuite possible d'ajuster en pourcentage.<br/>
         </p>
         <p>
-            Si rien n’est indiqué, le paramètre pris en compte sera : "<em>aujourd'hui - nb de jours paramétré dans Odoo</em>".<br/>
+            Si rien n’est indiqué, le paramètre de calcul pris en compte sera : "<em>aujourd'hui - nb de jours paramétré dans Odoo</em>".<br/>
             Le nombre de jours paramétré est actuellement de <strong>{{nb_past_days_to_compute_sales_average}}</strong> jours.<br/>
         </p>
         <blockquote>
@@ -26,8 +26,8 @@
         </p>
         <p>
             Une requête est faite sur l'ensemble des passages en caisse, du Nb jours de couverture à hier, récupérant pour tous les jours de la période (dimanches exclus) les quantités vendues des articles achetés chez le fournisseur.<br/>
-            Pour chaque article, le nombre de jours ou le montant en € considérés pour faire la moyenne est défini comme suit :<br/>
-            <em>Nb de jours ouvrés de la période - Nb de jours des périodes de rupture</em><br/>
+            Pour chaque article, le nombre de jours considérés pour faire la moyenne est défini comme suit :<br/>
+            "<em>Nb de jours ouvrés de la période - Nb de jours des périodes de rupture</em>"<br/>
             Le nombre de jours consécutifs sans vente pour considérer l'article en rupture est actuellement de <strong>{{nb_of_consecutive_non_sale_days_considered_as_break}}</strong> jours.<br/>
         </p>
         <blockquote>
