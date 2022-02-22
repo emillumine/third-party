@@ -4,6 +4,7 @@ from outils.for_view_imports import *
 from members.models import CagetteUser
 from members.models import CagetteMembers
 from members.models import CagetteMember
+from shifts.models import CagetteShift
 from outils.common import MConfig
 
 
@@ -318,6 +319,13 @@ def manage_makeups(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_shift_registrations(request):
+    """ Administration des services des membres """
+    template = loader.get_template('members/admin/manage_shift_registrations.html')
+    context = {'title': 'BDM - Services',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()
@@ -366,6 +374,27 @@ def update_members_makeups(request):
                 cm.update_member_points(data)
 
         response = JsonResponse(res)
+    else:
+        res["message"] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response
+
+def delete_shift_registration(request):
+    """ From BDM admin, delete (cancel) a member shift registration """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        data = json.loads(request.body.decode())
+        shift_registration_id = int(data["shift_registration_id"])
+        member_id = int(data["member_id"])
+
+        m = CagetteShift()
+        res["res"] = m.cancel_shift([shift_registration_id])
+
+        # Note: 'upcoming_registration_count' in res.partner won't change because the _compute method
+        #       in odoo counts canceled shift registrations.
+
+        response = JsonResponse(res, safe=False)
     else:
         res["message"] = "Unauthorized"
         response = JsonResponse(res, status=403)
