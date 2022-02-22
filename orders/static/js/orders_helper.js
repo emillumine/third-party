@@ -240,7 +240,6 @@ function compute_products_coverage_qties() {
         order_doc.coeff = coeff;
         if (order_doc.coverage_days != null) {
             compute_and_affect_product_supplier_quantities(coeff, order_doc.coverage_days);
-            resolve();
         } else if (order_doc.targeted_amount != null) {
             const small_step = 0.1,
                   max_iter = 182; // Assume that no more than 1/2 year coverage is far enough
@@ -264,11 +263,7 @@ function compute_products_coverage_qties() {
                     if (order_total_value_f != targeted_amount_f && iter < max_iter) {
                         step = small_step; // we have gone too far, let's go back, using small step
                         days -= step;
-                    } 
-                   /* console.log(iter)
-                    console.log(order_total_value_f + '/' + targeted_amount_f)
-                    console.log(days)
-                    console.log(go_on)*/
+                    }
                 } else {
                     if (step == small_step) {
                         // amount was above the target, let's compute again with the previous value
@@ -282,13 +277,10 @@ function compute_products_coverage_qties() {
                 iter++;
             }
 
-        resolve();
-        }
-/*        console.log(rder_doc.coverage_days);
-        console.log(order_doc.targeted_amount)*/
-    });
+        } 
 
-   
+        resolve();
+    });
 }
 
 /**

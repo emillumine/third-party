@@ -311,6 +311,13 @@ def admin(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_makeups(request):
+    """ Administration des membres """
+    template = loader.get_template('members/admin/manage_makeups.html')
+    context = {'title': 'BDM - Rattrapages',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()

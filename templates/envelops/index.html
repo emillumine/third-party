@@ -9,9 +9,11 @@
 {% endblock %}
 
 {% block content %}
-{%if must_identify %}
-  {% include "common/conn_admin.html" %}
-{%endif%}
+<div id="admin_connexion_button">
+  {%if must_identify %}
+    {% include "common/conn_admin.html" %}
+  {%endif%}
+</div>
 <div id="envelop_cashing_error" class="alert--danger clearfix custom_alert" onClick="toggle_error_alert()">
     <div style="width: 90%" class="fl txtleft" id="error_alert_txt"></div>
     <div style="width: 10%" class="fr txtright"><i class="fas fa-times"></i></div>
@@ -80,13 +82,74 @@
       <div class="deleted_line_through"></div>
     </div>
   </div>
+
+  <div id="modal_add_to_envelop">
+    <div class="modal_add_to_envelop_content">
+      <h3>Ajouter un paiement ou des parts sociales</h3>
+      <h4><i class="envelop_name"></i></h4>
+      <hr>
+      <div class="search_member_area">
+        <h4>Rechercher un membre</h4>
+        <form class="search_member_form" action="javascript:;" method="post">
+          <input type="text" class="search_member_input" value="" placeholder="Nom ou numéro du coop..." required>
+          <button type="submit" class="btn--primary" class="search_member_button">Recherche</button>
+        </form>
+      </div>
+      <div class="search_member_results_area" style="display:none;">
+        <div class="search_results_text">
+          <p><i>Choisissez parmi les membres trouvés :</i></p>
+        </div>
+        <div class="search_member_results"></div>
+      </div>
+      <div class="add_to_envelop_lines_area" style="display:none;">
+        <div class="add_to_envelop_lines">
+        </div>
+        <div class="validation_buttons">
+          <button class="btn--primary add_payment_button">Ajouter le paiement à l'enveloppe</button>
+          <button class="btn--primary add_shares_button">Ajouter des parts sociales </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="add_to_envelop_line_template">
+    <div class="add_to_envelop_line">
+      <div class="partner_name_container">
+        <span class="line_partner_name"></span>
+      </div>
+      <div class="partner_input_container">
+        <input type="text" class="line_partner_amount" placeholder="Montant">
+        <div class="line_partner_amount_error">Le montant doit être un nombre entier.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal_confirm_add_payment">
+    <p>
+      Vous vous apprêtez à ajouter un paiement de <span class="confirm_add_payment_details amount"></span>€
+      du membre <span class="confirm_add_payment_details member"></span>
+      à l'enveloppe <span class="confirm_add_payment_details envelop"></span>.
+    </p>
+    <p><i>
+      <i class="fas fa-exclamation-triangle"></i> Avertissement si ce.tte membre a plusieurs factures d'ouvertes.<br/>
+      Au moment de l'encaissement de l'enveloppe, ce paiement sera lié à la plus vieille facture ouverte de ce membre.
+    </i></p>
+  </div>
+
+  <div id="modal_confirm_add_shares">
+    <p>
+      Vous vous apprêtez à ajouter pour <span class="confirm_add_payment_details amount"></span>€ de parts sociales
+      au membre <span class="confirm_add_payment_details member"></span>.
+    </p>
+    <p>
+      Le paiement sera ajouté à l'enveloppe <span class="confirm_add_payment_details envelop"></span>.
+    </p>
+  </div>
 </div>
 
 <script src="{% static "js/pouchdb.min.js" %}"></script>
 <script type="text/javascript">
-        {%if must_identify %}
-        var must_identify = true
-        {%endif%}
+        var must_identify = '{{must_identify}}';
         var couchdb_dbname = '{{db}}';
         var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
         var dbc = new PouchDB(couchdb_dbname);

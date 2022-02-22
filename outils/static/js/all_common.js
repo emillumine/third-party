@@ -175,8 +175,8 @@ String.prototype.pad = function(String, len) {
 
 
 var btns = $('<div/>').addClass('btns');
-var btn_ok = $('<button/>').addClass('btn--success');
-var btn_nok = $('<button/>').addClass('btn--danger')
+var btn_ok = $('<button/>').addClass('btn--success btn-modal-ok');
+var btn_nok = $('<button/>').addClass('btn--danger btn-modal-nok')
     .attr('id', 'modal_closebtn_bottom')
     .text('Fermer');
 
