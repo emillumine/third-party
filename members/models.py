@@ -26,6 +26,9 @@ class CagetteMember(models.Model):
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
 
+    m_shoft_default_fields = ['name', 'barcode_base', 'total_partner_owned_share',
+                      'amount_subscription']
+
     def __init__(self, id):
         """Init with odoo id."""
         self.id = int(id)
@@ -718,7 +721,7 @@ class CagetteMember(models.Model):
         return m_list
 
     @staticmethod
-    def search(k_type, key, shift_id=None):
+    def search(k_type, key, shift_id=None, search_type="full"):
         """Search member according 3 types of key."""
         api = OdooAPI()
         if k_type == 'id':
@@ -733,44 +736,49 @@ class CagetteMember(models.Model):
         cond.append(['is_member', '=', True])
         cond.append(['is_associated_people', '=', True])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
-        fields = CagetteMember.m_default_fields
-        if not shift_id is None:
-            CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
-        res = api.search_read('res.partner', cond, fields)
-        members = []
-        if len(res) > 0:
-            for m in res:
-                keep_it = False
-                if not shift_id is None and len(shift_id) > 0:
-                    # Only member registred to shift_id will be returned
-                    if len(m['tmpl_reg_line_ids']) > 0:
-                        cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
-                        fields = ['shift_template_id']
-                        shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
-                        if (len(shift_templ_res) > 0
-                            and
-                            int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
-                            keep_it = True
-                else:
-                    keep_it = True
-                if keep_it is True:
-                    try:
-                        img_code = base64.b64decode(m['image_medium'])
-                        extension = imghdr.what('', img_code)
-                        m['image_extension'] = extension
-                    except Exception as e:
-                        coop_logger.info("Img error : %s", e)
-                    m['state'] = m['cooperative_state']
-                    m['cooperative_state'] = \
-                        CagetteMember.get_state_fr(m['cooperative_state'])
-                    # member = CagetteMember(m['id'], m['email'])
-                    # m['next_shifts'] = member.get_next_shift()
-                    if not m['parent_name'] is False:
-                        m['name'] += ' (en binôme avec ' + m['parent_name'] + ')'
-                        del m['parent_name']
-                    members.append(m)
+        if search_type == "full":
+            fields = CagetteMember.m_default_fields
+            if not shift_id is None:
+                CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
+            res = api.search_read('res.partner', cond, fields)
+            members = []
+            if len(res) > 0:
+                for m in res:
+                    keep_it = False
+                    if not shift_id is None and len(shift_id) > 0:
+                        # Only member registred to shift_id will be returned
+                        if len(m['tmpl_reg_line_ids']) > 0:
+                            cond = [['id', '=', m['tmpl_reg_line_ids'][0]]]
+                            fields = ['shift_template_id']
+                            shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                            if (len(shift_templ_res) > 0
+                                and
+                                int(shift_templ_res[0]['shift_template_id'][0]) == int(shift_id)):
+                                keep_it = True
+                    else:
+                        keep_it = True
+                    if keep_it is True:
+                        try:
+                            img_code = base64.b64decode(m['image_medium'])
+                            extension = imghdr.what('', img_code)
+                            m['image_extension'] = extension
+                        except Exception as e:
+                            coop_logger.info("Img error : %s", e)
+                        m['state'] = m['cooperative_state']
+                        m['cooperative_state'] = \
+                            CagetteMember.get_state_fr(m['cooperative_state'])
+                        # member = CagetteMember(m['id'], m['email'])
+                        # m['next_shifts'] = member.get_next_shift()
+                        if not m['parent_name'] is False:
+                            m['name'] += ' (en binôme avec ' + m['parent_name'] + ')'
+                            del m['parent_name']
+                        members.append(m)
 
-        return CagetteMember.add_next_shifts_to_members(members)
+            return CagetteMember.add_next_shifts_to_members(members)
+        else:
+            fields = CagetteMember.m_shoft_default_fields
+            res = api.search_read('res.partner', cond, fields)
+            return res
 
     @staticmethod
     def remove_data_from_CouchDB(request):

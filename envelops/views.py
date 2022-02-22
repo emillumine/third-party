@@ -40,6 +40,9 @@ def archive_envelop(request):
                     'type' : envelop['type']
                 }
 
+                if 'invoice_id' in envelop['envelop_content'][partner_id]:
+                    data['invoice_id'] = int(envelop['envelop_content'][partner_id]['invoice_id'])
+
                 res = m.save_payment(data)
             except Exception as e:
                 res = {
@@ -75,7 +78,7 @@ def archive_envelop(request):
                     coop_logger.error("Cannot attach payment error message to member : %s",  str(e))
 
     try:
-        # archive envelop from couchdb
+        # archive envelop in couchdb
         res_envelop = m.archive_envelop(envelop)
     except Exception as e:
         res_envelop = "error"
