@@ -97,6 +97,9 @@ def index(request, exception=None):
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
+                md5_calc = hashlib.md5(partnerData['parent_create_date'].encode('utf-8')).hexdigest()
+                partnerData['parent_verif_token'] = md5_calc
+
             else:
                 partnerData["parent_name"] = False
 
