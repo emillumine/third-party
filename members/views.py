@@ -8,7 +8,7 @@ from members.models import CagetteMembers
 from members.models import CagetteServices
 from outils.forms import GenericExportMonthForm
 
-
+import datetime
 
 default_fields = ['name',
                   'image_medium']
@@ -237,6 +237,8 @@ def update_couchdb_barcodes(request):
 
 def search(request, needle, shift_id):
     """Search member has been requested."""
+    search_type = request.GET.get('search_type', '')
+
     try:
         key = int(needle)
         k_type = 'barcode_base'
@@ -247,7 +249,7 @@ def search(request, needle, shift_id):
         key = needle
         k_type = 'name'
 
-    res = CagetteMember.search(k_type, key, shift_id)
+    res = CagetteMember.search(k_type, key, shift_id, search_type)
     return JsonResponse({'res': res})
 
 
@@ -391,6 +393,21 @@ def panel_get_purchases(request):
             response = HttpResponse(message)
     return response
 
+def add_shares_to_member(request):
+    res = {}
+    try:
+        data = json.loads(request.body.decode())
+        partner_id = int(data["partner_id"])
+        amount = int(data["amount"])
+        
+    except Exception as e:
+        res['error'] = "Wrong params"
+        return JsonResponse(res, safe=False, status=400)
+
+    m = CagetteMember(partner_id)
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    res = m.create_capital_subscription_invoice(amount, today)
+    return JsonResponse(res, safe=False)
 
 # # #  BDM # # #
 def save_partner_info(request):
