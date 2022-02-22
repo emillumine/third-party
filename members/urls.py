@@ -55,6 +55,7 @@ urlpatterns = [
 
     # BDM - members admin
     url(r'^admin$', admin.admin),
+    url(r'^admin/manage_makeups$', admin.manage_makeups),
     url(r'^get_makeups_members$', admin.get_makeups_members),
     url(r'^update_members_makeups$', admin.update_members_makeups),
 ]
