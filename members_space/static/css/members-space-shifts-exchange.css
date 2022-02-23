@@ -52,7 +52,6 @@
 #shifts_list {
     flex-direction: column;
     display: none;
-    width: min-content;
     max-width: 100%;
     white-space: nowrap;
 }

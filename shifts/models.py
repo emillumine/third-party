@@ -83,7 +83,7 @@ class CagetteShift(models.Model):
     def get_shift_partner(self, id):
         """Récupère les shift du membre"""
         fields = ['date_begin', 'date_end','final_standard_point',
-                  'shift_id', 'shift_type','partner_id',  "id"] # res.partner
+                  'shift_id', 'shift_type','partner_id',  "id", "associate_registered"] # res.partner
         cond = [['partner_id.id', '=', id],['state', '=', 'open'],
                ['date_begin', '>', datetime.datetime.now().isoformat()]]
         shiftData = self.o_api.search_read('shift.registration', cond, fields, order ="date_begin ASC")

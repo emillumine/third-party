@@ -146,6 +146,7 @@ function init_history() {
  * Init the Incoming shifts section: display them
  */
 function init_incoming_shifts() {
+    console.log(partner_data)
     $(".loading-incoming-shifts").hide();
     $("#incoming_shifts").show();
 
@@ -156,6 +157,28 @@ function init_incoming_shifts() {
 
         for (shift of incoming_shifts) {
             let shift_line_template = prepare_shift_line_template(shift.date_begin);
+
+            if(partner_data.associated_partner_id != "False" && shift.associate_registered==="partner"){
+                shift_line_template.find(".shift_line_associate").text(' - '+partner_data.name+'')
+
+            }else if(partner_data.associated_partner_id != "False"  && shift.associate_registered==="associated"){
+                shift_line_template.find(".shift_line_associate").text(' - '+partner_data.associated_partner_name+'')
+
+            }else if(partner_data.associated_partner_id != "False"  && shift.associate_registered==="both"){
+                shift_line_template.find(".shift_line_associate").text(' - Les deux' )
+
+            }
+            else if(partner_data.parent_id != "False" && shift.associate_registered==="partner"){
+                shift_line_template.find(".shift_line_associate").text(' - '+partner_data.parent_name+'')
+
+            }else if(partner_data.parent_id != "False"  && shift.associate_registered==="associated"){
+                shift_line_template.find(".shift_line_associate").text(' - '+partner_data.name+'')
+
+            }else if(partner_data.parent_id != "False"  && shift.associate_registered==="both"){
+                shift_line_template.find(".shift_line_associate").text(' - Les deux' )
+
+            }
+        
 
             $("#incoming_shifts").append(shift_line_template.html());
         }
