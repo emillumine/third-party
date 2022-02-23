@@ -146,7 +146,7 @@ function init_shifts_list() {
             if(partner_data.associated_partner_id === "False" && partner_data.parent_id === "False"){
                 shift_line_template.find('.affect_associate_reistered').hide();
             }else{
-                shift_line_template.find('.affect_associate_registered').attr('id',shift.id)
+                shift_line_template.find('.affect_associate_registered').attr('id','shidt_id_'+shift.id)
                 if (shift.associate_registered==="both"){
                     shift_line_template.find('.affect_associate_registered').text("Les deux")
                 }else if (shift.associate_registered==="partner"){
@@ -196,22 +196,25 @@ function init_shifts_list() {
                 }
             }
         });
+        
+        
+        
 
         $(".affect_associate_registered").on("click", function(e) {
             // Display modal
             let modal_template = $("#modal_affect_shift");
-            console.log( modal_template.find(".partner").html())
             if(partner_data.associated_partner_id != "False") {
-                modal_template.find(".partner").text(partner_data.name);
-                modal_template.find(".associate").text(partner_data.associated_partner_name);
+                modal_template.find("#shift_partner").text(partner_data.name);
+                modal_template.find("#shift_associate").text(partner_data.associated_partner_name);
 
             }else{
-                modal_template.find(".partner").text(partner_data.associated_partner_name);
-                modal_template.find(".associate").text(partner_data.parent_name);
+                modal_template.find("#shift_partner").text(partner_data.associated_partner_name);
+                modal_template.find("#shift_associate").text(partner_data.parent_name);
             }
-            // modal_template.find(".time_old_shift").text(old_shift_time);
-            // modal_template.find(".date_new_shift").text(new_shift_date);
-            // modal_template.find(".time_new_shift").text(new_shift_time);
+
+            
+            
+
 
             openModal(
                 modal_template.html(),
