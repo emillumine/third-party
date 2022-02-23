@@ -326,6 +326,13 @@ def manage_shift_registrations(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_attached(request):
+    """ Administration des services des membres """
+    template = loader.get_template('members/admin/manage_attached.html')
+    context = {'title': 'BDM - Binômes',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()
