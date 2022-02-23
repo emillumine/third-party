@@ -255,6 +255,7 @@ function update_members_makeups(member_ids, action) {
 function display_possible_members() {
     $('.search_member_results_area').show();
     $('.search_member_results').empty();
+    $('.btn_possible_member').off();
 
     let no_result = true;
 
@@ -276,39 +277,40 @@ function display_possible_members() {
 
             $('.search_member_results').append(member_button);
 
-            // Set action on member button click
-            $('.btn_possible_member').on('click', function() {
-                for (member of members_search_results) {
-                    if (member.id == $(this).attr('member_id')) {
-                        if (makeups_members === null) {
-                            makeups_members = [];
-                        }
-
-                        makeups_members.unshift({
-                            id: member.id,
-                            name: member.name,
-                            makeups_to_do: 0,
-                            shift_type: member.shift_type
-                        });
-
-                        openModal(
-                            `Ajouter un rattrapage à ${member.name} ?`,
-                            () => {
-                                update_members_makeups([member.id], "increment");
-                                members_search_results = [];
-                                $('#search_member_input').val('');
-                                $('.search_member_results_area').hide();
-                                $('.search_member_results').empty();
-                            },
-                            "Confirmer",
-                            false
-                        );
-
-                        break;
-                    }
-                }
-            });
         }
+
+        // Set action on member button click
+        $('.btn_possible_member').on('click', function() {
+            for (member of members_search_results) {
+                if (member.id == $(this).attr('member_id')) {
+                    if (makeups_members === null) {
+                        makeups_members = [];
+                    }
+
+                    makeups_members.unshift({
+                        id: member.id,
+                        name: member.name,
+                        makeups_to_do: 0,
+                        shift_type: member.shift_type
+                    });
+
+                    openModal(
+                        `Ajouter un rattrapage à ${member.name} ?`,
+                        () => {
+                            update_members_makeups([member.id], "increment");
+                            members_search_results = [];
+                            $('#search_member_input').val('');
+                            $('.search_member_results_area').hide();
+                            $('.search_member_results').empty();
+                        },
+                        "Confirmer",
+                        false
+                    );
+
+                    break;
+                }
+            }
+        });
     }
 
     if (no_result === true) {

@@ -237,7 +237,7 @@ def update_couchdb_barcodes(request):
 
 def search(request, needle, shift_id):
     """Search member has been requested."""
-    search_type = request.GET.get('search_type', '')
+    search_type = request.GET.get('search_type', "full")
 
     try:
         key = int(needle)
