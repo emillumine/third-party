@@ -21,7 +21,7 @@ function can_exchange_shifts() {
  * @returns boolean
  */
 function should_select_makeup() {
-    return partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "False";
+    return partner_data.makeups_to_do == 0 && (partner_data.is_associated_people === "False" || (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False"));
 }
 
 /**
