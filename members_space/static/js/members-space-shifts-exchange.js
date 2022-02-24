@@ -217,7 +217,7 @@ function init_shifts_list() {
                     modal.find(".btn-modal-ok").show();
                 },
                 "Valider", true, true,
-                ()=>{
+                () => {
                     modal.find(".btn-modal-ok").show();
                 }
             );
