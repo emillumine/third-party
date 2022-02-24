@@ -44,7 +44,7 @@ class CagetteMembersSpace(models.Model):
                 ['state', '!=', 'replaced'],
                 ['state', '!=', 'replacing'],
             ]
-            f = ['create_date', 'date_begin', 'shift_id', 'name', 'state', 'is_late', 'is_makeup']
+            f = ['create_date', 'date_begin', 'shift_id', 'name', 'state', 'is_late', 'is_makeup','associate_registered']
 
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'
             try:
