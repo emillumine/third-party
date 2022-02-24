@@ -142,29 +142,29 @@ function init_shifts_list() {
                 shift_line_template.find(".checkbox").prop("value", shift.id);
             }
 
-            if(partner_data.associated_partner_id === "False" && partner_data.parent_id === "False"){
+            if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_reistered').hide();
-            }else{
-                shift_line_template.find('.affect_associate_registered').attr('id','shidt_id_'+shift.id)
-                if (shift.associate_registered==="both"){
-                    shift_line_template.find('.affect_associate_registered').text("Les deux")
-                }else if (shift.associate_registered==="partner"){
-                    if(partner_data.associated_partner_id !== "False"){
-                        shift_line_template.find('.affect_associate_registered').text(partner_data.name)
-                    }else{
-                        shift_line_template.find('.affect_associate_registered').text(partner_data.parent_name)
+            } else {
+                shift_line_template.find('.affect_associate_registered').attr('id', 'shidt_id_'+shift.id);
+                if (shift.associate_registered==="both") {
+                    shift_line_template.find('.affect_associate_registered').text("Les deux");
+                } else if (shift.associate_registered==="partner") {
+                    if (partner_data.associated_partner_id !== "False") {
+                        shift_line_template.find('.affect_associate_registered').text(partner_data.name);
+                    } else {
+                        shift_line_template.find('.affect_associate_registered').text(partner_data.parent_name);
                     }
-                    
-                }else if (shift.associate_registered==="associate"){
-                    if(partner_data.associated_partner_id !== "False"){
-                        shift_line_template.find('.affect_associate_registered').text(partner_data.associated_partner_name)
-                    }else{
-                        shift_line_template.find('.affect_associate_registered').text(partner_data.name)
+
+                } else if (shift.associate_registered==="associate") {
+                    if (partner_data.associated_partner_id !== "False") {
+                        shift_line_template.find('.affect_associate_registered').text(partner_data.associated_partner_name);
+                    } else {
+                        shift_line_template.find('.affect_associate_registered').text(partner_data.name);
                     }
-                }else{
-                    shift_line_template.find('.affect_associate_registered').text("A déterminer")
+                } else {
+                    shift_line_template.find('.affect_associate_registered').text("A déterminer");
                 }
-            } 
+            }
 
             $("#shifts_list").append(shift_line_template.html());
         }
@@ -195,26 +195,21 @@ function init_shifts_list() {
                 }
             }
         });
-        
-        
-        
 
-        $(".affect_associate_registered").on("click", function(e) {
+        $(".affect_associate_registered").on("click", function() {
             // Display modal
-            id  = $(this).attr('id').split('_')[2]
+            id = $(this).attr('id')
+                .split('_')[2];
             let modal_template = $("#modal_affect_shift");
-            if(partner_data.associated_partner_id != "False") {
+
+            if (partner_data.associated_partner_id != "False") {
                 modal_template.find("#shift_partner").text(partner_data.name);
                 modal_template.find("#shift_associate").text(partner_data.associated_partner_name);
 
-            }else{
+            } else {
                 modal_template.find("#shift_partner").text(partner_data.associated_partner_name);
                 modal_template.find("#shift_associate").text(partner_data.parent_name);
             }
-
-            
-            
-
 
             openModal(
                 modal_template.html(),
@@ -222,18 +217,18 @@ function init_shifts_list() {
                 },
                 "Valider"
             );
-            
-            modal.find('#shift_partner').on("click", function(e) {
-                affect_shift("partner",id)
+
+            modal.find('#shift_partner').on("click", function() {
+                affect_shift("partner", id);
             });
-            modal.find('#shift_associate').on("click", function(e) {
-                affect_shift("associate",id)
+            modal.find('#shift_associate').on("click", function() {
+                affect_shift("associate", id);
             });
-            modal.find('#shift_both').on("click", function(e) {
-                affect_shift("both",id)
+            modal.find('#shift_both').on("click", function() {
+                affect_shift("both", id);
             });
 
-            modal.find(".btn-modal-ok").hide()
+            modal.find(".btn-modal-ok").hide();
         });
     }
 }
@@ -244,8 +239,7 @@ function init_shifts_list() {
  * @param {string} partner
  * @param {string} shift_id
  */
- function affect_shift(partner, shift_id) {
-    
+function affect_shift(partner, shift_id) {
 
     tData = 'idShiftRegistration=' + shift_id
         +'&idPartner=' + partner_data.partner_id
@@ -253,7 +247,6 @@ function init_shifts_list() {
         + '&verif_token=' + partner_data.verif_token;
 
     tUrl = '/shifts/affect_shift';
-    
 
     $.ajax({
         type: 'POST',
@@ -261,24 +254,23 @@ function init_shifts_list() {
         dataType:"json",
         data: tData,
         timeout: 3000,
-        success: function(data) {
+        success: function() {
             load_partner_shifts(partner_data.concerned_partner_id)
-                        .then(() => {
-                            init_shifts_list();
-                            closeModal();
-                        });
+                .then(() => {
+                    init_shifts_list();
+                    closeModal();
+                });
         },
-        error: function(error) {
+        error: function() {
             init_shifts_list();
             closeModal();
-            
+
             alert(`Une erreur est survenue. ` +
                 `Il est néanmoins possible que la requête ait abouti, ` +
                 `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
-           
         }
     });
-    
+
 }
 
 /**
@@ -508,7 +500,6 @@ function init_read_only_calendar_page() {
     const hidden_days = days_to_hide.length > 0 ? $.map(days_to_hide.split(", "), Number) : [];
 
     const calendarEl = document.getElementById('read_only_calendar');
-    console.log(calendarEl)
 
     calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'fr',
@@ -576,6 +567,7 @@ function init_shifts_exchange() {
     } else if (
         partner_data.comite === "True") {
         let msg_template = $("#comite_template");
+
         $(".comite_content_msg").html(msg_template.html());
         $("#comite_content").show();
         init_read_only_calendar_page();
