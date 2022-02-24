@@ -28,7 +28,8 @@ def index(request, exception=None):
 
     context = {
         'title': 'Espace Membre',
-        'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None)
+        'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None),
+        'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True)
     }
 
     template = loader.get_template('members_space/index.html')
@@ -96,6 +97,9 @@ def index(request, exception=None):
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
+                md5_calc = hashlib.md5(partnerData['parent_create_date'].encode('utf-8')).hexdigest()
+                partnerData['parent_verif_token'] = md5_calc
+
             else:
                 partnerData["parent_name"] = False
 

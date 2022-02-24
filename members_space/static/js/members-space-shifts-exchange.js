@@ -6,10 +6,11 @@ var calendar = null,
  * A partner can exchange shifts if:
  *  - s.he doesn't have to choose a makeup shift
  *  - s.he's not an associated partner
+ *  - s.he's is an associated partner who is not blocked in his actions
  * @returns boolean
  */
 function can_exchange_shifts() {
-    return partner_data.makeups_to_do == 0 && partner_data.is_associated_people === "False";
+    return partner_data.makeups_to_do == 0 && (partner_data.is_associated_people === "False" || (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False"));
 }
 
 /**
@@ -19,7 +20,7 @@ function can_exchange_shifts() {
  * @returns boolean
  */
 function should_select_makeup() {
-    return partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "False";
+    return partner_data.makeups_to_do == 0 && (partner_data.is_associated_people === "False" || (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False"));
 }
 
 /**
@@ -30,10 +31,19 @@ function add_or_change_shift(new_shift_id) {
     if (is_time_to('change_shift')) {
         setTimeout(openModal, 100); // loading on
 
-        tData = 'idNewShift=' + new_shift_id
-            +'&idPartner=' + partner_data.partner_id
-            + '&shift_type=' + partner_data.shift_type
-            + '&verif_token=' + partner_data.verif_token;
+        if (partner_data.is_associated_people === "False") {
+            tData = 'idNewShift=' + new_shift_id
+                +'&idPartner=' + partner_data.partner_id
+                + '&shift_type=' + partner_data.shift_type
+                + '&verif_token=' + partner_data.verif_token;
+        } else if(partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
+            tData = 'idNewShift=' + new_shift_id
+                +'&idPartner=' + partner_data.parent_id
+                + '&shift_type=' + partner_data.shift_type
+                + '&verif_token=' + partner_data.parent_verif_token;
+        } else {
+            return false;
+        }
 
         if (selected_shift === null) {
             tUrl = '/shifts/add_shift';
@@ -84,17 +94,37 @@ function add_or_change_shift(new_shift_id) {
 
                     // Redraw calendar
                     calendar.refetchEvents();
+                } else {
+                    closeModal();
+                    selected_shift = null;
+                    alert(`Une erreur est survenue. ` +
+                        `Il est néanmoins possible que la requête ait abouti, ` +
+                        `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
+
+                     // Refectch shifts anyway, if registration/exchange was still succesful
+                    setTimeout(() => {
+                        load_partner_shifts(partner_data.concerned_partner_id)
+                        .then(init_shifts_list);
+                    }, 300);
                 }
             },
             error: function(error) {
                 closeModal();
                 selected_shift = null;
 
-                if (error.status === 400) {
+                if (error.status === 400 && error.msg === "Old service in less than 24hours.") {
                     alert(`Désolé ! Le service que tu souhaites échanger démarre dans moins de 24h. ` +
-                          `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
-                          `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
-                          `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
+                        `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
+                        `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
+                        `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
+                } else if (error.status === 500 && error.msg === "Fail to create shift") {
+                    alert(`Une erreur est survenue. ` +
+                        `Il est néanmoins possible que la requête ait abouti, ` +
+                        `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
+                } else if (error.status === 400 && error.msg === "Bad arguments") {
+                    alert(`Une erreur est survenue. ` +
+                        `Il est néanmoins possible que la requête ait abouti, ` +
+                        `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
                 } else {
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +
@@ -131,7 +161,7 @@ function init_shifts_list() {
             shift_line_template.find(".shift_line_date").text(f_date_shift_start);
             shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
 
-            if (!can_exchange_shifts()) {
+            if (!can_exchange_shifts() && block_actions_for_attached_people === "True") {
                 shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
                 shift_line_template.find(".checkbox").prop("disabled", "disabled");

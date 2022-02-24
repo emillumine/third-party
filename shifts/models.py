@@ -40,8 +40,16 @@ class CagetteShift(models.Model):
                   'street', 'street2', 'zip', 'city', 'mobile', 'phone', 'email',
                   'is_associated_people', 'parent_id']
         partnerData = self.o_api.search_read('res.partner', cond, fields, 1)
+        
         if partnerData:
             partnerData = partnerData[0]
+            if partnerData['is_associated_people']:
+                cond = [['id', '=', partnerData['parent_id'][0]]]
+                fields = ['create_date']
+                parentData = self.o_api.search_read('res.partner', cond, fields, 1)
+                if parentData:
+                    partnerData['parent_create_date'] = parentData[0]['create_date']
+
             if partnerData['shift_type'] == 'standard':
                 partnerData['in_ftop_team'] = False
                 #  Because 'in_ftop_team' doesn't seem to be reset to False in Odoo

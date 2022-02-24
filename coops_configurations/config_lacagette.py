@@ -119,6 +119,7 @@ votre nom ou numéro ci-dessous
 UNSUBSCRIBED_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLScWcpls-ruYIp7HdrjRF1B1TyuzdqhvlUIcUWynbEujfj3dTg/viewform'
 UNSUBSCRIBED_MSG = 'Vous êtes désincrit·e, merci de remplir <a href="https://docs.google.com/forms/d/e/1FAIpQLSfPiC2PkSem9x_B5M7LKpoFNLDIz0k0V5I2W3Mra9AnqnQunw/viewform">ce formulaire</a> pour vous réinscrire sur un créneau.<br />Vous pouvez également contacter le Bureau des Membres en remplissant <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZP0m5-EXPVJxEKJk6EjwSyZJtnbiGdYDuAeFI3ENsHAOikg/viewform">ce formulaire</a>'
 CONFIRME_PRESENT_BTN = 'Clique ici pour valider ta présence'
+BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE = False
 
 
 RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \

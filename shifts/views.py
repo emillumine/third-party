@@ -223,9 +223,11 @@ def change_shift(request):
 
                     response = {'result': True}
                 else:
-                    response = {'result': False}
+                    response = {'msg': "Fail to create shift"}
+                    return JsonResponse(response, status=500)
             else:
-                response = {'result': False}
+                response = {'msg': "Bad arguments"}
+                return JsonResponse(response, status=400)
             return JsonResponse(response)
         else:
             return HttpResponseForbidden()
