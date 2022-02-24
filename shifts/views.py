@@ -234,6 +234,34 @@ def change_shift(request):
     else:
         return HttpResponseForbidden()
 
+def affect_shift(request):
+    if 'verif_token' in request.POST:
+        if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
+            cs = CagetteShift()
+            if 'idShiftRegistration' in request.POST and 'affected_partner' in request.POST:
+                data = {
+                    "idPartner": int(request.POST['idPartner']),
+                    "idShiftRegistration": int(request.POST['idShiftRegistration']),
+                    "affected_partner": request.POST['affected_partner'],
+                }
+                try:
+                    st_r_id = cs.affect_shift(data)
+                except Exception as e:
+                    coop_logger.error("affect shift : %s, %s", str(e), str(data))
+                if st_r_id:
+                    response = {'result': True}
+                else:
+                    response = {'msg': "Internal Error"}
+                    return JsonResponse(response, status=500)
+                return(JsonResponse({'result': True}))
+            else:
+                response = {'msg': "Bad args"}
+                return JsonResponse(response, status=400)
+        else:
+            return HttpResponseForbidden()
+    else:
+        return HttpResponseForbidden()
+
 def add_shift(request):
     if 'verif_token' in request.POST:
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:

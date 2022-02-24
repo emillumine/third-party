@@ -31,17 +31,34 @@
     <div id="shift_line_template">
       <div class="shift_line">
         <i class="fas fa-chevron-right shift_line_chevron"></i>
-        <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+        <span class="shift_line_date"></span> - <span class="shift_line_time"></span>  <span class="shift_line_associate"> </span>
       </div>
     </div>
 
     <div id="selectable_shift_line_template">
-      <div class="selectable_shift_line btn--primary">
-        <input type="checkbox" class="checkbox">
-        <div class="selectable_shift_line_text">
-          <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+      <div class="d-flex">
+        <div class="selectable_shift_line btn--primary">
+          <input type="checkbox" class="checkbox">
+          <div class="selectable_shift_line_text">
+            <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+          </div>
+        </div>
+        <div class="affect_associate_registered button--warning">
+          
         </div>
       </div>
+    </div>
+
+    <div id="modal_affect_shift">
+      <div>Qui sera présent.e ?</div>
+      <div id="shift_partner" class="btn--primary">
+      </div>
+      <div id="shift_associate" class=" btn--primary">
+      </div>
+      <div id="shift_both" class=" btn--primary">
+        Les deux
+      </div>
+      
     </div>
 
     <div id="modal_shift_exchange_template">

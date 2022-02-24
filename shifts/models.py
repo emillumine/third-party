@@ -91,7 +91,7 @@ class CagetteShift(models.Model):
     def get_shift_partner(self, id):
         """Récupère les shift du membre"""
         fields = ['date_begin', 'date_end','final_standard_point',
-                  'shift_id', 'shift_type','partner_id',  "id"] # res.partner
+                  'shift_id', 'shift_type','partner_id',  "id", "associate_registered"] # res.partner
         cond = [['partner_id.id', '=', id],['state', '=', 'open'],
                ['date_begin', '>', datetime.datetime.now().isoformat()]]
         shiftData = self.o_api.search_read('shift.registration', cond, fields, order ="date_begin ASC")
@@ -174,6 +174,25 @@ class CagetteShift(models.Model):
                 if res:
                     st_r_id = True
         return st_r_id
+    
+    def affect_shift(self, data):
+        """Affect shift to partner, his associate or both"""
+        response = None
+        cond = [['partner_id', '=', int(data['idPartner'])],
+                ['id', '=', int(data['idShiftRegistration'])]]
+        fields = ['id']
+        try:
+            print(cond)
+            shit_to_affect = self.o_api.search_read('shift.registration', cond, fields, 1)
+            print(shit_to_affect)
+            if (len(shit_to_affect) == 1):
+                shift_res = shit_to_affect[0]
+                print(shift_res)
+                fieldsDatas = { "associate_registered":data['affected_partner']}
+                response = self.o_api.update('shift.registration', [shift_res['id']],  fieldsDatas)
+        except Exception as e:
+            coop_logger.error("Reopen shift : %s", str(e))
+        return response
 
     def cancel_shift(self, idsRegisteur):
         """Annule un shift"""
