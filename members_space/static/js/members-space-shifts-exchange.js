@@ -214,8 +214,12 @@ function init_shifts_list() {
             openModal(
                 modal_template.html(),
                 () => {
+                    modal.find(".btn-modal-ok").show();
                 },
-                "Valider"
+                "Valider", true, true,
+                ()=>{
+                    modal.find(".btn-modal-ok").show();
+                }
             );
 
             modal.find('#shift_partner').on("click", function() {
@@ -258,11 +262,13 @@ function affect_shift(partner, shift_id) {
             load_partner_shifts(partner_data.concerned_partner_id)
                 .then(() => {
                     init_shifts_list();
+                    modal.find(".btn-modal-ok").show();
                     closeModal();
                 });
         },
         error: function() {
             init_shifts_list();
+            modal.find(".btn-modal-ok").show();
             closeModal();
 
             alert(`Une erreur est survenue. ` +
