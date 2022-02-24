@@ -112,7 +112,6 @@ function add_or_change_shift(new_shift_id) {
 }
 
 function init_shifts_list() {
-    console.log(partner_data)
     $(".loading-incoming-shifts").hide();
     $("#shifts_list").show();
 
@@ -202,6 +201,7 @@ function init_shifts_list() {
 
         $(".affect_associate_registered").on("click", function(e) {
             // Display modal
+            id  = $(this).attr('id').split('_')[2]
             let modal_template = $("#modal_affect_shift");
             if(partner_data.associated_partner_id != "False") {
                 modal_template.find("#shift_partner").text(partner_data.name);
@@ -219,13 +219,66 @@ function init_shifts_list() {
             openModal(
                 modal_template.html(),
                 () => {
-                    // add_or_change_shift(new_shift_id);
                 },
                 "Valider"
             );
+            
+            modal.find('#shift_partner').on("click", function(e) {
+                affect_shift("partner",id)
+            });
+            modal.find('#shift_associate').on("click", function(e) {
+                affect_shift("associate",id)
+            });
+            modal.find('#shift_both').on("click", function(e) {
+                affect_shift("both",id)
+            });
+
             modal.find(".btn-modal-ok").hide()
         });
     }
+}
+
+
+/**
+ * Proceed to shift modification
+ * @param {string} partner
+ * @param {string} shift_id
+ */
+ function affect_shift(partner, shift_id) {
+    
+
+    tData = 'idShiftRegistration=' + shift_id
+        +'&idPartner=' + partner_data.partner_id
+        + '&affected_partner=' + partner
+        + '&verif_token=' + partner_data.verif_token;
+
+    tUrl = '/shifts/affect_shift';
+    
+
+    $.ajax({
+        type: 'POST',
+        url: tUrl,
+        dataType:"json",
+        data: tData,
+        timeout: 3000,
+        success: function(data) {
+            load_partner_shifts(partner_data.concerned_partner_id)
+                        .then(() => {
+                            init_shifts_list();
+                            closeModal();
+                        });
+        },
+        error: function(error) {
+            init_shifts_list();
+            closeModal();
+            
+            alert(`Une erreur est survenue. ` +
+                `Il est néanmoins possible que la requête ait abouti, ` +
+                `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
+           
+        }
+    });
+    
 }
 
 /**
