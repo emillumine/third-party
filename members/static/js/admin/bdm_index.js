@@ -13,6 +13,10 @@ $(document).ready(function() {
                 window.location.assign(location + "/manage_shift_registrations");
             } else if (this.id == 'manage_attached_button') {
                 window.location.assign(location + "/manage_attached");
+            } else if (this.id == 'manage_attached_delete_button') {
+                window.location.assign(location + "/delete");
+            } else if (this.id == 'manage_attached_create_button') {
+                window.location.assign(location + "/create");
             } else if (this.id == 'manage_leaves_button') {
                 console.log('coming soon...');
             }

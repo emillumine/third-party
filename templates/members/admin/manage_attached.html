@@ -9,36 +9,36 @@
 {% endblock %}
 
 {% block additionnal_scripts %}
-  <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="page_body">
-    <div id="back_to_admin_index">
-        <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
-    </div>
-    <div class="login_area">
-        {% include "common/conn_admin.html" %}
-    </div>
-    <div class="header txtcenter">
-        <h1>Gestion des Binômes</h1>
+  <div id="back_to_admin_index">
+    <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+  </div>
+  <div class="login_area">
+    {% include "common/conn_admin.html" %}
+  </div>
+  <div class="header txtcenter">
+    <h1>Gestion des Binômes</h1>
+  </div>
+
+  <div class="page_content">
+
+    <div class="management_type_buttons txtcenter">
+      <button type="button" class="btn--primary management_type_button" id="manage_attached_create_button">
+        Créer un binôme
+        <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+      </button><br>
+      <button type="button" class="btn--primary management_type_button" id="manage_attached_delete_button">
+        Désolidariser un binôme
+        <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+      </button><br>
     </div>
 
-    <div class="page_content">
-
-      <div class="management_type_buttons txtcenter">
-        <button type="button" class="btn--primary management_type_button" id="manage_attached_create_button">
-            Créer un binôme
-            <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
-        </button><br>
-        <button type="button" class="btn--primary management_type_button" id="manage_attached_delete_button">
-            Désolidariser un binôme
-            <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
-        </button><br>
-      </div>
-
-        <!-- <div id="search_member_area">
+    <!-- <div id="search_member_area">
           <div id="search_member_form_area">
             <h4>Rechercher le.a coopérateur.ice titulaire</h4>
             <form id="search_member_form" action="javascript:;" method="post">
@@ -53,9 +53,10 @@
             </div>
             <div class="search_member_results"></div>
         </div> -->
-    </div>
+  </div>
 </div>
 
 <script src='{% static "js/all_common.js" %}?v='></script>
 <script src='{% static "js/admin/manage_attached.js" %}?v='></script>
+<script src='{% static "js/admin/bdm_index.js" %}?v='></script>
 {% endblock %}

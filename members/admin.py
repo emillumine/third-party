@@ -327,21 +327,21 @@ def manage_shift_registrations(request):
     return HttpResponse(template.render(context, request))
 
 def manage_attached(request):
-    """ Administration des services des membres """
+    """ Administration des binômes membres """
     template = loader.get_template('members/admin/manage_attached.html')
     context = {'title': 'BDM - Binômes',
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
 def manage_attached_create(request):
-    """ Administration des services des membres """
+    """ Administration des binômes membres """
     template = loader.get_template('members/admin/manage_attached_create.html')
     context = {'title': 'BDM - Binômes',
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
 def manage_attached_delete(request):
-    """ Administration des services des membres """
+    """ Administration des binômes membres """
     template = loader.get_template('members/admin/manage_attached_delete.html')
     context = {'title': 'BDM - Binômes',
                'module': 'Membres'}
