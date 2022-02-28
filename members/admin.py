@@ -1,6 +1,7 @@
 from django.contrib import admin
 from outils.common_imports import *
 from outils.for_view_imports import *
+from outils.common import OdooAPI
 from members.models import CagetteUser
 from members.models import CagetteMembers
 from members.models import CagetteMember
@@ -457,4 +458,91 @@ def get_member_info(request, member_id):
         res['message'] = "Unauthorized"
         response = JsonResponse(res, status=403)
     print(response.content)
+    return response
+
+
+
+def create_pair(request):
+    """Create pair
+
+    payload example:
+    {
+        "parent": {"id": 3075},
+        "child": {"id": 3067}
+    }
+    """
+    if request.method != 'POST':
+        return JsonResponse({"message": "Method not available"})
+    if CagetteUser.are_credentials_ok(request):
+        api = OdooAPI()
+        data = json.loads(request.body.decode())
+        parent_id = data['parent']['id']
+        child_id = data['child']['id']
+        # create attached account for child
+        fields = [
+            "birthdate",
+            "city",
+            "commercial_partner_id",
+            "company_id",
+            "company_type",
+            "cooperative_state",
+            "barcode_rule_id",
+            "country_id",
+            "customer",
+            "department_id",
+            "email",
+            "employee",
+            "image",
+            "image_medium",
+            "image_small",
+            "mobile",
+            "name",
+            "phone",
+            "sex",
+            "street",
+            "street2",
+            "zip"
+        ]
+        child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
+        parent = api.search_read('res.partner', [['id', '=', parent_id]], ['commercial_partner_id'])[0]
+        del child["id"]
+        for field in child.keys():
+            if field.endswith("_id"):
+                child[field] = child[field][0]
+        child['is_associated_people'] = True
+        child['parent_id'] = parent['commercial_partner_id'][0]
+        # get barcode rule id
+        bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
+        child['barcode_rule_id'] = bbcode_rule["id"]
+        attached_account = api.create('res.partner', child)
+        print(attached_account)
+        # generate_barcode
+        api.execute('res.partner', 'generate_base', [attached_account])
+        # api.execute('res.partner', 'generate_barcode', [attached_account])
+        response = JsonResponse({"message": "Succesfuly paired members"}, status=200)
+    else:
+        response = JsonResponse({"message": "Unauthorized"}, status=403)
+    return response
+
+
+def delete_pair(request):
+    """Delete pair
+
+    payload example:
+    {
+        "parent": {"id": 3075}
+    }
+    """
+    if request.method != 'POST':
+        return JsonResponse({"message": "Method not available"})
+    if CagetteUser.are_credentials_ok(request):
+        api = OdooAPI()
+        data = json.loads(request.body.decode())
+        parent_id = data['parent']['id']
+        # get attached accound
+        child = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id'])[0]
+        api.delete('res.partner', [child['id']])
+        response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
+    else:
+        response = JsonResponse({"message": "Unauthorized"}, status=403)
     return response
