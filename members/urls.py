@@ -58,13 +58,11 @@ urlpatterns = [
     url(r'^admin/manage_makeups$', admin.manage_makeups),
     url(r'^admin/manage_shift_registrations$', admin.manage_shift_registrations),
     url(r'^admin/manage_attached$', admin.manage_attached),
-    url(r'^admin/manage_attached/create$', admin.manage_attached_create),
-    url(r'^admin/manage_attached/delete$', admin.manage_attached_delete),
+    url(r'^admin/manage_attached/create_pair$', admin.create_pair),
+    url(r'^admin/manage_attached/delete_pair$', admin.delete_pair),
     url(r'^get_makeups_members$', admin.get_makeups_members),
     url(r'^update_members_makeups$', admin.update_members_makeups),
     url(r'^delete_shift_registration$', admin.delete_shift_registration),
 
     url(r'^get_member_info/(\d+)$', admin.get_member_info),
-    url(r'^admin/create_pair$', admin.create_pair),
-    url(r'^admin/delete_pair$', admin.delete_pair),
 ]
