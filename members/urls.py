@@ -65,4 +65,6 @@ urlpatterns = [
     url(r'^delete_shift_registration$', admin.delete_shift_registration),
 
     url(r'^get_member_info/(\d+)$', admin.get_member_info),
+    url(r'^admin/create_pair$', admin.create_pair),
+    url(r'^admin/delete_pair$', admin.delete_pair),
 ]
