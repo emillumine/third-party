@@ -502,6 +502,8 @@ def create_pair(request):
             "street",
             "street2",
             "zip"
+            "zip",
+            "nb_associated_people"
         ]
         child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
         parent = api.search_read('res.partner', [['id', '=', parent_id]], ['commercial_partner_id'])[0]
