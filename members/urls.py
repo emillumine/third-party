@@ -54,7 +54,7 @@ urlpatterns = [
     url(r'^save_partner_info$', views.save_partner_info),
 
     # BDM - members admin
-    url(r'^admin$', admin.admin),
+    url(r'^admin/?$', admin.admin),
     url(r'^admin/manage_makeups$', admin.manage_makeups),
     url(r'^admin/manage_shift_registrations$', admin.manage_shift_registrations),
     url(r'^get_makeups_members$', admin.get_makeups_members),
