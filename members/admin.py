@@ -333,6 +333,20 @@ def manage_attached(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_attached_create(request):
+    """ Administration des services des membres """
+    template = loader.get_template('members/admin/manage_attached_create.html')
+    context = {'title': 'BDM - Binômes',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
+def manage_attached_delete(request):
+    """ Administration des services des membres """
+    template = loader.get_template('members/admin/manage_attached_delete.html')
+    context = {'title': 'BDM - Binômes',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()
