@@ -501,7 +501,6 @@ def create_pair(request):
             "sex",
             "street",
             "street2",
-            "zip"
             "zip",
             "nb_associated_people"
         ]
@@ -517,10 +516,8 @@ def create_pair(request):
         bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
         child['barcode_rule_id'] = bbcode_rule["id"]
         attached_account = api.create('res.partner', child)
-        print(attached_account)
-        # generate_barcode
+        # generate_base
         api.execute('res.partner', 'generate_base', [attached_account])
-        # api.execute('res.partner', 'generate_barcode', [attached_account])
         response = JsonResponse({"message": "Succesfuly paired members"}, status=200)
     else:
         response = JsonResponse({"message": "Unauthorized"}, status=403)
@@ -541,7 +538,7 @@ def delete_pair(request):
         api = OdooAPI()
         data = json.loads(request.body.decode())
         parent_id = data['parent']['id']
-        # get attached accound
+        # get attached account
         child = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id'])[0]
         api.delete('res.partner', [child['id']])
         response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
