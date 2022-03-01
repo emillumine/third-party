@@ -15,6 +15,22 @@
     left: 5px;
 }
 
+/* Buttons */
+
+.management_type_buttons {
+    margin-top: 60px;
+    display: flex;
+    justify-content: center;
+}
+
+.management_type_button {
+    height: 2.2em;
+    width: 30%;
+    border-radius: 3px;
+    margin: 10px;
+    font-size: 1.3em;
+}
+
 /* Search membres area */
 
 #search_member_form_area {
