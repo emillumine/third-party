@@ -59,7 +59,7 @@ class CagetteEnvelops(models.Model):
                 # Get first invoice for which amount being paid <= amount left to pay in invoice 
                 for invoice_item in invoice_res:
                     if int(float(data['amount']) * 100) <= int(float(invoice_item['residual_signed']) * 100):
-                        invoice = invoice_ite
+                        invoice = invoice_item
 
                 if invoice is None:
                     res['error'] = 'The amount is too high for the invoices found for this partner.'
