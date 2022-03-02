@@ -178,20 +178,30 @@ class CagetteShift(models.Model):
     def affect_shift(self, data):
         """Affect shift to partner, his associate or both"""
         response = None
-        cond = [['partner_id', '=', int(data['idPartner'])],
-                ['id', '=', int(data['idShiftRegistration'])]]
-        fields = ['id']
-        try:
-            print(cond)
-            shit_to_affect = self.o_api.search_read('shift.registration', cond, fields, 1)
-            print(shit_to_affect)
-            if (len(shit_to_affect) == 1):
-                shift_res = shit_to_affect[0]
-                print(shift_res)
-                fieldsDatas = { "associate_registered":data['affected_partner']}
-                response = self.o_api.update('shift.registration', [shift_res['id']],  fieldsDatas)
-        except Exception as e:
-            coop_logger.error("Reopen shift : %s", str(e))
+        # partner_id can be 'associated_people' one, which is never use as shift partner_id reference
+        # So, let's first retrieved data about the res.partner involved
+        cond = [['id', '=', int(data['idPartner'])]]
+        fields = ['parent_id']
+        partner = self.o_api.search_read('res.partner', cond, fields, 1)
+        if partner:
+            if partner[0]['parent_id']:
+                partner_id = partner[0]['parent_id'][0]
+            else:
+                partner_id = int(data['idPartner'])
+            cond = [['partner_id', '=', partner_id],
+                    ['id', '=', int(data['idShiftRegistration'])]]
+            fields = ['id']
+            try:
+                # make sure there is coherence between shift.registration id and partner_id (to avoid forged request)
+                shit_to_affect = self.o_api.search_read('shift.registration', cond, fields, 1)
+                if (len(shit_to_affect) == 1):
+                    shift_res = shit_to_affect[0]
+                    fieldsDatas = { "associate_registered":data['affected_partner']}
+                    response = self.o_api.update('shift.registration', [shift_res['id']],  fieldsDatas)
+            except Exception as e:
+                coop_logger.error("Model affect shift : %s", str(e))
+        else:
+            coop_logger.error("Model affect shift nobody found : %s", str(cond))
         return response
 
     def cancel_shift(self, idsRegisteur):

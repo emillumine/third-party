@@ -239,11 +239,14 @@ def affect_shift(request):
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
             cs = CagetteShift()
             if 'idShiftRegistration' in request.POST and 'affected_partner' in request.POST:
+                #  if request is made by associated people, idPartner is it's id, not "master" res.partner
+                #  it's will be handled in model's method (affect_shift)
                 data = {
                     "idPartner": int(request.POST['idPartner']),
                     "idShiftRegistration": int(request.POST['idShiftRegistration']),
                     "affected_partner": request.POST['affected_partner'],
                 }
+                st_r_id = None
                 try:
                     st_r_id = cs.affect_shift(data)
                 except Exception as e:
