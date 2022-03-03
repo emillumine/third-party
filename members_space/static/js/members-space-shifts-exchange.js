@@ -20,7 +20,7 @@ function can_exchange_shifts() {
  * @returns boolean
  */
 function should_select_makeup() {
-    return partner_data.makeups_to_do == 0 && (partner_data.is_associated_people === "False" || (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False"));
+    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" &&  block_actions_for_attached_people === "False");
 }
 
 /**
@@ -175,7 +175,7 @@ function init_shifts_list() {
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_registered').hide();
             } else {
-                shift_line_template.find('.affect_associate_registered').attr('id', 'shidt_id_'+shift.id);
+                shift_line_template.find('.affect_associate_registered').attr('id', 'shift_id_'+shift.id);
                 if (shift.associate_registered==="both") {
                     shift_line_template.find('.affect_associate_registered').text("Les deux");
                 } else if (shift.associate_registered==="partner") {
@@ -237,7 +237,7 @@ function init_shifts_list() {
                 modal_template.find("#shift_associate").text(partner_data.associated_partner_name);
 
             } else {
-                modal_template.find("#shift_partner").text(partner_data.associated_partner_name);
+                modal_template.find("#shift_partner").text(partner_data.name);
                 modal_template.find("#shift_associate").text(partner_data.parent_name);
             }
 

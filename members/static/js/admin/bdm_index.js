@@ -4,7 +4,7 @@ $(document).ready(function() {
 
         $(".page_content").show();
 
-        let location = window.location.href;
+        let location = window.location.href.replace(/\/$/, '');
 
         $('.management_type_button').on('click', function() {
             if (this.id == 'manage_makeups_button') {
