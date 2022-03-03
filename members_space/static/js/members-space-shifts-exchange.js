@@ -173,7 +173,7 @@ function init_shifts_list() {
             }
 
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
-                shift_line_template.find('.affect_associate_reistered').hide();
+                shift_line_template.find('.affect_associate_registered').hide();
             } else {
                 shift_line_template.find('.affect_associate_registered').attr('id', 'shift_id_'+shift.id);
                 if (shift.associate_registered==="both") {
