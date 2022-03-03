@@ -36,7 +36,7 @@ function add_or_change_shift(new_shift_id) {
                 +'&idPartner=' + partner_data.partner_id
                 + '&shift_type=' + partner_data.shift_type
                 + '&verif_token=' + partner_data.verif_token;
-        } else if(partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
+        } else if (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
             tData = 'idNewShift=' + new_shift_id
                 +'&idPartner=' + partner_data.parent_id
                 + '&shift_type=' + partner_data.shift_type
@@ -101,10 +101,10 @@ function add_or_change_shift(new_shift_id) {
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
 
-                     // Refectch shifts anyway, if registration/exchange was still succesful
+                    // Refectch shifts anyway, if registration/exchange was still succesful
                     setTimeout(() => {
                         load_partner_shifts(partner_data.concerned_partner_id)
-                        .then(init_shifts_list);
+                            .then(init_shifts_list);
                     }, 300);
                 }
             },
@@ -173,7 +173,7 @@ function init_shifts_list() {
             }
 
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
-                shift_line_template.find('.affect_associate_reistered').hide();
+                shift_line_template.find('.affect_associate_registered').hide();
             } else {
                 shift_line_template.find('.affect_associate_registered').attr('id', 'shidt_id_'+shift.id);
                 if (shift.associate_registered==="both") {
