@@ -40,15 +40,21 @@
             </div>
           </div>
           <div class="tiles_container">
-              <div class="tile high_tile">
-                <div id="search_member_form_area">
-                    <h4>Rechercher le.a coopérateur.ice co-titulaire</h4>
-                    <form autocomplete="off" id="search_member_form_child" action="javascript:;" method="post">
-                      <input name="searchChild" type="text" id="search_child_input" value="" placeholder="Nom ou numéro du coop..." required>
-                    </form>
-                </div>
+            <div class="tile high_tile">
+              <div id="search_member_form_area">
+                  <h4>Rechercher le.a coopérateur.ice co-titulaire</h4>
+                  <form autocomplete="off" id="search_member_form_child" action="javascript:;" method="post">
+                    <input name="searchChild" type="text" id="search_child_input" value="" placeholder="Nom ou numéro du coop..." required>
+                  </form>
+              </div>
+              <div id="childInfo" style="display:none;">
+                <div>Nom</div><div id="name"></div>
               </div>
             </div>
+          </div>
+          <div class="create-pair">
+            <button id="createPair" type="button" name="button" disabled>Créer le binôme</button>
+          </div>
 </div>
 
 <script src='{% static "js/all_common.js" %}?v='></script>

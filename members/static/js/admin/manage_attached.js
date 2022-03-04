@@ -13,6 +13,13 @@ function load_member_infos(divId, memberId) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
+          console.log(data)
+          console.log(divId)
+            if (divId === 'parentInfo') {
+              parentId = data.member.id
+            } else if (divId === 'childInfo') {
+              childId = data.member.id
+            }
             display_member_infos(divId, data.member)
         },
         error: function(data) {
@@ -28,14 +35,24 @@ function load_member_infos(divId, memberId) {
     });
 }
 
+function ready_for_submission() {
+  if (parentId != null && childId != null) {
+    console.log("ready")
+    return true
+  }
+}
+
+
 /**
  * Display member info
  */
 function display_member_infos(divId, memberData) {
-  $("#" + divId).show()
   console.log(memberData)
+  $("#" + divId).show()
   $("#" + divId).find("#name").text(memberData.name)
-
+  if (parentId != null && childId != null) {
+    $("#createPair").prop("disabled", false)
+  }
 }
 
 
@@ -90,7 +107,7 @@ $(document).ready(function() {
             }
           )
         },
-        minLength: 3,
+        minLength: 1,
         select: function( event, ui ) {
           if (ui.item) {
             load_member_infos("parentInfo", ui.item.value)
@@ -132,9 +149,40 @@ $(document).ready(function() {
               }
             )
           },
-          minLength: 3,
+          minLength: 1,
           select: function( event, ui ) {
-            return null
+            if (ui.item) {
+              load_member_infos("childInfo", ui.item.value)
+            }
           },
         })
+
+      $("#createPair").on('click', function() {
+        var payload = {
+              "parent": {"id": parentId},
+              "child": {"id": childId}
+          }
+
+        $.ajax({
+          type: 'POST',
+          url: "/members/admin/manage_attached/create_pair",
+          dataType:"json",
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify(payload),
+          success: function(data) {
+            console.log(data)
+            alert("binôme créé")
+          },
+          error: function(data) {
+              err = {msg: "erreur serveur", ctx: 'create pair'};
+              if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                  err.msg += ' : ' + data.responseJSON.error;
+              }
+              report_JS_error(err, 'members.admin');
+
+              closeModal();
+              alert('Erreur lors de création du binôme.');
+          }
+        })
+      })
     })

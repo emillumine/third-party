@@ -501,7 +501,8 @@ def create_pair(request):
                     child[field] = child[field][0]
             child['is_associated_people'] = True
             child['parent_id'] = parent['commercial_partner_id'][0]
-            child['cooperative_state'] = "associated"
+            # update child base account state
+            api.update("res.partner", [child_id], {"cooperative_state": "associated"})
             # get barcode rule id
             bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
             child['barcode_rule_id'] = bbcode_rule["id"]
