@@ -1,16 +1,19 @@
+var parentId = null;
+var childId = null;
+
 /**
  * Load member infos
  */
-function load_member_infos() {
+function load_member_infos(divId, memberId) {
+  console.log(memberId)
     $.ajax({
         type: 'GET',
-        url: "/members/get_member_info/" + selected_member.id,
+        url: "/members/get_member_info/" + memberId,
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
-            console.log(data)
-            display_member_infos(data.member);
+            display_member_infos(divId, data.member)
         },
         error: function(data) {
             err = {msg: "erreur serveur lors de la récupération des infos du membre", ctx: 'load_member_infos'};
@@ -26,18 +29,13 @@ function load_member_infos() {
 }
 
 /**
- * Display table of member future shifts
+ * Display member info
  */
-function display_member_shifts() {
-
-}
-
-/**
- * Display table of member future shifts
- */
-function display_member_infos(memberData) {
+function display_member_infos(divId, memberData) {
+  $("#" + divId).show()
   console.log(memberData)
-  shifts = memberData.incoming_shifts
+  $("#" + divId).find("#name").text(memberData.name)
+
 }
 
 
@@ -58,23 +56,24 @@ $(document).ready(function() {
         window.location.assign(base_location);
     });
 
-    // Set action to search for the member
-    $('#search_member_form').submit(function() {
-        let search_str = $('#search_member_input').val();
 
+    $("#search_member_input").autocomplete({source: function(request, response) {
         $.ajax({
-            url: '/members/search/' + search_str,
+            url: '/members/search/' + request.term,
             dataType : 'json',
             success: function(data) {
                 members_search_results = [];
-
                 for (member of data.res) {
                     if (member.is_member || member.is_associated_people) {
                         members_search_results.push(member);
                     }
                 }
-
-                display_possible_members();
+                response($.map(data.res, function(item) {
+                  return {
+                    label: item.barcode_base + ' ' + item.name,
+                    value: item.barcode_base
+                  }
+                }))
             },
             error: function() {
                 err = {
@@ -87,7 +86,55 @@ $(document).ready(function() {
                     globalPosition:"top right",
                     className: "error"
                 });
+              },
             }
-        });
-    });
-});
+          )
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+          if (ui.item) {
+            load_member_infos("parentInfo", ui.item.value)
+          }
+        }
+      })
+
+      $("#search_child_input").autocomplete({source: function(request, response) {
+          $.ajax({
+              url: '/members/search/' + request.term,
+              dataType : 'json',
+              success: function(data) {
+                  members_search_results = [];
+                  for (member of data.res) {
+                      if (member.is_member || member.is_associated_people) {
+                          members_search_results.push(member);
+                      }
+                  }
+                  console.log(members_search_results)
+                  response($.map(data.res, function(item) {
+                    return {
+                      label: item.barcode_base + ' ' + item.name,
+                      value: item.barcode_base
+                    }
+                  }))
+              },
+              error: function() {
+                  err = {
+                      msg: "erreur serveur lors de la recherche de membres",
+                      ctx: 'search_member_form.search_members'
+                  };
+                  report_JS_error(err, 'members.admin');
+
+                  $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
+                      globalPosition:"top right",
+                      className: "error"
+                  });
+                },
+              }
+            )
+          },
+          minLength: 3,
+          select: function( event, ui ) {
+            return null
+          },
+        })
+    })

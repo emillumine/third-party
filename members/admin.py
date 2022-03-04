@@ -410,7 +410,7 @@ def delete_shift_registration(request):
 
 # Gestion des binômes
 
-def get_member_info(request, member_id):
+def get_member_info(request,coop_id):
     """Retrieve information about a member."""
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
@@ -418,6 +418,7 @@ def get_member_info(request, member_id):
         api = OdooAPI()
         fields = [
             'id',
+            'name',
             'sex',
             'cooperative_state',
             'email',
@@ -430,27 +431,10 @@ def get_member_info(request, member_id):
             'parent_id',
             'is_associated_people',
         ]
-        member = api.search_read('res.partner', [['id', '=', member_id]], fields)
+        member = api.search_read('res.partner', [['barcode_base', '=', coop_id]], fields)
 
-        # get incomming shifts
-        fields = [
-            "date_begin",
-            "date_end",
-            "final_standard_point",
-            "shift_id",
-            "shift_type",
-            "partner_id",
-            "id",
-        ]
-        cond = [
-            ["partner_id.id", "=", member_id],
-            ["state", "=", "open"],
-            ["date_begin", ">", datetime.datetime.now().isoformat()],
-        ]
-        shifts = api.search_read('shift.registration', cond, fields, order="date_begin ASC")
         if member:
             res['member'] = member[0]
-            res['member']['incoming_shifts'] = shifts
             response = JsonResponse(res)
         else:
             response = JsonResponse({"message": "Not found"}, status=404)
