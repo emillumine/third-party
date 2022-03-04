@@ -463,11 +463,6 @@ def get_member_info(request, member_id):
 
 
 def create_pair(request):
-    template = loader.get_template('members/admin/manage_attached_create_pair.html')
-    context = {'title': 'BDM - Binômes',
-               'module': 'Membres'}
-    return HttpResponse(template.render(context, request))
-
     """Create pair
 
     payload example:
@@ -476,82 +471,95 @@ def create_pair(request):
         "child": {"id": 3067}
     }
     """
-    if request.method != 'POST':
-        return JsonResponse({"message": "Method not available"})
-    if CagetteUser.are_credentials_ok(request):
-        api = OdooAPI()
-        data = json.loads(request.body.decode())
-        parent_id = data['parent']['id']
-        child_id = data['child']['id']
-        # create attached account for child
-        fields = [
-            "birthdate",
-            "city",
-            "commercial_partner_id",
-            "company_id",
-            "company_type",
-            "cooperative_state",
-            "barcode_rule_id",
-            "country_id",
-            "customer",
-            "department_id",
-            "email",
-            "employee",
-            "image",
-            "image_medium",
-            "image_small",
-            "mobile",
-            "name",
-            "phone",
-            "sex",
-            "street",
-            "street2",
-            "zip",
-            "nb_associated_people"
-        ]
-        child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
-        parent = api.search_read('res.partner', [['id', '=', parent_id]], ['commercial_partner_id'])[0]
-        del child["id"]
-        for field in child.keys():
-            if field.endswith("_id"):
-                child[field] = child[field][0]
-        child['is_associated_people'] = True
-        child['parent_id'] = parent['commercial_partner_id'][0]
-        # get barcode rule id
-        bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
-        child['barcode_rule_id'] = bbcode_rule["id"]
-        attached_account = api.create('res.partner', child)
-        # generate_base
-        api.execute('res.partner', 'generate_base', [attached_account])
-        response = JsonResponse({"message": "Succesfuly paired members"}, status=200)
+    if request.method == 'GET':
+        template = loader.get_template('members/admin/manage_attached_create_pair.html')
+        context = {'title': 'BDM - Binômes',
+                   'module': 'Membres'}
+        return HttpResponse(template.render(context, request))
+
+    if request.method == 'POST':
+        if CagetteUser.are_credentials_ok(request):
+            api = OdooAPI()
+            data = json.loads(request.body.decode())
+            parent_id = data['parent']['id']
+            child_id = data['child']['id']
+            # create attached account for child
+            fields = [
+                # "birthdate",
+                "city",
+                "commercial_partner_id",
+                "company_id",
+                "company_type",
+                "cooperative_state",
+                "barcode_rule_id",
+                "country_id",
+                "customer",
+                "department_id",
+                "email",
+                "employee",
+                "image",
+                "image_medium",
+                "image_small",
+                "mobile",
+                "name",
+                "phone",
+                "sex",
+                "street",
+                "street2",
+                "zip",
+                "nb_associated_people"
+            ]
+            child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
+            parent = api.search_read('res.partner', [['id', '=', parent_id]], ['commercial_partner_id'])[0]
+            del child["id"]
+            for field in child.keys():
+                if field.endswith("_id"):
+                    child[field] = child[field][0]
+            child['is_associated_people'] = True
+            child['parent_id'] = parent['commercial_partner_id'][0]
+            child['cooperative_state'] = "associated"
+            # get barcode rule id
+            bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
+            child['barcode_rule_id'] = bbcode_rule["id"]
+            attached_account = api.create('res.partner', child)
+            # generate_base
+            api.execute('res.partner', 'generate_base', [attached_account])
+            response = JsonResponse({"message": "Succesfuly paired members"}, status=200)
+        else:
+            response = JsonResponse({"message": "Unauthorized"}, status=403)
+        return response
     else:
-        response = JsonResponse({"message": "Unauthorized"}, status=403)
-    return response
+        return JsonResponse({"message": "Method Not Allowed"}, status=405)
 
 
 def delete_pair(request):
-    """ Administration des binômes membres """
-    template = loader.get_template('members/admin/manage_attached_delete_pair.html')
-    context = {'title': 'BDM - Binômes',
-               'module': 'Membres'}
-    return HttpResponse(template.render(context, request))
-    """Delete pair
-
-    payload example:
-    {
-        "parent": {"id": 3075}
-    }
     """
-    if request.method != 'POST':
-        return JsonResponse({"message": "Method not available"})
-    if CagetteUser.are_credentials_ok(request):
-        api = OdooAPI()
-        data = json.loads(request.body.decode())
-        parent_id = data['parent']['id']
-        # get attached account
-        child = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id'])[0]
-        api.delete('res.partner', [child['id']])
-        response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
+    Administration des binômes membres
+        Delete pair
+    GET:
+        Return template
+    POST:
+        payload example:
+        {
+            "parent": {"id": 3075}
+        }
+    """
+    if request.method == 'GET':
+        template = loader.get_template('members/admin/manage_attached_delete_pair.html')
+        context = {'title': 'BDM - Binômes',
+                   'module': 'Membres'}
+        return HttpResponse(template.render(context, request))
+    elif request.method == 'POST':
+        if CagetteUser.are_credentials_ok(request):
+            api = OdooAPI()
+            data = json.loads(request.body.decode())
+            parent_id = data['parent']['id']
+            # get attached account
+            child = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id'])[0]
+            api.delete('res.partner', [child['id']])
+            response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
+        else:
+            response = JsonResponse({"message": "Unauthorized"}, status=403)
+        return response
     else:
-        response = JsonResponse({"message": "Unauthorized"}, status=403)
-    return response
+        return JsonResponse({"message": "Method Not Allowed"}, status=405)

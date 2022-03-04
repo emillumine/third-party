@@ -4,13 +4,13 @@
 function load_member_infos() {
     $.ajax({
         type: 'GET',
-        url: "/members_space/my_info/" + selected_member.id,
+        url: "/members/get_member_info/" + selected_member.id,
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
-            incoming_shifts = data;
-            display_member_infos();
+            console.log(data)
+            display_member_infos(data.member);
         },
         error: function(data) {
             err = {msg: "erreur serveur lors de la récupération des infos du membre", ctx: 'load_member_infos'};
@@ -30,7 +30,15 @@ function load_member_infos() {
  */
 function display_member_shifts() {
 
-} 
+}
+
+/**
+ * Display table of member future shifts
+ */
+function display_member_infos(memberData) {
+  console.log(memberData)
+  shifts = memberData.incoming_shifts
+}
 
 /**
  * Display the members from the search result
