@@ -630,7 +630,17 @@ function init_shifts_exchange() {
     }
 
     $(window).smartresize(function() {
-        vw = window.innerWidth;
-        init_calendar_page();
+        // only apply if a threshold is passed
+        if (
+            vw > 992 && window.innerWidth <= 992 || 
+            vw <= 992 && window.innerWidth > 992 || 
+            vw > 768 && window.innerWidth <= 768 || 
+            vw <= 768 && window.innerWidth > 768
+        ) {
+            vw = window.innerWidth;
+            init_calendar_page();
+        } else {
+            vw = window.innerWidth;
+        }
     });
 }
