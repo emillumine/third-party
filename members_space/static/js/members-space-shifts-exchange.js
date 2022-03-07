@@ -630,7 +630,7 @@ function init_shifts_exchange() {
     }
 
     $(window).smartresize(function() {
-        // only apply if a threshold is passed
+        // only apply if a width threshold is passed
         if (
             vw > 992 && window.innerWidth <= 992 || 
             vw <= 992 && window.innerWidth > 992 || 
