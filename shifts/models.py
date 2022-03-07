@@ -38,17 +38,18 @@ class CagetteShift(models.Model):
                   'cooperative_state', 'final_standard_point', 'create_date',
                   'final_ftop_point', 'shift_type', 'leave_ids', 'makeups_to_do', 'barcode_base',
                   'street', 'street2', 'zip', 'city', 'mobile', 'phone', 'email',
-                  'is_associated_people', 'parent_id']
+                  'is_associated_people', 'parent_id', 'extra_shift_done']
         partnerData = self.o_api.search_read('res.partner', cond, fields, 1)
         
         if partnerData:
             partnerData = partnerData[0]
             if partnerData['is_associated_people']:
                 cond = [['id', '=', partnerData['parent_id'][0]]]
-                fields = ['create_date']
+                fields = ['create_date', 'extra_shift_done']
                 parentData = self.o_api.search_read('res.partner', cond, fields, 1)
                 if parentData:
                     partnerData['parent_create_date'] = parentData[0]['create_date']
+                    partnerData['parent_extra_shift_done'] = parentData[0]['extra_shift_done']
 
             if partnerData['shift_type'] == 'standard':
                 partnerData['in_ftop_team'] = False

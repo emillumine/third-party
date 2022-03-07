@@ -113,6 +113,21 @@
     }
 }
 
+/* -- Calendar screen, can delete registrations message */
+
+#can_delete_future_registrations_area {
+    display: none;
+    align-self: center;
+    margin: 0 1rem 1rem 1rem;
+    padding: 1rem 1.25rem;
+}
+
+#can_delete_future_registrations_area button {
+    white-space: normal;
+    word-break: normal;
+    margin: 1rem;
+}
+
 /* -- Calendar screen, calendar */
 
 #calendar {

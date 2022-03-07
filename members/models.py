@@ -864,6 +864,19 @@ class CagetteMember(models.Model):
 
         return res
 
+    def update_extra_shift_done(self, value):
+        api = OdooAPI()
+        res = {}
+
+        f = { 'extra_shift_done': value }
+        res_item = api.update('res.partner', [self.id], f)
+        res = {
+            'mid': self.id,
+            'update': res_item
+        }
+
+        return res
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 

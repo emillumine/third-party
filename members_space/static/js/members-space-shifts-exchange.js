@@ -309,6 +309,29 @@ function affect_shift(partner, shift_id) {
 
 }
 
+function offer_extra_shift() {
+    openModal();
+
+    $.ajax({
+        type: 'POST',
+        url: "/members_space/offer_extra_shift",
+        dataType:"json",
+        data: {
+            partner_id: partner_data.concerned_partner_id
+        },
+        timeout: 3000,
+        success: function() {
+            $("#can_delete_future_registrations_area").hide();
+            closeModal();
+            alert("Don de service effectué");
+        },
+        error: function() {
+            closeModal();
+            alert("Une erreur est survenue");
+        }
+    });
+}
+
 /**
  * Inits the page when the calendar is displayed
  */
@@ -343,6 +366,20 @@ function init_calendar_page() {
     if (should_select_makeup()) {
         $(".makeups_nb").text(partner_data.makeups_to_do);
         $("#need_to_select_makeups_message").show();
+    }
+    
+    if (partner_data.extra_shift_done > 0) {
+        $(".extra_shift_done").text(partner_data.extra_shift_done);
+        $("#can_delete_future_registrations_area").show();
+
+        $("#offer_extra_shift").on("click", () => {
+            openModal(
+                "Je ne souhaite pas supprimer un service futur.",
+                offer_extra_shift,
+                "Confirmer",
+                false
+            )
+        })
     }
 
     let default_initial_view = "";

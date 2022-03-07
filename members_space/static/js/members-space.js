@@ -158,6 +158,7 @@ function prepare_shift_line_template(date_begin) {
  */
 function init_my_info_data() {
     $(".choose_makeups").off();
+    $(".remove_future_registration").off();
     $(".unsuscribed_form_link").off();
 
     $(".member_shift_name").text(partner_data.regular_shift_name);
@@ -221,6 +222,13 @@ function init_my_info_data() {
                 goto('echange-de-services');
             });
         }
+    }
+
+    if (partner_data.extra_shift_done > 0) {
+        $(".remove_future_registration").show();
+        $(".remove_future_registration").on('click', () => {
+            goto('echange-de-services');
+        });
     }
 
     $(".member_coop_number").text(partner_data.barcode_base);
