@@ -132,6 +132,7 @@ class CagetteMember(models.Model):
         fp = request.POST.get('fp') #  fingerprint (prevent using stolen cookies)
         if login and password:
             api = OdooAPI()
+            login = login.strip()
             cond = [['email', '=', login]]
             if getattr(settings, 'ALLOW_NON_MEMBER_TO_CONNECT', False) is False:
                 cond.append('|')
