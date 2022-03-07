@@ -69,6 +69,18 @@ function display_makeups_members() {
                 title: "Nom"
             },
             {
+                data: "display_std_points",
+                title: "Nb points service",
+                className: "dt-body-center",
+                width: "10%",
+            },
+            {
+                data: "display_ftop_points",
+                title: "Nb points comité",
+                className: "dt-body-center",
+                width: "10%",
+            },
+            {
                 data: "makeups_to_do",
                 title: "Nb rattrapages",
                 className: "dt-body-center",
