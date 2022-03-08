@@ -34,7 +34,7 @@
 .create_pair_button {
     display: flex;
     justify-content: center;
-    margin: 100px 0 100px 0;
+    margin: 120px 0 120px 0;
 }
 
 @media screen and (max-width: 992px) {
@@ -66,6 +66,10 @@
 
 .member_info {
     font-weight: bold;
+}
+
+.member_status_text_container {
+    margin: 1rem;
 }
 
 /* -- Tiles */

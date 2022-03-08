@@ -432,6 +432,7 @@ def get_member_info(request,coop_id):
             'is_associated_people',
             'parent_name',
             'barcode_base',
+            "makeups_to_do"
         ]
         member = api.search_read('res.partner', [['barcode_base', '=', coop_id]], fields)
 

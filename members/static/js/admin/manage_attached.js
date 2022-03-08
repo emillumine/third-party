@@ -62,7 +62,7 @@ function display_member_infos(divId, memberData) {
   $("#" + divId).find(".member_name").text(memberData.name)
   $("#" + divId).find(".member_status").text(possible_cooperative_state[memberData.cooperative_state])
   $("#" + divId).find(".member_shift_name").text(memberData.current_template_name);
-  $("#" + divId).find(".member_coop_number").text(memberData.barcode_base);
+  $("#" + divId).find(".member_makeups_to_do").text(memberData.makeups_to_do);
 
   if (memberData.is_associated_people === false) {
       $("#" + divId).find(".member_associated_partner_area").hide();
