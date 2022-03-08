@@ -91,7 +91,7 @@ class CagetteShift(models.Model):
     def get_shift_partner(self, id):
         """Récupère les shift du membre"""
         fields = ['date_begin', 'date_end','final_standard_point',
-                  'shift_id', 'shift_type','partner_id',  "id", "associate_registered"] # res.partner
+                  'shift_id', 'shift_type','partner_id',  "id", "associate_registered", "is_makeup"] # res.partner
         cond = [['partner_id.id', '=', id],['state', '=', 'open'],
                ['date_begin', '>', datetime.datetime.now().isoformat()]]
         shiftData = self.o_api.search_read('shift.registration', cond, fields, order ="date_begin ASC")
@@ -367,3 +367,7 @@ class CagetteShift(models.Model):
     def member_can_have_delay(self, partner_id):
         """ Can a member have a delay? """
         return self.o_api.execute('res.partner', 'can_have_extension', [partner_id])
+
+    def update_counter_event(self, fields):
+        """ Add/remove points """
+        return self.o_api.create('shift.counter.event', fields)
