@@ -31,29 +31,41 @@
     font-size: 1.3em;
 }
 
-/* Search membres area */
-
-#search_member_form_area {
-    align-items: center;
+.create_pair_button {
+    display: flex;
+    justify-content: center;
+    margin: 100px 0 100px 0;
 }
 
-#search_member_form {
+@media screen and (max-width: 992px) {
+    .create_pair_button {
+        margin: auto;
+    }
+}
+
+#createPair {
+    border-radius: 30px; 
+}
+
+/* Search membres area */
+
+.search_member_form_area {
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.search_member_form {
     margin-left: 10px;
 }
 
-.search_member_results_area {
-    margin-top: 15px;
-    display: flex;
-    align-items: center;
+/* Member infos */
+.tile_icon {
+    margin-right: 15px;
+    color: #00a573;
 }
 
-.search_results_text {
-    min-width: 150px;
-}
-
-.search_member_results {
-    display: flex;
-    flex-wrap: wrap;
+.member_info {
+    font-weight: bold;
 }
 
 /* -- Tiles */
@@ -70,17 +82,19 @@
 }
 
 .tile {
-    flex: 1 0 45%;
+    flex: 1 0 20%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    text-align: center;
     border-radius: 30px;
     margin: 1rem 1rem;
+    padding: 1rem;
     box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
 }
-.high_tile {
-    min-height: 350px;
-}
-.small_tile {
-    min-height: 250px;
+
+.tile_content {
+    height: 100%;
+    flex-direction: column;
+    text-align: center;
+    font-size: 1.6rem;
 }

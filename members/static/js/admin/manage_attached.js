@@ -1,6 +1,16 @@
 var parentId = null;
 var childId = null;
 
+const possible_cooperative_state = {
+  suspended: "Rattrapage",
+  exempted: "Exempté.e",
+  alert: "En alerte",
+  up_to_date: "À jour",
+  unsubscribed: "Désinscrit.e des créneaux",
+  delay: "En délai",
+  gone: "Parti.e"
+};
+
 /**
  * Load member infos
  */
@@ -49,7 +59,15 @@ function ready_for_submission() {
 function display_member_infos(divId, memberData) {
   console.log(memberData)
   $("#" + divId).show()
-  $("#" + divId).find("#name").text(memberData.name)
+  $("#" + divId).find(".member_name").text(memberData.name)
+  $("#" + divId).find(".member_status").text(possible_cooperative_state[memberData.cooperative_state])
+  $("#" + divId).find(".member_shift_name").text(memberData.current_template_name);
+  $("#" + divId).find(".member_coop_number").text(memberData.barcode_base);
+
+  if (memberData.is_associated_people === false) {
+      $("#" + divId).find(".member_associated_partner_area").hide();
+  }
+
   if (parentId != null && childId != null) {
     $("#createPair").prop("disabled", false)
   }
