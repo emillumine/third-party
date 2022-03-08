@@ -90,6 +90,14 @@
     border-radius: 5px;
 }
 
+.delete_registration_button {
+    justify-content: center;
+    align-items: center;
+    margin: 0.75rem 15px;
+    color: #d9534f;
+    cursor: pointer;
+    display: none;
+}
 
 /* -- Calendar screen, makeups message */
 
