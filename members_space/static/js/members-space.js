@@ -147,7 +147,7 @@ function prepare_shift_line_template(date_begin) {
 
     shift_line_template.find(".shift_line_date").text(f_date_shift_start);
     shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
-    
+
     return shift_line_template;
 }
 
@@ -265,7 +265,7 @@ $(document).ready(function() {
     // debouncing function from John Hann
     // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
-        var timeout;
+        var timeout = null;
 
         return function debounced () {
             var obj = this, args = arguments;

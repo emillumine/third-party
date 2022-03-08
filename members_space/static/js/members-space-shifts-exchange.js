@@ -22,7 +22,7 @@ function can_exchange_shifts() {
  * @returns boolean
  */
 function should_select_makeup() {
-    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" &&  block_actions_for_attached_people === "False");
+    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False");
 }
 
 /* - Server requests */
@@ -40,7 +40,7 @@ function add_or_change_shift(new_shift_id) {
                 +'&idPartner=' + partner_data.partner_id
                 + '&shift_type=' + partner_data.shift_type
                 + '&verif_token=' + partner_data.verif_token;
-        } else if(partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
+        } else if (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
             tData = 'idNewShift=' + new_shift_id
                 +'&idPartner=' + partner_data.parent_id
                 + '&shift_type=' + partner_data.shift_type
@@ -105,10 +105,10 @@ function add_or_change_shift(new_shift_id) {
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
 
-                     // Refectch shifts anyway, if registration/exchange was still succesful
+                    // Refectch shifts anyway, if registration/exchange was still succesful
                     setTimeout(() => {
                         load_partner_shifts(partner_data.concerned_partner_id)
-                        .then(init_shifts_list);
+                            .then(init_shifts_list);
                     }, 300);
                 }
             },
@@ -144,6 +144,8 @@ function add_or_change_shift(new_shift_id) {
             }
         });
     }
+
+    return null;
 }
 
 /**
@@ -153,19 +155,19 @@ function add_or_change_shift(new_shift_id) {
 function delete_shift_registration(shift_registration_id) {
     if (is_time_to('delete_shift_registration')) {
         openModal();
-    
+
         tData = 'idPartner=' + partner_data.concerned_partner_id
                 + '&idRegister=' + shift_registration_id
                 + '&extra_shift_done=' + partner_data.extra_shift_done;
-    
+
         if (partner_data.is_associated_people === "False") {
             tData += '&verif_token=' + partner_data.verif_token;
-        } else if(partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
+        } else if (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
             tData += '&verif_token=' + partner_data.parent_verif_token;
         } else {
             return false;
         }
-    
+
         $.ajax({
             type: 'POST',
             url: "/shifts/cancel_shift",
@@ -174,7 +176,7 @@ function delete_shift_registration(shift_registration_id) {
             timeout: 3000,
             success: function() {
                 partner_data.extra_shift_done -= 1;
-                
+
                 // Refetch partner shifts list & update DOM
                 load_partner_shifts(partner_data.concerned_partner_id)
                     .then(() => {
@@ -190,12 +192,12 @@ function delete_shift_registration(shift_registration_id) {
                         }
 
                         closeModal();
-    
+
                         setTimeout(() => {
                             alert("La présence a bien été annulée !");
                         }, 100);
                     });
-    
+
                 // Redraw calendar
                 calendar.refetchEvents();
             },
@@ -205,6 +207,8 @@ function delete_shift_registration(shift_registration_id) {
             }
         });
     }
+
+    return null;
 }
 
 /**
@@ -212,15 +216,15 @@ function delete_shift_registration(shift_registration_id) {
  * @param {string} partner
  * @param {string} shift_id
  */
- function affect_shift(partner, shift_id) {
+function affect_shift(partner, shift_id) {
     if (is_time_to('affect_shift')) {
         tData = 'idShiftRegistration=' + shift_id
             +'&idPartner=' + partner_data.partner_id
             + '&affected_partner=' + partner
             + '&verif_token=' + partner_data.verif_token;
-    
+
         tUrl = '/shifts/affect_shift';
-    
+
         $.ajax({
             type: 'POST',
             url: tUrl,
@@ -239,7 +243,7 @@ function delete_shift_registration(shift_registration_id) {
                 init_shifts_list();
                 modal.find(".btn-modal-ok").show();
                 closeModal();
-    
+
                 alert(`Une erreur est survenue. ` +
                     `Il est néanmoins possible que la requête ait abouti, ` +
                     `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
@@ -295,6 +299,7 @@ function init_shifts_list() {
             let datetime_shift_start = new Date(shift.date_begin.replace(/\s/, 'T'));
 
             let f_date_shift_start = datetime_shift_start.toLocaleDateString("fr-fr", date_options);
+
             f_date_shift_start = f_date_shift_start.charAt(0).toUpperCase() + f_date_shift_start.slice(1);
 
             shift_line_template.find(".shift_line_date").text(f_date_shift_start);
@@ -316,7 +321,8 @@ function init_shifts_list() {
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_registered').hide();
             } else {
-                shift_line_template.find('.affect_associate_registered').closest(".shift_line_container").attr('id', 'shift_id_'+shift.id);
+                shift_line_template.find('.affect_associate_registered').closest(".shift_line_container")
+                    .attr('id', 'shift_id_'+shift.id);
                 if (shift.associate_registered==="both") {
                     shift_line_template.find('.affect_associate_registered').text("Les deux");
                 } else if (shift.associate_registered==="partner") {
@@ -341,6 +347,7 @@ function init_shifts_list() {
             if (partner_data.extra_shift_done > 0 && shift.is_makeup === false) {
                 if (shift_line_template.find(".delete_registration_button").length === 0) {
                     let delete_reg_button_template = $("#delete_registration_button_template");
+
                     shift_line_template.find(".shift_line_container").append(delete_reg_button_template.html());
                 }
             } else {
@@ -379,7 +386,8 @@ function init_shifts_list() {
 
         $(".affect_associate_registered").on("click", function() {
             // Display modal
-            let id = $(this).closest(".shift_line_container").attr('id')
+            let id = $(this).closest(".shift_line_container")
+                .attr('id')
                 .split('_')[2];
             let modal_template = $("#modal_affect_shift");
 
@@ -453,7 +461,7 @@ function init_calendar_page() {
         $(".makeups_nb").text(partner_data.makeups_to_do);
         $("#need_to_select_makeups_message").show();
     }
-    
+
     if (partner_data.extra_shift_done > 0) {
         $(".extra_shift_done").text(partner_data.extra_shift_done);
         $("#can_delete_future_registrations_area").show();
@@ -694,13 +702,17 @@ function init_read_only_calendar_page() {
     calendar.render();
 }
 
-function init_delete_registration_buttons() {    
+function init_delete_registration_buttons() {
     $(".delete_registration_button").off();
     $(".delete_registration_button").on("click", function() {
-        let shift_name = $(this).closest("div").siblings(".selectable_shift_line").text().trim();
-        let shift_id = $(this).closest(".shift_line_container").attr('id')
+        let shift_name = $(this).closest("div")
+            .siblings(".selectable_shift_line")
+            .text()
+            .trim();
+        let shift_id = $(this).closest(".shift_line_container")
+            .attr('id')
             .split('_')[2];
-    
+
         openModal(
             `<p>Je m'apprête supprimer ma présence au service du <b>${shift_name}</b></p>`,
             () => {
