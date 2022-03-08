@@ -265,6 +265,9 @@ function offer_extra_shift() {
             timeout: 3000,
             success: function() {
                 $("#can_delete_future_registrations_area").hide();
+                $(".delete_registration_button").off();
+                $(".delete_registration_button").hide();
+
                 closeModal();
                 alert("Don de service effectué");
             },
@@ -287,17 +290,17 @@ function init_shifts_list() {
     } else {
         $("#shifts_list").empty();
 
-        for (shift of incoming_shifts) {
+        for (let shift of incoming_shifts) {
             let shift_line_template = $("#selectable_shift_line_template");
             let datetime_shift_start = new Date(shift.date_begin.replace(/\s/, 'T'));
 
             let f_date_shift_start = datetime_shift_start.toLocaleDateString("fr-fr", date_options);
-
             f_date_shift_start = f_date_shift_start.charAt(0).toUpperCase() + f_date_shift_start.slice(1);
 
             shift_line_template.find(".shift_line_date").text(f_date_shift_start);
             shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
 
+            // Disable or not
             if (!can_exchange_shifts() && block_actions_for_attached_people === "True") {
                 shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
@@ -309,6 +312,7 @@ function init_shifts_list() {
                 shift_line_template.find(".checkbox").prop("value", shift.id);
             }
 
+            // Set assign shift button
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_registered').hide();
             } else {
@@ -331,6 +335,16 @@ function init_shifts_list() {
                 } else {
                     shift_line_template.find('.affect_associate_registered').text("A déterminer");
                 }
+            }
+
+            // Set delete registration button if shift isn't a makeup
+            if (partner_data.extra_shift_done > 0 && shift.is_makeup === false) {
+                if (shift_line_template.find(".delete_registration_button").length === 0) {
+                    let delete_reg_button_template = $("#delete_registration_button_template");
+                    shift_line_template.find(".shift_line_container").append(delete_reg_button_template.html());
+                }
+            } else {
+                shift_line_template.find(".delete_registration_button").remove();
             }
 
             $("#shifts_list").append(shift_line_template.html());
@@ -446,7 +460,7 @@ function init_calendar_page() {
 
         $("#offer_extra_shift").on("click", () => {
             openModal(
-                "Je ne souhaite pas supprimer un service futur.",
+                "<p>Je ne souhaite pas supprimer un service futur.</p>",
                 offer_extra_shift,
                 "Confirmer",
                 false
@@ -681,8 +695,6 @@ function init_read_only_calendar_page() {
 }
 
 function init_delete_registration_buttons() {    
-    $(".delete_registration_button").css('display', 'flex');
-
     $(".delete_registration_button").off();
     $(".delete_registration_button").on("click", function() {
         let shift_name = $(this).closest("div").siblings(".selectable_shift_line").text().trim();
@@ -690,14 +702,16 @@ function init_delete_registration_buttons() {
             .split('_')[2];
     
         openModal(
-            `Je m'apprête supprimer ma présence au service du <b>${shift_name}</b>`,
+            `<p>Je m'apprête supprimer ma présence au service du <b>${shift_name}</b></p>`,
             () => {
                 delete_shift_registration(shift_id);
             },
             "Confirmer",
             false
-        )
+        );
     });
+
+    $(".delete_registration_button").css('display', 'flex');
 }
 
 function init_shifts_exchange() {
