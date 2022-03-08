@@ -52,7 +52,6 @@ function ready_for_submission() {
   }
 }
 
-
 /**
  * Display member info
  */
@@ -73,7 +72,110 @@ function display_member_infos(divId, memberData) {
   }
 }
 
+/**
+ * Load attached members
+ */
+ function load_attached_members() {
+  console.log(get_attached_members)
+  $.ajax({
+    type: 'GET',
+    url: "/members/get_attached_members",
+    dataType:"json",
+    traditional: true,
+    contentType: "application/json; charset=utf-8",
+    success: function(data) {
+        attached_members = data.res;
+        display_attached_members();
+    },
+    error: function(data) {
+        err = {msg: "erreur serveur lors de la récupération des membres avec rattrapage", ctx: 'load_makeups_members'};
+        if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+            err.msg += ' : ' + data.responseJSON.error;
+        }
+        report_JS_error(err, 'orders');
 
+        closeModal();
+        alert('Erreur serveur lors de la récupération des membres avec rattrapage. Ré-essayez plus tard.');
+    }
+});
+}
+
+/**
+ * Display table of attached members
+ */
+ function display_attached_members() {
+  if (attached_members_table) {
+    $('#attached_members_table').off();
+    attached_members_table.clear().destroy();
+    $('#attached_members_table').empty();
+  }
+
+  attached_members_table = $('#attached_members_table').DataTable({
+    data: attached_members,
+    columns: [
+        {
+            data: "id",
+            title: '',
+            className: "dt-body-center",
+            orderable: false,
+            render: function (data) {
+                return `<input type="checkbox" class="select_member_cb" id="select_member_${data}" value="${data}">`;
+            },
+            width: "3%"
+        },
+        {
+            data: "parent_name",
+            title: "Nom du titulaire"
+        },
+        {
+            data: "name",
+            title: "en binôme avec",
+        }
+    ],
+    aLengthMenu: [
+        [
+            25,
+            50,
+            -1
+        ],
+        [
+            25,
+            50,
+            "Tout"
+        ]
+    ],
+    iDisplayLength: 25,
+    oLanguage: {
+        "sProcessing":     "Traitement en cours...",
+        "sSearch":         "Rechercher dans le tableau",
+        "sLengthMenu":     "Afficher _MENU_ &eacute;l&eacute;ments",
+        "sInfo":           "Affichage de l'&eacute;l&eacute;ment _START_ &agrave; _END_ sur _TOTAL_ &eacute;l&eacute;ments",
+        "sInfoEmpty":      "Affichage de l'&eacute;l&eacute;ment 0 &agrave; 0 sur 0 &eacute;l&eacute;ment",
+        "sInfoFiltered":   "(filtr&eacute; de _MAX_ &eacute;l&eacute;ments au total)",
+        "sInfoPostFix":    "",
+        "sLoadingRecords": "Chargement en cours...",
+        "sZeroRecords":    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+        "sEmptyTable":     "Aucune donn&eacute;e disponible dans le tableau",
+        "oPaginate": {
+            "sFirst":      "Premier",
+            "sPrevious":   "Pr&eacute;c&eacute;dent",
+            "sNext":       "Suivant",
+            "sLast":       "Dernier"
+        },
+        "oAria": {
+            "sSortAscending":  ": activer pour trier la colonne par ordre croissant",
+            "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+        },
+        "select": {
+            "rows": {
+                "_": "%d lignes séléctionnées",
+                "0": "Aucune ligne séléctionnée",
+                "1": "1 ligne séléctionnée"
+            }
+        }
+    }
+  });
+}
 
 
 $(document).ready(function() {

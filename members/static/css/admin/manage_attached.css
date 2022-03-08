@@ -72,6 +72,16 @@
     margin: 1rem;
 }
 
+/* Attached members table */
+.table_area {
+    margin-top: 20px;
+}
+
+#table_top_area {
+    display: flex;
+    justify-content: space-between;
+}
+
 /* -- Tiles */
 
 .tiles_container {

@@ -339,6 +339,11 @@ def get_makeups_members(request):
     res = CagetteMembers.get_makeups_members()
     return JsonResponse({ 'res' : res })
 
+def get_attached_members(request):
+    """ Récupération des membres en binôme """
+    res = CagetteMembers.get_attached_members()
+    return JsonResponse({ 'res' : res })
+
 def update_members_makeups(request):
     """ Met à jour les rattrapages des membres passés dans la requête """
     res = {}
@@ -431,7 +436,6 @@ def get_member_info(request,coop_id):
             'parent_id',
             'is_associated_people',
             'parent_name',
-            'barcode_base',
             "makeups_to_do"
         ]
         member = api.search_read('res.partner', [['barcode_base', '=', coop_id]], fields)
@@ -551,3 +555,8 @@ def delete_pair(request):
         return response
     else:
         return JsonResponse({"message": "Method Not Allowed"}, status=405)
+
+def get_attached_members(request):
+    """ Récupération des membres qui doivent faire des rattrapages """
+    res = CagetteMembers.get_attached_members()
+    return JsonResponse({ 'res' : res })
