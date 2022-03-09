@@ -16,7 +16,7 @@ $(document).ready(function() {
             } else if (this.id == 'manage_leaves_button') {
                 console.log('coming soon...');
             } else if (this.id == 'manage_regular_shifts_button') {
-                console.log('coming soon...');
+                window.location.assign(location + "/manage_regular_shifts");
             }
         });
     } else {

@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'^admin/?$', admin.admin),
     url(r'^admin/manage_makeups$', admin.manage_makeups),
     url(r'^admin/manage_shift_registrations$', admin.manage_shift_registrations),
+    url(r'^admin/manage_regular_shifts$', admin.manage_regular_shifts),
     url(r'^get_makeups_members$', admin.get_makeups_members),
     url(r'^update_members_makeups$', admin.update_members_makeups),
     url(r'^delete_shift_registration$', admin.delete_shift_registration),

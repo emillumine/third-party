@@ -326,6 +326,13 @@ def manage_shift_registrations(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_regular_shifts(request):
+    """ Administration des créneaux des membres """
+    template = loader.get_template('members/admin/manage_regular_shifts.html')
+    context = {'title': 'BDM - Créneaux',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()
