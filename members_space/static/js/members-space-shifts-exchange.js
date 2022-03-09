@@ -306,17 +306,23 @@ function init_shifts_list() {
             shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
 
             // Disable or not
+            shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
+            shift_line_template.find(".selectable_shift_line").removeClass("btn");
+            shift_line_template.find(".selectable_shift_line").removeClass("btn--warning");
             if (!can_exchange_shifts() && block_actions_for_attached_people === "True") {
-                shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
                 shift_line_template.find(".checkbox").prop("disabled", "disabled");
             } else {
-                shift_line_template.find(".selectable_shift_line").removeClass("btn");
-                shift_line_template.find(".selectable_shift_line").addClass("btn--primary");
-                shift_line_template.find(".checkbox").prop("disabled", false);
-                shift_line_template.find(".checkbox").prop("value", shift.id);
+                if (shift.is_makeup==true) {
+                    shift_line_template.find(".selectable_shift_line").addClass("btn--warning");
+                    shift_line_template.find(".checkbox").prop("disabled", false);
+                    shift_line_template.find(".checkbox").prop("value", shift.id);
+                } else {
+                    shift_line_template.find(".selectable_shift_line").addClass("btn--primary");
+                    shift_line_template.find(".checkbox").prop("disabled", false);
+                    shift_line_template.find(".checkbox").prop("value", shift.id);
+                }
             }
-
             // Set assign shift button
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_registered').hide();
@@ -525,7 +531,7 @@ function init_calendar_page() {
         hiddenDays: hidden_days,
         events: '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id,
         eventClick: function(info) {
-            if (!$(info.el).hasClass("shift_booked")) {
+            if (!$(info.el).hasClass("shift_booked") && !$(info.el).hasClass("shift_booked_makeup")) {
                 const new_shift_id = info.event.id;
 
                 // Set new shift
@@ -789,9 +795,9 @@ function init_shifts_exchange() {
     $(window).smartresize(function() {
         // only apply if a width threshold is passed
         if (
-            vw > 992 && window.innerWidth <= 992 || 
-            vw <= 992 && window.innerWidth > 992 || 
-            vw > 768 && window.innerWidth <= 768 || 
+            vw > 992 && window.innerWidth <= 992 ||
+            vw <= 992 && window.innerWidth > 992 ||
+            vw > 768 && window.innerWidth <= 768 ||
             vw <= 768 && window.innerWidth > 768
         ) {
             vw = window.innerWidth;
