@@ -9,7 +9,8 @@ var suppliers_list = [],
     new_product_supplier_association = {
         package_qty: null,
         price: null
-    };
+    },
+    qties_values = {};
 
 var dbc = null,
     sync = null,
@@ -29,6 +30,10 @@ var dbc = null,
     fingerprint = null;
 
 var clicked_order_pill = null;
+
+let userAgent = navigator.userAgent;
+
+
 
 var timerId;
 /* - UTILS */
@@ -124,7 +129,68 @@ function debounceFunction(func, delay = 1000) {
     timerId = setTimeout(func, delay);
 }
 /* - PRODUCTS */
+var process_new_product_qty = function(input) {
+         // Remove line coloring on input blur
+        const row = $(input).closest('tr');
 
+        row.removeClass('focused_line');
+
+        let val = ($(input).val() == '') ? 0 : $(input).val();
+
+        const id_split = $(input).attr('id')
+            .split('_');
+        const prod_id = id_split[1];
+        const supplier_id = id_split[3];
+
+        if (val == -1) {
+            let modal_end_supplier_product_association = $('#templates #modal_end_supplier_product_association');
+
+            const product = products.find(p => p.id == prod_id);
+
+            modal_end_supplier_product_association.find(".product_name").text(product.name);
+            const supplier = selected_suppliers.find(s => s.id == supplier_id);
+
+            modal_end_supplier_product_association.find(".supplier_name").text(supplier.display_name);
+
+            openModal(
+                modal_end_supplier_product_association.html(),
+                () => {
+                    if (is_time_to('validate_end_supplier_product_association')) {
+                        end_supplier_product_association(product, supplier);
+                    }
+                },
+                'Valider',
+                false,
+                true,
+                () => {
+                    // Reset value in input on cancel
+                    const psi = product.suppliersinfo.find(psi_item => psi_item.supplier_id == supplier_id);
+
+                    $(input).val(psi.qty);
+                }
+            );
+        } else {
+            val = parseFloat(val);
+
+            // If value is a number
+            if (!isNaN(val)) {
+                // Save value
+                save_product_supplier_qty(prod_id, supplier_id, val);
+
+                // Update row
+                const product = products.find(p => p.id == prod_id);
+                const new_row_data = prepare_datatable_data([product.id])[0];
+
+                products_table.row($(input).closest('tr')).data(new_row_data)
+                    .draw();
+
+                debounceFunction(update_cdb_order);
+                display_total_values();
+            } else {
+                $(input).val('');
+            }
+        }
+};
 /**
  * Add a product.
  *
@@ -1674,151 +1740,94 @@ function display_products(params) {
         row.addClass('focused_line');
     });
 
+    
     // Manage data on inputs blur
-    $('#products_table').on('blur', 'tbody td .product_qty_input', function () {
-        // Remove line coloring on input blur
-        const row = $(this).closest('tr');
-
-        row.removeClass('focused_line');
-
-        let val = ($(this).val() == '') ? 0 : $(this).val();
-
-        const id_split = $(this).attr('id')
-            .split('_');
-        const prod_id = id_split[1];
-        const supplier_id = id_split[3];
-
-        if (val == -1) {
-            let modal_end_supplier_product_association = $('#templates #modal_end_supplier_product_association');
-
-            const product = products.find(p => p.id == prod_id);
-
-            modal_end_supplier_product_association.find(".product_name").text(product.name);
-            const supplier = selected_suppliers.find(s => s.id == supplier_id);
-
-            modal_end_supplier_product_association.find(".supplier_name").text(supplier.display_name);
-
-            openModal(
-                modal_end_supplier_product_association.html(),
-                () => {
-                    if (is_time_to('validate_end_supplier_product_association')) {
-                        end_supplier_product_association(product, supplier);
-                    }
-                },
-                'Valider',
-                false,
-                true,
-                () => {
-                    // Reset value in input on cancel
-                    const psi = product.suppliersinfo.find(psi_item => psi_item.supplier_id == supplier_id);
-
-                    $(this).val(psi.qty);
-                }
-            );
-        } else {
-            val = parseFloat(val);
-
-            // If value is a number
-            if (!isNaN(val)) {
-                // Save value
-                save_product_supplier_qty(prod_id, supplier_id, val);
-
-                // Update row
-                const product = products.find(p => p.id == prod_id);
-                const new_row_data = prepare_datatable_data([product.id])[0];
-
-                products_table.row($(this).closest('tr')).data(new_row_data)
-                    .draw();
-
-                debounceFunction(update_cdb_order);
-                display_total_values();
-            } else {
-                $(this).val('');
-            }
+    $('#products_table')
+    .on('blur', 'tbody td .product_qty_input', function () {
+       process_new_product_qty(this);
+    })
+    .on('keypress', 'tbody td .product_qty_input', function(e) {
+        // Validate on Enter pressed
+        if (e.which == 13) {
+            $(this).blur();
         }
     })
-        .on('keypress', 'tbody td .product_qty_input', function(e) {
-            // Validate on Enter pressed
-            if (e.which == 13) {
-                $(this).blur();
+    .on('keydown', 'tbody td .product_qty_input', function(e) {
+        if (e.which == 38) {
+            e.preventDefault();
+
+            // On arrow up pressed, focus next row input
+            let next_input = $(this).closest("tr")
+                .prev()
+                .find(".product_qty_input");
+
+            next_input.focus();
+
+            // Scroll to a position where the target input is not hidden by the sticky suppliers container
+            const suppliers_container_top_offset =
+                $("#suppliers_container").offset().top
+                - $(window).scrollTop()
+                + $("#suppliers_container").outerHeight();
+            const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
+
+            if (next_input_top_offset < suppliers_container_top_offset) {
+                window.scrollTo({
+                    top: $(window).scrollTop() - $("#suppliers_container").outerHeight()
+                });
             }
-        })
-        .on('keydown', 'tbody td .product_qty_input', function(e) {
-            if (e.which == 38) {
-                e.preventDefault();
+        } else if (e.which == 40) {
+            e.preventDefault();
 
-                // On arrow up pressed, focus next row input
-                let next_input = $(this).closest("tr")
-                    .prev()
-                    .find(".product_qty_input");
+            // On arrow down pressed, focus previous row input
+            $(this).closest("tr")
+                .next()
+                .find(".product_qty_input")
+                .focus();
 
-                next_input.focus();
+        } else if (e.which == 13) {
+            e.preventDefault();
 
-                // Scroll to a position where the target input is not hidden by the sticky suppliers container
-                const suppliers_container_top_offset =
-                    $("#suppliers_container").offset().top
-                    - $(window).scrollTop()
-                    + $("#suppliers_container").outerHeight();
-                const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
+            // On enter pressed, focus previous row input
+            $(this).closest("tr")
+                .next()
+                .find(".product_qty_input")
+                .focus();
+        }
+    })
+    .on('click', 'tbody td .product_actions', function(e) {
+        // Save / unsave selected row
+        const p_id = products_table.row($(this).closest('tr')).data().id;
+        const product = products.find(p => p.id == p_id);
 
-                if (next_input_top_offset < suppliers_container_top_offset) {
-                    window.scrollTo({
-                        top: $(window).scrollTop() - $("#suppliers_container").outerHeight()
-                    });
+        let modal_product_actions = $('#templates #modal_product_actions');
+
+        modal_product_actions.find(".product_name").text(product.name);
+
+        const product_can_be_archived = product.incoming_qty === 0;
+
+        if (product_can_be_archived == true) {
+            modal_product_actions.find('input[name="archive-action"]').prop("disabled", false);
+            modal_product_actions.find('input[name="archive-action"]').closest("label")
+                .removeClass("checkbox_action_disabled");
+        } else {
+            modal_product_actions.find('input[name="archive-action"]').prop("disabled", true);
+            modal_product_actions.find('input[name="archive-action"]').closest("label")
+                .addClass("checkbox_action_disabled");
+        }
+
+        openModal(
+            modal_product_actions.html(),
+            () => {
+                if (is_time_to('validate_product_actions')) {
+                    commit_actions_on_product(product, modal.find('input'));
                 }
-            } else if (e.which == 40) {
-                e.preventDefault();
+            },
+            'Valider',
+            false
+        );
+        modal.find('input[name="minimal_stock"]').val(product.minimal_stock);
 
-                // On arrow down pressed, focus previous row input
-                $(this).closest("tr")
-                    .next()
-                    .find(".product_qty_input")
-                    .focus();
-
-            } else if (e.which == 13) {
-                e.preventDefault();
-
-                // On enter pressed, focus previous row input
-                $(this).closest("tr")
-                    .next()
-                    .find(".product_qty_input")
-                    .focus();
-            }
-        })
-        .on('click', 'tbody td .product_actions', function(e) {
-            // Save / unsave selected row
-            const p_id = products_table.row($(this).closest('tr')).data().id;
-            const product = products.find(p => p.id == p_id);
-
-            let modal_product_actions = $('#templates #modal_product_actions');
-
-            modal_product_actions.find(".product_name").text(product.name);
-
-            const product_can_be_archived = product.incoming_qty === 0;
-
-            if (product_can_be_archived == true) {
-                modal_product_actions.find('input[name="archive-action"]').prop("disabled", false);
-                modal_product_actions.find('input[name="archive-action"]').closest("label")
-                    .removeClass("checkbox_action_disabled");
-            } else {
-                modal_product_actions.find('input[name="archive-action"]').prop("disabled", true);
-                modal_product_actions.find('input[name="archive-action"]').closest("label")
-                    .addClass("checkbox_action_disabled");
-            }
-
-            openModal(
-                modal_product_actions.html(),
-                () => {
-                    if (is_time_to('validate_product_actions')) {
-                        commit_actions_on_product(product, modal.find('input'));
-                    }
-                },
-                'Valider',
-                false
-            );
-            modal.find('input[name="minimal_stock"]').val(product.minimal_stock);
-
-        });
+    });
 
     // Associate product to supplier on click on 'X' in the table
     $('#products_table').on('click', 'tbody .product_not_from_supplier', function () {
@@ -2590,6 +2599,28 @@ $(document).ready(function() {
                 panel.style.display = "block";
             }
         });
+
+        if (/Firefox\//.exec(userAgent)) {
+            // needed to prevent bug using number input arrow to change quantity (https://bugzilla.mozilla.org/show_bug.cgi?id=1012818)
+            // Have to capture mousedown and mouseup events, instead of using only click event
+            // Indeed, capturing click only remove the ability to click to have focus on the input to type a number.
+            $(document).on("mousedown", '[type="number"]', function() {
+                const clicked = this;
+                qties_values[$(clicked).attr('id')] = $(clicked).val();
+                
+            });
+            $(document).on("mouseup", '[type="number"]', function() {
+                const clicked = this;
+                try {
+                    if ($(clicked).val() != qties_values[$(clicked).attr('id')]) {
+                        process_new_product_qty(clicked);
+                    }
+                } catch(err) {
+                    console.log(err)
+                }                
+            });
+        }
+       
     } else {
         $('#not_connected_content').show();
     }
