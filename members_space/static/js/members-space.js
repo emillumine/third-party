@@ -147,7 +147,7 @@ function prepare_shift_line_template(date_begin) {
 
     shift_line_template.find(".shift_line_date").text(f_date_shift_start);
     shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
-    
+
     return shift_line_template;
 }
 

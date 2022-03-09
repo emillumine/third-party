@@ -20,7 +20,7 @@ function can_exchange_shifts() {
  * @returns boolean
  */
 function should_select_makeup() {
-    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" &&  block_actions_for_attached_people === "False");
+    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False");
 }
 
 /**
@@ -36,7 +36,7 @@ function add_or_change_shift(new_shift_id) {
                 +'&idPartner=' + partner_data.partner_id
                 + '&shift_type=' + partner_data.shift_type
                 + '&verif_token=' + partner_data.verif_token;
-        } else if(partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
+        } else if (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
             tData = 'idNewShift=' + new_shift_id
                 +'&idPartner=' + partner_data.parent_id
                 + '&shift_type=' + partner_data.shift_type
@@ -101,10 +101,10 @@ function add_or_change_shift(new_shift_id) {
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
 
-                     // Refectch shifts anyway, if registration/exchange was still succesful
+                    // Refectch shifts anyway, if registration/exchange was still succesful
                     setTimeout(() => {
                         load_partner_shifts(partner_data.concerned_partner_id)
-                        .then(init_shifts_list);
+                            .then(init_shifts_list);
                     }, 300);
                 }
             },
