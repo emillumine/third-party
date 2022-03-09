@@ -147,7 +147,7 @@ function prepare_shift_line_template(date_begin) {
 
     shift_line_template.find(".shift_line_date").text(f_date_shift_start);
     shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
-    
+
     return shift_line_template;
 }
 
@@ -158,6 +158,7 @@ function prepare_shift_line_template(date_begin) {
  */
 function init_my_info_data() {
     $(".choose_makeups").off();
+    $(".remove_future_registration").off();
     $(".unsuscribed_form_link").off();
 
     $(".member_shift_name").text(partner_data.regular_shift_name);
@@ -223,6 +224,13 @@ function init_my_info_data() {
         }
     }
 
+    if (partner_data.extra_shift_done > 0) {
+        $(".remove_future_registration").show();
+        $(".remove_future_registration").on('click', () => {
+            goto('echange-de-services');
+        });
+    }
+
     $(".member_coop_number").text(partner_data.barcode_base);
 }
 
@@ -257,7 +265,7 @@ $(document).ready(function() {
     // debouncing function from John Hann
     // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
-        var timeout;
+        var timeout = null;
 
         return function debounced () {
             var obj = this, args = arguments;

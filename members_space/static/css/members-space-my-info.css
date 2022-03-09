@@ -54,6 +54,13 @@
     margin: 3rem 0;
 }
 
+#my_info .choose_makeups,
+#my_info .unsuscribed_form_link,
+#my_info .remove_future_registration {
+    font-size: 1.8rem;
+    word-break: normal;
+}
+
 #my_info #member_status_action,
 #my_info .member_shift_name_area,
 #my_info .member_coop_number_area {
