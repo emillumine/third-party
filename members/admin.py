@@ -415,7 +415,7 @@ def delete_shift_registration(request):
 
 # Gestion des binômes
 
-def get_member_info(request,coop_id):
+def get_member_info(request, id):
     """Retrieve information about a member."""
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
@@ -438,7 +438,8 @@ def get_member_info(request,coop_id):
             'parent_name',
             "makeups_to_do"
         ]
-        member = api.search_read('res.partner', [['barcode_base', '=', coop_id]], fields)
+        cond = [['id', '=', id]]
+        member = api.search_read('res.partner', cond, fields)
 
         if member:
             res['member'] = member[0]
@@ -448,7 +449,6 @@ def get_member_info(request,coop_id):
     else:
         res['message'] = "Unauthorized"
         response = JsonResponse(res, status=403)
-    print(response.content)
     return response
 
 
@@ -476,7 +476,7 @@ def create_pair(request):
             child_id = data['child']['id']
             # create attached account for child
             fields = [
-                # "birthdate",
+                "birthdate",
                 "city",
                 "commercial_partner_id",
                 "company_id",
@@ -498,10 +498,32 @@ def create_pair(request):
                 "street",
                 "street2",
                 "zip",
-                "nb_associated_people"
+                "nb_associated_people",
+                "current_template_name"
             ]
             child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
-            parent = api.search_read('res.partner', [['id', '=', parent_id]], ['commercial_partner_id'])[0]
+            parent = api.search_read('res.partner', [['id', '=', parent_id]],
+                                                    ['commercial_partner_id',
+                                                     'nb_associated_people',
+                                                     'parent_id'])[0]
+            errors = []
+            if child['nb_associated_people'] > 0:
+                # le membre est déjà titulaire d'un binôme
+                errors.append("Le membre suppléant sélectionné est titulaire d'un bînome")
+            # le membre suppléant fait parti du commité?
+            if child['current_template_name'] == "Services des comités":
+                errors.append("Le membre suppléant séléctionné fait parti du comité")
+            # le membre titulaire a déjà un/des suppléants?
+            if parent['nb_associated_people'] >= 1:
+                # On récupère le/s suppléant(s)
+                associated_members = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id', 'age'])
+                # le suppléant est un mineur?
+                for m in associated_members:
+                    if m['age'] > 18:
+                        errors.append("Le membre titulaire sélectionné a déjà un suppléant")
+            if errors:
+                return JsonResponse({"errors": errors}, status=409)
+
             del child["id"]
             for field in child.keys():
                 if field.endswith("_id"):

@@ -15,7 +15,6 @@ const possible_cooperative_state = {
  * Load member infos
  */
 function load_member_infos(divId, memberId) {
-  console.log(memberId)
     $.ajax({
         type: 'GET',
         url: "/members/get_member_info/" + memberId,
@@ -23,14 +22,12 @@ function load_member_infos(divId, memberId) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
-          console.log(data)
-          console.log(divId)
-            if (divId === 'parentInfo') {
-              parentId = data.member.id
-            } else if (divId === 'childInfo') {
-              childId = data.member.id
-            }
-            display_member_infos(divId, data.member)
+          if (divId === 'parentInfo') {
+            parentId = data.member.id
+          } else if (divId === 'childInfo') {
+            childId = data.member.id
+          }
+          display_member_infos(divId, data.member)
         },
         error: function(data) {
             err = {msg: "erreur serveur lors de la récupération des infos du membre", ctx: 'load_member_infos'};
@@ -104,11 +101,14 @@ function display_member_infos(divId, memberData) {
  * Display table of attached members
  */
  function display_attached_members() {
-  if (attached_members_table) {
-    $('#attached_members_table').off();
-    attached_members_table.clear().destroy();
-    $('#attached_members_table').empty();
-  }
+
+  // load_attached_members()
+  // var attached_members_table = $('#attached_members_table')
+  // if (attached_members_table) {
+  //   $('#attached_members_table').off();
+  //   attached_members_table.clear().destroy();
+  //   $('#attached_members_table').empty();
+  // }
 
   attached_members_table = $('#attached_members_table').DataTable({
     data: attached_members,
@@ -208,7 +208,7 @@ $(document).ready(function() {
                 response($.map(data.res, function(item) {
                   return {
                     label: item.barcode_base + ' ' + item.name,
-                    value: item.barcode_base
+                    value: item.id
                   }
                 }))
             },
@@ -229,8 +229,11 @@ $(document).ready(function() {
         },
         minLength: 1,
         select: function( event, ui ) {
+          event.preventDefault();
           if (ui.item) {
             load_member_infos("parentInfo", ui.item.value)
+            $('#search_member_input').val(ui.item.label)
+            return false
           }
         }
       })
@@ -250,7 +253,7 @@ $(document).ready(function() {
                   response($.map(data.res, function(item) {
                     return {
                       label: item.barcode_base + ' ' + item.name,
-                      value: item.barcode_base
+                      value: item.id
                     }
                   }))
               },
@@ -273,6 +276,8 @@ $(document).ready(function() {
           select: function( event, ui ) {
             if (ui.item) {
               load_member_infos("childInfo", ui.item.value)
+              $('#search_child_input').val(ui.item.label)
+              return false
             }
           },
         })
@@ -295,13 +300,15 @@ $(document).ready(function() {
           },
           error: function(data) {
               err = {msg: "erreur serveur", ctx: 'create pair'};
-              if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
-                  err.msg += ' : ' + data.responseJSON.error;
+              if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
+                  err.msg += ' : ' + data.responseJSON.errors;
               }
               report_JS_error(err, 'members.admin');
 
               closeModal();
-              alert('Erreur lors de création du binôme.');
+              var message = 'Erreur lors de création du binôme.'
+              data.responseJSON.errors.map(function(error){ message += ('\n' + error)})
+              alert(message);
           }
         })
       })
