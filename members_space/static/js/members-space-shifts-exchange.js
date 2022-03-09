@@ -20,7 +20,7 @@ function can_exchange_shifts() {
  * @returns boolean
  */
 function should_select_makeup() {
-    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" &&  block_actions_for_attached_people === "False");
+    return partner_data.makeups_to_do > 0 || (partner_data.makeups_to_do > 0 && partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False");
 }
 
 /**
@@ -36,7 +36,7 @@ function add_or_change_shift(new_shift_id) {
                 +'&idPartner=' + partner_data.partner_id
                 + '&shift_type=' + partner_data.shift_type
                 + '&verif_token=' + partner_data.verif_token;
-        } else if(partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
+        } else if (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "False") {
             tData = 'idNewShift=' + new_shift_id
                 +'&idPartner=' + partner_data.parent_id
                 + '&shift_type=' + partner_data.shift_type
@@ -101,10 +101,10 @@ function add_or_change_shift(new_shift_id) {
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
 
-                     // Refectch shifts anyway, if registration/exchange was still succesful
+                    // Refectch shifts anyway, if registration/exchange was still succesful
                     setTimeout(() => {
                         load_partner_shifts(partner_data.concerned_partner_id)
-                        .then(init_shifts_list);
+                            .then(init_shifts_list);
                     }, 300);
                 }
             },
@@ -178,7 +178,9 @@ function init_shifts_list() {
                 shift_line_template.find('.affect_associate_registered').attr('id', 'shift_id_'+shift.id);
                 if (shift.associate_registered==="both") {
                     shift_line_template.find('.affect_associate_registered').text("Les deux");
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                 } else if (shift.associate_registered==="partner") {
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                     if (partner_data.associated_partner_id !== "False") {
                         shift_line_template.find('.affect_associate_registered').text(partner_data.name);
                     } else {
@@ -186,6 +188,7 @@ function init_shifts_list() {
                     }
 
                 } else if (shift.associate_registered==="associate") {
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                     if (partner_data.associated_partner_id !== "False") {
                         shift_line_template.find('.affect_associate_registered').text(partner_data.associated_partner_name);
                     } else {
@@ -193,10 +196,13 @@ function init_shifts_list() {
                     }
                 } else {
                     shift_line_template.find('.affect_associate_registered').text("A déterminer");
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--danger');
                 }
             }
 
             $("#shifts_list").append(shift_line_template.html());
+            shift_line_template.find('.affect_associate_registered').removeClass('btn--danger');
+            shift_line_template.find('.affect_associate_registered').removeClass('btn--success');
         }
 
         $(".selectable_shift_line").on("click", function(e) {

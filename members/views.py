@@ -277,6 +277,9 @@ def record_service_presence(request):
         mid = int(request.POST.get("mid", 0))  # member id
         sid = int(request.POST.get("sid", 0))  # shift id
         stid = int(request.POST.get("stid", 0))  # shift_ticket_id
+        cancel = request.POST.get("cancel") == 'true'
+        typeAction = str(request.POST.get("type"))
+
         app_env = getattr(settings, 'APP_ENV', "prod")
         if (rid > -1 and mid > 0):
             overrided_date = ""
@@ -286,28 +289,31 @@ def record_service_presence(request):
                 if o_date:
                     overrided_date = re.sub(r'(%20)',' ', o_date.group(1))
 
-            # rid = 0 => C'est un rattrapage, sur le service
-            if sid > 0 and stid > 0:
-                # Add member to service and take presence into account
-                res['rattrapage'] = CagetteServices.record_rattrapage(mid, sid, stid)
-                if res['rattrapage'] is True:
-                    res['update'] = 'ok'
-            else:
-                if (CagetteServices.registration_done(rid, overrided_date) is True):
-                    res['update'] = 'ok'
+            if(not cancel):
+                # rid = 0 => C'est un rattrapage, sur le service
+                if sid > 0 and stid > 0:
+                    # Add member to service and take presence into account
+                    res['rattrapage'] = CagetteServices.record_rattrapage(mid, sid, stid, typeAction)
+                    if res['rattrapage'] is True:
+                        res['update'] = 'ok'
                 else:
-                    res['update'] = 'ko'
-            if res['update'] == 'ok':
-                members = CagetteMember.search('id', mid)
-                m = members[0]
-                for k in ['image_medium', 'barcode', 'barcode_base']:
-                    del m[k]
-                next_shift = {}
-                if len(m['shifts']) > 0:
-                    next_shift = m['shifts'][0]
-                    del m['shifts']
-                    m['next_shift'] = next_shift
-                res['member'] = m
+                    if (CagetteServices.registration_done(rid, overrided_date, typeAction) is True):
+                        res['update'] = 'ok'
+                    else:
+                        res['update'] = 'ko'
+                if res['update'] == 'ok':
+                    members = CagetteMember.search('id', mid)
+                    m = members[0]
+                    for k in ['image_medium', 'barcode', 'barcode_base']:
+                        del m[k]
+                    next_shift = {}
+                    if len(m['shifts']) > 0:
+                        next_shift = m['shifts'][0]
+                        del m['shifts']
+                        m['next_shift'] = next_shift
+                    res['member'] = m
+            else: CagetteServices.registration_cancel(rid, overrided_date)
+                
     except Exception as e:
         res['error'] = str(e)
     return JsonResponse({'res': res})
