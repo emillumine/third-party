@@ -689,7 +689,7 @@ $(document).ready(function() {
 
         if (search_str) {
             $.ajax({
-                url: '/members/search/' + search_str,
+                url: '/members/search/' + search_str+ "?search_type=members",
                 dataType : 'json',
                 success: function(data) {
                     members_search_results = [];
