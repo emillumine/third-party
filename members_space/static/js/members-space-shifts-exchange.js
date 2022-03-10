@@ -217,7 +217,7 @@ function delete_shift_registration(shift_registration_id) {
  * @param {string} shift_id
  */
 function affect_shift(partner, shift_id) {
-    if (is_time_to('affect_shift')) {
+    if (is_time_to('affect_shift'),1000) {
         tData = 'idShiftRegistration=' + shift_id
             +'&idPartner=' + partner_data.partner_id
             + '&affected_partner=' + partner
@@ -402,8 +402,8 @@ function init_shifts_list() {
                 modal_template.find("#shift_associate").text(partner_data.associated_partner_name);
 
             } else {
-                modal_template.find("#shift_partner").text(partner_data.name);
-                modal_template.find("#shift_associate").text(partner_data.parent_name);
+                modal_template.find("#shift_partner").text(partner_data.parent_name);
+                modal_template.find("#shift_associate").text(partner_data.name);
             }
 
             openModal(
