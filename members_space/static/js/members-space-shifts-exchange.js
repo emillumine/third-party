@@ -116,17 +116,17 @@ function add_or_change_shift(new_shift_id) {
                 closeModal();
                 selected_shift = null;
 
-                if (error.status === 400 && error.msg === "Old service in less than 24hours.") {
+                if (error.status === 400 && 'msg' in error.responseJSON && error.responseJSON.msg === "Old service in less than 24hours.") {
                     alert(`Désolé ! Le service que tu souhaites échanger démarre dans moins de 24h. ` +
                         `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
                         `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
                         `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
-                } else if (error.status === 500 && error.msg === "Fail to create shift") {
+                } else if (error.status === 500 && 'msg' in error.responseJSON && error.responseJSON.msg === "Fail to create shift") {
                     // TODO differentiate error cases!
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
-                } else if (error.status === 400 && error.msg === "Bad arguments") {
+                } else if (error.status === 400 && 'msg' in error.responseJSON && error.responseJSON.msg === "Bad arguments") {
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
