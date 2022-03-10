@@ -217,6 +217,19 @@ td{
     color: white;
 }
 
+.fc-event.shift_booked_makeup {
+    background-color: #f0ad4e;
+    cursor: auto;
+    border-color: #f0ad4e;
+}
+.fc-event.shift_booked_makeup td {
+    --fc-list-event-hover-bg-color:#f0ad4e;
+}
+
+.fc-list-event.shift_booked_makeup {
+    color: white;
+}
+
 #calendar .fc-list-table {
     table-layout: auto;
 }

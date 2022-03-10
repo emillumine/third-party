@@ -116,17 +116,17 @@ function add_or_change_shift(new_shift_id) {
                 closeModal();
                 selected_shift = null;
 
-                if (error.status === 400 && error.msg === "Old service in less than 24hours.") {
+                if (error.status === 400 && 'msg' in error.responseJSON && error.responseJSON.msg === "Old service in less than 24hours.") {
                     alert(`Désolé ! Le service que tu souhaites échanger démarre dans moins de 24h. ` +
                         `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
                         `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
                         `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
-                } else if (error.status === 500 && error.msg === "Fail to create shift") {
+                } else if (error.status === 500 && 'msg' in error.responseJSON && error.responseJSON.msg === "Fail to create shift") {
                     // TODO differentiate error cases!
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
-                } else if (error.status === 400 && error.msg === "Bad arguments") {
+                } else if (error.status === 400 && 'msg' in error.responseJSON && error.responseJSON.msg === "Bad arguments") {
                     alert(`Une erreur est survenue. ` +
                         `Il est néanmoins possible que la requête ait abouti, ` +
                         `veuillez patienter quelques secondes puis vérifier vos services enregistrés.`);
@@ -306,17 +306,23 @@ function init_shifts_list() {
             shift_line_template.find(".shift_line_time").text(datetime_shift_start.toLocaleTimeString("fr-fr", time_options));
 
             // Disable or not
+            shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
+            shift_line_template.find(".selectable_shift_line").removeClass("btn");
+            shift_line_template.find(".selectable_shift_line").removeClass("btn--warning");
             if (!can_exchange_shifts() && block_actions_for_attached_people === "True") {
-                shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
                 shift_line_template.find(".checkbox").prop("disabled", "disabled");
             } else {
-                shift_line_template.find(".selectable_shift_line").removeClass("btn");
-                shift_line_template.find(".selectable_shift_line").addClass("btn--primary");
-                shift_line_template.find(".checkbox").prop("disabled", false);
-                shift_line_template.find(".checkbox").prop("value", shift.id);
+                if (shift.is_makeup==true) {
+                    shift_line_template.find(".selectable_shift_line").addClass("btn--warning");
+                    shift_line_template.find(".checkbox").prop("disabled", false);
+                    shift_line_template.find(".checkbox").prop("value", shift.id);
+                } else {
+                    shift_line_template.find(".selectable_shift_line").addClass("btn--primary");
+                    shift_line_template.find(".checkbox").prop("disabled", false);
+                    shift_line_template.find(".checkbox").prop("value", shift.id);
+                }
             }
-
             // Set assign shift button
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_registered').hide();
@@ -531,7 +537,7 @@ function init_calendar_page() {
         hiddenDays: hidden_days,
         events: '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id,
         eventClick: function(info) {
-            if (!$(info.el).hasClass("shift_booked")) {
+            if (!$(info.el).hasClass("shift_booked") && !$(info.el).hasClass("shift_booked_makeup")) {
                 const new_shift_id = info.event.id;
 
                 // Set new shift
@@ -795,9 +801,9 @@ function init_shifts_exchange() {
     $(window).smartresize(function() {
         // only apply if a width threshold is passed
         if (
-            vw > 992 && window.innerWidth <= 992 || 
-            vw <= 992 && window.innerWidth > 992 || 
-            vw > 768 && window.innerWidth <= 768 || 
+            vw > 992 && window.innerWidth <= 992 ||
+            vw <= 992 && window.innerWidth > 992 ||
+            vw > 768 && window.innerWidth <= 768 ||
             vw <= 768 && window.innerWidth > 768
         ) {
             vw = window.innerWidth;
