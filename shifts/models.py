@@ -45,10 +45,12 @@ class CagetteShift(models.Model):
             partnerData = partnerData[0]
             if partnerData['is_associated_people']:
                 cond = [['id', '=', partnerData['parent_id'][0]]]
-                fields = ['create_date', 'extra_shift_done']
+                fields = ['create_date', 'makeups_to_do', 'date_delay_stop', 'extra_shift_done']
                 parentData = self.o_api.search_read('res.partner', cond, fields, 1)
                 if parentData:
                     partnerData['parent_create_date'] = parentData[0]['create_date']
+                    partnerData['parent_makeups_to_do'] = parentData[0]['makeups_to_do']
+                    partnerData['parent_date_delay_stop'] = parentData[0]['date_delay_stop']
                     partnerData['parent_extra_shift_done'] = parentData[0]['extra_shift_done']
 
             if partnerData['shift_type'] == 'standard':

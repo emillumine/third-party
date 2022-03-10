@@ -131,6 +131,70 @@ function update_content() {
 /* - Shifts */
 
 /**
+ * Request a 6 month delay
+ */
+function request_delay() {
+    return new Promise((resolve) => {
+        let today = new Date();
+
+        const delay_start = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+
+        let today_plus_six_month = new Date();
+
+        today_plus_six_month.setMonth(today_plus_six_month.getMonth()+6);
+        const diff_time = Math.abs(today_plus_six_month - today);
+        const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
+
+        $.ajax({
+            type: 'POST',
+            url: "/shifts/request_delay",
+            dataType:"json",
+            data: {
+                verif_token: (partner_data.is_associated_people === "True") ? partner_data.parent_verif_token : partner_data.verif_token,
+                idPartner: partner_data.concerned_partner_id,
+                start_date: delay_start,
+                duration: diff_days
+            },
+            success: function() {
+                partner_data.cooperative_state = 'delay';
+                partner_data.date_delay_stop = today_plus_six_month.getFullYear()+'-'+(today_plus_six_month.getMonth()+1)+'-'+today_plus_six_month.getDate();
+
+                resolve();
+            },
+            error: function(data) {
+                if (data.status == 403
+                        && typeof data.responseJSON != 'undefined'
+                        && data.responseJSON.message === "delays limit reached") {
+                    closeModal();
+
+                    let msg_template = $("#cant_have_delay_msg_template");
+
+                    openModal(
+                        msg_template.html(),
+                        () => {
+                            window.location =member_cant_have_delay_form_link;
+                        },
+                        "J'accède au formulaire",
+                        true,
+                        false
+                    );
+                } else {
+                    err = {msg: "erreur serveur lors de la création du délai", ctx: 'request_delay'};
+                    if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                        err.msg += ' : ' + data.responseJSON.error;
+                    }
+                    report_JS_error(err, 'members_space.home');
+
+                    closeModal();
+                    alert('Erreur lors de la création du délai.');
+                }
+
+            }
+        });
+    });
+}
+
+/**
  * Prepare a shift line to insert into the DOM.
  * Is used in: Home - My Shifts tile ; My Shifts - Incoming shifts section
  *
@@ -200,7 +264,6 @@ function init_my_info_data() {
 
     if (
         partner_data.makeups_to_do > 0
-        && partner_data.is_associated_people === "False"
         && partner_data.cooperative_state !== 'unsubscribed'
     ) {
         $(".choose_makeups").show();
@@ -235,8 +298,6 @@ function init_my_info_data() {
 }
 
 $(document).ready(function() {
-    // TODO essayer de ne charger les js que au besoin
-
     $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
 
     // If partner is associated (attached), display the pair's main partner shift data
@@ -250,7 +311,6 @@ $(document).ready(function() {
 
     // For associated people, their parent name is attached in their display name
     let partner_name_split = partner_data.name.split(', ');
-
     partner_data.name = partner_name_split[partner_name_split.length - 1];
 
     base_location = (app_env === 'dev') ? '/members_space/' : '/';
