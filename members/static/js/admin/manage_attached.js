@@ -73,7 +73,6 @@ function display_member_infos(divId, memberData) {
  * Load attached members
  */
  function load_attached_members() {
-  console.log(get_attached_members)
   $.ajax({
     type: 'GET',
     url: "/members/get_attached_members",
@@ -130,6 +129,17 @@ function display_member_infos(divId, memberData) {
         {
             data: "name",
             title: "en binôme avec",
+        },
+        {
+            data: "action",
+            title: "Action",
+            width: "10%",
+            render: function (data, type, full) {
+              return `
+              <button class="delete_pair btn--danger" id="delete_pair_${full.id}">
+                Désolidariser
+              </button>`;
+            }
         }
     ],
     aLengthMenu: [
@@ -173,10 +183,35 @@ function display_member_infos(divId, memberData) {
                 "1": "1 ligne séléctionnée"
             }
         }
-    }
+    },
+
   });
+
 }
 
+
+function delete_pair(childId) {
+  var payload = {"child": {"id": childId}}
+
+  $.ajax({
+    type: "POST",
+    url: '/members/admin/manage_attached/delete_pair',
+    dataType: 'json',
+    contentType: "application/json; charset=utf-8",
+    data: JSON.stringify(payload),
+    success: function() {alert("binôme désolidarisé")},
+    error: function(data) {
+        err = {msg: "erreur serveur lors de la récupération des membres avec rattrapage", ctx: 'load_makeups_members'};
+        if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+            err.msg += ' : ' + data.responseJSON.error;
+        }
+        report_JS_error(err, 'orders');
+
+        closeModal();
+        alert('Erreur serveur lors de la désolidarisation du binôme. Ré-essayez plus tard.');
+    }
+  })
+}
 
 $(document).ready(function() {
     if (coop_is_connected()) {
@@ -307,7 +342,6 @@ $(document).ready(function() {
           contentType: "application/json; charset=utf-8",
           data: JSON.stringify(payload),
           success: function(data) {
-            console.log(data)
             alert("binôme créé")
           },
           error: function(data) {
@@ -323,5 +357,14 @@ $(document).ready(function() {
               alert(message);
           }
         })
-      })
+      });
+
+      if ($("#attached_members_table") != "undefined") {
+        load_attached_members()
+      }
+
+      $(document).on('click', '.delete_pair', function (event) {
+          var childId = event.target.id.split('_').slice(-1)[0]
+          delete_pair(childId)
+        })
     })
