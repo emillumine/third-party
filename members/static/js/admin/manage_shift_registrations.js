@@ -88,17 +88,29 @@ function display_member_shifts() {
             "sLoadingRecords": "Chargement en cours...",
             "sZeroRecords":    "Aucun &eacute;l&eacute;ment &agrave; afficher",
             "sEmptyTable":     "Aucun futur service pour ce.tte membre"
-        }
+        },
+        createdRow: function(row, rdata) {
+            if (rdata.is_makeup === true) {
+                $(row).addClass("makeup_row");
+                $(row).prop('title', 'Ce service est un rattrapage');
+            }
+        },
     });
 
     $('#member_shifts_table').on('click', 'tbody td .delete_shift_registration', function () {
         const row_data = member_shifts_table.row($(this).parents('tr')).data();
         const shift_reg_id = row_data.id;
+        const shift_is_makeup = row_data.is_makeup;
+
+        let msg = `<p>Enlever la présence de <b>${member.name}</b> au service du <b>${row_data.shift_id[1]}</b> ?</p>`;
+        if (shift_is_makeup === true) {
+            msg += `<p><i class="fas fa-exclamation-triangle"></i> Ce service est un rattrapage. Le supprimer ajoutera un point au compteur de ce.tte membre.</p>`;
+        } 
 
         openModal(
-            `Enlever la présence de ${member.name} au service du ${row_data.shift_id[1]} ?`,
+            msg,
             () => {
-                delete_shift_registration(shift_reg_id);
+                delete_shift_registration(shift_reg_id, shift_is_makeup);
             },
             "Confirmer",
             false
@@ -109,13 +121,16 @@ function display_member_shifts() {
 /**
  * Send request to delete shift registration
  * @param {Int} shift_reg_id Id of the shift_registration to delete
+ * @param {Boolean} shift_is_makeup Is the shift a makeup?
  */
-function delete_shift_registration(shift_reg_id) {
+function delete_shift_registration(shift_reg_id, shift_is_makeup) {
     openModal();
 
     data = {
         member_id: selected_member.id,
-        shift_registration_id: shift_reg_id
+        member_shift_type: selected_member.shift_type,
+        shift_registration_id: shift_reg_id,
+        shift_is_makeup: shift_is_makeup
     };
 
     $.ajax({
