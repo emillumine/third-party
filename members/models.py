@@ -26,8 +26,7 @@ class CagetteMember(models.Model):
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
 
-    m_shoft_default_fields = ['name', 'barcode_base', 'total_partner_owned_share',
-                      'amount_subscription']
+    m_short_default_fields = ['name', 'barcode_base']
 
     def __init__(self, id):
         """Init with odoo id."""
@@ -96,7 +95,6 @@ class CagetteMember(models.Model):
 
 # # # BDM
     def save_partner_info(self, partner_id, fieldsDatas):
-        print(fieldsDatas)
         return self.o_api.update('res.partner', partner_id,  fieldsDatas)
 
 
@@ -775,8 +773,26 @@ class CagetteMember(models.Model):
                         members.append(m)
 
             return CagetteMember.add_next_shifts_to_members(members)
+        elif search_type == "shift_template_data":
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['id', 'makeups_to_do', 'cooperative_state']
+            res = api.search_read('res.partner', cond, fields)
+
+            if res:
+                c = [['partner_id', '=', int(res[0]['id'])]]
+                f = ['shift_template_id']
+                shift_template_reg = api.search_read('shift.template.registration', c, f)
+
+                if shift_template_reg:
+                    res[0]['shift_template_name'] = shift_template_reg[0]['shift_template_id'][1]
+                else:
+                    res[0]['shift_template_name'] = None
+
+            return res
         else:
-            fields = CagetteMember.m_shoft_default_fields
+            # TODO differentiate short & subscription_data searches
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['total_partner_owned_share','amount_subscription']
             res = api.search_read('res.partner', cond, fields)
             return res
 

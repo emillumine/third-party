@@ -1,3 +1,27 @@
+var selected_member = null,
+    possible_cooperative_state = {
+        suspended: "Rattrapage",
+        exempted: "Exempté.e",
+        alert: "En alerte",
+        up_to_date: "À jour",
+        unsubscribed: "Désinscrit.e des créneaux",
+        delay: "En délai",
+        gone: "Parti.e"
+    };
+
+/**
+ * When a member is selected, display the selected member relevant info
+ */
+function display_member_info() {
+    $('.member_name').text(`${selected_member.barcode_base} - ${selected_member.name}`);
+    $('.member_shift').text(selected_member.shift_template_name);
+    $('.member_status').text(possible_cooperative_state[selected_member.cooperative_state]);
+    $('.member_makeups').text(selected_member.makeups_to_do);
+
+    $('#search_member_input').val();
+    $('#partner_data_area').css('display', 'flex');
+}
+
 /**
  * Display the members from the search result
  */
@@ -27,8 +51,7 @@
             for (member of members_search_results) {
                 if (member.id == $(this).attr('member_id')) {
                     selected_member = member;
-
-                    // TODO display member
+                    display_member_info();
 
                     $('.search_member_results').empty();
                     $('.search_member_results_area').hide();
@@ -51,7 +74,6 @@
 $(document).ready(function() {
     if (coop_is_connected()) {
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-
         $(".page_content").show();
     } else {
         $(".page_content").hide();
@@ -67,18 +89,16 @@ $(document).ready(function() {
         let search_str = $('#search_member_input').val();
 
         $.ajax({
-            url: '/members/search/' + search_str,
+            url: `/members/search/${search_str}?search_type=shift_template_data`,
             dataType : 'json',
             success: function(data) {
-                members_search_results = [];
-
-                for (member of data.res) {
-                    if (member.is_member || member.is_associated_people) {
-                        members_search_results.push(member);
-                    }
+                if (data.res.length === 1) {
+                    selected_member = data.res[0];
+                    display_member_info();
+                } else {
+                    members_search_results = data.res;
+                    display_possible_members();
                 }
-
-                display_possible_members();
             },
             error: function() {
                 err = {

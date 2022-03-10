@@ -50,3 +50,26 @@
 .btn_possible_member {
     margin: 0.5rem 1rem;
 }
+
+/* Member info area */
+#partner_data_area {
+    width: 80%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 30px;
+    margin: 30px auto;
+    padding: 15px;
+    box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
+}
+
+.member_name_container {
+    margin: 1rem 0 2rem 0;
+}
+.member_name_icon {
+    color: #00a573;
+    margin-right: 5px;
+}
+.member_info {
+    font-weight: bold;
+}
