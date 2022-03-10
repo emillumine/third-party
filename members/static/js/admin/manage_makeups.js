@@ -69,6 +69,19 @@ function display_makeups_members() {
                 title: "Nom"
             },
             {
+                data: "shift_type",
+                title: "Type",
+                className: "dt-body-center",
+                width: "10%",
+                render: function (data, type, full) {
+                    if (data == 'ftop') {
+                        return 'display_ftop_points'
+                    } else if (data == 'standard') {
+                        return 'display_std_points' 
+                    }
+                }
+            },
+            {
                 data: "display_std_points",
                 title: "Nb points service",
                 className: "dt-body-center",
