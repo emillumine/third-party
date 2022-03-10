@@ -92,12 +92,18 @@ function new_coop_validation() {
 
     coop_registration_details.find('.shift_template').text(st);
     process_state.html(current_coop.firstname + ' ' +current_coop.lastname);
-    get_next_shift(current_coop.shift_template.data.id, function(data) {
-        if (data != null)
-            coop_registration_details.find('.next_shift').text(data.date_begin);
+    if (coop.shift_template.data && coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
+        get_next_shift(current_coop.shift_template.data.id, function(data) {
+            if (data != null) {
+                coop_registration_details.find('#next_shift_registration_detail').show();
+                coop_registration_details.find('.next_shift').text(data.date_begin);
+            }
+            coop_registration_details.show();
+        });
+    } else {
+        coop_registration_details.find('#next_shift_registration_detail').hide();
         coop_registration_details.show();
-    });
-
+    }
 }
 
 function reset_sex_radios() {
@@ -210,6 +216,7 @@ function _really_save_new_coop(email, fname, lname, cap, pm, cn, bc, msex) {
                 );
             } else if (coop.is_associated_people && typeof coop.shift_template != "undefined" && coop.shift_template.data.id == ASSOCIATE_MEMBER_SHIFT) {
                 ncoop_view.hide();
+                new_coop_validation();
             } else {
                 swipe_to_shift_choice();
             }
