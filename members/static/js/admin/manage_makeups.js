@@ -70,28 +70,16 @@ function display_makeups_members() {
             },
             {
                 data: "shift_type",
-                title: "Type",
+                title: "Nb de points",
                 className: "dt-body-center",
                 width: "10%",
-                render: function (data, type, full) {
+                render: function (data, type, row) {
                     if (data == 'ftop') {
-                        return 'display_ftop_points'
+                        return row.display_ftop_points
                     } else if (data == 'standard') {
-                        return 'display_std_points' 
+                        return row.display_std_points 
                     }
                 }
-            },
-            {
-                data: "display_std_points",
-                title: "Nb points service",
-                className: "dt-body-center",
-                width: "10%",
-            },
-            {
-                data: "display_ftop_points",
-                title: "Nb points comité",
-                className: "dt-body-center",
-                width: "10%",
             },
             {
                 data: "makeups_to_do",
