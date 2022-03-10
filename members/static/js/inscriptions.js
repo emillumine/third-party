@@ -687,7 +687,7 @@ function display_possible_members() {
 
 
 /**
- * Search for member
+ * Search for members to associate a new member with an old one. 
  */
 function searchMembersForAssociate() {
     let search_str = $('#search_member_input').val();
