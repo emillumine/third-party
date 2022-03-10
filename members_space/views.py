@@ -102,6 +102,8 @@ def index(request, exception=None):
                 partnerData['makeups_to_do'] = partnerData['parent_makeups_to_do']
                 partnerData['date_delay_stop'] = partnerData['parent_date_delay_stop']
                 partnerData['can_have_delay'] = cs.member_can_have_delay(int(partnerData["parent_id"]))
+                partnerData['extra_shift_done'] = partnerData["parent_extra_shift_done"]
+
             else:
                 partnerData["parent_name"] = False
                 partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
@@ -234,5 +236,14 @@ def get_shifts_history(request):
     offset = int(request.GET.get('offset'))
     date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
     res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
+
+    return JsonResponse(res)
+
+def offer_extra_shift(request):
+    res = {}
+    partner_id = int(request.POST['partner_id'])
+
+    m = CagetteMember(partner_id)
+    res = m.update_extra_shift_done(0)
 
     return JsonResponse(res)

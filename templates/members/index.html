@@ -178,9 +178,23 @@
         <section id="service_validation" class="col-6 grid-6 has-gutter">
             <div class="col-2"></div>
             <a class="col-2 btn present">{{CONFIRME_PRESENT_BTN|safe}}</a>
-            <span class="loading2"><img width="75" src="/static/img/Pedro_luis_romani_ruiz.gif" alt="Chargement en cours...." /></span>
-            <div class="col-2"></div>
+            <div class="col-2 loading2-container">
+              <span class="loading2"><img width="75" src="/static/img/Pedro_luis_romani_ruiz.gif" alt="Chargement en cours...." /></span>
+            </div>
         </section>
+        <div id="associated_service_validation">
+          <p class="col-6 txtcenter">Qui est présent à ce service ?</p>
+          <section class="col-6 grid-5 has-gutter">
+            <div class="col-1"></div>
+            <a id="associated_btn" class=" btn present">Membre</a>
+            <a id="partner_btn" class=" btn present">Associé</a>
+            <a id="both_btn" class=" btn present">Les deux</a>
+            <div class="col-1 loading2-container">
+              <span class="loading2"><img width="75" src="/static/img/Pedro_luis_romani_ruiz.gif" alt="Chargement en cours...." /></span>
+            </div>
+          </section>
+        </div>
+        
     </div>
     <div class="col-2"></div>
     <a class="btn col-2 return" data-next="service_entry">Retour</a>

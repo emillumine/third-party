@@ -38,6 +38,10 @@
     padding-top: 0.755em;
 }
 
+.makeup_row {
+    background-color: #ffc854 !important;
+}
+
 /* Search membres area */
 #search_member_area {
     margin-top: 30px;
