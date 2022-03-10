@@ -385,14 +385,24 @@ def delete_shift_registration(request):
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
         data = json.loads(request.body.decode())
-        shift_registration_id = int(data["shift_registration_id"])
         member_id = int(data["member_id"])
-
-        m = CagetteShift()
-        res["res"] = m.cancel_shift([shift_registration_id])
+        shift_registration_id = int(data["shift_registration_id"])
+        shift_is_makeup = data["shift_is_makeup"]
 
         # Note: 'upcoming_registration_count' in res.partner won't change because the _compute method
         #       in odoo counts canceled shift registrations.
+        m = CagetteShift()
+        res["cancel_shift"] = m.cancel_shift([shift_registration_id])
+
+        if shift_is_makeup is True:
+            fields = {
+                'name': "Admin BDM - Suppression d'un rattrapage",
+                'shift_id': False,
+                'type': data["member_shift_type"],
+                'partner_id': member_id,
+                'point_qty': 1
+            }
+            res["update_counter"] = m.update_counter_event(fields)
 
         response = JsonResponse(res, safe=False)
     else:

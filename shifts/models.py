@@ -368,3 +368,7 @@ class CagetteShift(models.Model):
     def member_can_have_delay(self, partner_id):
         """ Can a member have a delay? """
         return self.o_api.execute('res.partner', 'can_have_extension', [partner_id])
+
+    def update_counter_event(self, fields):
+        """ Add/remove points """
+        return self.o_api.create('shift.counter.event', fields)
