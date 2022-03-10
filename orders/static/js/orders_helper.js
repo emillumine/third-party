@@ -258,16 +258,22 @@ function add_product() {
     return 0;
 }
 function compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days) {
-    let purchase_qty_for_coverage = null;
+    let purchase_qty_for_coverage = 0,
+        purchase_package_qty_for_coverage = 0;
 
-    purchase_qty_for_coverage = days * daily_conso - stock - incoming_qty + product.minimal_stock;
-    purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+    if (stock == 0 && daily_conso == 0) {
+        purchase_package_qty_for_coverage = 1;
 
-    // Reduce to nb of packages to purchase
-    purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+    } else {
+        purchase_qty_for_coverage = days * daily_conso - stock - incoming_qty + product.minimal_stock;
+        purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
 
-    if (coeff != 1) {
-        purchase_package_qty_for_coverage *= coeff;
+        // Reduce to nb of packages to purchase
+        purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+
+        if (coeff != 1) {
+            purchase_package_qty_for_coverage *= coeff;
+        }
     }
     // return Round up to unit for all products
     return Math.ceil(purchase_package_qty_for_coverage);
