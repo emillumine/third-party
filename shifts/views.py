@@ -101,8 +101,11 @@ def get_list_shift_calendar(request, partner_id):
     use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
 
     listRegisterPartner = []
+    listMakeUpShift = []
     for v in registerPartner:
         listRegisterPartner.append(v['id'])
+        if v['is_makeup']:
+            listMakeUpShift.append(v['id'])
 
     start = request.GET.get('start')
     end = request.GET.get('end')
@@ -136,7 +139,10 @@ def get_list_shift_calendar(request, partner_id):
 
                 if len(l) > 0:
                     if use_new_members_space is True:
-                        event["classNames"] = ["shift_booked"]
+                        if set(value['registration_ids']) & set(listRegisterPartner) & set(listMakeUpShift):
+                            event["classNames"] = ["shift_booked_makeup"]
+                        else : 
+                            event["classNames"] = ["shift_booked"]
                     else:
                         event["className"] = "shift_booked"
                     event["changed"] = False
