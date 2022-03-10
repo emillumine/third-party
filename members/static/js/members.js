@@ -286,7 +286,7 @@ function fill_service_entry(s) {
             var li_class = "btn";
             var li_data = "";
 
-            if (e.state == "done") {
+            if (e.state == "done" && coop_is_connected()) {
                 li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
                 li_class += "--inverse";
                 if (e.is_late == true) {
@@ -294,6 +294,12 @@ function fill_service_entry(s) {
                 }
                 if (e.associate_registered=='both') {
                     li_class += " both";
+                }
+            } else if (e.state == "done" && !coop_is_connected()) {
+                li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
+                li_class += "--inverse not_connected";
+                if (e.is_late == true) {
+                    li_class += " late";
                 }
             } else {
                 li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
@@ -698,11 +704,13 @@ shift_members.on("click", '.btn[data-rid]', function() {
 });
 
 shift_members.on("click", '.btn--inverse', function() {
-    var clicked = $(this);
-    var rid = clicked.data('rid');
-    var mid = clicked.data('mid');
+    if (coop_is_connected()) {
+        var clicked = $(this);
+        var rid = clicked.data('rid');
+        var mid = clicked.data('mid');
 
-    cancel_service_presence(mid, rid);
+        cancel_service_presence(mid, rid);
+    }
 });
 
 pages.shopping_entry.on('css', function() {
