@@ -352,7 +352,7 @@ function init_shifts_list() {
                 if (shift_line_template.find(".delete_registration_button").length === 0) {
                     let delete_reg_button_template = $("#delete_registration_button_template");
 
-                    shift_line_template.find(".shift_line_container").append(delete_reg_button_template.html());
+                    shift_line_template.find(".shift_line_extra_actions").append(delete_reg_button_template.html());
                 }
             } else {
                 shift_line_template.find(".delete_registration_button").remove();
@@ -470,7 +470,7 @@ function init_calendar_page() {
 
     if (partner_data.extra_shift_done > 0) {
         $(".extra_shift_done").text(partner_data.extra_shift_done);
-        $("#can_delete_future_registrations_area").show();
+        $("#can_delete_future_registrations_area").css('display', 'flex');
 
         $("#offer_extra_shift").on("click", () => {
             openModal(
