@@ -32,6 +32,7 @@
                   <h4>Rechercher le.a coopérateur.ice titulaire</h4>
                   <form autocomplete="off" id="search_member_form" class="search_member_form" action="javascript:;" method="post">
                     <input name="searchParent" type="text" id="search_member_input" value="" placeholder="Nom ou numéro du coop..." required>
+                    <img id="spinner1" class="spinner" src="{% static 'img/Loading_2.gif' %}" alt="loading" style="display:none;">
                   </form>
               </div>
               <div id="parentInfo" style="display:none;">
@@ -68,6 +69,7 @@
                   <h4>Rechercher le.a coopérateur.ice suppléant.e</h4>
                   <form autocomplete="off" id="search_member_form_child" class="search_member_form" action="javascript:;" method="post">
                     <input name="searchChild" type="text" id="search_child_input" value="" placeholder="Nom ou numéro du coop..." required>
+                    <img id="spinner2" class="spinner" src="{% static 'img/Loading_2.gif' %}" alt="loading" style="display:none;">
                   </form>
               </div>
               <div id="childInfo" style="display:none;">

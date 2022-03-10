@@ -228,6 +228,12 @@ $(document).ready(function() {
           )
         },
         minLength: 1,
+        search: function(event, ui) {
+          $('#spinner1').show();
+        },
+        response: function(event, ui) {
+          $('#spinner1').hide();
+        },
         select: function( event, ui ) {
           event.preventDefault();
           if (ui.item) {
@@ -273,6 +279,12 @@ $(document).ready(function() {
             )
           },
           minLength: 1,
+          search: function(event, ui) {
+            $('#spinner2').show();
+          },
+          response: function(event, ui) {
+            $('#spinner2').hide();
+          },
           select: function( event, ui ) {
             if (ui.item) {
               load_member_infos("childInfo", ui.item.value)
