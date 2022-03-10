@@ -1303,7 +1303,7 @@ class CagetteServices(models.Model):
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
-    def registration_cancel(registration_id, overrided_date=""):
+    def reopen_registration(registration_id, overrided_date=""):
         
         api = OdooAPI()
         f = {'state': 'open'}

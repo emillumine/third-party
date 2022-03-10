@@ -318,7 +318,7 @@ def record_service_presence(request):
                         del m['shifts']
                         m['next_shift'] = next_shift
                     res['member'] = m
-            else: CagetteServices.registration_cancel(rid, overrided_date)
+            else: CagetteServices.reopen_registration(rid, overrided_date)
                 
     except Exception as e:
         res['error'] = str(e)
