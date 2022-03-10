@@ -68,8 +68,7 @@ function prepare_server_data(data) {
 
         if (history_item.associate_registered == false || history_item.associate_registered == undefined) {
             history_item.associate_registered = "";
-        }
-        else {
+        } else {
             if (partner_data.associated_partner_id != "False") {
                 if (history_item.associate_registered==="partner") {
                     history_item.associate_registered = partner_data.name;

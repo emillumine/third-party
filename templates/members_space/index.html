@@ -36,7 +36,7 @@
     </div>
 
     <div id="selectable_shift_line_template">
-      <div class="d-flex selectable_shift">
+      <div class="d-flex shift_line_container selectable_shift">
         <div class="selectable_shift_line btn--primary">
           <input type="checkbox" class="checkbox">
           <div class="selectable_shift_line_text">
@@ -48,6 +48,10 @@
         </div>
       </div>
     </div>
+    
+    <div id="delete_registration_button_template">
+      <div class="delete_registration_button"><i class="fas fa-lg fa-trash"></i></div>
+    </div>
 
     <div id="modal_affect_shift">
       <div>Qui sera présent.e ?</div>
@@ -58,7 +62,6 @@
       <div id="shift_both" class=" btn--primary">
         Les deux
       </div>
-      
     </div>
 
     <div id="modal_shift_exchange_template">
@@ -140,7 +143,8 @@
     "associated_partner_name" : "{{partnerData.associated_partner_name}}",
     "verif_token" : "{{partnerData.verif_token}}",
     "leave_stop_date": "{{partnerData.leave_stop_date}}",
-    "comite": "{{partnerData.comite}}"
+    "comite": "{{partnerData.comite}}",
+    "extra_shift_done": parseInt("{{partnerData.extra_shift_done}}", 10)
   };
   var block_actions_for_attached_people = '{{block_actions_for_attached_people}}';
 </script>

@@ -13,6 +13,7 @@ import pytz
 import locale
 import re
 import dateutil.parser
+from datetime import date
 
 
 
@@ -350,6 +351,23 @@ class CagetteMember(models.Model):
         return answer
 
     @staticmethod
+    def is_associated(id_parent):
+        api = OdooAPI()
+        cond = [['parent_id', '=', int(id_parent)]]
+        fields = ['id','name','parent_id','birthdate']
+        res = api.search_read('res.partner', cond, fields, 10, 0, 'id DESC')
+        already_have_adult_associated = False
+        for partner in res:
+            birthdate = partner['birthdate']
+            if(birthdate):
+                today = date.today()
+                date1 = datetime.datetime.strptime(birthdate, "%Y-%m-%d")
+                age = today.year - date1.year - ((today.month, today.day) < (date1.month, date1.day))
+                if age > 17 :
+                    already_have_adult_associated = True
+        return already_have_adult_associated
+
+    @staticmethod
     def finalize_coop_creation(post_data):
         """ Update coop data. """
         res = {}
@@ -505,13 +523,36 @@ class CagetteMember(models.Model):
                                 m.create_capital_subscription_invoice(post_data['shares_euros'], today)
                             res['bc'] = m.generate_base_and_barcode(post_data)
 
-                            # Create shift suscription
-                            shift_template = json.loads(post_data['shift_template'])
-                            shift_t_id = shift_template['data']['id']
-                            stype = shift_template['data']['type']
-                            res['shift'] = \
-                                m.create_coop_shift_subscription(shift_t_id, stype)
-                            # m.add_first_point(stype) # Not needed anymore
+                            # if the new member is associated with an already existing member 
+                            # then we put the state in "associated" and we create the "associated" member
+                            if 'is_associated_people' in post_data and 'parent_id' in post_data :
+                                fields = {}
+                                fields['cooperative_state'] = 'associated'
+                                api.update('res.partner', [partner_id], fields)
+                                associated_member = {
+                                    'email': post_data['_id'],
+                                    'name': name,
+                                    'birthdate': birthdate,
+                                    'sex': sex,
+                                    'street': post_data['address'],
+                                    'zip': post_data['zip'],
+                                    'city': post_data['city'],
+                                    'phone': format_phone_number(post_data['mobile']), # Because list view default show Phone and people mainly gives mobile
+                                    'barcode_rule_id': settings.COOP_BARCODE_RULE_ID,
+                                    'parent_id' : post_data['parent_id'],
+                                    'is_associated_people': True
+                                    }
+                                associated_member_id = api.create('res.partner', associated_member)
+                            # If it's an new associated member with a new partner. Link will be made by the user in BDM/admin
+                            # We add the associated member to the "associate" shift template so we can find them in Odoo
+                            elif 'is_associated_people' not in post_data or 'is_associated_people' in post_data and 'parent_id' not in post_data:
+                                # Create shift suscription if is not associated
+                                shift_template = json.loads(post_data['shift_template'])
+                                shift_t_id = shift_template['data']['id']
+                                stype = shift_template['data']['type']
+                                res['shift'] = \
+                                    m.create_coop_shift_subscription(shift_t_id, stype)
+                                # m.add_first_point(stype) # Not needed anymore
 
                             # Update couchdb do with new data
                             try:
@@ -856,6 +897,19 @@ class CagetteMember(models.Model):
         res = {}
 
         f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
+        res_item = api.update('res.partner', [self.id], f)
+        res = {
+            'mid': self.id,
+            'update': res_item
+        }
+
+        return res
+
+    def update_extra_shift_done(self, value):
+        api = OdooAPI()
+        res = {}
+
+        f = { 'extra_shift_done': value }
         res_item = api.update('res.partner', [self.id], f)
         res = {
             'mid': self.id,

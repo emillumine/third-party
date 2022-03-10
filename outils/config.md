@@ -129,6 +129,10 @@
 
         La Cagette use False to implement custom rules
 
+- ASSOCIATE_MEMBER_SHIFT = ''
+
+        Id number of the associate shift template
+
 ### Scales and labels files generation
 
 - DAV_PATH = '/data/dav/cagette'

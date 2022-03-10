@@ -310,6 +310,37 @@ def add_shift(request):
     else:
         return HttpResponseForbidden()
 
+def cancel_shift(request):
+    """ Annule une présence à un shift """
+    if 'verif_token' in request.POST:
+        partner_id = int(request.POST.get('idPartner'))
+        if Verification.verif_token(request.POST.get('verif_token'), partner_id) is True:
+
+            cs = CagetteShift()
+            listRegister = [int(request.POST['idRegister'])]
+
+            try:
+                response = cs.cancel_shift(listRegister)
+
+                # decrement extra_shift_done if param exists
+                if 'extra_shift_done' in request.POST:
+                    target = int(request.POST["extra_shift_done"]) - 1
+
+                    # extra security
+                    if target < 0:
+                        target = 0
+
+                    cm = CagetteMember(partner_id)
+                    cm.update_extra_shift_done(target)
+
+                return JsonResponse({"res" : 'response'})
+            except Exception as e:
+                return JsonResponse({"error" : str(e)}, status=500)
+        else:
+            return HttpResponseForbidden()
+    else:
+        return HttpResponseForbidden()
+
 def request_delay(request):
     if 'verif_token' in request.POST:
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:

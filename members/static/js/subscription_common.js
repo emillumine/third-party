@@ -32,6 +32,15 @@ function display_current_coop_form() {
     let street2_input = form.find('[name="street2"]'),
         phone_input = form.find('[name="phone"]');
 
+    if (current_coop.parent_name) {
+        $('#associated_member').show();
+        if (current_coop.parent_id)
+            $('#associated_member_name').text(current_coop.parent_name);
+        else $('#associated_member_name').text(current_coop.parent_name + " ATTENTION à faire manuellement");
+    } else {
+        $('#associated_member').hide();
+    }
+
     chgt_shift_btn.hide();
     chgt_shift_btn.off('click', open_shift_choice);
     form.find('[name="firstname"]').val(current_coop.firstname);
