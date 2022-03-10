@@ -1146,7 +1146,7 @@ class CagetteMembers(models.Model):
     def get_makeups_members():
         api = OdooAPI()
         cond = [['makeups_to_do','>', 0]]
-        fields = ['id', 'name', 'makeups_to_do','shift_type']
+        fields = ['id', 'name', 'display_std_points', 'display_ftop_points', 'shift_type', 'makeups_to_do']
         res = api.search_read('res.partner', cond, fields)
         return res
 
