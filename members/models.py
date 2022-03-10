@@ -1255,7 +1255,7 @@ class CagetteServices(models.Model):
                                  ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
                 if with_members is True:
                     cond = [['id', 'in', s['registration_ids']], ['state', 'not in', ['cancel', 'waiting', 'draft']]]
-                    fields = ['partner_id', 'shift_type', 'state', 'is_late']
+                    fields = ['partner_id', 'shift_type', 'state', 'is_late', 'associate_registered']
                     members = api.search_read('shift.registration', cond, fields)
                     s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
                     if len(s['members']) > 0:
@@ -1264,22 +1264,27 @@ class CagetteServices(models.Model):
                         for m in s['members']:
                             mids.append(m['partner_id'][0])
                         cond = [['parent_id', 'in', mids]]
-                        fields = ['parent_id', 'name']
+                        fields = ['id', 'parent_id', 'name','barcode_base']
                         associated = api.search_read('res.partner', cond, fields)
 
                         if len(associated) > 0:
                             for m in s['members']:
                                 for a in associated:
                                     if int(a['parent_id'][0]) == int(m['partner_id'][0]):
+                                        m['partner_name'] = m['partner_id'][1]
                                         m['partner_id'][1] += ' en binôme avec ' + a['name']
+                                        m['associate_name'] = str(a['barcode_base']) + ' - ' + a['name']
+                                        
 
         return services
 
     @staticmethod
-    def registration_done(registration_id, overrided_date=""):
+    def registration_done(registration_id, overrided_date="", typeAction=""):
         """Equivalent to click present in presence form."""
         api = OdooAPI()
         f = {'state': 'done'}
+        if(typeAction != "normal" and typeAction != ""):
+            f['associate_registered'] = typeAction
         late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
         if late_mode is True:
             # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
@@ -1301,7 +1306,14 @@ class CagetteServices(models.Model):
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
-    def record_rattrapage(mid, sid, stid):
+    def reopen_registration(registration_id, overrided_date=""):
+        
+        api = OdooAPI()
+        f = {'state': 'open'}
+        return api.update('shift.registration', [int(registration_id)], f)
+
+    @staticmethod
+    def record_rattrapage(mid, sid, stid, typeAction):
         """Add a shift registration for member mid.
 
         (shift sid, shift ticket stid)
@@ -1317,6 +1329,8 @@ class CagetteServices(models.Model):
             "state": 'open'}
         reg_id = api.create('shift.registration', fields)
         f = {'state': 'done'}
+        if(typeAction != "normal" and typeAction != ""):
+            f['associate_registered'] = typeAction
         return api.update('shift.registration', [int(reg_id)], f)
 
     @staticmethod
@@ -1332,6 +1346,20 @@ class CagetteServices(models.Model):
         # let authorized people time to set presence for those who came in late
         end_date = now - datetime.timedelta(hours=2)
         api = OdooAPI()
+
+        # Let's start by adding an extra shift to associated member who came together
+        cond = [['date_begin', '>=', date_24h_before.isoformat()],
+                ['date_begin', '<=', end_date.isoformat()],
+                ['state', '=', 'done'], ['associate_registered', '=', 'both']]
+        fields = ['state', 'partner_id', 'date_begin']
+        res = api.search_read('shift.registration', cond, fields)
+        for r in res:
+            cond = [['id', '=', r['partner_id'][0]]]
+            fields = ['id','extra_shift_done']
+            res = api.search_read('res.partner', cond, fields)
+            f = {'extra_shift_done': res[0]['extra_shift_done'] + 1 }
+            api.update('res.partner', [r['partner_id'][0]], f)
+
         absence_status = 'excused'
         res_c = api.search_read('ir.config_parameter',
                                 [['key', '=', 'lacagette_membership.absence_status']],
