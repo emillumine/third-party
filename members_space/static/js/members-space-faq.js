@@ -20,7 +20,7 @@ function init_faq() {
 }
 
 $(document).on('click', "#shift_exchange_btn", () => {
-        goto('echange-de-services');
+    goto('echange-de-services');
 });
 
 $(document).on('click', '.accordion', function() {

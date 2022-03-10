@@ -99,6 +99,7 @@ def index(request, exception=None):
                 partnerData["parent_id"] = partnerData["parent_id"][0]
                 md5_calc = hashlib.md5(partnerData['parent_create_date'].encode('utf-8')).hexdigest()
                 partnerData['parent_verif_token'] = md5_calc
+                partnerData['extra_shift_done'] = partnerData["parent_extra_shift_done"]
 
             else:
                 partnerData["parent_name"] = False
@@ -233,5 +234,14 @@ def get_shifts_history(request):
     offset = int(request.GET.get('offset'))
     date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
     res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
+
+    return JsonResponse(res)
+
+def offer_extra_shift(request):
+    res = {}
+    partner_id = int(request.POST['partner_id'])
+
+    m = CagetteMember(partner_id)
+    res = m.update_extra_shift_done(0)
 
     return JsonResponse(res)
