@@ -199,7 +199,10 @@ function delete_pair(childId) {
     dataType: 'json',
     contentType: "application/json; charset=utf-8",
     data: JSON.stringify(payload),
-    success: function() {alert("binôme désolidarisé")},
+    success: function() {
+      alert("binôme désolidarisé");
+      location.reload();
+    },
     error: function(data) {
         err = {msg: "erreur serveur lors de la récupération des membres avec rattrapage", ctx: 'load_makeups_members'};
         if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
