@@ -775,9 +775,12 @@ class CagetteMember(models.Model):
             cond = [['name', 'ilike', str(key)]]
         cond.append('|')
         cond.append(['is_member', '=', True])
-        cond.append(['is_associated_people', '=', True])
+        if search_type != 'members':
+            cond.append(['is_associated_people', '=', True])
+        else:
+            cond.append(['is_associated_people', '=', False])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
-        if search_type == "full":
+        if search_type == "full" or search_type == 'members':
             fields = CagetteMember.m_default_fields
             if not shift_id is None:
                 CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
@@ -1303,7 +1306,7 @@ class CagetteServices(models.Model):
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
-    def registration_cancel(registration_id, overrided_date=""):
+    def reopen_registration(registration_id, overrided_date=""):
         
         api = OdooAPI()
         f = {'state': 'open'}
