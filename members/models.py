@@ -1207,7 +1207,7 @@ class CagetteServices(models.Model):
                         for m in s['members']:
                             mids.append(m['partner_id'][0])
                         cond = [['parent_id', 'in', mids]]
-                        fields = ['id', 'parent_id', 'name']
+                        fields = ['id', 'parent_id', 'name','barcode_base']
                         associated = api.search_read('res.partner', cond, fields)
 
                         if len(associated) > 0:
@@ -1216,7 +1216,7 @@ class CagetteServices(models.Model):
                                     if int(a['parent_id'][0]) == int(m['partner_id'][0]):
                                         m['partner_name'] = m['partner_id'][1]
                                         m['partner_id'][1] += ' en binôme avec ' + a['name']
-                                        m['associate_name'] = str(a['id']) + ' - ' + a['name']
+                                        m['associate_name'] = str(a['barcode_base']) + ' - ' + a['name']
                                         
 
         return services
