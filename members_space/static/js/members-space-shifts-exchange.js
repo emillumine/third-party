@@ -217,7 +217,7 @@ function delete_shift_registration(shift_registration_id) {
  * @param {string} shift_id
  */
 function affect_shift(partner, shift_id) {
-    if (is_time_to('affect_shift'),1000) {
+    if (is_time_to('affect_shift', 1000)) {
         tData = 'idShiftRegistration=' + shift_id
             +'&idPartner=' + partner_data.partner_id
             + '&affected_partner=' + partner
