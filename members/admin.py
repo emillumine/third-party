@@ -555,7 +555,7 @@ def delete_pair(request):
     POST:
         payload example:
         {
-            "parent": {"id": 3075}
+            "child": {"id": 3075}
         }
     """
     if request.method == 'GET':
@@ -567,11 +567,10 @@ def delete_pair(request):
         if CagetteUser.are_credentials_ok(request):
             api = OdooAPI()
             data = json.loads(request.body.decode())
-            parent_id = data['parent']['id']
-            # get attached account
-            child = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id'])[0]
-            api.delete('res.partner', [child['id']])
+            child_id = data['child']['id']
+            api.update('res.partner', [int(child_id)], {"parent_id": False, "is_associated_people": False})
             response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
+
         else:
             response = JsonResponse({"message": "Unauthorized"}, status=403)
         return response
