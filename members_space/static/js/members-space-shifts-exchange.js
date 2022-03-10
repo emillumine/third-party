@@ -331,7 +331,9 @@ function init_shifts_list() {
                     .attr('id', 'shift_id_'+shift.id);
                 if (shift.associate_registered==="both") {
                     shift_line_template.find('.affect_associate_registered').text("Les deux");
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                 } else if (shift.associate_registered==="partner") {
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                     if (partner_data.associated_partner_id !== "False") {
                         shift_line_template.find('.affect_associate_registered').text(partner_data.name);
                     } else {
@@ -339,6 +341,7 @@ function init_shifts_list() {
                     }
 
                 } else if (shift.associate_registered==="associate") {
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                     if (partner_data.associated_partner_id !== "False") {
                         shift_line_template.find('.affect_associate_registered').text(partner_data.associated_partner_name);
                     } else {
@@ -346,6 +349,7 @@ function init_shifts_list() {
                     }
                 } else {
                     shift_line_template.find('.affect_associate_registered').text("A déterminer");
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--danger');
                 }
             }
 
@@ -354,13 +358,15 @@ function init_shifts_list() {
                 if (shift_line_template.find(".delete_registration_button").length === 0) {
                     let delete_reg_button_template = $("#delete_registration_button_template");
 
-                    shift_line_template.find(".shift_line_container").append(delete_reg_button_template.html());
+                    shift_line_template.find(".shift_line_extra_actions").append(delete_reg_button_template.html());
                 }
             } else {
                 shift_line_template.find(".delete_registration_button").remove();
             }
 
             $("#shifts_list").append(shift_line_template.html());
+            shift_line_template.find('.affect_associate_registered').removeClass('btn--danger');
+            shift_line_template.find('.affect_associate_registered').removeClass('btn--success');
         }
 
         $(".selectable_shift_line").on("click", function(e) {
@@ -470,7 +476,7 @@ function init_calendar_page() {
 
     if (partner_data.extra_shift_done > 0) {
         $(".extra_shift_done").text(partner_data.extra_shift_done);
-        $("#can_delete_future_registrations_area").show();
+        $("#can_delete_future_registrations_area").css('display', 'flex');
 
         $("#offer_extra_shift").on("click", () => {
             openModal(

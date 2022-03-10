@@ -36,14 +36,18 @@
     </div>
 
     <div id="selectable_shift_line_template">
-      <div class="d-flex shift_line_container">
+      <div class="d-flex shift_line_container selectable_shift">
         <div class="selectable_shift_line btn--primary">
           <input type="checkbox" class="checkbox">
           <div class="selectable_shift_line_text">
             <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
           </div>
         </div>
-        <div class="affect_associate_registered button--warning"></div>
+        <div class="shift_line_extra_actions">
+          <div class="affect_associate_registered">
+            
+          </div>
+        </div>
       </div>
     </div>
     
@@ -53,12 +57,14 @@
 
     <div id="modal_affect_shift">
       <div>Qui sera présent.e ?</div>
-      <div id="shift_partner" class="btn--primary">
-      </div>
-      <div id="shift_associate" class=" btn--primary">
-      </div>
-      <div id="shift_both" class=" btn--primary">
-        Les deux
+      <div class="modal_affect_shift_buttons">
+        <div id="shift_partner" class="btn--primary assign_shift_button">
+        </div>
+        <div id="shift_associate" class=" btn--primary assign_shift_button">
+        </div>
+        <div id="shift_both" class=" btn--primary assign_shift_button">
+          Les deux
+        </div>
       </div>
     </div>
 
