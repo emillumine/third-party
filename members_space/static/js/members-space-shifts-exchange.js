@@ -725,7 +725,8 @@ function init_delete_registration_buttons() {
     $(".delete_registration_button").off();
     $(".delete_registration_button").on("click", function() {
         let shift_name = $(this).closest("div")
-            .siblings(".selectable_shift_line")
+            .parent().parent()
+            .find(".shift_line_date")
             .text()
             .trim();
         let shift_id = $(this).closest(".shift_line_container")
@@ -733,7 +734,7 @@ function init_delete_registration_buttons() {
             .split('_')[2];
 
         openModal(
-            `<p>Je m'apprête supprimer ma présence au service du <b>${shift_name}</b></p>`,
+            `<p>Je m'apprête à supprimer ma présence au service du <b>${shift_name}</b></p>`,
             () => {
                 delete_shift_registration(shift_id);
             },
