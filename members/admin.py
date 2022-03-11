@@ -527,7 +527,10 @@ def create_pair(request):
             del child["id"]
             for field in child.keys():
                 if field.endswith("_id"):
-                    child[field] = child[field][0]
+                    try:
+                        child[field] = child[field][0]
+                    except TypeError:
+                        child[field] = False
             child['is_associated_people'] = True
             child['parent_id'] = parent['commercial_partner_id'][0]
             # update child base account state
