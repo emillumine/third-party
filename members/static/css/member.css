@@ -45,6 +45,7 @@ h1 .member_name {font-weight: bold;}
 .members_list li {display:block;margin-bottom:5px;}
 
 .members_list li.btn--inverse {background: #449d44; color: #FFF; }
+.members_list li.btn--inverse.not_connected {cursor:not-allowed}
 .members_list li.btn--inverse.late {background-color: #de9b00; color: white}
 .members_list li.btn--inverse.both {background-color: #0275d8 ; color: white}
 
