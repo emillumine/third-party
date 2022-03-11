@@ -42,14 +42,6 @@ function load_member_infos(divId, memberId) {
     });
 }
 
-function ready_for_submission() {
-    if (parentId != null && childId != null) {
-        console.log("ready");
-
-        return true;
-    }
-}
-
 /**
  * Display member info
  */
@@ -79,6 +71,7 @@ function display_member_infos(divId, memberData) {
  * Load attached members
  */
 function load_attached_members() {
+    openModal();
     $.ajax({
         type: 'GET',
         url: "/members/get_attached_members",
@@ -88,16 +81,17 @@ function load_attached_members() {
         success: function(data) {
             attached_members = data.res;
             display_attached_members();
+            closeModal();
         },
         error: function(data) {
-            err = {msg: "erreur serveur lors de la récupération des membres avec rattrapage", ctx: 'load_makeups_members'};
+            err = {msg: "erreur serveur lors de la récupération des membres en binôme", ctx: 'load_makeups_members'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
             report_JS_error(err, 'orders');
 
             closeModal();
-            alert('Erreur serveur lors de la récupération des membres avec rattrapage. Ré-essayez plus tard.');
+            alert('Erreur serveur lors de la récupération des membres en binôme. Ré-essayez plus tard.');
         }
     });
 }
@@ -107,8 +101,6 @@ function load_attached_members() {
  */
 function display_attached_members() {
 
-    // load_attached_members()
-    // var attached_members_table = $('#attached_members_table')
     // if (attached_members_table) {
     //   $('#attached_members_table').off();
     //   attached_members_table.clear().destroy();
@@ -206,11 +198,11 @@ function delete_pair(childId) {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(payload),
         success: function() {
-            alert("binôme désolidarisé");
+            // alert("binôme désolidarisé");
             location.reload();
         },
         error: function(data) {
-            err = {msg: "erreur serveur lors de la récupération des membres avec rattrapage", ctx: 'load_makeups_members'};
+            err = {msg: "Erreur serveur lors de la désolidarisation du binôme.", ctx: 'load_makeups_members'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
@@ -220,6 +212,16 @@ function delete_pair(childId) {
             alert('Erreur serveur lors de la désolidarisation du binôme. Ré-essayez plus tard.');
         }
     });
+}
+
+
+function confirmDeletion(childId) {
+  var modalContent = $("#confirmModal").html()
+  openModal(modalContent, () => {
+    if (is_time_to('delete_pair')) {
+      delete_pair(childId)
+    }
+  }, 'Valider');
 }
 
 $(document).ready(function() {
@@ -378,6 +380,6 @@ $(document).ready(function() {
     $(document).on('click', '.delete_pair', function (event) {
         var childId = event.target.id.split('_').slice(-1)[0];
 
-        delete_pair(childId);
+        confirmDeletion(childId);
     });
 });
