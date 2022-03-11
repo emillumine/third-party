@@ -224,6 +224,37 @@ function confirmDeletion(childId) {
   }, 'Valider');
 }
 
+
+function create_pair(payload) {
+  $.ajax({
+      type: 'POST',
+      url: "/members/admin/manage_attached/create_pair",
+      dataType:"json",
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify(payload),
+      success: function(data) {
+          location.reload()
+
+      },
+      error: function(data) {
+          err = {msg: "erreur serveur", ctx: 'create pair'};
+          if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
+              err.msg += ' : ' + data.responseJSON.errors;
+          }
+          report_JS_error(err, 'members.admin');
+
+          closeModal();
+          var message = 'Erreur lors de création du binôme.';
+
+          data.responseJSON.errors.map(function(error) {
+              message += ('\n' + error);
+          });
+          alert(message);
+      }
+  });
+}
+
+
 $(document).ready(function() {
     if (coop_is_connected()) {
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
@@ -346,31 +377,12 @@ $(document).ready(function() {
             "child": {"id": childId}
         };
 
-        $.ajax({
-            type: 'POST',
-            url: "/members/admin/manage_attached/create_pair",
-            dataType:"json",
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(payload),
-            success: function(data) {
-                alert("binôme créé");
-            },
-            error: function(data) {
-                err = {msg: "erreur serveur", ctx: 'create pair'};
-                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
-                    err.msg += ' : ' + data.responseJSON.errors;
-                }
-                report_JS_error(err, 'members.admin');
-
-                closeModal();
-                var message = 'Erreur lors de création du binôme.';
-
-                data.responseJSON.errors.map(function(error) {
-                    message += ('\n' + error);
-                });
-                alert(message);
-            }
-        });
+        var modalContent = $('#confirmModal').html();
+        openModal(modalContent, () => {
+          if (is_time_to('create_pair')) {
+            create_pair(payload)
+          }
+        }, 'Valider');
     });
 
     if ($("#attached_members_table") != "undefined") {
