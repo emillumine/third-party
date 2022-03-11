@@ -46,7 +46,6 @@ function load_member_infos(divId, memberId) {
  * Display member info
  */
 function display_member_infos(divId, memberData) {
-    console.log(memberData);
     $("#" + divId).show();
     $("#" + divId).find(".member_name")
         .text(memberData.name);
@@ -333,7 +332,6 @@ $(document).ready(function() {
                         members_search_results.push(member);
                     }
                 }
-                console.log(members_search_results);
                 response($.map(data.res, function(item) {
                     return {
                         label: item.barcode_base + ' ' + item.name,
