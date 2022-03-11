@@ -92,7 +92,7 @@ function new_coop_validation() {
 
     coop_registration_details.find('.shift_template').text(st);
     process_state.html(current_coop.firstname + ' ' +current_coop.lastname);
-    if (coop.shift_template.data && coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
+    if (current_coop.shift_template.data && current_coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
         get_next_shift(current_coop.shift_template.data.id, function(data) {
             if (data != null) {
                 coop_registration_details.find('#next_shift_registration_detail').show();
