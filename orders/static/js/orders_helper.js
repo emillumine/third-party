@@ -1738,7 +1738,7 @@ function display_products(params) {
             }
         }
     });
-
+    products_table.search('');
     $('.main').show();
     $('#main_content_footer').show();
     $('#do_inventory').show();
@@ -2494,6 +2494,7 @@ $(document).ready(function() {
             e.preventDefault();
             if (is_time_to('submit_new_order_form', 1000)) {
                 create_cdb_order();
+
             }
         });
 
