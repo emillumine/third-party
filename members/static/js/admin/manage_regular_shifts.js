@@ -62,6 +62,8 @@ function display_member_info() {
     $('.member_makeups').text(selected_member.makeups_to_do);
 
     if (selected_member.shift_template_id === undefined || selected_member.shift_template_id === null) {
+        $('.member_shift').text("");
+
         $("#remove_shift_template_button").hide();
         $("#remove_shift_template_button").off();
     } else {
