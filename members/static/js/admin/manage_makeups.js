@@ -69,6 +69,19 @@ function display_makeups_members() {
                 title: "Nom"
             },
             {
+                data: "shift_type",
+                title: "Nb de points",
+                className: "dt-body-center",
+                width: "10%",
+                render: function (data, type, row) {
+                    if (data == 'ftop') {
+                        return row.display_ftop_points
+                    } else if (data == 'standard') {
+                        return row.display_std_points 
+                    }
+                }
+            },
+            {
                 data: "makeups_to_do",
                 title: "Nb rattrapages",
                 className: "dt-body-center",

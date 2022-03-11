@@ -99,10 +99,14 @@ def index(request, exception=None):
                 partnerData["parent_id"] = partnerData["parent_id"][0]
                 md5_calc = hashlib.md5(partnerData['parent_create_date'].encode('utf-8')).hexdigest()
                 partnerData['parent_verif_token'] = md5_calc
+                partnerData['makeups_to_do'] = partnerData['parent_makeups_to_do']
+                partnerData['date_delay_stop'] = partnerData['parent_date_delay_stop']
+                partnerData['can_have_delay'] = cs.member_can_have_delay(int(partnerData["parent_id"]))
                 partnerData['extra_shift_done'] = partnerData["parent_extra_shift_done"]
 
             else:
                 partnerData["parent_name"] = False
+                partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 
             # look for associated partner for parents
             cm = CagetteMember(partner_id)
@@ -113,8 +117,6 @@ def index(request, exception=None):
 
             if (associated_partner is not None and partnerData["associated_partner_name"].find(str(associated_partner["barcode_base"])) == -1):
                 partnerData["associated_partner_name"] = str(associated_partner["barcode_base"]) + ' - ' + partnerData["associated_partner_name"]
-
-            partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 
             m = CagetteMembersSpace()
             context['show_faq'] = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')

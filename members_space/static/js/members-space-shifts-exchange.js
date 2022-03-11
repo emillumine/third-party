@@ -217,7 +217,7 @@ function delete_shift_registration(shift_registration_id) {
  * @param {string} shift_id
  */
 function affect_shift(partner, shift_id) {
-    if (is_time_to('affect_shift')) {
+    if (is_time_to('affect_shift', 1000)) {
         tData = 'idShiftRegistration=' + shift_id
             +'&idPartner=' + partner_data.partner_id
             + '&affected_partner=' + partner
@@ -309,7 +309,8 @@ function init_shifts_list() {
             shift_line_template.find(".selectable_shift_line").removeClass("btn--primary");
             shift_line_template.find(".selectable_shift_line").removeClass("btn");
             shift_line_template.find(".selectable_shift_line").removeClass("btn--warning");
-            if (!can_exchange_shifts() && block_actions_for_attached_people === "True") {
+
+            if (!can_exchange_shifts()) {
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
                 shift_line_template.find(".checkbox").prop("disabled", "disabled");
             } else {
@@ -327,11 +328,19 @@ function init_shifts_list() {
             if (partner_data.associated_partner_id === "False" && partner_data.parent_id === "False") {
                 shift_line_template.find('.affect_associate_registered').hide();
             } else {
+                if (!can_exchange_shifts()) {
+                    shift_line_template.find('.affect_associate_registered').hide();
+                } else {
+                    shift_line_template.find('.affect_associate_registered').show();
+                }
+
                 shift_line_template.find('.affect_associate_registered').closest(".shift_line_container")
                     .attr('id', 'shift_id_'+shift.id);
                 if (shift.associate_registered==="both") {
                     shift_line_template.find('.affect_associate_registered').text("Les deux");
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                 } else if (shift.associate_registered==="partner") {
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                     if (partner_data.associated_partner_id !== "False") {
                         shift_line_template.find('.affect_associate_registered').text(partner_data.name);
                     } else {
@@ -339,6 +348,7 @@ function init_shifts_list() {
                     }
 
                 } else if (shift.associate_registered==="associate") {
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--success');
                     if (partner_data.associated_partner_id !== "False") {
                         shift_line_template.find('.affect_associate_registered').text(partner_data.associated_partner_name);
                     } else {
@@ -346,6 +356,7 @@ function init_shifts_list() {
                     }
                 } else {
                     shift_line_template.find('.affect_associate_registered').text("A déterminer");
+                    shift_line_template.find('.affect_associate_registered').addClass('btn--danger');
                 }
             }
 
@@ -354,13 +365,15 @@ function init_shifts_list() {
                 if (shift_line_template.find(".delete_registration_button").length === 0) {
                     let delete_reg_button_template = $("#delete_registration_button_template");
 
-                    shift_line_template.find(".shift_line_container").append(delete_reg_button_template.html());
+                    shift_line_template.find(".shift_line_extra_actions").append(delete_reg_button_template.html());
                 }
             } else {
                 shift_line_template.find(".delete_registration_button").remove();
             }
 
             $("#shifts_list").append(shift_line_template.html());
+            shift_line_template.find('.affect_associate_registered').removeClass('btn--danger');
+            shift_line_template.find('.affect_associate_registered').removeClass('btn--success');
         }
 
         $(".selectable_shift_line").on("click", function(e) {
@@ -402,8 +415,8 @@ function init_shifts_list() {
                 modal_template.find("#shift_associate").text(partner_data.associated_partner_name);
 
             } else {
-                modal_template.find("#shift_partner").text(partner_data.name);
-                modal_template.find("#shift_associate").text(partner_data.parent_name);
+                modal_template.find("#shift_partner").text(partner_data.parent_name);
+                modal_template.find("#shift_associate").text(partner_data.name);
             }
 
             openModal(
@@ -470,7 +483,7 @@ function init_calendar_page() {
 
     if (partner_data.extra_shift_done > 0) {
         $(".extra_shift_done").text(partner_data.extra_shift_done);
-        $("#can_delete_future_registrations_area").show();
+        $("#can_delete_future_registrations_area").css('display', 'flex');
 
         $("#offer_extra_shift").on("click", () => {
             openModal(
@@ -763,8 +776,7 @@ function init_shifts_exchange() {
                     $(this).removeClass('active');
                 });
             });
-    } else if (
-        partner_data.comite === "True") {
+    } else if (partner_data.comite === "True") {
         let msg_template = $("#comite_template");
 
         $(".comite_content_msg").html(msg_template.html());

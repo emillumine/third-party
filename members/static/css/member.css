@@ -44,8 +44,10 @@ h1 .member_name {font-weight: bold;}
 .members_list {list-style: none;}
 .members_list li {display:block;margin-bottom:5px;}
 
-.members_list li.btn--inverse {background: #449d44; cursor:not-allowed; color: #FFF; }
+.members_list li.btn--inverse {background: #449d44; color: #FFF; }
+.members_list li.btn--inverse.not_connected {cursor:not-allowed}
 .members_list li.btn--inverse.late {background-color: #de9b00; color: white}
+.members_list li.btn--inverse.both {background-color: #0275d8 ; color: white}
 
 #service_entry_success {font-size: x-large;}
 #service_entry_success .explanations {margin: 25px 0; font-size: 18px;}
@@ -64,7 +66,7 @@ h1 .member_name {font-weight: bold;}
  #service_en_cours .info a {line-height: 24px; font-size:14px; margin-top:15px;}
  .outside_list a {margin-left:15px;}
  #rattrapage_1 .advice {margin-top:15px;}
- .btn.present {background:#50C878;}
+ .btn.present {background:#50C878; color: white !important; font-weight: bold;}
  .btn.return {background: #ff3333; color:#FFF !important; margin-top:25px;}
 
 .msg-big {font-size: xx-large; background: #fff; padding:25px; text-align: center;}
