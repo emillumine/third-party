@@ -11,6 +11,7 @@
 {% block additionnal_scripts %}
   <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
 {% endblock %}
 
 {% block content %}
@@ -50,10 +51,23 @@
       <p class="shift_name_container">Créneau : <span class="member_info member_shift"></span></p>
       <p class="status_container">Statut : <span class="member_info member_status"></span></p>
       <p class="makeups_container">Nb rattrapage(s) : <span class="member_info member_makeups"></span></p>
+      <div id="actions_on_member">
+        <button class="btn--primary" id="remove_shift_template_button">
+          Désinscrire du créneau
+        </button>
+      </div>
     </div>
   </div>
 
-  <div id="templates" style="display:none;"></div>
+  <div id="templates" style="display:none;">
+    <div id="modal_remove_shift_template">
+      <p>Voulez vraiment désinscrire ce membre du créneau <span class="shift_template_name"></span> ?</p>
+      <div class="checkbox_area">
+        <input type="checkbox" id="permanent_unsuscribe" name="permanent_unsuscribe">
+        <label for="permanent_unsuscribe">Désinscription définitive</label>
+      </div>
+    </div>
+  </div>
 </div>
 
 

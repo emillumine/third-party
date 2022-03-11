@@ -406,3 +406,45 @@ def delete_shift_registration(request):
         res["message"] = "Unauthorized"
         response = JsonResponse(res, status=403)
     return response
+
+def delete_shift_template_registration(request):
+    """ From BDM admin, delete a member shift template registration """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        try:
+            data = json.loads(request.body.decode())
+
+            partner_id = int(data["partner_id"])
+            shift_template_id = int(data["shift_template_id"])
+            makeups_to_do = int(data["makeups_to_do"])
+            permanent_unsuscribe = data["permanent_unsuscribe"]
+
+            cm = CagetteMember(partner_id)
+
+            # Get partner nb of future makeup shifts
+            partner_makeups = cm.get_member_selected_makeups()
+
+            target_makeup = makeups_to_do + len(partner_makeups)
+            if target_makeup > 2:
+                target_makeup = 2
+            print(target_makeup)
+
+            # Update partner makeups to do
+            res_update_makeups = cm.update_member_makeups({'target_makeups_nb': target_makeup})
+            print(res_update_makeups)
+
+        except Exception as e:
+            print(str(e))
+
+
+        # Récupérer nb rattrapages sélectionnés, incrémenter makeups_to_do
+        # Delete all shift.registration
+        # Delete all shift.template.registration (et .line ?)
+        # si permanent_unsuscribe, set special status gone
+
+        response = JsonResponse(res, safe=False)
+    else:
+        res["message"] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response

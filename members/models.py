@@ -779,14 +779,15 @@ class CagetteMember(models.Model):
             res = api.search_read('res.partner', cond, fields)
 
             if res:
-                c = [['partner_id', '=', int(res[0]['id'])]]
-                f = ['shift_template_id']
-                shift_template_reg = api.search_read('shift.template.registration', c, f)
+                for partner in res:
+                    c = [['partner_id', '=', int(partner['id'])], ['state', 'in', ('draft', 'open')]]
+                    f = ['shift_template_id']
+                    shift_template_reg = api.search_read('shift.template.registration', c, f)
 
-                if shift_template_reg:
-                    res[0]['shift_template_name'] = shift_template_reg[0]['shift_template_id'][1]
-                else:
-                    res[0]['shift_template_name'] = None
+                    if shift_template_reg:
+                        partner['shift_template_id'] = shift_template_reg[0]['shift_template_id']
+                    else:
+                        partner['shift_template_id'] = None
 
             return res
         else:
@@ -878,6 +879,14 @@ class CagetteMember(models.Model):
             'update': res_item
         }
 
+        return res
+
+    def get_member_selected_makeups(self):
+        res = {}
+
+        c = [["partner_id", "=", self.id], ["is_makeup", "=", True], ["state", "=", "open"]]
+        f=['id']
+        res = self.o_api.search_read("shift.registration", c, f)
         return res
 
 class CagetteMembers(models.Model):

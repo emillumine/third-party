@@ -73,3 +73,19 @@
 .member_info {
     font-weight: bold;
 }
+
+/* Actions */
+#actions_on_member {
+    margin: 15px;
+}
+
+#remove_shift_template_button {
+    display: none;
+}
+
+.checkbox_area {
+    margin: 10px 0;
+}
+#permanent_unsuscribe {
+    margin-right: 5px;
+}
