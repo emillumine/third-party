@@ -581,8 +581,7 @@ $('#add_binome').click(function() {
             delete current_coop.is_associated_people;
             delete current_coop.shift_template;
         }
-    }
-    else {
+    } else {
         $('#associate_area').show();
         $('.member_choice').removeClass('choice_active');
         $('#existing_member_choice_action').hide();
@@ -607,6 +606,12 @@ $('.member_choice').on('click', function() {
 });
 
 $('#shift_calendar').click(show_shift_calendar);
+$('#search_member_input').keypress((event) => {
+    if (event.keyCode==13) {
+        event.preventDefault();
+        searchMembersForAssociate();
+    }
+});
 
 //get_latest_odoo_coop_bb();
 update_self_records();
@@ -681,45 +686,52 @@ function display_possible_members() {
 }
 
 
+/**
+ * Search for members to associate a new member with an old one. 
+ */
+function searchMembersForAssociate() {
+    let search_str = $('#search_member_input').val();
+
+    if (search_str) {
+        $.ajax({
+            url: '/members/search/' + search_str+ "?search_type=members",
+            dataType : 'json',
+            success: function(data) {
+                members_search_results = [];
+
+                for (member of data.res) {
+                    if (member.is_member || member.is_associated_people) {
+                        members_search_results.push(member);
+                    }
+                }
+
+                display_possible_members();
+            },
+            error: function() {
+                err = {
+                    msg: "erreur serveur lors de la recherche de membres",
+                    ctx: 'search_member_form.search_members'
+                };
+                report_JS_error(err, 'members.admin');
+
+                $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
+                    globalPosition:"top right",
+                    className: "error"
+                });
+            }
+        });
+    } else {
+        members_search_results = [];
+        display_possible_members();
+    }
+}
+
+
 $(document).ready(function() {
     retrieve_and_draw_shift_tempates();
     // Set action to search for the member
     $('#search_member_button').on('click', function() {
-        let search_str = $('#search_member_input').val();
-
-        if (search_str) {
-            $.ajax({
-                url: '/members/search/' + search_str+ "?search_type=members",
-                dataType : 'json',
-                success: function(data) {
-                    members_search_results = [];
-
-                    for (member of data.res) {
-                        if (member.is_member || member.is_associated_people) {
-                            members_search_results.push(member);
-                        }
-                    }
-
-                    display_possible_members();
-                },
-                error: function() {
-                    err = {
-                        msg: "erreur serveur lors de la recherche de membres",
-                        ctx: 'search_member_form.search_members'
-                    };
-                    report_JS_error(err, 'members.admin');
-
-                    $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
-                        globalPosition:"top right",
-                        className: "error"
-                    });
-                }
-            });
-        }
-        else {
-            members_search_results = [];
-            display_possible_members();
-        }
+        searchMembersForAssociate();
     });
 
 });
