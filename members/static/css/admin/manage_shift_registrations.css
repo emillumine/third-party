@@ -39,6 +39,10 @@
 }
 
 /* Search members area */
+.makeup_row {
+    background-color: #ffc854 !important;
+}
+
 #search_member_area {
     margin-top: 30px;
     display: flex;

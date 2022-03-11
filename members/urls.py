@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^latest_coop_id/$', views.latest_coop_id),
     url(r'^get/([0-9]+)$', views.get),
     url(r'^exists/([a-zA-Z0-9_\-\.\+@]+)$', views.exists),
+    url(r'^is_associated/([0-9]+)$', views.is_associated),
     url(r'^get_couchdb_odoo_markers/(.+)$', views.get_couchdb_odoo_markers),
     url(r'^menu/$', views.menu),
     url(r'^verify_final_state$', views.verify_final_state),

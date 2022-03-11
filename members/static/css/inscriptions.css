@@ -23,6 +23,57 @@
 [data-week="4"] {border: 2px #eed000 solid;}
 
 #new_coop [name="email"] {width:25em;}
+#new_coop{
+    max-width: 75%;
+}
 #mail_generation {position:absolute; bottom:30px;}
 
 #sex {padding: 0;}
+
+#existing_partner{
+    padding-right: 15px;
+    width: 45%;
+}
+#new_partner{
+    padding-left: 15px;
+    width: 45%;
+}
+#add_binome{
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+#existing_member_choice, #new_member_choice{
+    border: 1px solid black;
+    width: 40%;
+    cursor: pointer;
+    text-align: center;
+    max-width: 400px;
+    background-color: #e7e9ed;
+    color: black;
+    padding: 1rem 1.5rem;
+}
+#existing_member_choice:hover, #new_member_choice:hover{
+    background-color: #ccc;
+}
+
+
+
+.choice_active{
+    background-color: #0275d8 !important;
+    color: white !important;
+
+}
+
+#existing_member_choice{
+    margin-right: 15px;
+}
+
+.choice_button_area{
+    margin-bottom: 10px;
+}
+
+#associate_area{
+    margin-bottom: 15px;
+}
