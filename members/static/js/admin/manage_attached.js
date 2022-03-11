@@ -64,6 +64,7 @@ function display_member_infos(divId, memberData) {
 
     if (parentId != null && childId != null) {
         $("#createPair").prop("disabled", false);
+        $("#createPair").addClass("btn--primary")
     }
 }
 
