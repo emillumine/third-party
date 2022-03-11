@@ -889,6 +889,45 @@ class CagetteMember(models.Model):
         res = self.o_api.search_read("shift.registration", c, f)
         return res
 
+    def unsuscribe_member(self):
+        res = {}
+
+        now = datetime.datetime.now().isoformat()
+
+        # Get and then delete shift template registration
+        c = [['partner_id', '=', self.id]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.template.registration", c, f)
+        ids = [d['id'] for d in res_ids]
+
+        if ids:
+            res["delete_shift_template_reg"] = self.o_api.execute('shift.template.registration', 'unlink', ids)
+        
+        # Get and then delete shift registrations
+        c = [['partner_id', '=', self.id], ['date_begin', '>', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.registration", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            res["delete_shifts_reg"]  = self.o_api.execute('shift.registration', 'unlink', ids)
+
+        # Close extensions
+        c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.extension", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            f = {'date_stop': now}
+            res["close_extensions"] = self.o_api.update('shift.extension', ids, f)
+
+        return res
+
+    def set_cooperative_state(self, state):
+        f = {'cooperative_state': state}
+        return self.o_api.update('res.partner', [self.id], f)
+
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
 

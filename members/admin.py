@@ -414,7 +414,6 @@ def delete_shift_template_registration(request):
     if is_connected_user is True:
         try:
             data = json.loads(request.body.decode())
-
             partner_id = int(data["partner_id"])
             shift_template_id = int(data["shift_template_id"])
             makeups_to_do = int(data["makeups_to_do"])
@@ -428,20 +427,18 @@ def delete_shift_template_registration(request):
             target_makeup = makeups_to_do + len(partner_makeups)
             if target_makeup > 2:
                 target_makeup = 2
-            print(target_makeup)
 
             # Update partner makeups to do
-            res_update_makeups = cm.update_member_makeups({'target_makeups_nb': target_makeup})
-            print(res_update_makeups)
+            res["update_makeups"] = cm.update_member_makeups({'target_makeups_nb': target_makeup})
+
+            # Delete all shift registrations & shift template registration
+            res["unsuscribe_member"] = cm.unsuscribe_member()
+
+            if permanent_unsuscribe is True:
+                res["set_done"] = cm.set_cooperative_state("gone")
 
         except Exception as e:
-            print(str(e))
-
-
-        # Récupérer nb rattrapages sélectionnés, incrémenter makeups_to_do
-        # Delete all shift.registration
-        # Delete all shift.template.registration (et .line ?)
-        # si permanent_unsuscribe, set special status gone
+            res["error"] = str(e)
 
         response = JsonResponse(res, safe=False)
     else:

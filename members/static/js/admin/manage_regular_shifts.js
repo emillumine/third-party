@@ -15,8 +15,8 @@ var selected_member = null,
 function remove_from_shift_template() {
     let permanent_unsuscribe = modal.find("#permanent_unsuscribe").prop('checked');
 
-    // openModal();
-    closeModal()
+    openModal();
+
     let data = {
         partner_id: selected_member.id,
         shift_template_id: selected_member.shift_template_id[0],
@@ -31,7 +31,10 @@ function remove_from_shift_template() {
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
+        success: function() {
+            selected_member.shift_template_id = null;
+            selected_member.cooperative_state = (permanent_unsuscribe === true) ? "gone" : "unsubscribed";
+            display_member_info();
             closeModal();
         },
         error: function() {
@@ -42,7 +45,7 @@ function remove_from_shift_template() {
             report_JS_error(err, 'members.admin');
             closeModal();
 
-            $.notify("Erreur lors de la suppression du membre du créneau.", {
+            $.notify("Une erreur est survenue lors du processus de suppression du membre du créneau.", {
                 globalPosition:"top right",
                 className: "error"
             });
@@ -55,17 +58,15 @@ function remove_from_shift_template() {
  */
 function display_member_info() {
     $('.member_name').text(`${selected_member.barcode_base} - ${selected_member.name}`);
-    $('.member_shift').text(selected_member.shift_template_id[1]);
     $('.member_status').text(possible_cooperative_state[selected_member.cooperative_state]);
     $('.member_makeups').text(selected_member.makeups_to_do);
-
-    $('#search_member_input').val();
-    $('#partner_data_area').css('display', 'flex');
 
     if (selected_member.shift_template_id === undefined || selected_member.shift_template_id === null) {
         $("#remove_shift_template_button").hide();
         $("#remove_shift_template_button").off();
     } else {
+        $('.member_shift').text(selected_member.shift_template_id[1]);
+
         $("#remove_shift_template_button").show();
         $("#remove_shift_template_button").off();
         $("#remove_shift_template_button").on("click", () => {
@@ -80,6 +81,9 @@ function display_member_info() {
             );
         });
     }
+
+    $('#search_member_input').val();
+    $('#partner_data_area').css('display', 'flex');
 }
 
 /**

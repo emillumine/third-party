@@ -75,12 +75,9 @@
 }
 
 /* Actions */
-#actions_on_member {
-    margin: 15px;
-}
-
 #remove_shift_template_button {
     display: none;
+    margin: 15px;
 }
 
 .checkbox_area {
