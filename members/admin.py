@@ -436,13 +436,18 @@ def get_member_info(request, id):
             'parent_id',
             'is_associated_people',
             'parent_name',
-            "makeups_to_do"
+            "makeups_to_do",
+            "barcode_base"
         ]
         cond = [['id', '=', id]]
         member = api.search_read('res.partner', cond, fields)
-
         if member:
-            res['member'] = member[0]
+            member = member[0]
+            parent = None
+            if member['parent_id']:
+                parent = api.search_read('res.partner', [['id', '=', int(member['parent_id'][0])]], ['barcode_base'])[0]
+                member['parent_barcode_base'] = parent['barcode_base']
+            res['member'] = member
             response = JsonResponse(res)
         else:
             response = JsonResponse({"message": "Not found"}, status=404)
@@ -450,8 +455,6 @@ def get_member_info(request, id):
         res['message'] = "Unauthorized"
         response = JsonResponse(res, status=403)
     return response
-
-
 
 def create_pair(request):
     """Create pair
@@ -502,12 +505,14 @@ def create_pair(request):
                 "current_template_name",
                 "parent_id",
                 "is_associated_people",
+                "makeups_to_do"
             ]
             child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
             parent = api.search_read('res.partner', [['id', '=', parent_id]],
                                                     ['commercial_partner_id',
                                                      'nb_associated_people',
                                                      'current_template_name',
+                                                     'makeups_to_do',
                                                      'parent_id'])[0]
             errors = []
             if child['nb_associated_people'] > 0:
@@ -542,17 +547,27 @@ def create_pair(request):
                         child[field] = False
             child['is_associated_people'] = True
             child['parent_id'] = parent['id']
+            # fusion des rattrapages
+            if child["makeups_to_do"] <= 2:
+                api.update("res.partner", [parent_id], {"makeups_to_do": parent['makeups_to_do'] + child['makeups_to_do']})
+                # remise à zéro du compte suppléant
+                api.update("res.partner", [child_id], {"makeups_to_do": 0})
+            else:
+                api.update("res.partner", [parent_id], {"makeups_to_do": 2})
+                # remise à zéro du compte suppléant
+                api.update("res.partner", [child_id], {"makeups_to_do": 0})
+
             # update child base account state
             api.execute("res.partner", "set_special_state", {"id": child_id, 'state': "associated"})
             # suppression du créneau pour le compte de base
             shift_registration = api.search_read("shift.template.registration", [['partner_id', '=', child_id]], ['id'])
             api.delete("shift.template.registration", [x['id'] for x in shift_registration])
-            # suppression des rattrapages ?
-            
+
+
             # get barcode rule id
             bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
             child['barcode_rule_id'] = bbcode_rule["id"]
-            # TODO: le compte rattaché doit être ajouté dans le créneau du titulaire
+            child.pop("makeups_to_do")
             attached_account = api.create('res.partner', child)
             # generate_base
             api.execute('res.partner', 'generate_base', [attached_account])

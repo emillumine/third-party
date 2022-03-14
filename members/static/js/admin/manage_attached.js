@@ -1,6 +1,9 @@
 var parentId = null;
 var childId = null;
 
+var parentName = null;
+var childName = null;
+
 const possible_cooperative_state = {
     suspended: "Rattrapage",
     exempted: "Exempté.e",
@@ -8,7 +11,8 @@ const possible_cooperative_state = {
     up_to_date: "À jour",
     unsubscribed: "Désinscrit.e des créneaux",
     delay: "En délai",
-    gone: "Parti.e"
+    gone: "Parti.e",
+    associated: "En binôme"
 };
 
 /**
@@ -22,10 +26,13 @@ function load_member_infos(divId, memberId) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
+            console.log(data.member)
             if (divId === 'parentInfo') {
                 parentId = data.member.id;
+                parentName = data.member.barcode_base + ' ' + data.member.name
             } else if (divId === 'childInfo') {
                 childId = data.member.id;
+                childName = data.member.barcode_base + ' ' + data.member.name
             }
             display_member_infos(divId, data.member);
         },
@@ -88,7 +95,7 @@ function load_attached_members() {
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
-            report_JS_error(err, 'orders');
+            report_JS_error(err, 'members');
 
             closeModal();
             alert('Erreur serveur lors de la récupération des membres en binôme. Ré-essayez plus tard.');
@@ -216,7 +223,13 @@ function delete_pair(childId) {
 
 
 function confirmDeletion(childId) {
-  var modalContent = $("#confirmModal").html()
+
+
+
+  var modalContent = $('#confirmModal')
+  modalContent.find("#parentName").text(parentName)
+  modalContent.find("#childName").text(childName)
+  modalContent = modalContent.html();
   openModal(modalContent, () => {
     if (is_time_to('delete_pair')) {
       delete_pair(childId)
@@ -376,7 +389,10 @@ $(document).ready(function() {
             "child": {"id": childId}
         };
 
-        var modalContent = $('#confirmModal').html();
+        var modalContent = $('#confirmModal')
+        modalContent.find("#parentName").text(parentName)
+        modalContent.find("#childName").text(childName)
+        modalContent = modalContent.html();
         openModal(modalContent, () => {
           if (is_time_to('create_pair')) {
             create_pair(payload)
@@ -390,7 +406,28 @@ $(document).ready(function() {
 
     $(document).on('click', '.delete_pair', function (event) {
         var childId = event.target.id.split('_').slice(-1)[0];
+        $.ajax({
+            type: 'GET',
+            url: "/members/get_member_info/" + childId,
+            dataType:"json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                console.log(data.member)
+                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name
+                childName = data.member.barcode_base + ' - ' + data.member.name
+                confirmDeletion(childId);
+            },
+            error: function(data) {
+                err = {msg: "erreur serveur lors de la récupération des infos du membre", ctx: 'load_member_infos'};
+                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                    err.msg += ' : ' + data.responseJSON.error;
+                }
+                report_JS_error(err, 'members.admin');
 
-        confirmDeletion(childId);
+                closeModal();
+                alert('Erreur lors de la récupération des infos du membre.');
+            }
+        });
     });
 });
