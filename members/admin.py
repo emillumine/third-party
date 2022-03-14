@@ -356,7 +356,7 @@ def update_members_makeups(request):
             cm = CagetteMember(int(member_data["member_id"]))
 
             res["res"].append(cm.update_member_makeups(member_data))
-            
+
             # Update member standard points, for standard members only
             if member_data["member_shift_type"] == "standard":
                 # Set points to minus the number of makeups to do (limited to -2)
@@ -499,12 +499,15 @@ def create_pair(request):
                 "street2",
                 "zip",
                 "nb_associated_people",
-                "current_template_name"
+                "current_template_name",
+                "parent_id",
+                "is_associated_people",
             ]
             child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
             parent = api.search_read('res.partner', [['id', '=', parent_id]],
                                                     ['commercial_partner_id',
                                                      'nb_associated_people',
+                                                     'current_template_name',
                                                      'parent_id'])[0]
             errors = []
             if child['nb_associated_people'] > 0:
@@ -513,6 +516,12 @@ def create_pair(request):
             # le membre suppléant fait parti du commité?
             if child['current_template_name'] == "Services des comités":
                 errors.append("Le membre suppléant séléctionné fait parti du comité")
+            # Verifier que le suppléant n'est pas déjà en binôme soit titulaire soit suppléant
+            for m in api.search_read('res.partner', [['email', '=', child['email']]]):
+                if m['is_associated_people']:
+                    errors.append('Le membre suppléant est déjà en bînome')
+                if m['child_ids']:
+                    errors.append("Le membre suppléant sélectionné est titulaire d'un binôme")
             # le membre titulaire a déjà un/des suppléants?
             if parent['nb_associated_people'] >= 1:
                 # On récupère le/s suppléant(s)
@@ -532,12 +541,18 @@ def create_pair(request):
                     except TypeError:
                         child[field] = False
             child['is_associated_people'] = True
-            child['parent_id'] = parent['commercial_partner_id'][0]
+            child['parent_id'] = parent['id']
             # update child base account state
-            api.update("res.partner", [child_id], {"cooperative_state": "associated"})
+            api.execute("res.partner", "set_special_state", {"id": child_id, 'state': "associated"})
+            # suppression du créneau pour le compte de base
+            shift_registration = api.search_read("shift.template.registration", [['partner_id', '=', child_id]], ['id'])
+            api.delete("shift.template.registration", [x['id'] for x in shift_registration])
+            # suppression des rattrapages ?
+            
             # get barcode rule id
             bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
             child['barcode_rule_id'] = bbcode_rule["id"]
+            # TODO: le compte rattaché doit être ajouté dans le créneau du titulaire
             attached_account = api.create('res.partner', child)
             # generate_base
             api.execute('res.partner', 'generate_base', [attached_account])
@@ -570,8 +585,17 @@ def delete_pair(request):
         if CagetteUser.are_credentials_ok(request):
             api = OdooAPI()
             data = json.loads(request.body.decode())
-            child_id = data['child']['id']
-            api.update('res.partner', [int(child_id)], {"parent_id": False, "is_associated_people": False})
+            child_id = int(data['child']['id'])
+            child = api.search_read('res.partner', [['id', '=', child_id]], ['email', 'id', 'parent_id'])[0]
+            child_accounts = api.search_read('res.partner', [['email', '=', child['email']]], ['id', 'email'])
+            prev_child = [x['id'] for x in child_accounts if x['id'] != child_id]
+            parent = api.search_read('res.partner', [['id', '=', child['parent_id'][0]]], ['cooperative_state'])
+            api.update('res.partner', [child_id], {"parent_id": False, "is_associated_people": False})
+            api.delete('res.partner', [child_id])
+            for id in prev_child:
+                # api.update('res.partner', [id], {"cooperative_state": 'unsubscribed'})
+                api.execute("res.partner", "set_special_state", {"id": id, 'state': "cancel_special"})
+
             response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
 
         else:
