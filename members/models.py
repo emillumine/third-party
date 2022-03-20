@@ -539,11 +539,13 @@ class CagetteMember(models.Model):
                                     'zip': post_data['zip'],
                                     'city': post_data['city'],
                                     'phone': format_phone_number(post_data['mobile']), # Because list view default show Phone and people mainly gives mobile
-                                    'barcode_rule_id': settings.COOP_BARCODE_RULE_ID,
+                                    'barcode_rule_id': settings.ASSOCIATE_BARCODE_RULE_ID,
                                     'parent_id' : post_data['parent_id'],
                                     'is_associated_people': True
                                     }
                                 associated_member_id = api.create('res.partner', associated_member)
+                                am = CagetteMember(associated_member_id)
+                                res['bca'] = am.generate_base_and_barcode(post_data)
                             # If it's an new associated member with a new partner. Link will be made by the user in BDM/admin
                             # We add the associated member to the "associate" shift template so we can find them in Odoo
                             elif 'is_associated_people' not in post_data or 'is_associated_people' in post_data and 'parent_id' not in post_data:
