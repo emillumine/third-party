@@ -358,5 +358,4 @@ function display_messages_for_attached_people() {
     } else {
         $(".attached-blocked").show();
     };
-    
 };
