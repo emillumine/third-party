@@ -357,5 +357,5 @@ function display_messages_for_attached_people() {
         $(".attached-unblocked").show();
     } else {
         $(".attached-blocked").show();
-    };
-};
+    }
+}
