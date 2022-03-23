@@ -371,7 +371,7 @@ $(document).ready(function() {
             error: function() {
                 err = {
                     msg: "erreur serveur lors de la recherche de membres",
-                    ctx: 'confirm_movement.search_members'
+                    ctx: 'members.admin.manage_makeups.search_members'
                 };
                 report_JS_error(err, 'stock');
 
