@@ -91,6 +91,7 @@ class CagetteShift(models.Model):
                     partnerData['is_leave'] = True
                     partnerData["leave_start_date"] = res_leaves[0]["start_date"]
                     partnerData["leave_stop_date"] = res_leaves[0]["stop_date"]
+
         return partnerData
 
     def get_shift_partner(self, id):
