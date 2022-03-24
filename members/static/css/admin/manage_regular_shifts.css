@@ -15,34 +15,7 @@
     left: 5px;
 }
 
-#table_top_area {
-    display: none;
-    width: 90%;
-    margin: 35px auto 0 auto;
-    text-align: center;
-}
-
-.table_area {
-    margin: 0 auto;
-    width: 90%;
-    display: flex;
-    justify-content: center;
-}
-
-.delete_shift_registration {
-    color: #d9534f;
-    cursor: pointer;
-}
-
-#member_shifts_table_filter {
-    padding-top: 0.755em;
-}
-
 /* Search members area */
-.makeup_row {
-    background-color: #ffc854 !important;
-}
-
 #search_member_area {
     margin-top: 30px;
     display: flex;
@@ -76,4 +49,40 @@
 
 .btn_possible_member {
     margin: 0.5rem 1rem;
+}
+
+/* Member info area */
+#partner_data_area {
+    width: 80%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 30px;
+    margin: 30px auto;
+    padding: 15px;
+    box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
+}
+
+.member_name_container {
+    margin: 1rem 0 2rem 0;
+}
+.member_name_icon {
+    color: #00a573;
+    margin-right: 5px;
+}
+.member_info {
+    font-weight: bold;
+}
+
+/* Actions */
+#remove_shift_template_button {
+    display: none;
+    margin: 15px;
+}
+
+.checkbox_area {
+    margin: 10px 0;
+}
+#permanent_unsuscribe {
+    margin-right: 5px;
 }
