@@ -334,6 +334,13 @@ def manage_attached(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_regular_shifts(request):
+    """ Administration des créneaux des membres """
+    template = loader.get_template('members/admin/manage_regular_shifts.html')
+    context = {'title': 'BDM - Créneaux',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()
@@ -398,14 +405,63 @@ def delete_shift_registration(request):
     is_connected_user = CagetteUser.are_credentials_ok(request)
     if is_connected_user is True:
         data = json.loads(request.body.decode())
-        shift_registration_id = int(data["shift_registration_id"])
         member_id = int(data["member_id"])
-
-        m = CagetteShift()
-        res["res"] = m.cancel_shift([shift_registration_id])
+        shift_registration_id = int(data["shift_registration_id"])
+        shift_is_makeup = data["shift_is_makeup"]
 
         # Note: 'upcoming_registration_count' in res.partner won't change because the _compute method
         #       in odoo counts canceled shift registrations.
+        m = CagetteShift()
+        res["cancel_shift"] = m.cancel_shift([shift_registration_id])
+
+        if shift_is_makeup is True:
+            fields = {
+                'name': "Admin BDM - Suppression d'un rattrapage",
+                'shift_id': False,
+                'type': data["member_shift_type"],
+                'partner_id': member_id,
+                'point_qty': 1
+            }
+            res["update_counter"] = m.update_counter_event(fields)
+
+        response = JsonResponse(res, safe=False)
+    else:
+        res["message"] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response
+
+def delete_shift_template_registration(request):
+    """ From BDM admin, delete a member shift template registration """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        try:
+            data = json.loads(request.body.decode())
+            partner_id = int(data["partner_id"])
+            shift_template_id = int(data["shift_template_id"])
+            makeups_to_do = int(data["makeups_to_do"])
+            permanent_unsuscribe = data["permanent_unsuscribe"]
+
+            cm = CagetteMember(partner_id)
+
+            # Get partner nb of future makeup shifts
+            partner_makeups = cm.get_member_selected_makeups()
+
+            target_makeup = makeups_to_do + len(partner_makeups)
+            if target_makeup > 2:
+                target_makeup = 2
+
+            # Update partner makeups to do
+            res["update_makeups"] = cm.update_member_makeups({'target_makeups_nb': target_makeup})
+
+            # Delete all shift registrations & shift template registration
+            res["unsuscribe_member"] = cm.unsuscribe_member()
+
+            if permanent_unsuscribe is True:
+                res["set_done"] = cm.set_cooperative_state("gone")
+
+        except Exception as e:
+            res["error"] = str(e)
 
         response = JsonResponse(res, safe=False)
     else:

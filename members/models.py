@@ -13,6 +13,7 @@ import pytz
 import locale
 import re
 import dateutil.parser
+from datetime import date
 
 
 
@@ -26,8 +27,7 @@ class CagetteMember(models.Model):
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
 
-    m_shoft_default_fields = ['name', 'barcode_base', 'total_partner_owned_share',
-                      'amount_subscription']
+    m_short_default_fields = ['name', 'barcode_base']
 
     def __init__(self, id):
         """Init with odoo id."""
@@ -96,7 +96,6 @@ class CagetteMember(models.Model):
 
 # # # BDM
     def save_partner_info(self, partner_id, fieldsDatas):
-        print(fieldsDatas)
         return self.o_api.update('res.partner', partner_id,  fieldsDatas)
 
 
@@ -132,6 +131,7 @@ class CagetteMember(models.Model):
         fp = request.POST.get('fp') #  fingerprint (prevent using stolen cookies)
         if login and password:
             api = OdooAPI()
+            login = login.strip()
             cond = [['email', '=', login]]
             if getattr(settings, 'ALLOW_NON_MEMBER_TO_CONNECT', False) is False:
                 cond.append('|')
@@ -350,6 +350,23 @@ class CagetteMember(models.Model):
         return answer
 
     @staticmethod
+    def is_associated(id_parent):
+        api = OdooAPI()
+        cond = [['parent_id', '=', int(id_parent)]]
+        fields = ['id','name','parent_id','birthdate']
+        res = api.search_read('res.partner', cond, fields, 10, 0, 'id DESC')
+        already_have_adult_associated = False
+        for partner in res:
+            birthdate = partner['birthdate']
+            if(birthdate):
+                today = date.today()
+                date1 = datetime.datetime.strptime(birthdate, "%Y-%m-%d")
+                age = today.year - date1.year - ((today.month, today.day) < (date1.month, date1.day))
+                if age > 17 :
+                    already_have_adult_associated = True
+        return already_have_adult_associated
+
+    @staticmethod
     def finalize_coop_creation(post_data):
         """ Update coop data. """
         res = {}
@@ -505,13 +522,38 @@ class CagetteMember(models.Model):
                                 m.create_capital_subscription_invoice(post_data['shares_euros'], today)
                             res['bc'] = m.generate_base_and_barcode(post_data)
 
-                            # Create shift suscription
-                            shift_template = json.loads(post_data['shift_template'])
-                            shift_t_id = shift_template['data']['id']
-                            stype = shift_template['data']['type']
-                            res['shift'] = \
-                                m.create_coop_shift_subscription(shift_t_id, stype)
-                            # m.add_first_point(stype) # Not needed anymore
+                            # if the new member is associated with an already existing member 
+                            # then we put the state in "associated" and we create the "associated" member
+                            if 'is_associated_people' in post_data and 'parent_id' in post_data :
+                                fields = {}
+                                fields['cooperative_state'] = 'associated'
+                                api.update('res.partner', [partner_id], fields)
+                                associated_member = {
+                                    'email': post_data['_id'],
+                                    'name': name,
+                                    'birthdate': birthdate,
+                                    'sex': sex,
+                                    'street': post_data['address'],
+                                    'zip': post_data['zip'],
+                                    'city': post_data['city'],
+                                    'phone': format_phone_number(post_data['mobile']), # Because list view default show Phone and people mainly gives mobile
+                                    'barcode_rule_id': settings.ASSOCIATE_BARCODE_RULE_ID,
+                                    'parent_id' : post_data['parent_id'],
+                                    'is_associated_people': True
+                                    }
+                                associated_member_id = api.create('res.partner', associated_member)
+                                am = CagetteMember(associated_member_id)
+                                res['bca'] = am.generate_base_and_barcode(post_data)
+                            # If it's an new associated member with a new partner. Link will be made by the user in BDM/admin
+                            # We add the associated member to the "associate" shift template so we can find them in Odoo
+                            elif 'is_associated_people' not in post_data or 'is_associated_people' in post_data and 'parent_id' not in post_data:
+                                # Create shift suscription if is not associated
+                                shift_template = json.loads(post_data['shift_template'])
+                                shift_t_id = shift_template['data']['id']
+                                stype = shift_template['data']['type']
+                                res['shift'] = \
+                                    m.create_coop_shift_subscription(shift_t_id, stype)
+                                # m.add_first_point(stype) # Not needed anymore
 
                             # Update couchdb do with new data
                             try:
@@ -734,9 +776,12 @@ class CagetteMember(models.Model):
             cond = [['name', 'ilike', str(key)]]
         cond.append('|')
         cond.append(['is_member', '=', True])
-        cond.append(['is_associated_people', '=', True])
+        if search_type != 'members':
+            cond.append(['is_associated_people', '=', True])
+        else:
+            cond.append(['is_associated_people', '=', False])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
-        if search_type == "full":
+        if search_type == "full" or search_type == 'members':
             fields = CagetteMember.m_default_fields
             if not shift_id is None:
                 CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
@@ -775,8 +820,27 @@ class CagetteMember(models.Model):
                         members.append(m)
 
             return CagetteMember.add_next_shifts_to_members(members)
+        elif search_type == "shift_template_data":
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['id', 'makeups_to_do', 'cooperative_state']
+            res = api.search_read('res.partner', cond, fields)
+
+            if res:
+                for partner in res:
+                    c = [['partner_id', '=', int(partner['id'])], ['state', 'in', ('draft', 'open')]]
+                    f = ['shift_template_id']
+                    shift_template_reg = api.search_read('shift.template.registration', c, f)
+
+                    if shift_template_reg:
+                        partner['shift_template_id'] = shift_template_reg[0]['shift_template_id']
+                    else:
+                        partner['shift_template_id'] = None
+
+            return res
         else:
-            fields = CagetteMember.m_shoft_default_fields
+            # TODO differentiate short & subscription_data searches
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['total_partner_owned_share','amount_subscription']
             res = api.search_read('res.partner', cond, fields)
             return res
 
@@ -856,6 +920,66 @@ class CagetteMember(models.Model):
         res = {}
 
         f = { 'makeups_to_do': int(member_data["target_makeups_nb"]) }
+        res_item = api.update('res.partner', [self.id], f)
+        res = {
+            'mid': self.id,
+            'update': res_item
+        }
+
+        return res
+
+    def get_member_selected_makeups(self):
+        res = {}
+
+        c = [["partner_id", "=", self.id], ["is_makeup", "=", True], ["state", "=", "open"]]
+        f=['id']
+        res = self.o_api.search_read("shift.registration", c, f)
+        return res
+
+    def unsuscribe_member(self):
+        res = {}
+
+        now = datetime.datetime.now().isoformat()
+
+        # Get and then delete shift template registration
+        c = [['partner_id', '=', self.id]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.template.registration", c, f)
+        ids = [d['id'] for d in res_ids]
+
+        if ids:
+            res["delete_shift_template_reg"] = self.o_api.execute('shift.template.registration', 'unlink', ids)
+        
+        # Get and then delete shift registrations
+        c = [['partner_id', '=', self.id], ['date_begin', '>', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.registration", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            res["delete_shifts_reg"]  = self.o_api.execute('shift.registration', 'unlink', ids)
+
+        # Close extensions
+        c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.extension", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            f = {'date_stop': now}
+            res["close_extensions"] = self.o_api.update('shift.extension', ids, f)
+
+        return res
+
+    def set_cooperative_state(self, state):
+        f = {'cooperative_state': state}
+        return self.o_api.update('res.partner', [self.id], f)
+
+    def update_extra_shift_done(self, value):
+        api = OdooAPI()
+        res = {}
+
+        f = { 'extra_shift_done': value }
         res_item = api.update('res.partner', [self.id], f)
         res = {
             'mid': self.id,
@@ -1089,7 +1213,7 @@ class CagetteMembers(models.Model):
     def get_makeups_members():
         api = OdooAPI()
         cond = [['makeups_to_do','>', 0]]
-        fields = ['id', 'name', 'makeups_to_do','shift_type']
+        fields = ['id', 'name', 'display_std_points', 'display_ftop_points', 'shift_type', 'makeups_to_do']
         res = api.search_read('res.partner', cond, fields)
         return res
 
@@ -1206,7 +1330,7 @@ class CagetteServices(models.Model):
                                  ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
                 if with_members is True:
                     cond = [['id', 'in', s['registration_ids']], ['state', 'not in', ['cancel', 'waiting', 'draft']]]
-                    fields = ['partner_id', 'shift_type', 'state', 'is_late']
+                    fields = ['partner_id', 'shift_type', 'state', 'is_late', 'associate_registered']
                     members = api.search_read('shift.registration', cond, fields)
                     s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
                     if len(s['members']) > 0:
@@ -1215,22 +1339,27 @@ class CagetteServices(models.Model):
                         for m in s['members']:
                             mids.append(m['partner_id'][0])
                         cond = [['parent_id', 'in', mids]]
-                        fields = ['parent_id', 'name']
+                        fields = ['id', 'parent_id', 'name','barcode_base']
                         associated = api.search_read('res.partner', cond, fields)
 
                         if len(associated) > 0:
                             for m in s['members']:
                                 for a in associated:
                                     if int(a['parent_id'][0]) == int(m['partner_id'][0]):
+                                        m['partner_name'] = m['partner_id'][1]
                                         m['partner_id'][1] += ' en binôme avec ' + a['name']
+                                        m['associate_name'] = str(a['barcode_base']) + ' - ' + a['name']
+                                        
 
         return services
 
     @staticmethod
-    def registration_done(registration_id, overrided_date=""):
+    def registration_done(registration_id, overrided_date="", typeAction=""):
         """Equivalent to click present in presence form."""
         api = OdooAPI()
         f = {'state': 'done'}
+        if(typeAction != "normal" and typeAction != ""):
+            f['associate_registered'] = typeAction
         late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
         if late_mode is True:
             # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
@@ -1252,7 +1381,14 @@ class CagetteServices(models.Model):
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
-    def record_rattrapage(mid, sid, stid):
+    def reopen_registration(registration_id, overrided_date=""):
+        
+        api = OdooAPI()
+        f = {'state': 'open'}
+        return api.update('shift.registration', [int(registration_id)], f)
+
+    @staticmethod
+    def record_rattrapage(mid, sid, stid, typeAction):
         """Add a shift registration for member mid.
 
         (shift sid, shift ticket stid)
@@ -1268,6 +1404,8 @@ class CagetteServices(models.Model):
             "state": 'open'}
         reg_id = api.create('shift.registration', fields)
         f = {'state': 'done'}
+        if(typeAction != "normal" and typeAction != ""):
+            f['associate_registered'] = typeAction
         return api.update('shift.registration', [int(reg_id)], f)
 
     @staticmethod
@@ -1283,6 +1421,20 @@ class CagetteServices(models.Model):
         # let authorized people time to set presence for those who came in late
         end_date = now - datetime.timedelta(hours=2)
         api = OdooAPI()
+
+        # Let's start by adding an extra shift to associated member who came together
+        cond = [['date_begin', '>=', date_24h_before.isoformat()],
+                ['date_begin', '<=', end_date.isoformat()],
+                ['state', '=', 'done'], ['associate_registered', '=', 'both']]
+        fields = ['state', 'partner_id', 'date_begin']
+        res = api.search_read('shift.registration', cond, fields)
+        for r in res:
+            cond = [['id', '=', r['partner_id'][0]]]
+            fields = ['id','extra_shift_done']
+            res = api.search_read('res.partner', cond, fields)
+            f = {'extra_shift_done': res[0]['extra_shift_done'] + 1 }
+            api.update('res.partner', [r['partner_id'][0]], f)
+
         absence_status = 'excused'
         res_c = api.search_read('ir.config_parameter',
                                 [['key', '=', 'lacagette_membership.absence_status']],

@@ -37,11 +37,11 @@
 
 <section class="center" id="new_coop">
    <div class="grid-1">
-     <div class="item-center">
+    <div class="item-center">
       <h2 class="title">
       NOUVEAU MEMBRE
       </h2>
-     <form id="coop_create" lang="fr">
+    <form id="coop_create" lang="fr">
       {% if ask_for_sex %}
         <p>
           {% include "members/sex_input.html" %}
@@ -65,17 +65,58 @@
         <input type="number" min="1" placeholder="Nb de chèques" name="ch_qty" id="ch_qty" style="display:none;"/>
 
       </p>
+      
       {% if input_barcode %}
       <p>
         <input type="text" name="m_barcode" id="m_barcode" maxlength="13" size="13" placeholder="Code barre" autocomplete="off" required/>
       </p>
       {% endif %}
-      <button class="btn--primary">Valider</button>
-     </form>
-     </div>
-     <div id="mail_generation">
-     (*) L'adresse mail étant obligatoire, si le nouveau membre n'en a pas, veuillez en créer une en cliquant sur le bouton suivant : <a class="btn--info" id="generate_email">+</a>
-     </div>
+
+      {% if ASSOCIATE_MEMBER_SHIFT %}
+      <p id="add_binome" >+ Binomes (facultatif)</p>
+      <div id="associate_area" style="display:none;">
+        <div class="choice_button_area d-flex" >
+          <div id="existing_member_choice" class="member_choice">
+            A mettre en binome avec un.e membre existant.e
+          </div>
+          <div id="new_member_choice" class="member_choice">
+            A mettre en binome avec un.e nouveau membre
+          </div>
+        </div>
+        
+        <div id="existing_member_choice_action"  style="display:none;">
+          <input type="text" id="search_member_input" value="" placeholder="Nom ou numéro du coop..." >
+          <div class="btn--primary" id="search_member_button">Recherche</div>
+          <div class="search_member_results_area" style="display:none;">
+            <div class="search_results_text">
+              <p><i>Choisissez parmi les membres trouvés :</i></p>
+            </div>
+            <div class="search_member_results"></div>
+          </div>
+          <div class="chosen_associate_area" style="display:none;">
+            <div >
+              <p><i>Binôme choisit : </i></p>
+            </div>
+            <div class="chosen_associate"></div>
+          </div>
+        </div>
+        <div id="new_member_choice_action"  style="display:none;">
+          <div >
+            <div>
+              <input type="text" id="new_member_input" value="" placeholder="Nom du membre" >
+            </div>
+          </div> 
+        </div>
+      </div>
+      {% endif %}
+      <div>
+        <button class="btn--primary">Valider</button>
+      </div>
+    </form>
+      
+    <div id="mail_generation">
+    (*) L'adresse mail étant obligatoire, si le nouveau membre n'en a pas, veuillez en créer une en cliquant sur le bouton suivant : <a class="btn--info" id="generate_email">+</a>
+    </div>
   </div>
 </section>
 {% include "members/shift_template_choice.html" %}
@@ -91,7 +132,7 @@
     <p>Pensez à inscrire ce numéro temporaire de coopérateur au crayon de papier sur les deux formulaires papier.</p>
     -->
     <p>Créneau choisi : <span class="shift_template"></span></p>
-    <p>Prochain service : <span class="next_shift"></span></p>
+    <p id="next_shift_registration_detail">Prochain service : <span class="next_shift"></span></p>
     <button class="btn--primary" id="next_coop">Coopérateur.rice suivant.e !</button>
    </div>
 
@@ -119,6 +160,7 @@
         var couchdb_dbname = '{{db}}';
         var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
         var dbc = new PouchDB(couchdb_dbname);
+        var ASSOCIATE_MEMBER_SHIFT = '{{ASSOCIATE_MEMBER_SHIFT}}';
         var sync = PouchDB.sync(couchdb_dbname, couchdb_server, {
           live: true,
           retry: true,

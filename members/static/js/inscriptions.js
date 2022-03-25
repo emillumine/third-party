@@ -17,8 +17,9 @@ var latest_odoo_coop_bb = null,
     subs_cap = $('#subs_cap'),
     m_barcode = $('#m_barcode'),
     sex = $('#sex'),
-
     self_records = [],
+    selected_associate=null,
+    associated_old_choice= null,
 
     choose_shift_msg = "Il est nécessaire de choisir un créneau (ABCD ou Volant) avant de pouvoir faire quoique ce soit d'autre.\nUne personne qui souhaite être rattachée au compte d'un autre membre dans le cadre d'un binôme doit choisir le créneau volant.";
 
@@ -91,12 +92,18 @@ function new_coop_validation() {
 
     coop_registration_details.find('.shift_template').text(st);
     process_state.html(current_coop.firstname + ' ' +current_coop.lastname);
-    get_next_shift(current_coop.shift_template.data.id, function(data) {
-        if (data != null)
-            coop_registration_details.find('.next_shift').text(data.date_begin);
+    if (current_coop.shift_template.data && current_coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
+        get_next_shift(current_coop.shift_template.data.id, function(data) {
+            if (data != null) {
+                coop_registration_details.find('#next_shift_registration_detail').show();
+                coop_registration_details.find('.next_shift').text(data.date_begin);
+            }
+            coop_registration_details.show();
+        });
+    } else {
+        coop_registration_details.find('#next_shift_registration_detail').hide();
         coop_registration_details.show();
-    });
-
+    }
 }
 
 function reset_sex_radios() {
@@ -106,6 +113,11 @@ function reset_sex_radios() {
 }
 
 function create_new_coop() {
+    selected_associate= null;
+    $('#associate_area').hide();
+    $('.chosen_associate').html("");
+    $('.chosen_associate_area').hide();
+    $('.member_choice').removeClass('choice_active');
     local_in_process = getLocalInProcess();
     if (getLocalInProcess().length > 0) {
         empty_waiting_local_processes();
@@ -129,7 +141,6 @@ function create_new_coop() {
             alert(choose_shift_msg);
         }
     }
-
 }
 function swipe_to_shift_choice() {
     ncoop_view.hide();
@@ -167,6 +178,30 @@ function _really_save_new_coop(email, fname, lname, cap, pm, cn, bc, msex) {
     coop.payment_meaning = pm;
     coop.checks_nb = cn;
     coop.fingerprint = fingerprint;
+    if (associated_old_choice == 'existing_member_choice') {
+        if (selected_associate!=null) {
+            coop.is_associated_people = true;
+            coop.parent_id=selected_associate.id;
+            coop.parent_name=selected_associate.barcode_base + ' - '+ selected_associate.name;
+            coop.shift_template = shift_templates[ASSOCIATE_MEMBER_SHIFT];
+        }
+    } else if (associated_old_choice == 'new_member_choice' && $('#new_member_input').val()!='') {
+        coop.is_associated_people = true;
+        coop.parent_name=$('#new_member_input').val();
+        delete coop.parent_id;
+        coop.shift_template = shift_templates[ASSOCIATE_MEMBER_SHIFT];
+    } else {
+        delete coop.is_associated_people;
+        delete coop.parent_id;
+        delete coop.parent_name;
+    }
+    selected_associate=null;
+    $('#new_member_input').val('');
+    $('#associate_area').hide();
+    $('.chosen_associate_area').hide();
+    $('.chosen_associate').html("");
+    associated_old_choice= null;
+
     if (m_barcode.length > 0) coop.m_barcode = bc;
     if (sex.length > 0) coop.sex = msex;
     coop.validation_state = "to_fill";
@@ -174,11 +209,14 @@ function _really_save_new_coop(email, fname, lname, cap, pm, cn, bc, msex) {
         if (!err) {
             coop._rev = result.rev;
             current_coop = coop;
-            if (typeof coop.shift_template != "undefined") {
+            if (typeof coop.shift_template != "undefined" && coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
                 openModal(
                     'Voulez-vous modifier le créneau choisi ?', swipe_to_shift_choice, 'oui',
                     false, true, show_coop_list
                 );
+            } else if (coop.is_associated_people && typeof coop.shift_template != "undefined" && coop.shift_template.data.id == ASSOCIATE_MEMBER_SHIFT) {
+                ncoop_view.hide();
+                new_coop_validation();
             } else {
                 swipe_to_shift_choice();
             }
@@ -226,17 +264,36 @@ function store_new_coop(event) {
             if (typeof(rData.answer) == 'boolean' && rData.answer == true) {
                 errors.push("Il y a déjà un enregistrement Odoo avec cette adresse mail !");
             }
+            if (selected_associate!=null) {
+                $.ajax({url : '/members/is_associated/' + selected_associate.id,
+                    dataType :'json'
+                }).done(function(rData) {
+                    if (typeof(rData.answer) == 'boolean' && rData.answer == true) {
+                        errors.push("Ce membre à déjà un Binôme majeur");
+                    }
+                    if (errors.length == 0) {
+                        _really_save_new_coop(
+                            email, fname, lname,
+                            subs_cap.val(), payment_meaning.val(), ch_qty.val(), bc, msex
+                        );
+
+                    } else {
+                        alert(errors.join("\n"));
+                    }
+                });
+
+            } else {
+                if (errors.length == 0) {
+                    _really_save_new_coop(
+                        email, fname, lname,
+                        subs_cap.val(), payment_meaning.val(), ch_qty.val(), bc, msex
+                    );
+
+                } else {
+                    alert(errors.join("\n"));
+                }
+            }
         });
-
-    if (errors.length == 0) {
-        _really_save_new_coop(
-            email, fname, lname,
-            subs_cap.val(), payment_meaning.val(), ch_qty.val(), bc, msex
-        );
-
-    } else {
-        alert(errors.join("\n"));
-    }
 
 }
 
@@ -272,6 +329,29 @@ function modify_current_coop() {
         ch_qty.show();
     } else {
         ch_qty.hide();
+    }
+    if (current_coop.is_associated_people) {
+        $('.member_choice').removeClass('choice_active');
+        $('#associate_area').show();
+        if (current_coop.parent_id) {
+            $('#existing_member_choice_action').show();
+            $('#new_member_choice_action').hide();
+            $('#existing_member_choice').addClass('choice_active');
+            var member_button = '<div>' + current_coop.parent_name + '</div>';
+
+            $('.chosen_associate').html(member_button);
+            $('.chosen_associate_area').show();
+            associated_old_choice = 'existing_member_choice';
+
+        } else {
+            $('#new_member_choice_action').show();
+            $('#existing_member_choice_action').hide();
+            $('#new_member_choice').addClass('choice_active');
+            $('#new_member_input').val(current_coop.parent_name);
+            $('.chosen_associate').html('');
+            $('.chosen_associate_area').hide();
+            associated_old_choice = 'new_member_choice';
+        }
     }
     subs_cap.val(current_coop.shares_euros);
     if (m_barcode.length > 0) m_barcode.val(current_coop.m_barcode);
@@ -497,8 +577,48 @@ $('#coop_create').submit(store_new_coop);
 $('#generate_email').click(generate_email);
 $('#odoo_user_connect').click();
 
+$('#add_binome').click(function() {
+    if ($('#associate_area').is(':visible')) {
+        $('#associate_area').hide();
+        associated_old_choice = null;
+        $('#new_member_input').val('');
+        if (current_coop !=null) {
+            delete current_coop.parent_name;
+            delete current_coop.parent_id;
+            delete current_coop.is_associated_people;
+            delete current_coop.shift_template;
+        }
+    } else {
+        $('#associate_area').show();
+        $('.member_choice').removeClass('choice_active');
+        $('#existing_member_choice_action').hide();
+        $('#new_member_choice_action').hide();
+        associated_old_choice = null;
+    }
+});
+
+$('.member_choice').on('click', function() {
+
+    if (associated_old_choice !=null && associated_old_choice!=$(this).attr('id')) {
+        $('#'+$(this).attr('id')+'_action').show();
+        $('#'+associated_old_choice+'_action').hide();
+        $('#'+associated_old_choice).removeClass('choice_active');
+    } else if (associated_old_choice ==null) {
+        $('#'+$(this).attr('id')+'_action').show();
+
+    }
+    associated_old_choice=$(this).attr('id');
+    $(this).addClass('choice_active');
+
+});
 
 $('#shift_calendar').click(show_shift_calendar);
+$('#search_member_input').keypress((event) => {
+    if (event.keyCode==13) {
+        event.preventDefault();
+        searchMembersForAssociate();
+    }
+});
 
 //get_latest_odoo_coop_bb();
 update_self_records();
@@ -516,3 +636,109 @@ payment_meaning.change(function() {
 window.addEventListener("beforeunload", keep_in_process_work);
 
 empty_waiting_local_processes();
+
+/**
+ * Display the members from the search result
+ */
+function display_possible_members() {
+    $('.search_member_results_area').show();
+    $('.search_member_results').empty();
+    $('.btn_possible_member').off();
+
+    $('.chosen_associate').html("");
+    $('.chosen_associate_area').hide();
+
+    let no_result = true;
+
+    if (members_search_results.length > 0) {
+        for (member of members_search_results) {
+            $(".search_results_text").show();
+            no_result = false;
+
+            // Display results (possible members) as buttons
+            var member_button = '<button class="btn--success btn_possible_member" member_id="'
+                + member.id + '">'
+                + member.barcode_base + ' - ' + member.name
+                + '</button>';
+
+            $('.search_member_results').append(member_button);
+        }
+
+        // Set action on member button click
+        $('.btn_possible_member').on('click', function() {
+            for (member of members_search_results) {
+                if (member.id == $(this).attr('member_id')) {
+                    selected_associate = member;
+
+                    var member_button = '<div  member_id="' + member.id + '">' + member.barcode_base + ' - ' + member.name + '</button>';
+
+                    $('.chosen_associate').html(member_button);
+                    $('.chosen_associate_area').show();
+
+                    $('.search_member_results').empty();
+                    $('.search_member_results_area').hide();
+                    $('#search_member_input').val('');
+                    break;
+                }
+            }
+        });
+    }
+
+    if (no_result === true) {
+        $(".search_results_text").hide();
+        $('.search_member_results').html(`<p>
+            <i>Aucun résultat ! Vérifiez votre recherche, ou si le.la membre n'est pas déjà dans le tableau...</i>
+        </p>`);
+    }
+}
+
+
+/**
+ * Search for members to associate a new member with an old one. 
+ */
+function searchMembersForAssociate() {
+    let search_str = $('#search_member_input').val();
+
+    if (search_str) {
+        $.ajax({
+            url: '/members/search/' + search_str+ "?search_type=members",
+            dataType : 'json',
+            success: function(data) {
+                members_search_results = [];
+
+                for (member of data.res) {
+                    if (member.is_member || member.is_associated_people) {
+                        members_search_results.push(member);
+                    }
+                }
+
+                display_possible_members();
+            },
+            error: function() {
+                err = {
+                    msg: "erreur serveur lors de la recherche de membres",
+                    ctx: 'search_member_form.search_members'
+                };
+                report_JS_error(err, 'members.admin');
+
+                $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
+                    globalPosition:"top right",
+                    className: "error"
+                });
+            }
+        });
+    } else {
+        members_search_results = [];
+        display_possible_members();
+    }
+}
+
+
+$(document).ready(function() {
+    retrieve_and_draw_shift_tempates();
+    // Set action to search for the member
+    $('#search_member_button').on('click', function() {
+        searchMembersForAssociate();
+    });
+
+});

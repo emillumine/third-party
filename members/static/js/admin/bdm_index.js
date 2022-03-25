@@ -4,7 +4,7 @@ $(document).ready(function() {
 
         $(".page_content").show();
 
-        let location = window.location.href;
+        let location = window.location.href.replace(/\/$/, '');
 
         $('.management_type_button').on('click', function() {
             if (this.id == 'manage_makeups_button') {
@@ -19,6 +19,8 @@ $(document).ready(function() {
                 window.location.assign(location + "/create_pair");
             } else if (this.id == 'manage_leaves_button') {
                 console.log('coming soon...');
+            } else if (this.id == 'manage_regular_shifts_button') {
+                window.location.assign(location + "/manage_regular_shifts");
             }
         });
     } else {

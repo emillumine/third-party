@@ -35,14 +35,15 @@ function get_shift_name(s_data) {
 
     if (s_data && s_data.week) {
         shift_name = weeks_name[s_data.week];
-        if (s_data.type == 2 && typeof manage_ftop != "undefined" && manage_ftop == true) {
+        if (s_data.type == 2 && typeof manage_ftop != "undefined" && manage_ftop == true && s_data.id != ASSOCIATE_MEMBER_SHIFT) {
             shift_name = 'Volant';
+        } else if(s_data.id == ASSOCIATE_MEMBER_SHIFT) {
+            shift_name = 'Binôme';
         } else {
             shift_name += s_data.day + ' - ' + s_data.begin;
             shift_name += ' - ' + s_data.place;
         }
     }
-
     return shift_name;
 }
 

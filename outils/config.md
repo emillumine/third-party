@@ -69,6 +69,8 @@
 
 - COOP_BARCODE_RULE_ID = 11
 
+- ASSOCIATE_BARCODE_RULE_ID = 12
+
 - FUNDRAISING_CAT_ID = 1
 
 - PARTS_PRICE_UNIT = 10.0
@@ -128,6 +130,10 @@
 - USE_STANDARD_SHIFT = True (by default)
 
         La Cagette use False to implement custom rules
+
+- ASSOCIATE_MEMBER_SHIFT = ''
+
+        Id number of the associate shift template
 
 ### Scales and labels files generation
 

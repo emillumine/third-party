@@ -101,8 +101,11 @@ def get_list_shift_calendar(request, partner_id):
     use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
 
     listRegisterPartner = []
+    listMakeUpShift = []
     for v in registerPartner:
         listRegisterPartner.append(v['id'])
+        if v['is_makeup']:
+            listMakeUpShift.append(v['id'])
 
     start = request.GET.get('start')
     end = request.GET.get('end')
@@ -136,7 +139,10 @@ def get_list_shift_calendar(request, partner_id):
 
                 if len(l) > 0:
                     if use_new_members_space is True:
-                        event["classNames"] = ["shift_booked"]
+                        if set(value['registration_ids']) & set(listRegisterPartner) & set(listMakeUpShift):
+                            event["classNames"] = ["shift_booked_makeup"]
+                        else : 
+                            event["classNames"] = ["shift_booked"]
                     else:
                         event["className"] = "shift_booked"
                     event["changed"] = False
@@ -239,11 +245,14 @@ def affect_shift(request):
         if Verification.verif_token(request.POST.get('verif_token'), int(request.POST.get('idPartner'))) is True:
             cs = CagetteShift()
             if 'idShiftRegistration' in request.POST and 'affected_partner' in request.POST:
+                #  if request is made by associated people, idPartner is it's id, not "master" res.partner
+                #  it's will be handled in model's method (affect_shift)
                 data = {
                     "idPartner": int(request.POST['idPartner']),
                     "idShiftRegistration": int(request.POST['idShiftRegistration']),
                     "affected_partner": request.POST['affected_partner'],
                 }
+                st_r_id = None
                 try:
                     st_r_id = cs.affect_shift(data)
                 except Exception as e:
@@ -302,6 +311,37 @@ def add_shift(request):
             else:
                 response = {'result': False}
             return JsonResponse(response)
+        else:
+            return HttpResponseForbidden()
+    else:
+        return HttpResponseForbidden()
+
+def cancel_shift(request):
+    """ Annule une présence à un shift """
+    if 'verif_token' in request.POST:
+        partner_id = int(request.POST.get('idPartner'))
+        if Verification.verif_token(request.POST.get('verif_token'), partner_id) is True:
+
+            cs = CagetteShift()
+            listRegister = [int(request.POST['idRegister'])]
+
+            try:
+                response = cs.cancel_shift(listRegister)
+
+                # decrement extra_shift_done if param exists
+                if 'extra_shift_done' in request.POST:
+                    target = int(request.POST["extra_shift_done"]) - 1
+
+                    # extra security
+                    if target < 0:
+                        target = 0
+
+                    cm = CagetteMember(partner_id)
+                    cm.update_extra_shift_done(target)
+
+                return JsonResponse({"res" : 'response'})
+            except Exception as e:
+                return JsonResponse({"error" : str(e)}, status=500)
         else:
             return HttpResponseForbidden()
     else:
