@@ -613,14 +613,14 @@ def create_pair(request):
             child_makeups = child['makeups_to_do']
             parent_makeups = parent['makeups_to_do']
 
-            child_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', child['id'],
+            child_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', child_id],
                                                                              ['is_makeup', '=', True],
-                                                                             ['state', '=', 'open',
-                                                                             ['date_begin', '>', datetime.now()]]]])
-            parent_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', child['id'],
+                                                                             ['state', '=', 'open'],
+                                                                             ['date_begin', '>', datetime.now().isoformat()]])
+            parent_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', parent_id],
                                                                              ['is_makeup', '=', True],
-                                                                             ['state', '=', 'open',
-                                                                             ['date_begin', '>', datetime.now()]]]])
+                                                                             ['state', '=', 'open'],
+                                                                             ['date_begin', '>', datetime.now().isoformat()]])
             child_makeups += len(child_scheduled_makeups)
             parent_makeups += len(parent_scheduled_makeups)
 
@@ -636,13 +636,13 @@ def create_pair(request):
                         api.create('shift.counter.event', {"name": 'passage en binôme',
                                                            "shift_id": False,
                                                            "type": child['shift_type'],
-                                                           "partner_id": child['id'],
+                                                           "partner_id": child_id,
                                                            "point_qty": 1})
                         # on retire les points au titulaire
                         api.create('shift.counter.event', {"name": 'passage en binôme',
                                                            "shift_id": False,
                                                            "type": parent['shift_type'],
-                                                           "partner_id": parent['id'],
+                                                           "partner_id": parent_id,
                                                            "point_qty": -1})
                 elif child_makeups + parent_makeups > 2:
                     # on annule les rattrapages du suppléant et on met 2 rattrapages sur le titulaire
@@ -653,29 +653,36 @@ def create_pair(request):
                         api.create('shift.counter.event', {"name": 'passage en binôme',
                                                            "shift_id": False,
                                                            "type": child['shift_type'],
-                                                           "partner_id": child['id'],
+                                                           "partner_id": child_id,
                                                            "point_qty": 1})
                     for i in range((parent_makeups + child_makeups) - 2):
                         # màj du compteur du titulaire
                         api.create('shift.counter.event', {"name": "passage en binôme",
                                                            "shift_id": False,
                                                            "type": parent['shift_type'],
-                                                           "partner_id": parent['id'],
+                                                           "partner_id": parent_id,
                                                            "point_qty": -1})
 
                 api.execute('res.partner', 'run_process_target_status', [])
 
             # update child base account state
             api.execute("res.partner", "set_special_state", {"id": child_id, 'state': "associated"})
-            # suppression du créneau pour le compte de base
-            shift_registration = api.search_read("shift.template.registration", [['partner_id', '=', child_id]], ['id'])
-            api.delete("shift.template.registration", [x['id'] for x in shift_registration])
-
+            m = CagetteMember(child_id).unsuscribe_member()
 
             # get barcode rule id
             bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
             child['barcode_rule_id'] = bbcode_rule["id"]
-            child.pop("makeups_to_do")
+            child['cooperative_state'] = 'associated'
+            for field in ["nb_associated_people",
+                          "current_template_name",
+                          "makeups_to_do",
+                          "final_standard_points",
+                          "final_ftop_points",
+                          "shift_type"]:
+                try:
+                    del child[field]
+                except KeyError:
+                    pass
             attached_account = api.create('res.partner', child)
             # generate_base
             api.execute('res.partner', 'generate_base', [attached_account])
@@ -712,9 +719,10 @@ def delete_pair(request):
             child = api.search_read('res.partner', [['id', '=', child_id]], ['email', 'id', 'parent_id'])[0]
             child_accounts = api.search_read('res.partner', [['email', '=', child['email']]], ['id', 'email'])
             prev_child = [x['id'] for x in child_accounts if x['id'] != child_id]
-            parent = api.search_read('res.partner', [['id', '=', child['parent_id'][0]]], ['cooperative_state'])
+            parent = api.search_read('res.partner', [['id', '=', child['parent_id'][0]]], ['cooperative_state'])[0]
             api.update('res.partner', [child_id], {"parent_id": False, "is_associated_people": False})
             api.delete('res.partner', [child_id])
+            # api.execute('res.partner', 'set_special_state', {"id": parent['id'], 'state': "cancel_special"})
             for id in prev_child:
                 # api.update('res.partner', [id], {"cooperative_state": 'unsubscribed'})
                 api.execute("res.partner", "set_special_state", {"id": id, 'state': "cancel_special"})
