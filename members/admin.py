@@ -7,7 +7,7 @@ from members.models import CagetteMembers
 from members.models import CagetteMember
 from shifts.models import CagetteShift
 from outils.common import MConfig
-
+from datetime import datetime
 
 default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
@@ -505,7 +505,10 @@ def create_pair(request):
                 "current_template_name",
                 "parent_id",
                 "is_associated_people",
-                "makeups_to_do"
+                "makeups_to_do",
+                "final_standard_points",
+                "final_ftop_points",
+                "shift_type"
             ]
             child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
             parent = api.search_read('res.partner', [['id', '=', parent_id]],
@@ -513,6 +516,9 @@ def create_pair(request):
                                                      'nb_associated_people',
                                                      'current_template_name',
                                                      'makeups_to_do',
+                                                     "final_standard_points",
+                                                     "final_ftop_points",
+                                                     'shift_type'
                                                      'parent_id'])[0]
             errors = []
             if child['nb_associated_people'] > 0:
@@ -548,14 +554,60 @@ def create_pair(request):
             child['is_associated_people'] = True
             child['parent_id'] = parent['id']
             # fusion des rattrapages
-            if child["makeups_to_do"] <= 2:
-                api.update("res.partner", [parent_id], {"makeups_to_do": parent['makeups_to_do'] + child['makeups_to_do']})
-                # remise à zéro du compte suppléant
-                api.update("res.partner", [child_id], {"makeups_to_do": 0})
-            else:
-                api.update("res.partner", [parent_id], {"makeups_to_do": 2})
-                # remise à zéro du compte suppléant
-                api.update("res.partner", [child_id], {"makeups_to_do": 0})
+            child_makeups = child['makeups_to_do']
+            parent_makeups = parent['makeups_to_do']
+
+            child_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', child['id'],
+                                                                             ['is_makeup', '=', True],
+                                                                             ['state', '=', 'open',
+                                                                             ['date_begin', '>', datetime.now()]]]])
+            parent_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', child['id'],
+                                                                             ['is_makeup', '=', True],
+                                                                             ['state', '=', 'open',
+                                                                             ['date_begin', '>', datetime.now()]]]])
+            child_makeups += len(child_scheduled_makeups)
+            parent_makeups += len(parent_scheduled_makeups)
+
+            if child_makeups:
+                # le suppléant a des rattrapages
+                if child_makeups + parent_makeups <=2:
+                    # on transfert les rattrapages sur le parent
+                    api.update("res.partner", [parent_id], {"makeups_to_do": parent['makeups_to_do'] + child['makeups_to_do']})
+                    # On annule les rattrapages du child
+                    api.update('res.partner', [child_id], {"makeups_to_do": 0})
+                    for makeup in range(child_makeups):
+                        # reset du compteur du suppléant
+                        api.create('shift.counter.event', {"name": 'passage en binôme',
+                                                           "shift_id": False,
+                                                           "type": child['shift_type'],
+                                                           "partner_id": child['id'],
+                                                           "point_qty": 1})
+                        # on retire les points au titulaire
+                        api.create('shift.counter.event', {"name": 'passage en binôme',
+                                                           "shift_id": False,
+                                                           "type": parent['shift_type'],
+                                                           "partner_id": parent['id'],
+                                                           "point_qty": -1})
+                elif child_makeups + parent_makeups > 2:
+                    # on annule les rattrapages du suppléant et on met 2 rattrapages sur le titulaire
+                    api.update('res.partner', [parent_id], {"makeups_to_do": 2})
+                    api.update('res.partner', [child_id], {"makeups_to_do": 0})
+                    for makeup in range(child_makeups):
+                        # reset du compteur du suppléant
+                        api.create('shift.counter.event', {"name": 'passage en binôme',
+                                                           "shift_id": False,
+                                                           "type": child['shift_type'],
+                                                           "partner_id": child['id'],
+                                                           "point_qty": 1})
+                    for i in range((parent_makeups + child_makeups) - 2):
+                        # màj du compteur du titulaire
+                        api.create('shift.counter.event', {"name": "passage en binôme",
+                                                           "shift_id": False,
+                                                           "type": parent['shift_type'],
+                                                           "partner_id": parent['id'],
+                                                           "point_qty": -1})
+
+                api.execute('res.partner', 'run_process_target_status', [])
 
             # update child base account state
             api.execute("res.partner", "set_special_state", {"id": child_id, 'state': "associated"})
