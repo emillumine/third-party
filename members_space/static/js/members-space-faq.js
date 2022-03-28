@@ -17,6 +17,8 @@ function init_faq() {
     $("#helper_unsubscribe_form_link_btn").prop("href", helper_unsubscribe_form_link);
     $("#request_form_link_btn2").prop("href", request_form_link);
     $("#request_form_link_btn").prop("href", request_form_link);
+
+    display_messages_for_attached_people();
 }
 
 $(document).on('click', "#shift_exchange_btn", () => {
@@ -37,3 +39,11 @@ $(document).on('click', '.accordion', function() {
         panel.style.display = "block";
     }
 });
+
+function display_messages_for_attached_people() {
+    if (block_actions_for_attached_people === "False") {
+        $(".attached-unblocked").show();
+    } else {
+        $(".attached-blocked").show();
+    }
+}
