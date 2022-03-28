@@ -1217,6 +1217,14 @@ class CagetteMembers(models.Model):
         res = api.search_read('res.partner', cond, fields)
         return res
 
+    @staticmethod
+    def get_attached_members():
+        api = OdooAPI()
+        cond = [['is_associated_people','=', True]]
+        fields = ['id', 'name', 'parent_name']
+        res = api.search_read('res.partner', cond, fields)
+        return res
+
 class CagetteServices(models.Model):
     """Class to handle cagette Odoo services."""
 

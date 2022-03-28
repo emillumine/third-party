@@ -51,7 +51,7 @@ urlpatterns = [
     url(r'^easy_validate_shift_presence$', views.easy_validate_shift_presence),
     # conso / groupe recherche / socio
     url(r'^panel_get_purchases$', views.panel_get_purchases),
-    # BDM 
+    # BDM
     url(r'^save_partner_info$', views.save_partner_info),
 
     # BDM - members admin
@@ -63,4 +63,12 @@ urlpatterns = [
     url(r'^update_members_makeups$', admin.update_members_makeups),
     url(r'^delete_shift_registration$', admin.delete_shift_registration),
     url(r'^delete_shift_template_registration$', admin.delete_shift_template_registration),
+    url(r'^admin/manage_attached$', admin.manage_attached),
+    url(r'^admin/manage_attached/create_pair$', admin.create_pair),
+    url(r'^admin/manage_attached/delete_pair$', admin.delete_pair),
+    url(r'^get_makeups_members$', admin.get_makeups_members),
+    url(r'^update_members_makeups$', admin.update_members_makeups),
+    url(r'^delete_shift_registration$', admin.delete_shift_registration),
+    url(r'^get_member_info/(\d+)$', admin.get_member_info),
+    url(r'^get_attached_members$', admin.get_attached_members),
 ]

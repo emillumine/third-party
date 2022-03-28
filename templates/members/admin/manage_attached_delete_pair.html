@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin/manage_attached.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="template" style="display:None;">
+  <div id="confirmModal">
+    <div class="mconfirm">
+      <h3>Le binôme est sur le point d'être désolidarisé</h3>
+      <br />
+      <p>Êtes-vous sur de vouloir désolidariser <b><span id="parentName"></span></b> et
+        <b><span id="childName"></span></b>
+      </p>
+      <hr/>
+    </div>
+  </div>
+</div>
+<div class="page_body">
+    <div id="back_to_admin_index">
+        <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+    </div>
+    <div class="login_area">
+        {% include "common/conn_admin.html" %}
+    </div>
+    <div class="header txtcenter">
+        <h1>Gestion des Binômes</h1>
+    </div>
+
+    <div class="page_content">
+
+        <div id="subheader">
+            <h4>Liste des membres en binômes</h4>
+        </div>
+        <div class="table_area">
+            <table id="attached_members_table" class="display" cellspacing="0" width="100%"></table>
+        </div>
+    </div>
+</div>
+
+<script src='{% static "js/all_common.js" %}?v='></script>
+<script src='{% static "js/admin/manage_attached.js" %}?v='></script>
+{% endblock %}

@@ -1,12 +1,13 @@
 from django.contrib import admin
 from outils.common_imports import *
 from outils.for_view_imports import *
+from outils.common import OdooAPI
 from members.models import CagetteUser
 from members.models import CagetteMembers
 from members.models import CagetteMember
 from shifts.models import CagetteShift
 from outils.common import MConfig
-
+from datetime import datetime
 
 default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
@@ -326,6 +327,13 @@ def manage_shift_registrations(request):
                'module': 'Membres'}
     return HttpResponse(template.render(context, request))
 
+def manage_attached(request):
+    """ Administration des binômes membres """
+    template = loader.get_template('members/admin/manage_attached.html')
+    context = {'title': 'BDM - Binômes',
+               'module': 'Membres'}
+    return HttpResponse(template.render(context, request))
+
 def manage_regular_shifts(request):
     """ Administration des créneaux des membres """
     template = loader.get_template('members/admin/manage_regular_shifts.html')
@@ -336,6 +344,11 @@ def manage_regular_shifts(request):
 def get_makeups_members(request):
     """ Récupération des membres qui doivent faire des rattrapages """
     res = CagetteMembers.get_makeups_members()
+    return JsonResponse({ 'res' : res })
+
+def get_attached_members(request):
+    """ Récupération des membres en binôme """
+    res = CagetteMembers.get_attached_members()
     return JsonResponse({ 'res' : res })
 
 def update_members_makeups(request):
@@ -350,7 +363,7 @@ def update_members_makeups(request):
             cm = CagetteMember(int(member_data["member_id"]))
 
             res["res"].append(cm.update_member_makeups(member_data))
-            
+
             # Update member standard points, for standard members only
             if member_data["member_shift_type"] == "standard":
                 # Set points to minus the number of makeups to do (limited to -2)
@@ -455,3 +468,274 @@ def delete_shift_template_registration(request):
         res["message"] = "Unauthorized"
         response = JsonResponse(res, status=403)
     return response
+
+# Gestion des binômes
+
+def get_member_info(request, id):
+    """Retrieve information about a member."""
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user:
+        api = OdooAPI()
+        fields = [
+            'id',
+            'name',
+            'sex',
+            'cooperative_state',
+            'email',
+            'street',
+            'street2',
+            'zip',
+            'city',
+            'current_template_name',
+            'shift_type',
+            'parent_id',
+            'is_associated_people',
+            'parent_name',
+            "makeups_to_do",
+            "barcode_base"
+        ]
+        cond = [['id', '=', id]]
+        member = api.search_read('res.partner', cond, fields)
+        if member:
+            member = member[0]
+            parent = None
+            if member['parent_id']:
+                parent = api.search_read('res.partner', [['id', '=', int(member['parent_id'][0])]], ['barcode_base'])[0]
+                member['parent_barcode_base'] = parent['barcode_base']
+            res['member'] = member
+            response = JsonResponse(res)
+        else:
+            response = JsonResponse({"message": "Not found"}, status=404)
+    else:
+        res['message'] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response
+
+def create_pair(request):
+    """Create pair
+
+    payload example:
+    {
+        "parent": {"id": 3075},
+        "child": {"id": 3067}
+    }
+    """
+    if request.method == 'GET':
+        template = loader.get_template('members/admin/manage_attached_create_pair.html')
+        context = {'title': 'BDM - Binômes',
+                   'module': 'Membres'}
+        return HttpResponse(template.render(context, request))
+
+    if request.method == 'POST':
+        if CagetteUser.are_credentials_ok(request):
+            api = OdooAPI()
+            data = json.loads(request.body.decode())
+            parent_id = data['parent']['id']
+            child_id = data['child']['id']
+            # create attached account for child
+            fields = [
+                "birthdate",
+                "city",
+                "commercial_partner_id",
+                "company_id",
+                "company_type",
+                "cooperative_state",
+                "barcode_rule_id",
+                "country_id",
+                "customer",
+                "department_id",
+                "email",
+                "employee",
+                "image",
+                "image_medium",
+                "image_small",
+                "mobile",
+                "name",
+                "phone",
+                "sex",
+                "street",
+                "street2",
+                "zip",
+                "nb_associated_people",
+                "current_template_name",
+                "parent_id",
+                "is_associated_people",
+                "makeups_to_do",
+                "final_standard_points",
+                "final_ftop_points",
+                "shift_type"
+            ]
+            child = api.search_read('res.partner', [['id', '=', child_id]], fields)[0]
+            parent = api.search_read('res.partner', [['id', '=', parent_id]],
+                                                    ['commercial_partner_id',
+                                                     'nb_associated_people',
+                                                     'current_template_name',
+                                                     'makeups_to_do',
+                                                     "final_standard_points",
+                                                     "final_ftop_points",
+                                                     'shift_type'
+                                                     'parent_id'])[0]
+            errors = []
+            if child['nb_associated_people'] > 0:
+                # le membre est déjà titulaire d'un binôme
+                errors.append("Le membre suppléant sélectionné est titulaire d'un bînome")
+            # le membre suppléant fait parti du commité?
+            if child['current_template_name'] == "Services des comités":
+                errors.append("Le membre suppléant séléctionné fait parti du comité")
+            # Verifier que le suppléant n'est pas déjà en binôme soit titulaire soit suppléant
+            for m in api.search_read('res.partner', [['email', '=', child['email']]]):
+                if m['is_associated_people']:
+                    errors.append('Le membre suppléant est déjà en bînome')
+                if m['child_ids']:
+                    errors.append("Le membre suppléant sélectionné est titulaire d'un binôme")
+            # le membre titulaire a déjà un/des suppléants?
+            if parent['nb_associated_people'] >= 1:
+                # On récupère le/s suppléant(s)
+                associated_members = api.search_read('res.partner', [['parent_id', '=', parent_id]], ['id', 'age'])
+                # le suppléant est un mineur?
+                for m in associated_members:
+                    if m['age'] > 18:
+                        errors.append("Le membre titulaire sélectionné a déjà un suppléant")
+            if errors:
+                return JsonResponse({"errors": errors}, status=409)
+
+            del child["id"]
+            for field in child.keys():
+                if field.endswith("_id"):
+                    try:
+                        child[field] = child[field][0]
+                    except TypeError:
+                        child[field] = False
+            child['is_associated_people'] = True
+            child['parent_id'] = parent['id']
+            # fusion des rattrapages
+            child_makeups = child['makeups_to_do']
+            parent_makeups = parent['makeups_to_do']
+
+            child_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', child_id],
+                                                                             ['is_makeup', '=', True],
+                                                                             ['state', '=', 'open'],
+                                                                             ['date_begin', '>', datetime.now().isoformat()]])
+            parent_scheduled_makeups = api.search_read('shift.registration', [['partner_id', '=', parent_id],
+                                                                             ['is_makeup', '=', True],
+                                                                             ['state', '=', 'open'],
+                                                                             ['date_begin', '>', datetime.now().isoformat()]])
+            child_makeups += len(child_scheduled_makeups)
+            parent_makeups += len(parent_scheduled_makeups)
+
+            if child_makeups:
+                # le suppléant a des rattrapages
+                if child_makeups + parent_makeups <=2:
+                    # on transfert les rattrapages sur le parent
+                    api.update("res.partner", [parent_id], {"makeups_to_do": parent['makeups_to_do'] + child['makeups_to_do']})
+                    # On annule les rattrapages du child
+                    api.update('res.partner', [child_id], {"makeups_to_do": 0})
+                    for makeup in range(child_makeups):
+                        # reset du compteur du suppléant
+                        api.create('shift.counter.event', {"name": 'passage en binôme',
+                                                           "shift_id": False,
+                                                           "type": child['shift_type'],
+                                                           "partner_id": child_id,
+                                                           "point_qty": 1})
+                        # on retire les points au titulaire
+                        api.create('shift.counter.event', {"name": 'passage en binôme',
+                                                           "shift_id": False,
+                                                           "type": parent['shift_type'],
+                                                           "partner_id": parent_id,
+                                                           "point_qty": -1})
+                elif child_makeups + parent_makeups > 2:
+                    # on annule les rattrapages du suppléant et on met 2 rattrapages sur le titulaire
+                    api.update('res.partner', [parent_id], {"makeups_to_do": 2})
+                    api.update('res.partner', [child_id], {"makeups_to_do": 0})
+                    for makeup in range(child_makeups):
+                        # reset du compteur du suppléant
+                        api.create('shift.counter.event', {"name": 'passage en binôme',
+                                                           "shift_id": False,
+                                                           "type": child['shift_type'],
+                                                           "partner_id": child_id,
+                                                           "point_qty": 1})
+                    for i in range((parent_makeups + child_makeups) - 2):
+                        # màj du compteur du titulaire
+                        api.create('shift.counter.event', {"name": "passage en binôme",
+                                                           "shift_id": False,
+                                                           "type": parent['shift_type'],
+                                                           "partner_id": parent_id,
+                                                           "point_qty": -1})
+
+                api.execute('res.partner', 'run_process_target_status', [])
+
+            # update child base account state
+            api.execute("res.partner", "set_special_state", {"id": child_id, 'state': "associated"})
+            m = CagetteMember(child_id).unsuscribe_member()
+
+            # get barcode rule id
+            bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
+            child['barcode_rule_id'] = bbcode_rule["id"]
+            child['cooperative_state'] = 'associated'
+            for field in ["nb_associated_people",
+                          "current_template_name",
+                          "makeups_to_do",
+                          "final_standard_points",
+                          "final_ftop_points",
+                          "shift_type"]:
+                try:
+                    del child[field]
+                except KeyError:
+                    pass
+            attached_account = api.create('res.partner', child)
+            # generate_base
+            api.execute('res.partner', 'generate_base', [attached_account])
+            response = JsonResponse({"message": "Succesfuly paired members"}, status=200)
+        else:
+            response = JsonResponse({"message": "Unauthorized"}, status=403)
+        return response
+    else:
+        return JsonResponse({"message": "Method Not Allowed"}, status=405)
+
+
+def delete_pair(request):
+    """
+    Administration des binômes membres
+        Delete pair
+    GET:
+        Return template
+    POST:
+        payload example:
+        {
+            "child": {"id": 3075}
+        }
+    """
+    if request.method == 'GET':
+        template = loader.get_template('members/admin/manage_attached_delete_pair.html')
+        context = {'title': 'BDM - Binômes',
+                   'module': 'Membres'}
+        return HttpResponse(template.render(context, request))
+    elif request.method == 'POST':
+        if CagetteUser.are_credentials_ok(request):
+            api = OdooAPI()
+            data = json.loads(request.body.decode())
+            child_id = int(data['child']['id'])
+            child = api.search_read('res.partner', [['id', '=', child_id]], ['email', 'id', 'parent_id'])[0]
+            child_accounts = api.search_read('res.partner', [['email', '=', child['email']]], ['id', 'email'])
+            prev_child = [x['id'] for x in child_accounts if x['id'] != child_id]
+            parent = api.search_read('res.partner', [['id', '=', child['parent_id'][0]]], ['cooperative_state'])[0]
+            api.update('res.partner', [child_id], {"parent_id": False, "is_associated_people": False})
+            api.delete('res.partner', [child_id])
+            # api.execute('res.partner', 'set_special_state', {"id": parent['id'], 'state': "cancel_special"})
+            for id in prev_child:
+                # api.update('res.partner', [id], {"cooperative_state": 'unsubscribed'})
+                api.execute("res.partner", "set_special_state", {"id": id, 'state': "cancel_special"})
+
+            response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
+
+        else:
+            response = JsonResponse({"message": "Unauthorized"}, status=403)
+        return response
+    else:
+        return JsonResponse({"message": "Method Not Allowed"}, status=405)
+
+def get_attached_members(request):
+    """ Récupération des membres qui doivent faire des rattrapages """
+    res = CagetteMembers.get_attached_members()
+    return JsonResponse({ 'res' : res })

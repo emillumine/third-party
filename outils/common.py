@@ -70,6 +70,11 @@ class OdooAPI:
         return self.models.execute_kw(self.db, self.uid, self.passwd,
                                       entity, 'create', [fields])
 
+    def delete(self, entity, ids):
+        """Destroy entity instance by given ids."""
+        return self.models.execute_kw(self.db, self.uid, self.passwd,
+                                      entity, 'unlink', [ids])
+
     def execute(self, entity, method, ids, params={}):
         return self.models.execute_kw(self.db, self.uid, self.passwd,
                                       entity, method, [ids], params)
