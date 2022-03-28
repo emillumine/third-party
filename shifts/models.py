@@ -56,7 +56,10 @@ class CagetteShift(models.Model):
             if partnerData['shift_type'] == 'standard':
                 partnerData['in_ftop_team'] = False
                 #  Because 'in_ftop_team' doesn't seem to be reset to False in Odoo
-            cond = [['partner_id.id', '=', id]]
+            if partnerData['is_associated_people']:
+                cond = [['partner_id.id', '=', partnerData['parent_id'][0]]]
+            else:
+                cond = [['partner_id.id', '=', id]]
             fields = ['shift_template_id', 'is_current']
             shiftTemplate = self.o_api.search_read('shift.template.registration', cond, fields)
             if (shiftTemplate and len(shiftTemplate) > 0):

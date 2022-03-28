@@ -27,8 +27,7 @@ class CagetteMember(models.Model):
                         'display_ftop_points', 'display_std_points',
                         'is_exempted', 'cooperative_state', 'date_alert_stop']
 
-    m_shoft_default_fields = ['name', 'barcode_base', 'total_partner_owned_share',
-                      'amount_subscription']
+    m_short_default_fields = ['name', 'barcode_base']
 
     def __init__(self, id):
         """Init with odoo id."""
@@ -97,7 +96,6 @@ class CagetteMember(models.Model):
 
 # # # BDM
     def save_partner_info(self, partner_id, fieldsDatas):
-        print(fieldsDatas)
         return self.o_api.update('res.partner', partner_id,  fieldsDatas)
 
 
@@ -822,8 +820,27 @@ class CagetteMember(models.Model):
                         members.append(m)
 
             return CagetteMember.add_next_shifts_to_members(members)
+        elif search_type == "shift_template_data":
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['id', 'makeups_to_do', 'cooperative_state']
+            res = api.search_read('res.partner', cond, fields)
+
+            if res:
+                for partner in res:
+                    c = [['partner_id', '=', int(partner['id'])], ['state', 'in', ('draft', 'open')]]
+                    f = ['shift_template_id']
+                    shift_template_reg = api.search_read('shift.template.registration', c, f)
+
+                    if shift_template_reg:
+                        partner['shift_template_id'] = shift_template_reg[0]['shift_template_id']
+                    else:
+                        partner['shift_template_id'] = None
+
+            return res
         else:
-            fields = CagetteMember.m_shoft_default_fields
+            # TODO differentiate short & subscription_data searches
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['total_partner_owned_share','amount_subscription']
             res = api.search_read('res.partner', cond, fields)
             return res
 
@@ -910,6 +927,53 @@ class CagetteMember(models.Model):
         }
 
         return res
+
+    def get_member_selected_makeups(self):
+        res = {}
+
+        c = [["partner_id", "=", self.id], ["is_makeup", "=", True], ["state", "=", "open"]]
+        f=['id']
+        res = self.o_api.search_read("shift.registration", c, f)
+        return res
+
+    def unsuscribe_member(self):
+        res = {}
+
+        now = datetime.datetime.now().isoformat()
+
+        # Get and then delete shift template registration
+        c = [['partner_id', '=', self.id]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.template.registration", c, f)
+        ids = [d['id'] for d in res_ids]
+
+        if ids:
+            res["delete_shift_template_reg"] = self.o_api.execute('shift.template.registration', 'unlink', ids)
+        
+        # Get and then delete shift registrations
+        c = [['partner_id', '=', self.id], ['date_begin', '>', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.registration", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            res["delete_shifts_reg"]  = self.o_api.execute('shift.registration', 'unlink', ids)
+
+        # Close extensions
+        c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.extension", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            f = {'date_stop': now}
+            res["close_extensions"] = self.o_api.update('shift.extension', ids, f)
+
+        return res
+
+    def set_cooperative_state(self, state):
+        f = {'cooperative_state': state}
+        return self.o_api.update('res.partner', [self.id], f)
 
     def update_extra_shift_done(self, value):
         api = OdooAPI()
