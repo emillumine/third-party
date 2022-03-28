@@ -39,3 +39,11 @@ $(document).on('click', '.accordion', function() {
         panel.style.display = "block";
     }
 });
+
+function display_messages_for_attached_people() {
+    if (block_actions_for_attached_people === "False") {
+        $(".attached-unblocked").show();
+    } else {
+        $(".attached-blocked").show();
+    }
+}
