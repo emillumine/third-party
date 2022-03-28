@@ -205,7 +205,7 @@ function delete_pair(childId) {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(payload),
         success: function() {
-            // alert("binôme désolidarisé");
+            enqueue_message_for_next_loading("Binôme désolidarisé.");
             location.reload();
         },
         error: function(data) {
@@ -223,9 +223,6 @@ function delete_pair(childId) {
 
 
 function confirmDeletion(childId) {
-
-
-
   var modalContent = $('#confirmModal')
   modalContent.find("#parentName").text(parentName)
   modalContent.find("#childName").text(childName)
@@ -234,7 +231,7 @@ function confirmDeletion(childId) {
     if (is_time_to('delete_pair')) {
       delete_pair(childId)
     }
-  }, 'Valider');
+  }, 'Valider', false);
 }
 
 
@@ -246,7 +243,8 @@ function create_pair(payload) {
       contentType: "application/json; charset=utf-8",
       data: JSON.stringify(payload),
       success: function(data) {
-          location.reload()
+        enqueue_message_for_next_loading("Binôme créé.");
+        location.reload()
 
       },
       error: function(data) {
@@ -384,20 +382,23 @@ $(document).ready(function() {
     });
 
     $("#createPair").on('click', function() {
-        var payload = {
+        if (parentId && childId) { // Note : after reload, button "Créer le binôme" is clickable...It shouldn't
+            var payload = {
             "parent": {"id": parentId},
             "child": {"id": childId}
-        };
+            };
 
-        var modalContent = $('#confirmModal')
-        modalContent.find("#parentName").text(parentName)
-        modalContent.find("#childName").text(childName)
-        modalContent = modalContent.html();
-        openModal(modalContent, () => {
-          if (is_time_to('create_pair')) {
-            create_pair(payload)
-          }
-        }, 'Valider');
+            var modalContent = $('#confirmModal')
+            modalContent.find("#parentName").text(parentName)
+            modalContent.find("#childName").text(childName)
+            modalContent = modalContent.html();
+            openModal(modalContent, () => {
+              if (is_time_to('create_pair')) {
+                create_pair(payload)
+              }
+            }, 'Valider', false);
+        }
+        
     });
 
     if ($("#attached_members_table") != "undefined") {
@@ -413,7 +414,6 @@ $(document).ready(function() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             success: function(data) {
-                console.log(data.member)
                 parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name
                 childName = data.member.barcode_base + ' - ' + data.member.name
                 confirmDeletion(childId);

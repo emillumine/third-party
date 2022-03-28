@@ -1,5 +1,32 @@
 var actions_last_dates = {};
 
+var show_enqueued_messages = function() {
+    var stored = null;
+
+    try {
+        stored = JSON.parse(localStorage.getItem('enqueued_messages'));
+        alert(stored.join("\n"))
+        localStorage.removeItem('enqueued_messages')
+
+    } catch (e) {
+        //no rescue system for the moment
+    }
+};
+
+var enqueue_message_for_next_loading = function(msg) {
+    try {
+        let messages = [],
+            stored = localStorage.getItem('enqueued_messages');
+        if (stored) {
+            messages = JSON.parse(stored);
+        }
+        messages.push(msg)
+        localStorage.setItem('enqueued_messages', JSON.stringify(messages));
+    } catch (e) {
+        //no rescue system for the moment
+    }
+}
+
 function get_litteral_shift_template_name(name) {
     var l_name = '';
 
@@ -209,6 +236,10 @@ function openModal() {
             // 4th argument: if set and false, validate button doesn't close the modal
             if (typeof (arguments[3]) == "undefined" || arguments[3] != false)
                 btn_ok.on('click', closeModal);
+            else 
+                btn_ok.on('click', function() {
+                    $(this).addClass("loading")
+                })
 
             btns.append(btn_ok);
 
@@ -482,3 +513,5 @@ function isMacUser() {
 }
 
 if (isMacUser() && isSafari()) $('.mac-msg').show();
+
+show_enqueued_messages();
