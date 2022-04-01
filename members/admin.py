@@ -631,6 +631,8 @@ def create_pair(request):
                     api.update("res.partner", [parent_id], {"makeups_to_do": parent['makeups_to_do'] + child['makeups_to_do']})
                     # On annule les rattrapages du child
                     api.update('res.partner', [child_id], {"makeups_to_do": 0})
+                    if not 'shift_type' in parent:
+                        parent['shift_type'] = child['shift_type']
                     for makeup in range(child_makeups):
                         # reset du compteur du suppléant
                         api.create('shift.counter.event', {"name": 'passage en binôme',
@@ -665,9 +667,10 @@ def create_pair(request):
 
                 api.execute('res.partner', 'run_process_target_status', [])
 
-            # update child base account state
-            api.execute("res.partner", "set_special_state", {"id": child_id, 'state': "associated"})
+            
             m = CagetteMember(child_id).unsuscribe_member()
+            # update child base account state
+            api.update("res.partner", [child_id], {'cooperative_state': "associated"})
 
             # get barcode rule id
             bbcode_rule = api.search_read("barcode.rule", [['for_associated_people', "=", True]], ['id'])[0]
@@ -722,10 +725,8 @@ def delete_pair(request):
             parent = api.search_read('res.partner', [['id', '=', child['parent_id'][0]]], ['cooperative_state'])[0]
             api.update('res.partner', [child_id], {"parent_id": False, "is_associated_people": False})
             api.delete('res.partner', [child_id])
-            # api.execute('res.partner', 'set_special_state', {"id": parent['id'], 'state': "cancel_special"})
             for id in prev_child:
-                # api.update('res.partner', [id], {"cooperative_state": 'unsubscribed'})
-                api.execute("res.partner", "set_special_state", {"id": id, 'state': "cancel_special"})
+                api.update("res.partner", [id], {'cooperative_state': "unsubscribed"})
 
             response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
 
