@@ -228,6 +228,10 @@ function openModal() {
         btn_nok.off('click', closeModal);
         btn_ok.off('click', closeModal);
 
+        if (btn_ok.hasClass('loading')) {
+            btn_ok.removeClass('loading');
+            btn_ok.addClass('btn--success');
+        }
         // If more than one argument, add 'save' button
         if (arguments[1]) {
             btn_ok.on('click', arguments[1]); // Second argument is callback
@@ -238,7 +242,8 @@ function openModal() {
                 btn_ok.on('click', closeModal);
             else 
                 btn_ok.on('click', function() {
-                    $(this).addClass("loading")
+                    $(this).addClass("loading");
+                    $(this).removeClass("btn--success");
                 })
 
             btns.append(btn_ok);
