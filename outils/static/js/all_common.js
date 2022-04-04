@@ -240,11 +240,14 @@ function openModal() {
             // 4th argument: if set and false, validate button doesn't close the modal
             if (typeof (arguments[3]) == "undefined" || arguments[3] != false)
                 btn_ok.on('click', closeModal);
-            else 
+            /*
+            else {
                 btn_ok.on('click', function() {
                     $(this).addClass("loading");
                     $(this).removeClass("btn--success");
                 })
+            }
+            */
 
             btns.append(btn_ok);
 

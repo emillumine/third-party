@@ -229,7 +229,9 @@ function confirmDeletion(childId) {
   modalContent = modalContent.html();
   openModal(modalContent, () => {
     if (is_time_to('delete_pair')) {
-      delete_pair(childId)
+        closeModal();
+        openModal();
+        delete_pair(childId)
     }
   }, 'Valider', false);
 }
@@ -394,6 +396,8 @@ $(document).ready(function() {
             modalContent = modalContent.html();
             openModal(modalContent, () => {
               if (is_time_to('create_pair')) {
+                closeModal();
+                openModal(); // Show gears
                 create_pair(payload)
               }
             }, 'Valider', false);
