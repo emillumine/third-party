@@ -609,6 +609,11 @@ def create_pair(request):
                         child[field] = False
             child['is_associated_people'] = True
             child['parent_id'] = parent['id']
+            # Following lines are useful if parent or child is unsubscribed
+            if not 'shift_type' in parent:
+                parent['shift_type'] = 'standard'
+            if not 'shift_type' in child:
+                child['shift_type'] = 'standard'
             # fusion des rattrapages
             child_makeups = child['makeups_to_do']
             parent_makeups = parent['makeups_to_do']
@@ -631,8 +636,7 @@ def create_pair(request):
                     api.update("res.partner", [parent_id], {"makeups_to_do": parent['makeups_to_do'] + child['makeups_to_do']})
                     # On annule les rattrapages du child
                     api.update('res.partner', [child_id], {"makeups_to_do": 0})
-                    if not 'shift_type' in parent:
-                        parent['shift_type'] = child['shift_type']
+                    
                     for makeup in range(child_makeups):
                         # reset du compteur du suppléant
                         api.create('shift.counter.event', {"name": 'passage en binôme',
