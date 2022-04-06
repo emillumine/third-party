@@ -224,12 +224,30 @@ function update_members_makeups(member_ids, action) {
     data = [];
     for (mid of member_ids) {
         member_index = makeups_members.findIndex(m => m.id == mid);
+        /* Becareful : makeups_members will be modified while nobody knows wether ajax process will succeed or not !
+        TODO : make the changes only when it is sure that odoo records have been changed
+        */
         if (action === "increment") {
             makeups_members[member_index].makeups_to_do += 1;
         } else {
             makeups_members[member_index].makeups_to_do -= 1;
         }
-
+        if (makeups_members[member_index].shift_type === 'standard') {
+            if (action === "increment") {
+                if (makeups_members[member_index].display_std_points >= -1)
+                    makeups_members[member_index].display_std_points -= 1;
+            } else if (makeups_members[member_index].display_std_points < 0) {
+                makeups_members[member_index].display_std_points += 1;
+            }
+        } else {
+            if (action === "increment") {
+                if (makeups_members[member_index].display_ftop_points >= -1)
+                    makeups_members[member_index].display_ftop_points -= 1;
+            } else {
+                makeups_members[member_index].display_ftop_points += 1;
+            }
+        }
+        console.log(makeups_members[member_index])
         data.push({
             member_id: mid,
             target_makeups_nb: makeups_members[member_index].makeups_to_do,
