@@ -230,9 +230,11 @@ function _really_save_new_coop(email, fname, lname, cap, pm, cn, bc, msex) {
 
 function store_new_coop(event) {
     event.preventDefault();
+
     var errors = [],
         bc = '', // barcode may not be present
-        msex = ''; // sex may not be present
+        msex = '', // sex may not be present
+        active_asso_area = $('#associate_area .choice_active'); // need to ckeck if associated data are available
     // 1- Un coop avec le meme mail ne doit pas exister dans odoo (dans base intermediaire, le cas est géré par l'erreur à l'enregistrement)
     let email = $('input[name="email"]').val()
             .trim(),
@@ -255,6 +257,19 @@ function store_new_coop(event) {
         } else if (ch_qty.val() > max_chq_nb) {
             errors.push("Le nombre de chèque est trop grand.");
         }
+    }
+
+    if (active_asso_area.length > 0) {
+        // If user click as if a "binôme" is beeing created, data about parent member must exist
+        let associated_data_ok = false;
+        if (
+            ($(active_asso_area[0]).attr('id') === "new_member_choice" && $('#new_member_input').val().trim().length > 0)
+            ||
+            ($(active_asso_area[0]).attr('id') === "existing_member_choice" && $('#existing_member_choice_action .chosen_associate div.member').length > 0)
+            ) {
+            associated_data_ok = true;
+        }
+        if (associated_data_ok === false) errors.push("Le membre 'titulaire' du binôme n'est pas défini");
     }
 
     $.ajax({url : '/members/exists/' + email,
@@ -294,8 +309,7 @@ function store_new_coop(event) {
                 }
             }
         });
-
-}
+}   
 
 
 
@@ -670,7 +684,7 @@ function display_possible_members() {
                 if (member.id == $(this).attr('member_id')) {
                     selected_associate = member;
 
-                    var member_button = '<div  member_id="' + member.id + '">' + member.barcode_base + ' - ' + member.name + '</button>';
+                    var member_button = '<div  member_id="' + member.id + '" class="member">' + member.barcode_base + ' - ' + member.name + '</div>';
 
                     $('.chosen_associate').html(member_button);
                     $('.chosen_associate_area').show();
