@@ -820,6 +820,11 @@ class CagetteMember(models.Model):
                         members.append(m)
 
             return CagetteMember.add_next_shifts_to_members(members)
+        elif search_type == "makeups_data":
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['shift_type', 'makeups_to_do', 'display_ftop_points', 'display_std_points', 'shift_type']
+            return api.search_read('res.partner', cond, fields)
+              
         elif search_type == "shift_template_data":
             fields = CagetteMember.m_short_default_fields
             fields = fields + ['id', 'makeups_to_do', 'cooperative_state']
