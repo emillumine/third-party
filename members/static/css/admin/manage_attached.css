@@ -116,3 +116,7 @@
 .spinner {
    height:40px;
 }
+
+/* Modale */
+.attached-members .member div {width: 50px; display: inline-block;}
+.attached-members .member div.name {width: 80%;}
