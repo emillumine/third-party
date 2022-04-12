@@ -29,6 +29,11 @@ footer { position: fixed;
          z-index: 10;
 }
 
+.warning_instruction {
+    font-weight: bold;
+    font-style: italic;
+    color:  blue;
+}
 #deconnect, #password_change {float:right; margin-left: 5px;}
  /* The Overlay (background) */
 

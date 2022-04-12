@@ -16,14 +16,25 @@
 {% block content %}
 <div id="template" style="display:None;">
   <div id="confirmModal">
-    <div class="mconfirm">
       <h3>Le binôme est sur le point d'être désolidarisé</h3>
       <br />
-      <p>Êtes-vous sur de vouloir désolidariser <b><span id="parentName"></span></b> et
-        <b><span id="childName"></span></b>
+      <div>
+        Êtes-vous sur de vouloir désolidariser
+        <div class="attached-members">
+            <div class="member">
+                <div class="name"><strong><span id="parentName"></span></strong> (titulaire)</div> 
+                <div><input type="checkbox" name="parent_gone" class="after_unattached_state" /></div>
+            </div>
+            <div class="member">
+                <div class="name"><strong><span id="childName"></span></strong></div>
+                <div><input type="checkbox" name="child_gone" class="after_unattached_state" /></div>
+            </div>
+        </div>
+      </div>
+      <p class="warning_instruction">
+          Dans le cas d'une désolidarisation liée à une démission de la coopérative,<br/> cochez le membre que vous souhaitez mettre en statut "Parti·e"
       </p>
       <hr/>
-    </div>
   </div>
 </div>
 <div class="page_body">

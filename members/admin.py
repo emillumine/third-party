@@ -710,7 +710,13 @@ def delete_pair(request):
     POST:
         payload example:
         {
-            "child": {"id": 3075}
+          "child": {
+            "id": "1620"
+          },
+          "gone": [
+            "parent",
+            "child"
+          ]
         }
     """
     if request.method == 'GET':
@@ -727,10 +733,14 @@ def delete_pair(request):
             child_accounts = api.search_read('res.partner', [['email', '=', child['email']]], ['id', 'email'])
             prev_child = [x['id'] for x in child_accounts if x['id'] != child_id]
             parent = api.search_read('res.partner', [['id', '=', child['parent_id'][0]]], ['cooperative_state'])[0]
-            api.update('res.partner', [child_id], {"parent_id": False, "is_associated_people": False})
-            api.delete('res.partner', [child_id])
+            api.update('res.partner', [child_id], {"parent_id": False, "is_associated_people": False, "active": False, "is_former_associated_people": True})
+            child_update_fields = {'cooperative_state': "unsubscribed", "is_former_associated_people": True}
+            if 'gone' in data and 'child' in data['gone']:
+                child_update_fields['cooperative_state'] = "gone"
             for id in prev_child:
-                api.update("res.partner", [id], {'cooperative_state': "unsubscribed"})
+                api.update("res.partner", [id], child_update_fields)
+            if 'gone' in data and 'parent' in data['gone']:
+                api.update("res.partner", [parent['id']], {'cooperative_state': "gone", "is_former_associated_people": True})
 
             response = JsonResponse({"message": "Succesfuly unpaired members"}, status=200)
 
