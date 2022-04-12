@@ -92,6 +92,14 @@ function new_coop_validation() {
 
     coop_registration_details.find('.shift_template').text(st);
     process_state.html(current_coop.firstname + ' ' +current_coop.lastname);
+    coop_registration_details.find("#parentName").text("")
+    coop_registration_details.find("#parent").attr("hidden", true)
+
+    if (current_coop.parent_name !== undefined) {
+      coop_registration_details.find("#parentName").text(current_coop.parent_name)
+      coop_registration_details.find("#parent").removeAttr("hidden")
+    }
+
     if (current_coop.shift_template.data && current_coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
         get_next_shift(current_coop.shift_template.data.id, function(data) {
             if (data != null) {
