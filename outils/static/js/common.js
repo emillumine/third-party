@@ -99,8 +99,8 @@ function single_shift_click() {
     }
 }
 
-function select_shift_among_compact() {
-    var clicked = $(this);
+function select_shift_among_compact(clicked_item = null, subscribe = true) {
+    var clicked = clicked_item === null ? $(this) : $(clicked_item);
     var day = clicked.closest('td').attr('class');
     var hour = clicked.closest('tr').data('begin');
     var selected = null;
@@ -129,9 +129,11 @@ function select_shift_among_compact() {
             }
         }
     });
-    //console.log(worst_score)
-    if (selected)
+
+    if (selected && subscribe === true)
         subscribe_shift(selected);
+
+    return selected
 }
 
 

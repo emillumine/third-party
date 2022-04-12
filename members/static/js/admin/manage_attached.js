@@ -26,13 +26,13 @@ function load_member_infos(divId, memberId) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
-            console.log(data.member)
+            console.log(data.member);
             if (divId === 'parentInfo') {
                 parentId = data.member.id;
-                parentName = data.member.barcode_base + ' ' + data.member.name
+                parentName = data.member.barcode_base + ' ' + data.member.name;
             } else if (divId === 'childInfo') {
                 childId = data.member.id;
-                childName = data.member.barcode_base + ' ' + data.member.name
+                childName = data.member.barcode_base + ' ' + data.member.name;
             }
             display_member_infos(divId, data.member);
         },
@@ -70,7 +70,7 @@ function display_member_infos(divId, memberData) {
 
     if (parentId != null && childId != null) {
         $("#createPair").prop("disabled", false);
-        $("#createPair").addClass("btn--primary")
+        $("#createPair").addClass("btn--primary");
     }
 }
 
@@ -223,48 +223,50 @@ function delete_pair(childId) {
 
 
 function confirmDeletion(childId) {
-  var modalContent = $('#confirmModal')
-  modalContent.find("#parentName").text(parentName)
-  modalContent.find("#childName").text(childName)
-  modalContent = modalContent.html();
-  openModal(modalContent, () => {
-    if (is_time_to('delete_pair')) {
-        closeModal();
-        openModal();
-        delete_pair(childId)
-    }
-  }, 'Valider', false);
+    var modalContent = $('#confirmModal');
+
+    modalContent.find("#parentName").text(parentName);
+    modalContent.find("#childName").text(childName);
+    modalContent = modalContent.html();
+    openModal(modalContent, () => {
+        if (is_time_to('delete_pair')) {
+            closeModal();
+            openModal();
+            delete_pair(childId);
+        }
+    }, 'Valider', false);
 }
 
 
 function create_pair(payload) {
-  $.ajax({
-      type: 'POST',
-      url: "/members/admin/manage_attached/create_pair",
-      dataType:"json",
-      contentType: "application/json; charset=utf-8",
-      data: JSON.stringify(payload),
-      success: function(data) {
-        enqueue_message_for_next_loading("Binôme créé.");
-        location.reload()
+    $.ajax({
+        type: 'POST',
+        url: "/members/admin/manage_attached/create_pair",
+        dataType:"json",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(payload),
+        success: function() {
+            enqueue_message_for_next_loading("Binôme créé.");
+            location.reload();
+        },
+        error: function(data) {
+            err = {msg: "erreur serveur", ctx: 'create pair'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.errors;
+            }
+            report_JS_error(err, 'members.admin');
 
-      },
-      error: function(data) {
-          err = {msg: "erreur serveur", ctx: 'create pair'};
-          if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
-              err.msg += ' : ' + data.responseJSON.errors;
-          }
-          report_JS_error(err, 'members.admin');
+            closeModal();
+            var message = 'Erreur lors de création du binôme.';
 
-          closeModal();
-          var message = 'Erreur lors de création du binôme.';
+            data.responseJSON.errors.map(function(error) {
+                message += ('\n' + error);
 
-          data.responseJSON.errors.map(function(error) {
-              message += ('\n' + error);
-          });
-          alert(message);
-      }
-  });
+                return null;
+            });
+            alert(message);
+        }
+    });
 }
 
 
@@ -317,10 +319,10 @@ $(document).ready(function() {
         });
     },
     minLength: 1,
-    search: function(event, ui) {
+    search: function() {
         $('#spinner1').show();
     },
-    response: function(event, ui) {
+    response: function() {
         $('#spinner1').hide();
     },
     select: function(event, ui) {
@@ -331,6 +333,8 @@ $(document).ready(function() {
 
             return false;
         }
+
+        return null;
     }
     });
 
@@ -367,10 +371,10 @@ $(document).ready(function() {
         });
     },
     minLength: 1,
-    search: function(event, ui) {
+    search: function() {
         $('#spinner2').show();
     },
-    response: function(event, ui) {
+    response: function() {
         $('#spinner2').hide();
     },
     select: function(event, ui) {
@@ -380,29 +384,32 @@ $(document).ready(function() {
 
             return false;
         }
+
+        return null;
     }
     });
 
     $("#createPair").on('click', function() {
         if (parentId && childId) { // Note : after reload, button "Créer le binôme" is clickable...It shouldn't
             var payload = {
-            "parent": {"id": parentId},
-            "child": {"id": childId}
+                "parent": {"id": parentId},
+                "child": {"id": childId}
             };
 
-            var modalContent = $('#confirmModal')
-            modalContent.find("#parentName").text(parentName)
-            modalContent.find("#childName").text(childName)
+            var modalContent = $('#confirmModal');
+
+            modalContent.find("#parentName").text(parentName);
+            modalContent.find("#childName").text(childName);
             modalContent = modalContent.html();
             openModal(modalContent, () => {
-              if (is_time_to('create_pair')) {
-                closeModal();
-                openModal(); // Show gears
-                create_pair(payload)
-              }
+                if (is_time_to('create_pair')) {
+                    closeModal();
+                    openModal(); // Show gears
+                    create_pair(payload);
+                }
             }, 'Valider', false);
         }
-        
+
     });
 
     if ($("#attached_members_table") != "undefined") {
@@ -411,6 +418,7 @@ $(document).ready(function() {
 
     $(document).on('click', '.delete_pair', function (event) {
         var childId = event.target.id.split('_').slice(-1)[0];
+
         $.ajax({
             type: 'GET',
             url: "/members/get_member_info/" + childId,
@@ -418,8 +426,8 @@ $(document).ready(function() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             success: function(data) {
-                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name
-                childName = data.member.barcode_base + ' - ' + data.member.name
+                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name;
+                childName = data.member.barcode_base + ' - ' + data.member.name;
                 confirmDeletion(childId);
             },
             error: function(data) {

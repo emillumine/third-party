@@ -75,7 +75,8 @@
 }
 
 /* Actions */
-#remove_shift_template_button {
+#remove_shift_template_button, 
+#subscribe_to_shift_template_button {
     display: none;
     margin: 15px;
 }
@@ -86,3 +87,25 @@
 #permanent_unsuscribe {
     margin-right: 5px;
 }
+
+/* Calendar */
+#shifts_calendar_area {
+    display: none;
+    margin-top: 15px;
+}
+
+.shift[data-place="Cleme"], [data-select="Cleme"] {background: #c8deff;}
+#subs_cap {width: 200px;}
+.lat_menu button {margin-bottom:5px;}
+.oddeven_selector {margin-right:25px;}
+.main_content .shift {float:left;}
+.main_content .shift.full {display:none;}
+.shift {margin:2px; padding:2px; cursor: cell;}
+.shift.alert,span.alert {border-bottom: 3px #e52121 solid;}
+.highlighted {box-shadow: 10px 10px 5px grey;}
+.lat_menu.highlighted {border: 2px #fffc07 dotted;}
+#coop_list_view td.coop:hover,
+#coop_list_view td.c_shift:hover {background:#fffc07; cursor:pointer;}
+.b_red {color:#ffffff;}
+.shift[data-type="compact"] {border: 1px solid #000000;border-radius: 5px; padding:5px; cursor: pointer;}
+.shift_template, .next_shift {font-weight: bold;}

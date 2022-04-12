@@ -75,10 +75,12 @@ function display_makeups_members() {
                 width: "10%",
                 render: function (data, type, row) {
                     if (data == 'ftop') {
-                        return row.display_ftop_points
+                        return row.display_ftop_points;
                     } else if (data == 'standard') {
-                        return row.display_std_points 
+                        return row.display_std_points;
                     }
+
+                    return null;
                 }
             },
             {

@@ -94,7 +94,7 @@ function display_member_shifts() {
                 $(row).addClass("makeup_row");
                 $(row).prop('title', 'Ce service est un rattrapage');
             }
-        },
+        }
     });
 
     $('#member_shifts_table').on('click', 'tbody td .delete_shift_registration', function () {
@@ -103,9 +103,10 @@ function display_member_shifts() {
         const shift_is_makeup = row_data.is_makeup;
 
         let msg = `<p>Enlever la présence de <b>${member.name}</b> au service du <b>${row_data.shift_id[1]}</b> ?</p>`;
+
         if (shift_is_makeup === true) {
             msg += `<p><i class="fas fa-exclamation-triangle"></i> Ce service est un rattrapage. Le supprimer ajoutera un point au compteur de ce.tte membre.</p>`;
-        } 
+        }
 
         openModal(
             msg,

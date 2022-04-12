@@ -5,6 +5,7 @@ from outils.common import OdooAPI
 from members.models import CagetteUser
 from members.models import CagetteMembers
 from members.models import CagetteMember
+from members.models import CagetteServices
 from shifts.models import CagetteShift
 from outils.common import MConfig
 from datetime import datetime
@@ -337,8 +338,18 @@ def manage_attached(request):
 def manage_regular_shifts(request):
     """ Administration des créneaux des membres """
     template = loader.get_template('members/admin/manage_regular_shifts.html')
-    context = {'title': 'BDM - Créneaux',
-               'module': 'Membres'}
+    context = {
+        'title': 'BDM - Créneaux',
+        'module': 'Membres',
+        'couchdb_server': settings.COUCHDB['url'],
+        'db': settings.COUCHDB['dbs']['member'],
+        'max_begin_hour': settings.MAX_BEGIN_HOUR,
+        'mag_place_string': settings.MAG_NAME,
+        'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
+        'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
+        'has_committe_shift': getattr(settings, 'HAS_COMMITTEE_SHIFT', True),
+        'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
+    }
     return HttpResponse(template.render(context, request))
 
 def get_makeups_members(request):
@@ -398,6 +409,9 @@ def update_members_makeups(request):
         res["message"] = "Unauthorized"
         response = JsonResponse(res, status=403)
     return response
+
+
+# --- Gestion des créneaux
 
 def delete_shift_registration(request):
     """ From BDM admin, delete (cancel) a member shift registration """
@@ -469,7 +483,41 @@ def delete_shift_template_registration(request):
         response = JsonResponse(res, status=403)
     return response
 
-# Gestion des binômes
+def shift_subscription(request):
+    """ Inscrit un membre désinscrit à un shift template """
+    res = {}
+    if CagetteUser.are_credentials_ok(request):
+        data = json.loads(request.body.decode())
+
+        partner_id = int(data["partner_id"])
+        shift_type = data["shift_type"]
+        if shift_type == 1:
+            # 1 = standard
+            shift_template_id = data["shift_template_id"]
+        else:
+            # 2 = ftop
+            shift_template_id = CagetteServices.get_committees_shift_id()
+
+        m = CagetteMember(partner_id)
+        m.create_coop_shift_subscription(shift_template_id, shift_type)
+
+        # Retrurn necessary data
+        api = OdooAPI()
+        c = [['id', '=', shift_template_id]]
+        f = ['id', 'name']
+        res["shift_template"] = api.search_read('shift.template', c, f)[0]
+
+        c = [['id', '=', partner_id]]
+        f = ['cooperative_state']
+        res["cooperative_state"] = api.search_read('res.partner', c, f)[0]['cooperative_state']
+
+        response = JsonResponse(res)
+    else:
+        response = JsonResponse({"message": "Unauthorized"}, status=403)
+
+    return response
+
+# --- Gestion des binômes
 
 def get_member_info(request, id):
     """Retrieve information about a member."""
