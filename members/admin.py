@@ -338,6 +338,7 @@ def manage_attached(request):
 def manage_regular_shifts(request):
     """ Administration des créneaux des membres """
     template = loader.get_template('members/admin/manage_regular_shifts.html')
+    committees_shift_id = CagetteServices.get_committees_shift_id()
     context = {
         'title': 'BDM - Créneaux',
         'module': 'Membres',
@@ -347,7 +348,7 @@ def manage_regular_shifts(request):
         'mag_place_string': settings.MAG_NAME,
         'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
         'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
-        'has_committe_shift': getattr(settings, 'HAS_COMMITTEE_SHIFT', True),
+        'has_committe_shift': committees_shift_id is not None,
         'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
     }
     return HttpResponse(template.render(context, request))
@@ -496,7 +497,13 @@ def shift_subscription(request):
             shift_template_id = data["shift_template_id"]
         else:
             # 2 = ftop
+
+            # First try to get committees shift
             shift_template_id = CagetteServices.get_committees_shift_id()
+
+            # If None, no committees shift, get the first ftop shift
+            if shift_template_id is None:
+                shift_template_id = CagetteServices.get_first_ftop_shift_id()
 
         m = CagetteMember(partner_id)
         m.create_coop_shift_subscription(shift_template_id, shift_type)

@@ -26,7 +26,6 @@ function load_member_infos(divId, memberId) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
-            console.log(data.member);
             if (divId === 'parentInfo') {
                 parentId = data.member.id;
                 parentName = data.member.barcode_base + ' ' + data.member.name;
@@ -197,10 +196,13 @@ function display_attached_members() {
 
 function delete_pair(childId, gone_checked) {
     var payload = {"child": {"id": childId}, "gone": []};
+
     if (gone_checked.length > 0) {
-        $.each(gone_checked, function(i,e) {
-            const elts = $(e).attr('name').split("_")
-            payload['gone'].push(elts[0])
+        $.each(gone_checked, function(i, e) {
+            const elts = $(e).attr('name')
+                .split("_");
+
+            payload['gone'].push(elts[0]);
         });
     }
 
@@ -237,6 +239,7 @@ function confirmDeletion(childId) {
     openModal(modalContent, () => {
         if (is_time_to('delete_pair')) {
             const gone_checked = $('input.after_unattached_state:checked');
+
             closeModal();
             openModal();
             delete_pair(childId, gone_checked);

@@ -249,7 +249,7 @@ function update_members_makeups(member_ids, action) {
                 makeups_members[member_index].display_ftop_points += 1;
             }
         }
-        //console.log(makeups_members[member_index])
+
         data.push({
             member_id: mid,
             target_makeups_nb: makeups_members[member_index].makeups_to_do,

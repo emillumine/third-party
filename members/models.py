@@ -1538,6 +1538,29 @@ class CagetteServices(models.Model):
         return shift_id
 
     @staticmethod
+    def get_first_ftop_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('shift.template',
+                                  [['shift_type_id','=', 2]],
+                                  ['id', 'registration_qty'])
+
+            # Get the ftop shift template with the max registrations: most likely the one in use
+            ftop_shift = {'id': None, 'registration_qty': 0}
+            for shift_reg in res:
+                if shift_reg["registration_qty"] > ftop_shift["registration_qty"]:
+                    ftop_shift = shift_reg
+
+            try:
+                shift_id = int(ftop_shift['id'])
+            except:
+                pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
     def easy_validate_shift_presence(coop_id):
         """Add a presence point if the request is valid."""
         res = {}

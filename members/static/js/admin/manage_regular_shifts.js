@@ -127,6 +127,7 @@ function display_member_info() {
             $("#shifts_calendar_area").show();
 
             // Wait for listeners to be set in common.js
+            // TODO use "signals" to avoid waiting an arbitrary time
             setTimeout(() => {
                 // Cancel listeners from subscription page & set custom listeners
                 $("#shifts_calendar_area button[data-select='Volant']").off("click");

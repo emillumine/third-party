@@ -116,8 +116,6 @@ valider votre présence en cherchant<br/>
 votre nom ou numéro ci-dessous
 """
 
-HAS_COMMITTEE_SHIFT = True
-
 # Members space / shifts
 UNSUBSCRIBED_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLScWcpls-ruYIp7HdrjRF1B1TyuzdqhvlUIcUWynbEujfj3dTg/viewform'
 UNSUBSCRIBED_MSG = 'Vous êtes désincrit·e, merci de remplir <a href="https://docs.google.com/forms/d/e/1FAIpQLSfPiC2PkSem9x_B5M7LKpoFNLDIz0k0V5I2W3Mra9AnqnQunw/viewform">ce formulaire</a> pour vous réinscrire sur un créneau.<br />Vous pouvez également contacter le Bureau des Membres en remplissant <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZP0m5-EXPVJxEKJk6EjwSyZJtnbiGdYDuAeFI3ENsHAOikg/viewform">ce formulaire</a>'
