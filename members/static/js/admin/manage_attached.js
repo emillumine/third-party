@@ -56,6 +56,8 @@ function display_member_infos(divId, memberData) {
     $("#" + divId).show();
     $("#" + divId).find(".member_name")
         .text(memberData.name);
+    $("#" + divId).find(".member_email")
+        .text(memberData.email);
     $("#" + divId).find(".member_status")
         .text(possible_cooperative_state[memberData.cooperative_state]);
     $("#" + divId).find(".member_shift_name")
