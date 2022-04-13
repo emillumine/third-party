@@ -21,7 +21,7 @@ function remove_from_shift_template() {
         partner_id: selected_member.id,
         shift_template_id: selected_member.shift_template_id[0],
         permanent_unsuscribe: permanent_unsuscribe,
-        makeups_to_do: selected_member.makeups_to_do,
+        makeups_to_do: selected_member.makeups_to_do
     };
 
     $.ajax({
@@ -54,25 +54,124 @@ function remove_from_shift_template() {
 }
 
 /**
+ * Send the request to register a member to a shift template
+ * @param {int} shift_type 1 === standard ; 2 === ftop
+ * @param {int} shift_template_id null for ftop shift type
+ */
+function shift_subscrition(shift_type, shift_template_id = null) {
+    openModal();
+
+    let data = {
+        partner_id: selected_member.id,
+        shift_type: shift_type,
+        shift_template_id: shift_template_id
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: '/members/shift_subscription',
+        data: JSON.stringify(data),
+        dataType:"json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+            stdata = data.shift_template;
+            selected_member.shift_template_id = [
+                stdata.id,
+                stdata.name
+            ];
+            selected_member.cooperative_state = data.cooperative_state;
+            display_member_info();
+
+            $("#shifts_calendar_area").hide();
+            closeModal();
+        },
+        error: function() {
+            err = {
+                msg: "erreur serveur lors de l'inscription du membre au créneau",
+                ctx: 'members.admin.manage_regular_shifts.shift_subscrition'
+            };
+            report_JS_error(err, 'members.admin');
+            closeModal();
+
+            $.notify("Une erreur est survenue lors de l'inscription du membre au créneau.", {
+                globalPosition:"top right",
+                className: "error"
+            });
+        }
+    });
+}
+
+/**
  * When a member is selected, display the selected member relevant info
  */
 function display_member_info() {
     $('.member_name').text(`${selected_member.barcode_base} - ${selected_member.name}`);
     $('.member_status').text(possible_cooperative_state[selected_member.cooperative_state]);
     $('.member_makeups').text(selected_member.makeups_to_do);
+    $('.search_member_results_area').hide();
+
+    $("#remove_shift_template_button").hide();
+    $("#remove_shift_template_button").off();
+    $("#subscribe_to_shift_template_button").hide();
+    $("#subscribe_to_shift_template_button").off();
+
+    $("#shifts_calendar_area").hide();
 
     if (selected_member.shift_template_id === undefined || selected_member.shift_template_id === null) {
-        $('.member_shift').text("");
+        $('.member_shift').text("X");
 
-        $("#remove_shift_template_button").hide();
-        $("#remove_shift_template_button").off();
+        $("#subscribe_to_shift_template_button").show();
+        $("#subscribe_to_shift_template_button").on("click", () => {
+            retrieve_and_draw_shift_tempates();
+            $("#shifts_calendar_area").show();
+
+            // Wait for listeners to be set in common.js
+            // TODO use "signals" to avoid waiting an arbitrary time
+            setTimeout(() => {
+                // Cancel listeners from subscription page & set custom listeners
+                $("#shifts_calendar_area button[data-select='Volant']").off("click");
+                $("#shifts_calendar_area button[data-select='Volant']").on("click", function() {
+                    // Subscribe to comitee/ftop shift
+                    msg = (has_committe_shift === "True")
+                        ? `Inscrire ${selected_member.name} au service des Comités ?`
+                        : `Inscrire ${selected_member.name} en Volant ?`;
+
+                    openModal(
+                        msg,
+                        () => {
+                            shift_subscrition(2);
+                        },
+                        "Confirmer",
+                        false
+                    );
+                });
+
+                $(".shift").off("click");
+                $(".shift").on("click", function() {
+                    // Subscribe to shift template
+                    let shift_template_id = select_shift_among_compact(this, false); // method from common.js
+                    let shift_template_data = shift_templates[shift_template_id].data;// shift_templates: var from common.js
+                    let shift_template_name = get_shift_name(shift_template_data);
+
+                    openModal(
+                        `Inscrire ${selected_member.name} au créneau ${shift_template_name} ?`,
+                        () => {
+                            shift_subscrition(1, parseInt(shift_template_id));
+                        },
+                        "Confirmer",
+                        false
+                    );
+                });
+            }, 500);
+        });
     } else {
         $('.member_shift').text(selected_member.shift_template_id[1]);
 
         $("#remove_shift_template_button").show();
-        $("#remove_shift_template_button").off();
         $("#remove_shift_template_button").on("click", () => {
             let modal_template = $("#modal_remove_shift_template");
+
             modal_template.find(".shift_template_name").text(selected_member.shift_template_id[1]);
 
             openModal(
@@ -91,7 +190,7 @@ function display_member_info() {
 /**
  * Display the members from the search result
  */
- function display_possible_members() {
+function display_possible_members() {
     $('.search_member_results_area').show();
     $('.search_member_results').empty();
     $('.btn_possible_member').off();
@@ -140,12 +239,18 @@ function display_member_info() {
 $(document).ready(function() {
     if (coop_is_connected()) {
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+        dbc = new PouchDB(couchdb_dbname);
+
         $(".page_content").show();
+
+        if (has_committe_shift === "True") {
+            $("#shifts_calendar_area button[data-select='Volant']").text("Comités");
+        }
 
         // Set action to search for the member
         $('#search_member_form').submit(function() {
             let search_str = $('#search_member_input').val();
-    
+
             $.ajax({
                 url: `/members/search/${search_str}?search_type=shift_template_data`,
                 dataType : 'json',
@@ -165,7 +270,7 @@ $(document).ready(function() {
                         ctx: 'members.admin.manage_regular_shifts.search_members'
                     };
                     report_JS_error(err, 'members.admin');
-    
+
                     $.notify("Erreur lors de la recherche de membre, il faut ré-essayer plus tard...", {
                         globalPosition:"top right",
                         className: "error"
@@ -179,6 +284,7 @@ $(document).ready(function() {
 
     $('#back_to_admin_index').on('click', function() {
         let base_location = window.location.href.split("manage_regular_shifts")[0].slice(0, -1);
+
         window.location.assign(base_location);
     });
 });

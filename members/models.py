@@ -820,6 +820,11 @@ class CagetteMember(models.Model):
                         members.append(m)
 
             return CagetteMember.add_next_shifts_to_members(members)
+        elif search_type == "makeups_data":
+            fields = CagetteMember.m_short_default_fields
+            fields = fields + ['shift_type', 'makeups_to_do', 'display_ftop_points', 'display_std_points', 'shift_type']
+            return api.search_read('res.partner', cond, fields)
+              
         elif search_type == "shift_template_data":
             fields = CagetteMember.m_short_default_fields
             fields = fields + ['id', 'makeups_to_do', 'cooperative_state']
@@ -1528,6 +1533,29 @@ class CagetteServices(models.Model):
                     shift_id = int(res[0]['value'])
                 except:
                     pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
+    def get_first_ftop_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('shift.template',
+                                  [['shift_type_id','=', 2]],
+                                  ['id', 'registration_qty'])
+
+            # Get the ftop shift template with the max registrations: most likely the one in use
+            ftop_shift = {'id': None, 'registration_qty': 0}
+            for shift_reg in res:
+                if shift_reg["registration_qty"] > ftop_shift["registration_qty"]:
+                    ftop_shift = shift_reg
+
+            try:
+                shift_id = int(ftop_shift['id'])
+            except:
+                pass
         except:
             pass
         return shift_id

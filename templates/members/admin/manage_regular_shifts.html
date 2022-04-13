@@ -55,8 +55,16 @@
         <button class="btn--primary" id="remove_shift_template_button">
           Désinscrire du créneau
         </button>
+        <button class="btn--primary" id="subscribe_to_shift_template_button">
+          Réinscrire à un créneau
+        </button>
+      </div>
       </div>
     </div>
+  </div>
+
+  <div id="shifts_calendar_area">
+    {% include "members/shift_template_choice.html" %}
   </div>
 
   <div id="templates" style="display:none;">
@@ -70,7 +78,16 @@
   </div>
 </div>
 
-
+<script src="{% static "js/pouchdb.min.js" %}"></script>
+<script type="text/javascript">
+  var type = 2;
+  var has_committe_shift = '{{has_committe_shift}}'
+  var max_begin_hour = '{{max_begin_hour}}'
+  var couchdb_dbname = '{{db}}';
+  var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+  var ASSOCIATE_MEMBER_SHIFT = '{{ASSOCIATE_MEMBER_SHIFT}}';
+</script>
+<script src='{% static "js/common.js" %}?v='></script>
 <script src='{% static "js/all_common.js" %}?v='></script>
 <script src='{% static "js/admin/manage_regular_shifts.js" %}?v='></script>
 {% endblock %}

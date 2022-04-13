@@ -75,10 +75,12 @@ function display_makeups_members() {
                 width: "10%",
                 render: function (data, type, row) {
                     if (data == 'ftop') {
-                        return row.display_ftop_points
+                        return row.display_ftop_points;
                     } else if (data == 'standard') {
-                        return row.display_std_points 
+                        return row.display_std_points;
                     }
+
+                    return null;
                 }
             },
             {
@@ -247,11 +249,13 @@ function update_members_makeups(member_ids, action) {
                 makeups_members[member_index].display_ftop_points += 1;
             }
         }
-        //console.log(makeups_members[member_index])
+
         data.push({
             member_id: mid,
             target_makeups_nb: makeups_members[member_index].makeups_to_do,
-            member_shift_type: makeups_members[member_index].shift_type
+            member_shift_type: makeups_members[member_index].shift_type,
+            display_ftop_points: makeups_members[member_index].display_ftop_points,
+            display_std_points: makeups_members[member_index].display_std_points
         });
     }
 
@@ -322,7 +326,9 @@ function display_possible_members() {
                         id: member.id,
                         name: member.name,
                         makeups_to_do: 0,
-                        shift_type: member.shift_type
+                        shift_type: member.shift_type,
+                        display_std_points: member.display_std_points,
+                        display_ftop_points: member.display_ftop_points
                     });
 
                     openModal(
@@ -373,16 +379,11 @@ $(document).ready(function() {
         let search_str = $('#search_member_input').val();
 
         $.ajax({
-            url: '/members/search/' + search_str,
+            url: '/members/search/' + search_str +'?search_type=makeups_data',
             dataType : 'json',
             success: function(data) {
                 members_search_results = [];
-
-                for (member of data.res) {
-                    if (member.is_member || member.is_associated_people) {
-                        members_search_results.push(member);
-                    }
-                }
+                members_search_results = data.res;
 
                 display_possible_members();
             },
