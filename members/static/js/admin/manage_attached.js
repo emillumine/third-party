@@ -236,7 +236,9 @@ function confirmDeletion(childId) {
     var modalContent = $('#confirmModal');
 
     modalContent.find("#parentName").text(parentName);
+    modalContent.find("#parentEmail").text(parentEmail)
     modalContent.find("#childName").text(childName);
+    modalContent.find("#childEmail").text(childEmail)
     modalContent = modalContent.html();
     openModal(modalContent, () => {
         if (is_time_to('delete_pair')) {
@@ -438,8 +440,10 @@ $(document).ready(function() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             success: function(data) {
-                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name;
-                childName = data.member.barcode_base + ' - ' + data.member.name;
+                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name
+                parentEmail = data.member.email
+                childName = data.member.barcode_base + ' - ' + data.member.name
+                childEmail = data.member.email
                 confirmDeletion(childId);
             },
             error: function(data) {
