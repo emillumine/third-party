@@ -149,29 +149,48 @@ def commit_actions_on_product(request):
             
             res = CagetteProduct.commit_actions_on_product(data)
 
-            # If stock > 0: do inventory to set stock to 0
+            do_stock_update = False
+            # If product to archive and stock > 0: do inventory to set stock to 0
             if data["to_archive"] is True and product_data["qty_available"] != 0:
+                p = { 
+                    'id': product_data['product_variant_ids'][0],  # Need product id
+                    'uom_id': product_data['uom_id'],
+                    'qty': 0
+                }
+
+                inventory_data = {
+                    'name': 'Archivage - ' + product_data['name'],
+                    'products': [p]
+                }
+
+                do_stock_update = True
+
+            # Else update actual stock if changed
+            elif data["qty_available"] != product_data["qty_available"]:
+                p = { 
+                    'id': product_data['product_variant_ids'][0],  # Need product id
+                    'uom_id': product_data['uom_id'],
+                    'qty': data["qty_available"]
+                }
+
+                inventory_data = {
+                    'name': 'MAJ stock depuis Aide à la Commande - ' + product_data['name'],
+                    'products': [p]
+                }
+
+                do_stock_update = True
+
+            if do_stock_update is True:
                 try:
-                    p = { 
-                        'id': product_data['product_variant_ids'][0],  # Need product id
-                        'uom_id': product_data['uom_id'],
-                        'qty': -product_data["qty_available"]
-                    }
-
-                    inventory_data = {
-                        'name': 'Archivage - ' + product_data['name'],
-                        'products': [p]
-                    }
-
-                    res_inventory = CagetteInventory.update_products_stock(inventory_data)
+                    res_inventory = CagetteInventory.update_products_stock(inventory_data, 3)
                     if res_inventory['errors'] or res_inventory['missed']:
                         res["code"] = "error_stock_update"
                         res["error"] = res_inventory['errors']
                         return JsonResponse(res, status=500)
-
                 except Exception as e:
                     res["code"] = "error_stock_update"
                     return JsonResponse(res, status=500)
+
         except Exception as e:
             res['error'] = str(e)
             coop_logger.error("Update npa and minimal stock : %s", res['error'])

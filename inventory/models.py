@@ -368,10 +368,10 @@ class CagetteInventory(models.Model):
         return {'missed': missed, 'unchanged': unchanged, 'done': done}
 
     @staticmethod
-    def update_products_stock(inventory_data):
+    def update_products_stock(inventory_data, precision=2):
         """ Updates Odoo stock after a shelf inventory or another action"""
 
-        TWOPLACES = Decimal(10) ** -2
+        TWOPLACES = Decimal(10) ** -precision
         api = OdooAPI()
         missed = []
         unchanged = []

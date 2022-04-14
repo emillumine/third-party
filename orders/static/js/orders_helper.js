@@ -30,12 +30,9 @@ var dbc = null,
     fingerprint = null;
 
 var clicked_order_pill = null;
-
 let userAgent = navigator.userAgent;
-
-
-
 var timerId;
+
 /* - UTILS */
 
 /**
@@ -669,13 +666,14 @@ function save_supplier_product_association(product, supplier, cell) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
-        success: () => {
+        success: (res_data) => {
             // Save supplierinfo in product
             if (!('suppliersinfo' in product)) {
                 product.suppliersinfo = [];
             }
 
             product.suppliersinfo.push({
+                id: res_data.res.psi_id,
                 supplier_id: supplier.id,
                 package_qty: package_qty,
                 product_code: false,
@@ -859,8 +857,10 @@ function commit_actions_on_product(product, inputs) {
         npa: [],
         to_archive: false,
         minimal_stock: 0,
+        qty_available: 0,
         id: product.id,
-        name: product.name
+        name: product.name,
+        suppliersinfo: []
     };
 
     inputs.each(function (i, e) {
@@ -876,6 +876,13 @@ function commit_actions_on_product(product, inputs) {
             if (input.prop('checked') == true && product.incoming_qty === 0) {
                 actions.to_archive = true;
             }
+        } else if (input.attr('name') == "actual_stock") {
+            actions.qty_available = parseFloat(input.val());
+        } else if (input.attr('class') !== undefined && input.attr('class').includes("product_supplier_price")) {
+            actions.suppliersinfo.push({
+                supplierinfo_id: parseInt(input.attr('supplierinfo_id')),
+                price: parseFloat(input.val())
+            });
         }
     });
 
@@ -1810,11 +1817,10 @@ function display_products(params) {
             const product = products.find(p => p.id == p_id);
 
             let modal_product_actions = $('#templates #modal_product_actions');
-
             modal_product_actions.find(".product_name").text(product.name);
+            modal_product_actions.find(".actual_stock_input").val(product.qty_available);
 
             const product_can_be_archived = product.incoming_qty === 0;
-
             if (product_can_be_archived == true) {
                 modal_product_actions.find('input[name="archive-action"]').prop("disabled", false);
                 modal_product_actions.find('input[name="archive-action"]').closest("label")
@@ -1823,6 +1829,17 @@ function display_products(params) {
                 modal_product_actions.find('input[name="archive-action"]').prop("disabled", true);
                 modal_product_actions.find('input[name="archive-action"]').closest("label")
                     .addClass("checkbox_action_disabled");
+            }
+
+            let product_price_action_template = $('#templates #product_price_action_template');
+            modal_product_actions.find(".product_prices_area").empty();
+            for (let supplierinfo of product.suppliersinfo) {
+                let supplier = suppliers_list.find(s => s.id == supplierinfo.supplier_id);
+
+                product_price_action_template.find(".supplier_name").text(supplier.display_name);
+                product_price_action_template.find(".product_supplier_price").attr('supplierinfo_id', supplierinfo.id);
+
+                modal_product_actions.find(".product_prices_area").append(product_price_action_template.html());
             }
 
             openModal(
@@ -1835,7 +1852,13 @@ function display_products(params) {
                 'Valider',
                 false
             );
+
+            // Set inputs val after modal is displayed
             modal.find('input[name="minimal_stock"]').val(product.minimal_stock);
+            modal.find('input[name="actual_stock"]').val(product.qty_available);
+            for (let supplierinfo of product.suppliersinfo) {
+                modal.find(`input[supplierinfo_id="${supplierinfo.id}"]`).val(supplierinfo.price);
+            }
 
         });
 

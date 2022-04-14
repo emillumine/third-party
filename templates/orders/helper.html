@@ -276,29 +276,53 @@
             <hr/>
         </div>
 
+        <div id="product_price_action_template">
+            <div class="product_price_action">
+                <span class="supplier_name"></span>
+                <input type="number" class="product_supplier_price" name="" value="" />
+            </div>
+        </div>
+
         <div id="modal_product_actions">
             Actions sur <h3><span class="product_name"></span></h3>
-            <div class="modal_product_actions_section">
-                <h4 class="modal_product_actions_title">NPA</h4>
-                <div class="npa-options">
-                    <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
-                    <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
-                    <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+            <div class="product_actions_container">
+                <div class="product_actions_section">
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">NPA</h4>
+                        <div class="npa-options">
+                            <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
+                            <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
+                            <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+                        </div>
+                    </div>
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">Archiver le produit</h4>
+                        <label class="checkbox_action_disabled"><input type="checkbox" name="archive-action" value="archive" disabled /> Archiver </label>
+                        <div class="tooltip">
+                            <i class='main fa fa-info-circle'></i>
+                            <span class="tooltiptext tooltip-xl tt_twolines">
+                                Un produit ne peut pas être archivé si une quantité entrante est prévue.
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="modal_product_actions_section">
-                <h4 class="modal_product_actions_title">Archiver le produit</h4>
-                <label class="checkbox_action_disabled"><input type="checkbox" name="archive-action" value="archive" disabled /> Archiver </label>
-                <div class="tooltip">
-                    <i class='main fa fa-info-circle'></i>
-                    <span class="tooltiptext tooltip-xl tt_twolines">
-                        Un produit ne peut pas être archivé si une quantité entrante est prévue.
-                    </span>
+                <div class="product_actions_section">
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">Stock minimum</h4>
+                        <input type="number" name="minimal_stock" value="" />
+                    </div>
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">Stock réel</h4>
+                        <input type="number" name="actual_stock" value="" />
+                    </div>
                 </div>
-            </div>
-            <div class="modal_product_actions_section">
-                <h4 class="modal_product_actions_title">Stock minimum</h4>
-                <input type="number" name="minimal_stock" value="" />
+                <div class="product_actions_section">
+                    <div class="product_actions_full_column">
+                        <h4 class="modal_product_actions_title product_prices_title">Prix</h4>
+                        <i class="product_prices_title_label">(par fournisseur dans cette commande)</i>
+                        <div class="product_prices_area"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
