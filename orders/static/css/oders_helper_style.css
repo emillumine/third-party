@@ -264,7 +264,8 @@
     padding: .5rem .5rem;
 }
 
-.supplier_package_qty {
+.supplier_package_qty,
+.supplier_price {
     font-style: italic;
     font-size: 1.3rem;
 }
