@@ -132,6 +132,7 @@ class CagetteEnvelops(models.Model):
 
     def archive_envelop(self, envelop):
         envelop['archive'] = True
+        envelop['cashing_date'] = datetime.date.today().strftime("%d/%m/%Y")
         return self.c_db.dbc.update([envelop])
 
     def generate_envelop_display_id(self):

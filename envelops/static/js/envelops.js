@@ -96,8 +96,18 @@ function set_envelop_dom(envelop, envelop_name, envelop_content_id, envelop_inde
     if ((envelop.type == 'cash' || envelop.type == 'ch' && envelop_index == 0) && !envelop.archive) {
         new_html += '<button class="accordion w80">' + envelop_name + ' - <i>' + total_amount + '€</i></button>'
     + '<button class="btn--success archive_button item-fluid" onClick="openModal(\'<h3>Êtes-vous sûr ?</h3>\', function() {archive_envelop(\'' + envelop.type + '\', ' + envelop_index + ');}, \'Encaisser\', false)">Encaisser</button>';
-    } else if (envelop.archive && envelop.canceled) {
-        new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€ (Enveloppe supprimée) </i></button>';
+    } else if (envelop.archive ===true) {
+        new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€';
+
+        if (envelop.cashing_date !== undefined) {
+            new_html += ' - Encaissée le ' + envelop.cashing_date;
+        }
+
+        if (envelop.canceled) {
+            new_html += ' - Enveloppe supprimée';
+        }
+
+        new_html += '</i></button>';
     } else {
         new_html += '<button class="accordion w100">' + envelop_name + ' - <i>' + total_amount + '€</i></button>';
     }

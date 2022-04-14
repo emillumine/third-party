@@ -21,7 +21,7 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 def archive_envelop(request):
-    """Save members payment and destroy the envelop"""
+    """Save members payment and archive the envelop"""
     m = CagetteEnvelops()
     res_payments = []
     res_envelop = ""
