@@ -805,8 +805,3 @@ def delete_pair(request):
         return response
     else:
         return JsonResponse({"message": "Method Not Allowed"}, status=405)
-
-def get_attached_members(request):
-    """ Récupération des membres qui doivent faire des rattrapages """
-    res = CagetteMembers.get_attached_members()
-    return JsonResponse({ 'res' : res })
