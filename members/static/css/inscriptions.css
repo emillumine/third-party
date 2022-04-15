@@ -77,3 +77,17 @@
 #associate_area{
     margin-bottom: 15px;
 }
+
+.remove_binome_icon {
+    margin-left: 10px;
+    color: #e62720;
+}
+
+.remove_binome_icon:hover {
+    cursor: pointer;
+}
+
+.chosen_associate_group {
+    display: flex;
+    align-items: center;
+}
