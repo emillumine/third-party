@@ -222,8 +222,11 @@ function prepare_shift_line_template(date_begin) {
  */
 function init_my_info_data() {
     $(".choose_makeups").off();
+    $(".choose_makeups").hide();
     $(".remove_future_registration").off();
+    $(".remove_future_registration").hide();
     $(".unsuscribed_form_link").off();
+    $(".unsuscribed_form_link").hide();
 
     $(".member_shift_name").text(partner_data.regular_shift_name);
 
