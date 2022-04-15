@@ -30,12 +30,9 @@ var dbc = null,
     fingerprint = null;
 
 var clicked_order_pill = null;
-
 let userAgent = navigator.userAgent;
+var timerId = null;
 
-
-
-var timerId;
 /* - UTILS */
 
 /**
@@ -275,8 +272,8 @@ function compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, 
             purchase_package_qty_for_coverage *= coeff;
         }
     }
-    // return Round up to unit for all products
-    return Math.ceil(purchase_package_qty_for_coverage);
+
+    return Math.ceil(purchase_package_qty_for_coverage); // return Round up to unit for all products
 }
 
 function compute_and_affect_product_supplier_quantities(coeff, days) {
@@ -285,21 +282,18 @@ function compute_and_affect_product_supplier_quantities(coeff, days) {
         product
     ] of Object.entries(products)) {
         if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
-            let purchase_qty_for_coverage = null;
-
             // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
             const stock = product.qty_available;
             const incoming_qty = product.incoming_qty;
             const daily_conso = product.daily_conso;
 
-            purchase_package_qty_for_coverage = compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days);
+            let purchase_package_qty_for_coverage = compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days);
             // Set qty to purchase for first supplier only
+
             products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
         }
     }
 }
-
-
 
 /**
  * Compute the qty to buy for each product, depending the coverage days.
@@ -669,13 +663,14 @@ function save_supplier_product_association(product, supplier, cell) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
-        success: () => {
+        success: (res_data) => {
             // Save supplierinfo in product
             if (!('suppliersinfo' in product)) {
                 product.suppliersinfo = [];
             }
 
             product.suppliersinfo.push({
+                id: res_data.res.psi_id,
                 supplier_id: supplier.id,
                 package_qty: package_qty,
                 product_code: false,
@@ -859,8 +854,10 @@ function commit_actions_on_product(product, inputs) {
         npa: [],
         to_archive: false,
         minimal_stock: 0,
+        qty_available: 0,
         id: product.id,
-        name: product.name
+        name: product.name,
+        suppliersinfo: []
     };
 
     inputs.each(function (i, e) {
@@ -876,6 +873,13 @@ function commit_actions_on_product(product, inputs) {
             if (input.prop('checked') == true && product.incoming_qty === 0) {
                 actions.to_archive = true;
             }
+        } else if (input.attr('name') == "actual_stock") {
+            actions.qty_available = parseFloat(input.val());
+        } else if (input.attr('class') !== undefined && input.attr('class').includes("product_supplier_price")) {
+            actions.suppliersinfo.push({
+                supplierinfo_id: parseInt(input.attr('supplierinfo_id')),
+                price: parseFloat(input.val())
+            });
         }
     });
 
@@ -1424,12 +1428,23 @@ function display_suppliers() {
     });
 }
 
+/**
+ * Compute data to display in products table
+ *
+ * Package qties & prices are related to suppliers,
+ *  so 1 product can have multiple values for these.
+ * In case of different values, display value under input in supplier column
+ *
+ * @param {Object} product
+ * @returns Object of computed data to add to product object
+ */
 function _compute_product_data(product) {
     let item = {};
 
     /* Supplier related data */
     let purchase_qty = 0; // Calculate product's total purchase qty
     let p_package_qties = []; // Look for differences in package qties
+    let p_price = [];
 
     for (let p_supplierinfo of product.suppliersinfo) {
         // Preset qty for input if product related to supplier: existing qty or null (null -> qty to be set, display an empty input)
@@ -1444,6 +1459,7 @@ function _compute_product_data(product) {
 
         // Store temporarily product package qties
         p_package_qties.push(p_supplierinfo.package_qty);
+        p_price.push(p_supplierinfo.price);
     }
 
     item.purchase_qty = purchase_qty;
@@ -1456,11 +1472,17 @@ function _compute_product_data(product) {
     }
 
     if (p_package_qties.length == 0 || !p_package_qties.every((val, i, arr) => val === arr[0])) {
-        // Don't display package qty if no supplierinf or if not all package qties are equals,
+        // Don't display package qty if no supplierinfo or if not all package qties are equals
         item.package_qty = 'X';
     } else {
         // If all package qties are equals, display it
         item.package_qty = p_package_qties[0];
+    }
+
+    if (p_price.length == 0 || !p_price.every((val, i, arr) => val === arr[0])) {
+        item.price = 'X';
+    } else {
+        item.price = p_price[0];
     }
 
     /* Coverage related data */
@@ -1600,6 +1622,7 @@ function prepare_datatable_columns() {
                     let content = `<div id="${base_id}_cell_content" class="custom_cell_content">
                                         <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="-1" value=${data}>`;
 
+                    // Add package qty & price data if they differ between suppliers
                     if (full.package_qty === 'X') {
                         let product_data = products.find(p => p.id == full.id);
 
@@ -1607,6 +1630,16 @@ function prepare_datatable_columns() {
                             let supplierinfo = product_data.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
 
                             content += `<span class="supplier_package_qty">Colisage : ${supplierinfo.package_qty}</span>`;
+                        }
+                    }
+
+                    if (full.price === 'X') {
+                        let product_data = products.find(p => p.id == full.id);
+
+                        if (product_data !== undefined) {
+                            let supplierinfo = product_data.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+
+                            content += `<span class="supplier_price">Prix HT : ${supplierinfo.price} €</span>`;
                         }
                     }
 
@@ -1633,18 +1666,29 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
+        data: "price",
+        title: "Prix HT",
+        className: "dt-body-center",
+        render: function (data) {
+            return (data === 'X') ? data : `${data} €`;
+        },
+        width: "4%"
+    });
+
+    columns.push({
         data: "purchase_qty",
         title: "Qté Achat",
         className: "dt-body-center",
         width: "4%"
     });
 
-    columns.push({
-        data: "qty_not_covered",
-        title: "Besoin non couvert (qté)",
-        className: "dt-body-center",
-        width: "4%"
-    });
+    // Not in use for now
+    // columns.push({
+    //     data: "qty_not_covered",
+    //     title: "Besoin non couvert (qté)",
+    //     className: "dt-body-center",
+    //     width: "4%"
+    // });
 
     columns.push({
         data: "days_covered",
@@ -1657,7 +1701,7 @@ function prepare_datatable_columns() {
         title: ``,
         className: "dt-body-center",
         orderable: false,
-        render: function (data) {
+        render: function () {
             return `<button type="button" class="btn--primary product_actions">Actions</button>`;
         },
         width: "4%"
@@ -1804,7 +1848,7 @@ function display_products(params) {
                     .focus();
             }
         })
-        .on('click', 'tbody td .product_actions', function(e) {
+        .on('click', 'tbody td .product_actions', function() {
         // Save / unsave selected row
             const p_id = products_table.row($(this).closest('tr')).data().id;
             const product = products.find(p => p.id == p_id);
@@ -1812,6 +1856,7 @@ function display_products(params) {
             let modal_product_actions = $('#templates #modal_product_actions');
 
             modal_product_actions.find(".product_name").text(product.name);
+            modal_product_actions.find(".actual_stock_input").val(product.qty_available);
 
             const product_can_be_archived = product.incoming_qty === 0;
 
@@ -1825,6 +1870,18 @@ function display_products(params) {
                     .addClass("checkbox_action_disabled");
             }
 
+            let product_price_action_template = $('#templates #product_price_action_template');
+
+            modal_product_actions.find(".product_prices_area").empty();
+            for (let supplierinfo of product.suppliersinfo) {
+                let supplier = suppliers_list.find(s => s.id == supplierinfo.supplier_id);
+
+                product_price_action_template.find(".supplier_name").text(supplier.display_name);
+                product_price_action_template.find(".product_supplier_price").attr('supplierinfo_id', supplierinfo.id);
+
+                modal_product_actions.find(".product_prices_area").append(product_price_action_template.html());
+            }
+
             openModal(
                 modal_product_actions.html(),
                 () => {
@@ -1835,7 +1892,13 @@ function display_products(params) {
                 'Valider',
                 false
             );
+
+            // Set inputs val after modal is displayed
             modal.find('input[name="minimal_stock"]').val(product.minimal_stock);
+            modal.find('input[name="actual_stock"]').val(product.qty_available);
+            for (let supplierinfo of product.suppliersinfo) {
+                modal.find(`input[supplierinfo_id="${supplierinfo.id}"]`).val(supplierinfo.price);
+            }
 
         });
 
@@ -2616,17 +2679,12 @@ $(document).ready(function() {
             // Have to capture mousedown and mouseup events, instead of using only click event
             // Indeed, capturing click only remove the ability to click to have focus on the input to type a number.
             $(document).on("mousedown", '[type="number"]', function() {
-                const clicked = this;
-
-                qties_values[$(clicked).attr('id')] = $(clicked).val();
-
+                qties_values[$(this).attr('id')] = $(this).val();
             });
             $(document).on("mouseup", '[type="number"]', function() {
-                const clicked = this;
-
                 try {
-                    if ($(clicked).val() != qties_values[$(clicked).attr('id')]) {
-                        process_new_product_qty(clicked);
+                    if ($(this).val() != qties_values[$(this).attr('id')]) {
+                        process_new_product_qty(this);
                     }
                 } catch (err) {
                     console.log(err);
