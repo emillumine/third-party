@@ -556,9 +556,11 @@ def get_member_info(request, id):
             member = member[0]
             parent = None
             if member['parent_id']:
-                parent = api.search_read('res.partner', [['id', '=', int(member['parent_id'][0])]], ['barcode_base', 'email'])[0]
-                member['parent_barcode_base'] = parent['barcode_base']
-                member['parent_email'] = parent['email']
+                res_parent = api.search_read('res.partner', [['id', '=', int(member['parent_id'][0])]], ['barcode_base', 'email'])
+                if res_parent:
+                    parent = res_parent[0]
+                    member['parent_barcode_base'] = parent['barcode_base']
+                    member['parent_email'] = parent['email']
             res['member'] = member
             response = JsonResponse(res)
         else:
