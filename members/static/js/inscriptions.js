@@ -361,9 +361,10 @@ function modify_current_coop() {
             $('#existing_member_choice').addClass('choice_active');
             var member_button = '<div>' + current_coop.parent_name + '</div>';
 
-            $('.chosen_associate').html(member_button);
             $('.chosen_associate_area').show();
             associated_old_choice = 'existing_member_choice';
+
+            $(".remove_binome_icon").on("click", hide_chosen_associate)
 
         } else {
             $('#new_member_choice_action').show();
@@ -383,6 +384,11 @@ function modify_current_coop() {
     }
     ncoop_view.show();
 }
+
+function hide_chosen_associate() {
+    $(".chosen_associate_area").hide();
+}
+
 function modify_coop_by_btn_triggered() {
     var clicked = $(this);
     var coop_id = clicked.find('div').data('id');
