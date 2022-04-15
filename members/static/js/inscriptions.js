@@ -126,6 +126,7 @@ function create_new_coop() {
     $('.chosen_associate').html("");
     $('.chosen_associate_area').hide();
     $('.member_choice').removeClass('choice_active');
+    $(".remove_binome_icon").on("click", hide_chosen_associate)
     local_in_process = getLocalInProcess();
     if (getLocalInProcess().length > 0) {
         empty_waiting_local_processes();
@@ -360,11 +361,11 @@ function modify_current_coop() {
             $('#new_member_choice_action').hide();
             $('#existing_member_choice').addClass('choice_active');
             var member_button = '<div>' + current_coop.parent_name + '</div>';
-
+            $('.chosen_associate').html(member_button);
             $('.chosen_associate_area').show();
             associated_old_choice = 'existing_member_choice';
 
-            $(".remove_binome_icon").on("click", hide_chosen_associate)
+            
 
         } else {
             $('#new_member_choice_action').show();
@@ -386,7 +387,9 @@ function modify_current_coop() {
 }
 
 function hide_chosen_associate() {
+    selected_associate=null;
     $(".chosen_associate_area").hide();
+    $('.chosen_associate').html("");
 }
 
 function modify_coop_by_btn_triggered() {
