@@ -293,7 +293,7 @@ function store_new_coop(event) {
                     dataType :'json'
                 }).done(function(rData) {
                     if (typeof(rData.answer) == 'boolean' && rData.answer == true) {
-                        errors.push("Ce membre à déjà un Binôme majeur");
+                        errors.push("Ce membre a déjà un binôme majeur");
                     }
                     if (errors.length == 0) {
                         _really_save_new_coop(
@@ -365,7 +365,7 @@ function modify_current_coop() {
             $('.chosen_associate_area').show();
             associated_old_choice = 'existing_member_choice';
 
-            
+
 
         } else {
             $('#new_member_choice_action').show();
