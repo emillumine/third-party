@@ -611,8 +611,9 @@ $('#odoo_user_connect').click();
 $('#add_binome').click(function() {
     if ($('#associate_area').is(':visible')) {
         $('#associate_area').hide();
-        associated_old_choice = null;
         $('#new_member_input').val('');
+        $('#associate_area .choice_active').removeClass("choice_active");
+        associated_old_choice = null;
         if (current_coop !=null) {
             delete current_coop.parent_name;
             delete current_coop.parent_id;

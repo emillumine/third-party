@@ -79,11 +79,12 @@
 }
 
 .remove_binome_icon {
-    margin-left: 5px;
+    margin-left: 10px;
+    color: #e62720;
 }
 
 .remove_binome_icon:hover {
-    color: #e62720;
+    cursor: pointer;
 }
 
 .chosen_associate_group {
