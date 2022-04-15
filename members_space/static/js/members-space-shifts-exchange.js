@@ -268,6 +268,8 @@ function offer_extra_shift() {
             },
             timeout: 3000,
             success: function() {
+                partner_data.extra_shift_done -= 1;
+                
                 $("#can_delete_future_registrations_area").hide();
                 $(".delete_registration_button").off();
                 $(".delete_registration_button").hide();
@@ -723,27 +725,31 @@ function init_read_only_calendar_page() {
 
 function init_delete_registration_buttons() {
     $(".delete_registration_button").off();
-    $(".delete_registration_button").on("click", function() {
-        let shift_name = $(this).closest("div")
-            .parent().parent()
-            .find(".shift_line_date")
-            .text()
-            .trim();
-        let shift_id = $(this).closest(".shift_line_container")
-            .attr('id')
-            .split('_')[2];
+    $(".delete_registration_button").hide();
 
-        openModal(
-            `<p>Je m'apprête à supprimer ma présence au service du <b>${shift_name}</b></p>`,
-            () => {
-                delete_shift_registration(shift_id);
-            },
-            "Confirmer",
-            false
-        );
-    });
-
-    $(".delete_registration_button").css('display', 'flex');
+    if (partner_data.extra_shift_done > 0) {
+        $(".delete_registration_button").on("click", function() {
+            let shift_name = $(this).closest("div")
+                .parent().parent()
+                .find(".shift_line_date")
+                .text()
+                .trim();
+            let shift_id = $(this).closest(".shift_line_container")
+                .attr('id')
+                .split('_')[2];
+    
+            openModal(
+                `<p>Je m'apprête à supprimer ma présence au service du <b>${shift_name}</b></p>`,
+                () => {
+                    delete_shift_registration(shift_id);
+                },
+                "Confirmer",
+                false
+            );
+        });
+    
+        $(".delete_registration_button").css('display', 'flex');
+    }
 }
 
 function init_shifts_exchange() {

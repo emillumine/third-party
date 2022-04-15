@@ -158,7 +158,7 @@ function init_history() {
 
                     if (cell.text() === "Présent.e") {
                         $(row).addClass('row_partner_ok');
-                    } else if (cell.text() === "Retard") {
+                    } else if (cell.text().includes("Retard")) {
                         $(row).addClass('row_partner_late');
                     } else if (cell.text() === "Absent.e") {
                         $(row).addClass('row_partner_absent');
