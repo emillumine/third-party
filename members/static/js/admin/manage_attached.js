@@ -4,6 +4,9 @@ var childId = null;
 var parentName = null;
 var childName = null;
 
+var parentEmail = null;
+var childEmail = null;
+
 const possible_cooperative_state = {
     suspended: "Rattrapage",
     exempted: "Exempté.e",
@@ -237,6 +240,14 @@ function confirmDeletion(childId) {
 
     modalContent.find("#parentName").text(parentName);
     modalContent.find("#childName").text(childName);
+
+    if (parentEmail != false) {
+        modalContent.find("#parentEmail").text(parentEmail)
+    }
+    if (childEmail != false) {
+        modalContent.find("#childEmail").text(childEmail)
+    }
+
     modalContent = modalContent.html();
     openModal(modalContent, () => {
         if (is_time_to('delete_pair')) {
@@ -438,8 +449,14 @@ $(document).ready(function() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             success: function(data) {
-                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name;
+                if (data.member.parent_barcode_base !== undefined) {
+                    parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name;
+                } else {
+                    parentName = data.member.parent_name;
+                }
+                parentEmail = data.member.parent_email;
                 childName = data.member.barcode_base + ' - ' + data.member.name;
+                childEmail = data.member.email;
                 confirmDeletion(childId);
             },
             error: function(data) {

@@ -118,5 +118,19 @@
 }
 
 /* Modale */
-.attached-members .member div {width: 50px; display: inline-block;}
-.attached-members .member div.name {width: 80%;}
+.attached-members .member div {width: 50px; display: inline-block; margin: 1rem 0;}
+.attached-members .member div.name {width: 100%; position: relative;}
+.attached-members .member div.select_after_unattached_state {
+    position: absolute;
+    right:5rem;
+    top:0;
+    bottom:0;
+    margin: 0;
+    display:flex;
+    justify-content: center ;
+    align-items: center;
+}
+
+.attached-members .member .after_unattached_state {
+    cursor: pointer;
+}

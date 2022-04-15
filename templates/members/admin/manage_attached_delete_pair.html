@@ -18,16 +18,28 @@
   <div id="confirmModal">
       <h3>Le binôme est sur le point d'être désolidarisé</h3>
       <br />
+      Êtes-vous sûr.e de vouloir désolidariser :
       <div>
-        Êtes-vous sur de vouloir désolidariser
+       
         <div class="attached-members">
             <div class="member">
-                <div class="name"><strong><span id="parentName"></span></strong> (titulaire)</div> 
-                <div><input type="checkbox" name="parent_gone" class="after_unattached_state" /></div>
+                <div class="name">
+                    <strong><span id="parentName"></span></strong> (titulaire)<br />
+                    <i><span id="parentEmail"></span></i>
+                    <div class="select_after_unattached_state">
+                        <input type="checkbox" name="parent_gone" class="after_unattached_state" />
+                    </div>
+                </div> 
             </div>
+            et
             <div class="member">
-                <div class="name"><strong><span id="childName"></span></strong></div>
-                <div><input type="checkbox" name="child_gone" class="after_unattached_state" /></div>
+                <div class="name">
+                    <strong><span id="childName"></span></strong><br />
+                    <i><span id="childEmail"></span></i>
+                    <div class="select_after_unattached_state">
+                        <input type="checkbox" name="child_gone" class="after_unattached_state" />
+                    </div>
+                </div>
             </div>
         </div>
       </div>
