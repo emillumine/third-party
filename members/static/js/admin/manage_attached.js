@@ -4,6 +4,9 @@ var childId = null;
 var parentName = null;
 var childName = null;
 
+var parentEmail = null;
+var childEmail = null;
+
 const possible_cooperative_state = {
     suspended: "Rattrapage",
     exempted: "Exempté.e",
@@ -440,10 +443,10 @@ $(document).ready(function() {
             traditional: true,
             contentType: "application/json; charset=utf-8",
             success: function(data) {
-                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name
-                parentEmail = data.member.email
-                childName = data.member.barcode_base + ' - ' + data.member.name
-                childEmail = data.member.email
+                parentName = data.member.parent_barcode_base + ' - ' + data.member.parent_name;
+                parentEmail = data.member.parent_email;
+                childName = data.member.barcode_base + ' - ' + data.member.name;
+                childEmail = data.member.email;
                 confirmDeletion(childId);
             },
             error: function(data) {
