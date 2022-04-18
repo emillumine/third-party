@@ -427,7 +427,7 @@ def delete_shift_registration(request):
         # Note: 'upcoming_registration_count' in res.partner won't change because the _compute method
         #       in odoo counts canceled shift registrations.
         m = CagetteShift()
-        res["cancel_shift"] = m.cancel_shift([shift_registration_id])
+        res["cancel_shift"] = m.cancel_shift([shift_registration_id], origin='bdm')
 
         if shift_is_makeup is True:
             fields = {
