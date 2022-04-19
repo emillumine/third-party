@@ -62,10 +62,12 @@ function display_member_infos(divId, memberData) {
         .text(memberData.email);
     $("#" + divId).find(".member_status")
         .text(possible_cooperative_state[memberData.cooperative_state]);
-    $("#" + divId).find(".member_shift_name")
-        .text(memberData.current_template_name);
     $("#" + divId).find(".member_makeups_to_do")
         .text(memberData.makeups_to_do);
+
+    let member_shift_name = memberData.current_template_name === false ? 'X' : memberData.current_template_name;
+    $("#" + divId).find(".member_shift_name")
+        .text(member_shift_name);
 
     if (memberData.is_associated_people === false) {
         $("#" + divId).find(".member_associated_partner_area")
