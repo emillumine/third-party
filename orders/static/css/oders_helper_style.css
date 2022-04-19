@@ -327,11 +327,13 @@
     position: sticky;
     top: 140px;
     z-index: 5;
+    pointer-events: none;
 }
 
 .supplier_pill {
     background-color: #ffebcd;
     border: 2px solid black;
+    pointer-events: auto;
 }
 
 .pill_supplier_name {
