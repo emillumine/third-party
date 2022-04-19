@@ -385,6 +385,13 @@
 - AMNISTIE_DATE = "2021-11-24 00:00:00"
         In members_space history display a special activity about amnistie
 
+
+### BDM Admin
+
+- BDM_SHOW_FTOP_BUTTON = True (by default)
+
+        If True, in BDM Admin manage shift template, on the calendar when subscribing a partner to a shift, "Volant" button is included
+
 ### Miscellious
 
 - EXPORT_COMPTA_FORMAT = 'Quadratus'

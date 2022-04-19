@@ -347,7 +347,7 @@ def manage_regular_shifts(request):
         'max_begin_hour': settings.MAX_BEGIN_HOUR,
         'mag_place_string': settings.MAG_NAME,
         'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
-        'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
+        'show_ftop_button': getattr(settings, 'BDM_SHOW_FTOP_BUTTON', True),
         'has_committe_shift': committees_shift_id is not None,
         'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
     }
