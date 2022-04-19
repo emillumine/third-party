@@ -103,7 +103,7 @@ def inscriptions(request, type=1):
                'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member'],
                'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
-               'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', ''),
+               'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
                }
 
     response = HttpResponse(template.render(context, request))
