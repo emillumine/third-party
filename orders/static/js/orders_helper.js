@@ -1797,6 +1797,9 @@ function display_products(params) {
 
     // Manage data on inputs blur
     $('#products_table')
+        .on('focus', 'tbody td .product_qty_input', function () {
+            this.select();
+        })
         .on('blur', 'tbody td .product_qty_input', function () {
             process_new_product_qty(this);
         })
