@@ -135,6 +135,9 @@
 
         Id number of the associate shift template
 
+- PREPA_ODOO_URL = ''
+        URL of the "prepa_odoo" page
+
 ### Scales and labels files generation
 
 - DAV_PATH = '/data/dav/cagette'

@@ -1,4 +1,19 @@
 .nav .fr {margin-left:10px;}
+.nav .fl {margin-right:10px;}
+
+.nav #process_state_container{
+    min-height: 36px;
+} 
+.nav #process_state{
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+} 
+.nav #goto_prepa_odoo_button,
+.nav #goto_prepa_odoo_button:hover {
+    text-decoration: none;
+}
 
 #shift_choice > div, #new_coop, #coop_list_view,#coop_registration_details {display:none;}
 

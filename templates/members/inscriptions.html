@@ -26,13 +26,20 @@
 {% endblock %}
 {% block content %}
  <nav class="col-6 clearfix nav">
- <div id="process_state" class="fl"></div>
+   <div class="left-nav">
+    {% if prepa_odoo_url != '' %}
+     <div id="goto_prepa_odoo" class="fl">
+       <a class="btn--info" id="goto_prepa_odoo_button" href='{{prepa_odoo_url}}' target='_blank'>Prepa Odoo</a>
+     </div>
+     {% endif %}
+     <div id="process_state_container" class="fl">
+       <div id="process_state"></div>
+     </div>
+   </div>
 
- <button id="create_new_coop" class="btn--primary fr">Nouvelle inscription</button>
- <button id="coop_list_btn" class="btn--info fr" style="display:none;">Liste</button>
- <button id="shift_calendar" class="btn--inverse fr">Vue créneaux</button>
-
-
+  <button id="create_new_coop" class="btn--primary fr">Nouvelle inscription</button>
+  <button id="coop_list_btn" class="btn--info fr" style="display:none;">Liste</button>
+  <button id="shift_calendar" class="btn--inverse fr">Vue créneaux</button>
 </nav>
 
 <section class="center" id="new_coop">

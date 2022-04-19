@@ -102,7 +102,8 @@ def inscriptions(request, type=1):
                'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
                'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member'],
-               'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
+               'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
+               'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', ''),
                }
 
     response = HttpResponse(template.render(context, request))

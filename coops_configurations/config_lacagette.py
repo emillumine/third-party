@@ -115,6 +115,7 @@ ENTRANCE_EASY_SHIFT_VALIDATE_MSG = """Si vous faites un service dans un comité,
 valider votre présence en cherchant<br/>
 votre nom ou numéro ci-dessous
 """
+PREPA_ODOO_URL = '[...]'
 
 # Members space / shifts
 UNSUBSCRIBED_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLScWcpls-ruYIp7HdrjRF1B1TyuzdqhvlUIcUWynbEujfj3dTg/viewform'
