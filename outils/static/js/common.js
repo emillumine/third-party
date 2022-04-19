@@ -99,7 +99,7 @@ function single_shift_click() {
     }
 }
 
-function select_shift_among_compact(clicked_item = null, subscribe = true) {
+function select_shift_among_compact(event, clicked_item = null, subscribe = true) {
     var clicked = clicked_item === null ? $(this) : $(clicked_item);
     var day = clicked.closest('td').attr('class');
     var hour = clicked.closest('tr').data('begin');

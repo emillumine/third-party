@@ -150,7 +150,7 @@ function display_member_info() {
                 $(".shift").off("click");
                 $(".shift").on("click", function() {
                     // Subscribe to shift template
-                    let shift_template_id = select_shift_among_compact(this, false); // method from common.js
+                    let shift_template_id = select_shift_among_compact(null, this, false); // method from common.js
                     let shift_template_data = shift_templates[shift_template_id].data;// shift_templates: var from common.js
                     let shift_template_name = get_shift_name(shift_template_data);
 
