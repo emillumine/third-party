@@ -126,6 +126,7 @@ function create_new_coop() {
     $('.chosen_associate').html("");
     $('.chosen_associate_area').hide();
     $('.member_choice').removeClass('choice_active');
+    $(".remove_binome_icon").on("click", hide_chosen_associate)
     local_in_process = getLocalInProcess();
     if (getLocalInProcess().length > 0) {
         empty_waiting_local_processes();
@@ -292,7 +293,7 @@ function store_new_coop(event) {
                     dataType :'json'
                 }).done(function(rData) {
                     if (typeof(rData.answer) == 'boolean' && rData.answer == true) {
-                        errors.push("Ce membre à déjà un Binôme majeur");
+                        errors.push("Ce membre a déjà un binôme majeur");
                     }
                     if (errors.length == 0) {
                         _really_save_new_coop(
@@ -360,10 +361,11 @@ function modify_current_coop() {
             $('#new_member_choice_action').hide();
             $('#existing_member_choice').addClass('choice_active');
             var member_button = '<div>' + current_coop.parent_name + '</div>';
-
             $('.chosen_associate').html(member_button);
             $('.chosen_associate_area').show();
             associated_old_choice = 'existing_member_choice';
+
+
 
         } else {
             $('#new_member_choice_action').show();
@@ -383,6 +385,13 @@ function modify_current_coop() {
     }
     ncoop_view.show();
 }
+
+function hide_chosen_associate() {
+    selected_associate=null;
+    $(".chosen_associate_area").hide();
+    $('.chosen_associate').html("");
+}
+
 function modify_coop_by_btn_triggered() {
     var clicked = $(this);
     var coop_id = clicked.find('div').data('id');
@@ -602,8 +611,9 @@ $('#odoo_user_connect').click();
 $('#add_binome').click(function() {
     if ($('#associate_area').is(':visible')) {
         $('#associate_area').hide();
-        associated_old_choice = null;
         $('#new_member_input').val('');
+        $('#associate_area .choice_active').removeClass("choice_active");
+        associated_old_choice = null;
         if (current_coop !=null) {
             delete current_coop.parent_name;
             delete current_coop.parent_id;
