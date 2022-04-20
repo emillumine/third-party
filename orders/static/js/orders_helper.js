@@ -2371,7 +2371,7 @@ function quillify(params) {
 
 /**
  * Init object & dom for the info editor.
- * Await retrieving content. 
+ * Await retrieving content.
  */
 async function init_info_editor() {
     let info_content = await get_or_create_common_info();
