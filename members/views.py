@@ -87,24 +87,27 @@ def inscriptions(request, type=1):
     """
     template = loader.get_template('members/inscriptions.html')
 
-    context = {'type': type, 'title': 'Inscriptions',
-               'couchdb_server': settings.COUCHDB['url'],
-               'mag_place_string': settings.MAG_NAME,
-               'office_place_string': settings.OFFICE_NAME,
-               'max_begin_hour': settings.MAX_BEGIN_HOUR,
-               'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
-               'force_firstname_hyphen': getattr(settings, 'FORCE_HYPHEN_IN_SUBSCRIPTION_FIRSTNAME', True),
-               'input_barcode': getattr(settings, 'SUBSCRIPTION_INPUT_BARCODE', False),
-               'email_domain': getattr(settings, 'EMAIL_DOMAIN', 'lacagette-coop.fr'),
-               'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
-               'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
-               'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
-               'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
-               'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
-               'db': settings.COUCHDB['dbs']['member'],
-               'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
-               'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
-               }
+    committees_shift_id = CagetteServices.get_committees_shift_id()
+    context = {
+        'type': type, 'title': 'Inscriptions',
+        'couchdb_server': settings.COUCHDB['url'],
+        'mag_place_string': settings.MAG_NAME,
+        'office_place_string': settings.OFFICE_NAME,
+        'max_begin_hour': settings.MAX_BEGIN_HOUR,
+        'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
+        'force_firstname_hyphen': getattr(settings, 'FORCE_HYPHEN_IN_SUBSCRIPTION_FIRSTNAME', True),
+        'input_barcode': getattr(settings, 'SUBSCRIPTION_INPUT_BARCODE', False),
+        'email_domain': getattr(settings, 'EMAIL_DOMAIN', 'lacagette-coop.fr'),
+        'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
+        'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
+        'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
+        'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
+        'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
+        'db': settings.COUCHDB['dbs']['member'],
+        'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
+        'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
+        'committees_shift_id': committees_shift_id,
+    }
 
     response = HttpResponse(template.render(context, request))
     return response

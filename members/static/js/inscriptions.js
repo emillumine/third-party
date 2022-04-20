@@ -773,4 +773,7 @@ $(document).ready(function() {
         searchMembersForAssociate();
     });
 
+    if (committees_shift_id !== "None") {
+        $("#shift_choice button[data-select='Volant']").text("Comités");
+    }
 });
