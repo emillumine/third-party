@@ -5,12 +5,14 @@
 <link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
 <link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/oders_helper_style.css' %}">
+<link rel="stylesheet" href="{% static 'quill/quill.snow.css' %}">
 {% endblock %}
 
 {% block additionnal_scripts %}
 <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v="></script>
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'quill/quill.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -33,6 +35,13 @@
             <h2>Ou, continuer une commande en cours de création</h2>
             <div id="existing_orders"></div>
         </div>
+        <div id="common_info_area">
+            <h2>Informations</h2>
+            <div id="common_info_editor_container"> 
+                <div id="common_info_editor"></div>
+            </div>
+            <button class="btn--primary" id="save_common_info">Sauvegarder</button>
+        </div>
     </div>
 
     <div id="main_content" class="page_content" style="display:none;">
@@ -41,7 +50,6 @@
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
             <div class="right_action_buttons">
-                
                 <div id="actions_buttons_wrapper">
                     <button type="button" class='btn--primary' id="toggle_action_buttons">
                         <span class="button_content">
@@ -214,7 +222,7 @@
             <p class="remove_order_modal_text">
                 Vous vous apprêtez à <b style="color: #d9534f;">supprimer</b> cette commande en cours : <span class="remove_order_name"></span>.<br/>
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
     
@@ -225,7 +233,7 @@
                 Les produits associés uniquement à ce fournisseur seront supprimés du tableau.<br/>
                 Les données renseignées dans la colonne de ce fournisseur seront perdues.
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
     
@@ -251,7 +259,7 @@
             <p> 
                 L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
 
@@ -264,7 +272,7 @@
             <p> 
                 L'association sera supprimée dès que vous aurez cliqué sur "Valider".<br/>
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
     
@@ -272,7 +280,7 @@
             <p> 
                 Vous vous apprêtez à créer un inventaire de <span class="inventory_products_count"></span> produits.
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
 
