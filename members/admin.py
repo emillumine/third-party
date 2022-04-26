@@ -470,7 +470,7 @@ def delete_shift_template_registration(request):
             res["update_makeups"] = cm.update_member_makeups({'target_makeups_nb': target_makeup})
 
             # Delete all shift registrations & shift template registration
-            res["unsuscribe_member"] = cm.unsuscribe_member()
+            res["unsubscribe_member"] = cm.unsubscribe_member()
 
             if permanent_unsuscribe is True:
                 res["set_done"] = cm.set_cooperative_state("gone")
@@ -485,7 +485,11 @@ def delete_shift_template_registration(request):
     return response
 
 def shift_subscription(request):
-    """ Inscrit un membre désinscrit à un shift template """
+    """ 
+        Register a member to a shift template. 
+        If the member was already subscribed to a shift template, unsubscribe him.her first
+            and delete all existing shifts EXCEPT makeups.
+    """
     res = {}
     if CagetteUser.are_credentials_ok(request):
         data = json.loads(request.body.decode())
@@ -506,9 +510,26 @@ def shift_subscription(request):
                 shift_template_id = CagetteServices.get_first_ftop_shift_id()
 
         m = CagetteMember(partner_id)
+
+        unsubscribe_first = data["unsubscribe_first"]
+        if unsubscribe_first is True:
+            # If the member is registered to a shift on the shift template, registering to this shift template will fail.
+            has_makeups_in_new_shift = m.is_member_registered_to_makeup_shift_template(shift_template_id)
+
+            if has_makeups_in_new_shift is True:
+                return JsonResponse(
+                    {
+                        "message": "A makeup is registered on this shift template",
+                        "code": "makeup_found"
+                    }, 
+                    status=409
+                )
+
+            res["unsubscribe_member"] = m.unsubscribe_member(changing_shift = True)
+
         m.create_coop_shift_subscription(shift_template_id, shift_type)
 
-        # Retrurn necessary data
+        # Return necessary data
         api = OdooAPI()
         c = [['id', '=', shift_template_id]]
         f = ['id', 'name']
@@ -730,7 +751,7 @@ def create_pair(request):
                 api.execute('res.partner', 'run_process_target_status', [])
 
             
-            m = CagetteMember(child_id).unsuscribe_member()
+            m = CagetteMember(child_id).unsubscribe_member()
             # update child base account state
             api.update("res.partner", [child_id], {'cooperative_state': "associated"})
 

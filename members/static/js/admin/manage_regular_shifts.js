@@ -54,17 +54,21 @@ function remove_from_shift_template() {
 }
 
 /**
- * Send the request to register a member to a shift template
+ * Send the request to register a member to a shift template.
+ * Ask to unsuscribe first if the member was subscribed.
+ *
  * @param {int} shift_type 1 === standard ; 2 === ftop
  * @param {int} shift_template_id null for ftop shift type
+ * @param {String} shift_template_name selected shift template name
  */
-function shift_subscrition(shift_type, shift_template_id = null) {
+function shift_subscrition(shift_type, shift_template_id = null, shift_template_name = null) {
     openModal();
 
     let data = {
         partner_id: selected_member.id,
         shift_type: shift_type,
-        shift_template_id: shift_template_id
+        shift_template_id: shift_template_id,
+        unsubscribe_first: selected_member.shift_template_id !== undefined && selected_member.shift_template_id !== null
     };
 
     $.ajax({
@@ -85,19 +89,45 @@ function shift_subscrition(shift_type, shift_template_id = null) {
 
             $("#shifts_calendar_area").hide();
             closeModal();
-        },
-        error: function() {
-            err = {
-                msg: "erreur serveur lors de l'inscription du membre au créneau",
-                ctx: 'members.admin.manage_regular_shifts.shift_subscrition'
-            };
-            report_JS_error(err, 'members.admin');
-            closeModal();
 
-            $.notify("Une erreur est survenue lors de l'inscription du membre au créneau.", {
-                globalPosition:"top right",
-                className: "error"
-            });
+            setTimeout(() => {
+                $.notify("Inscription au nouveau service réussie.", {
+                    globalPosition:"top right",
+                    className: "success"
+                });
+            }, 200);
+        },
+        error: function(err_data) {
+            if (
+                err_data.status == 409
+                && typeof (err_data.responseJSON) != "undefined"
+                && err_data.responseJSON.code === "makeup_found"
+            ) {
+                let modal_template = $("#modal_error_change_shift_template");
+
+                modal_template.find(".shift_template_name").text(shift_template_name);
+
+                closeModal();
+                openModal(
+                    modal_template.html(),
+                    () => {},
+                    "Compris !",
+                    true,
+                    false
+                );
+            } else {
+                err = {
+                    msg: "erreur serveur lors de l'inscription du membre au créneau",
+                    ctx: 'members.admin.manage_regular_shifts.shift_subscrition'
+                };
+                report_JS_error(err, 'members.admin');
+                closeModal();
+
+                $.notify("Une erreur est survenue lors de l'inscription du membre au créneau.", {
+                    globalPosition:"top right",
+                    className: "error"
+                });
+            }
         }
     });
 }
@@ -113,58 +143,19 @@ function display_member_info() {
 
     $("#remove_shift_template_button").hide();
     $("#remove_shift_template_button").off();
+    $("#change_shift_template_button").hide();
+    $("#change_shift_template_button").off();
     $("#subscribe_to_shift_template_button").hide();
     $("#subscribe_to_shift_template_button").off();
 
     $("#shifts_calendar_area").hide();
 
+    // Member is unsuscribed
     if (selected_member.shift_template_id === undefined || selected_member.shift_template_id === null) {
         $('.member_shift').text("X");
 
         $("#subscribe_to_shift_template_button").show();
-        $("#subscribe_to_shift_template_button").on("click", () => {
-            retrieve_and_draw_shift_tempates();
-            $("#shifts_calendar_area").show();
-
-            // Wait for listeners to be set in common.js
-            // TODO use "signals" to avoid waiting an arbitrary time
-            setTimeout(() => {
-                // Cancel listeners from subscription page & set custom listeners
-                $("#shifts_calendar_area button[data-select='Volant']").off("click");
-                $("#shifts_calendar_area button[data-select='Volant']").on("click", function() {
-                    // Subscribe to comitee/ftop shift
-                    msg = (has_committe_shift === "True")
-                        ? `Inscrire ${selected_member.name} au service des Comités ?`
-                        : `Inscrire ${selected_member.name} en Volant ?`;
-
-                    openModal(
-                        msg,
-                        () => {
-                            shift_subscrition(2);
-                        },
-                        "Confirmer",
-                        false
-                    );
-                });
-
-                $(".shift").off("click");
-                $(".shift").on("click", function() {
-                    // Subscribe to shift template
-                    let shift_template_id = select_shift_among_compact(null, this, false); // method from common.js
-                    let shift_template_data = shift_templates[shift_template_id].data;// shift_templates: var from common.js
-                    let shift_template_name = get_shift_name(shift_template_data);
-
-                    openModal(
-                        `Inscrire ${selected_member.name} au créneau ${shift_template_name} ?`,
-                        () => {
-                            shift_subscrition(1, parseInt(shift_template_id));
-                        },
-                        "Confirmer",
-                        false
-                    );
-                });
-            }, 500);
-        });
+        $("#subscribe_to_shift_template_button").on("click", set_subscription_area);
     } else {
         $('.member_shift').text(selected_member.shift_template_id[1]);
 
@@ -181,10 +172,60 @@ function display_member_info() {
                 false
             );
         });
+
+        $("#change_shift_template_button").show();
+        $("#change_shift_template_button").on("click", set_subscription_area);
     }
 
     $('#search_member_input').val();
     $('#partner_data_area').css('display', 'flex');
+}
+
+/**
+ * Set calendar and associated listeners.
+ */
+function set_subscription_area() {
+    retrieve_and_draw_shift_tempates();
+    $("#shifts_calendar_area").show();
+
+    // Wait for listeners to be set in common.js
+    // TODO use "signals" to avoid waiting an arbitrary time
+    setTimeout(() => {
+        // Cancel listeners from subscription page & set custom listeners
+        $("#shifts_calendar_area button[data-select='Volant']").off("click");
+        $("#shifts_calendar_area button[data-select='Volant']").on("click", function() {
+            // Subscribe to comitee/ftop shift
+            msg = (has_committe_shift === "True")
+                ? `Inscrire ${selected_member.name} au service des Comités ?`
+                : `Inscrire ${selected_member.name} en Volant ?`;
+
+            openModal(
+                msg,
+                () => {
+                    shift_subscrition(2);
+                },
+                "Confirmer",
+                false
+            );
+        });
+
+        $(".shift").off("click");
+        $(".shift").on("click", function() {
+            // Subscribe to shift template
+            let shift_template_id = select_shift_among_compact(null, this, false); // method from common.js
+            let shift_template_data = shift_templates[shift_template_id].data;// shift_templates: var from common.js
+            let shift_template_name = get_shift_name(shift_template_data);
+
+            openModal(
+                `Inscrire ${selected_member.name} au créneau ${shift_template_name} ?`,
+                () => {
+                    shift_subscrition(1, parseInt(shift_template_id), shift_template_name);
+                },
+                "Confirmer",
+                false
+            );
+        });
+    }, 1000);
 }
 
 /**

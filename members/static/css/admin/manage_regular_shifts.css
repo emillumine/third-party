@@ -75,7 +75,8 @@
 }
 
 /* Actions */
-#remove_shift_template_button, 
+#remove_shift_template_button,
+#change_shift_template_button,
 #subscribe_to_shift_template_button {
     display: none;
     margin: 15px;
@@ -86,6 +87,11 @@
 }
 #permanent_unsuscribe {
     margin-right: 5px;
+}
+
+.error_modal_title {
+    color:#d9534f;
+    font-weight: bold;
 }
 
 /* Calendar */

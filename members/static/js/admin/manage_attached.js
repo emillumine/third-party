@@ -66,6 +66,7 @@ function display_member_infos(divId, memberData) {
         .text(memberData.makeups_to_do);
 
     let member_shift_name = memberData.current_template_name === false ? 'X' : memberData.current_template_name;
+
     $("#" + divId).find(".member_shift_name")
         .text(member_shift_name);
 
@@ -244,10 +245,10 @@ function confirmDeletion(childId) {
     modalContent.find("#childName").text(childName);
 
     if (parentEmail != false) {
-        modalContent.find("#parentEmail").text(parentEmail)
+        modalContent.find("#parentEmail").text(parentEmail);
     }
     if (childEmail != false) {
-        modalContent.find("#childEmail").text(childEmail)
+        modalContent.find("#childEmail").text(childEmail);
     }
 
     modalContent = modalContent.html();

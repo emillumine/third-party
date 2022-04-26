@@ -941,7 +941,30 @@ class CagetteMember(models.Model):
         res = self.o_api.search_read("shift.registration", c, f)
         return res
 
-    def unsuscribe_member(self):
+    def is_member_registered_to_makeup_shift_template(self, shift_template_id):
+        """ Given a shift template, check if the member is registered to a makeup on this shift template """
+        try:
+            c = [["partner_id", "=", self.id], ["is_makeup", "=", True], ["state", "=", "open"]]
+            f=['shift_id']
+            res_shift_ids = self.o_api.search_read("shift.registration", c, f)
+
+            if res_shift_ids:
+                shift_ids = [int(d['shift_id'][0]) for d in res_shift_ids]
+
+                c = [["id", "in", shift_ids]]
+                f=['shift_template_id']
+                stis = self.o_api.search_read("shift.shift", c, f)
+
+                for sti in stis:
+                    if sti['shift_template_id'][0] == shift_template_id:
+                        return True
+        except Exception as e:
+            print(str(e))
+
+        return False
+
+    def unsubscribe_member(self, changing_shift = False):
+        """ If changing_shift, don't delete makeups registrations & don't close extension """
         res = {}
 
         now = datetime.datetime.now().isoformat()
@@ -957,6 +980,8 @@ class CagetteMember(models.Model):
         
         # Get and then delete shift registrations
         c = [['partner_id', '=', self.id], ['date_begin', '>', now]]
+        if changing_shift is True:
+            c.append(['is_makeup', '!=', True])
         f = ['id']
         res_ids = self.o_api.search_read("shift.registration", c, f)
         ids = [d['id'] for d in res_ids]
@@ -964,15 +989,16 @@ class CagetteMember(models.Model):
         if ids:
             res["delete_shifts_reg"]  = self.o_api.execute('shift.registration', 'unlink', ids)
 
-        # Close extensions
-        c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
-        f = ['id']
-        res_ids = self.o_api.search_read("shift.extension", c, f)
-        ids = [d['id'] for d in res_ids]
-        
-        if ids:
-            f = {'date_stop': now}
-            res["close_extensions"] = self.o_api.update('shift.extension', ids, f)
+        if changing_shift is False:
+            # Close extensions if just unsubscribing, else keep it
+            c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
+            f = ['id']
+            res_ids = self.o_api.search_read("shift.extension", c, f)
+            ids = [d['id'] for d in res_ids]
+            
+            if ids:
+                f = {'date_stop': now}
+                res["close_extensions"] = self.o_api.update('shift.extension', ids, f)
 
         return res
 
