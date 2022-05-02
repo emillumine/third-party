@@ -173,7 +173,7 @@ def do_shelf_inventory(request):
                     return JsonResponse(res, status=500)
 
                 # Proceed with inventory
-                res['inventory'] = CagetteInventory.update_stock_with_shelf_inventory_data(full_inventory_data)
+                res['inventory'] = CagetteInventory.update_products_stock(full_inventory_data)
                 full_inventory_data['inventory_id'] = res['inventory']['inv_id']
                 shelf_data['last_inventory_id'] = res['inventory']['inv_id']
 

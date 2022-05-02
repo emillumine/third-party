@@ -3,33 +3,6 @@ var makeups_members_table = null,
     members_search_results = [],
     selected_rows = []; // Contain members id
 
-function switch_active_tab() {
-    // Set tabs
-    $('.tab').removeClass('active');
-    $(this).addClass('active');
-
-    // Tabs content
-    $('.tab_content').hide();
-
-    let tab = $(this).attr('id');
-
-    if (tab == 'tab_makeups') {
-        $('#tab_makeups_content').show();
-    }
-
-    load_tab_data();
-}
-
-/**
- * Load data for the current tab
- */
-function load_tab_data() {
-    let current_tab = $('.tab .active').attr('id');
-
-    if (current_tab === 'tab_makeups' && makeups_members === null) {
-        load_makeups_members();
-    }
-}
 
 /**
  * Load partners who have makeups to do
@@ -94,6 +67,21 @@ function display_makeups_members() {
             {
                 data: "name",
                 title: "Nom"
+            },
+            {
+                data: "shift_type",
+                title: "Nb de points",
+                className: "dt-body-center",
+                width: "10%",
+                render: function (data, type, row) {
+                    if (data == 'ftop') {
+                        return row.display_ftop_points;
+                    } else if (data == 'standard') {
+                        return row.display_std_points;
+                    }
+
+                    return null;
+                }
             },
             {
                 data: "makeups_to_do",
@@ -238,16 +226,36 @@ function update_members_makeups(member_ids, action) {
     data = [];
     for (mid of member_ids) {
         member_index = makeups_members.findIndex(m => m.id == mid);
+        /* Becareful : makeups_members will be modified while nobody knows wether ajax process will succeed or not !
+        TODO : make the changes only when it is sure that odoo records have been changed
+        */
         if (action === "increment") {
             makeups_members[member_index].makeups_to_do += 1;
         } else {
             makeups_members[member_index].makeups_to_do -= 1;
         }
+        if (makeups_members[member_index].shift_type === 'standard') {
+            if (action === "increment") {
+                if (makeups_members[member_index].display_std_points >= -1)
+                    makeups_members[member_index].display_std_points -= 1;
+            } else if (makeups_members[member_index].display_std_points < 0) {
+                makeups_members[member_index].display_std_points += 1;
+            }
+        } else {
+            if (action === "increment") {
+                if (makeups_members[member_index].display_ftop_points >= -1)
+                    makeups_members[member_index].display_ftop_points -= 1;
+            } else {
+                makeups_members[member_index].display_ftop_points += 1;
+            }
+        }
 
         data.push({
             member_id: mid,
             target_makeups_nb: makeups_members[member_index].makeups_to_do,
-            member_shift_type: makeups_members[member_index].shift_type
+            member_shift_type: makeups_members[member_index].shift_type,
+            display_ftop_points: makeups_members[member_index].display_ftop_points,
+            display_std_points: makeups_members[member_index].display_std_points
         });
     }
 
@@ -282,6 +290,7 @@ function update_members_makeups(member_ids, action) {
 function display_possible_members() {
     $('.search_member_results_area').show();
     $('.search_member_results').empty();
+    $('.btn_possible_member').off();
 
     let no_result = true;
 
@@ -303,39 +312,42 @@ function display_possible_members() {
 
             $('.search_member_results').append(member_button);
 
-            // Set action on member button click
-            $('.btn_possible_member').on('click', function() {
-                for (member of members_search_results) {
-                    if (member.id == $(this).attr('member_id')) {
-                        if (makeups_members === null) {
-                            makeups_members = [];
-                        }
-
-                        makeups_members.unshift({
-                            id: member.id,
-                            name: member.name,
-                            makeups_to_do: 0,
-                            shift_type: member.shift_type
-                        });
-
-                        openModal(
-                            `Ajouter un rattrapage à ${member.name} ?`,
-                            () => {
-                                update_members_makeups([member.id], "increment");
-                                members_search_results = [];
-                                $('#search_member_input').val('');
-                                $('.search_member_results_area').hide();
-                                $('.search_member_results').empty();
-                            },
-                            "Confirmer",
-                            false
-                        );
-
-                        break;
-                    }
-                }
-            });
         }
+
+        // Set action on member button click
+        $('.btn_possible_member').on('click', function() {
+            for (member of members_search_results) {
+                if (member.id == $(this).attr('member_id')) {
+                    if (makeups_members === null) {
+                        makeups_members = [];
+                    }
+
+                    makeups_members.unshift({
+                        id: member.id,
+                        name: member.name,
+                        makeups_to_do: 0,
+                        shift_type: member.shift_type,
+                        display_std_points: member.display_std_points,
+                        display_ftop_points: member.display_ftop_points
+                    });
+
+                    openModal(
+                        `Ajouter un rattrapage à ${member.name} ?`,
+                        () => {
+                            update_members_makeups([member.id], "increment");
+                            members_search_results = [];
+                            $('#search_member_input').val('');
+                            $('.search_member_results_area').hide();
+                            $('.search_member_results').empty();
+                        },
+                        "Confirmer",
+                        false
+                    );
+
+                    break;
+                }
+            }
+        });
     }
 
     if (no_result === true) {
@@ -352,34 +364,33 @@ $(document).ready(function() {
 
         $(".page_content").show();
         load_makeups_members();
-
-        $(".tabs .tab").on('click', switch_active_tab);
     } else {
         $(".page_content").hide();
     }
+
+    $('#back_to_admin_index').on('click', function() {
+        let base_location = window.location.href.split("manage_makeups")[0].slice(0, -1);
+
+        window.location.assign(base_location);
+    });
 
     // Set action to search for the member
     $('#search_member_form').submit(function() {
         let search_str = $('#search_member_input').val();
 
         $.ajax({
-            url: '/members/search/' + search_str,
+            url: '/members/search/' + search_str +'?search_type=makeups_data',
             dataType : 'json',
             success: function(data) {
                 members_search_results = [];
-
-                for (member of data.res) {
-                    if (member.is_member || member.is_associated_people) {
-                        members_search_results.push(member);
-                    }
-                }
+                members_search_results = data.res;
 
                 display_possible_members();
             },
             error: function() {
                 err = {
                     msg: "erreur serveur lors de la recherche de membres",
-                    ctx: 'confirm_movement.search_members'
+                    ctx: 'members.admin.manage_makeups.search_members'
                 };
                 report_JS_error(err, 'stock');
 

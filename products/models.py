@@ -160,6 +160,7 @@ class CagetteProduct(models.Model):
 
             try:
                 res["update"] = api.update('product.supplierinfo', psi_id, f)
+                res["psi_id"] = psi_id
             except Exception as e:
                 res['error'] = str(e)
         else:
@@ -185,6 +186,7 @@ class CagetteProduct(models.Model):
 
             try:
                 res['create'] = api.create('product.supplierinfo', f)
+                res['psi_id'] = res['create'] # consistency between update & create res
             except Exception as e:
                 res['error'] = str(e)
 
@@ -254,13 +256,24 @@ class CagetteProduct(models.Model):
         return res
 
     @staticmethod
-    def update_npa_and_minimal_stock(data):
-        """Update NPA (ne pas acheter) and minimal stock data"""
+    def commit_actions_on_product(data):
+        """ Update: 
+            - NPA (ne pas acheter) 
+            - Product is active
+            - Minimal stock
+            - price /supplier
+        """
         res = {}
         try:
             api = OdooAPI()
-            f = {'minimal_stock': data['minimal_stock']}
 
+            # Minimal & Actual stock, Active
+            f = {
+                'minimal_stock': float(data['minimal_stock']),
+                'active': not data['to_archive']
+            }
+
+            # NPA
             if 'simple-npa' in data['npa']:
                 f['purchase_ok'] = 0
             if 'npa-in-name' in data['npa']:
@@ -279,10 +292,20 @@ class CagetteProduct(models.Model):
                 f['name'] = re.sub(r'( \[FDS\])', '', current_name)
             if len(data['npa']) == 0:
                 f['purchase_ok'] = 1
-            res["update"] = api.update('product.template', data['id'], f)
+
+            res["update"] = api.update('product.template', int(data['id']), f)
+
+            # Update suppliers info
+            res["update_supplierinfo"] = []
+            for supplierinfo in data["suppliersinfo"]:
+                f= {'price': supplierinfo["price"]}
+                res_update_si = api.update('product.supplierinfo', int(supplierinfo['supplierinfo_id']), f)
+
+                res["update_supplierinfo"].append(res_update_si)
+
         except Exception as e:
             res["error"] = str(e)
-            coop_logger.error("update_npa_and_minimal_stock : %s %s", str(e), str(data))
+            coop_logger.error("commit_actions_on_product : %s %s", str(e), str(data))
         return res
 class CagetteProducts(models.Model):
     """Initially used to make massive barcode update."""
@@ -582,7 +605,7 @@ class CagetteProducts(models.Model):
 
             if supplier_ids is not None and len(supplier_ids) > 0:
                 # Get products/supplier relation
-                f = ["product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name', 'product_code']
+                f = ["id", "product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name', 'product_code']
                 c = [['name', 'in', [ int(x) for x in supplier_ids]]]
                 psi = api.search_read('product.supplierinfo', c, f)
 
@@ -612,7 +635,7 @@ class CagetteProducts(models.Model):
                 "product_variant_ids",
                 "minimal_stock"
             ]
-            c = [['id', 'in', ptids], ['purchase_ok', '=', True]]
+            c = [['id', 'in', ptids], ['purchase_ok', '=', True], ['active', '=', True]]
             products_t = api.search_read('product.template', c, f)
             filtered_products_t = [p for p in products_t if p["state"] != "end" and p["state"] != "obsolete"]
 
@@ -640,6 +663,7 @@ class CagetteProducts(models.Model):
                     for psi_item in valid_psi: 
                         if psi_item["product_tmpl_id"] is not False and psi_item ["product_tmpl_id"][0] == fp["id"]:
                             filtered_products_t[i]['suppliersinfo'].append({
+                                'id': int(psi_item["id"]),
                                 'supplier_id': int(psi_item["name"][0]),
                                 'package_qty': psi_item["package_qty"],
                                 'price': psi_item["price"],

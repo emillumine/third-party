@@ -28,6 +28,8 @@ def index(request, exception=None):
 
     context = {
         'title': 'Espace Membre',
+        'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None),
+        'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True)
     }
 
     template = loader.get_template('members_space/index.html')
@@ -95,8 +97,16 @@ def index(request, exception=None):
             if partnerData["parent_id"] is not False:
                 partnerData["parent_name"] = partnerData["parent_id"][1]
                 partnerData["parent_id"] = partnerData["parent_id"][0]
+                md5_calc = hashlib.md5(partnerData['parent_create_date'].encode('utf-8')).hexdigest()
+                partnerData['parent_verif_token'] = md5_calc
+                partnerData['makeups_to_do'] = partnerData['parent_makeups_to_do']
+                partnerData['date_delay_stop'] = partnerData['parent_date_delay_stop']
+                partnerData['can_have_delay'] = cs.member_can_have_delay(int(partnerData["parent_id"]))
+                partnerData['extra_shift_done'] = partnerData["parent_extra_shift_done"]
+
             else:
                 partnerData["parent_name"] = False
+                partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
 
             # look for associated partner for parents
             cm = CagetteMember(partner_id)
@@ -108,9 +118,8 @@ def index(request, exception=None):
             if (associated_partner is not None and partnerData["associated_partner_name"].find(str(associated_partner["barcode_base"])) == -1):
                 partnerData["associated_partner_name"] = str(associated_partner["barcode_base"]) + ' - ' + partnerData["associated_partner_name"]
 
-            partnerData['can_have_delay'] = cs.member_can_have_delay(int(partner_id))
-
             m = CagetteMembersSpace()
+            context['show_faq'] = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
             partnerData["comite"] = m.is_comite(partner_id)
 
             context['partnerData'] = partnerData
@@ -177,6 +186,7 @@ def my_info(request):
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
+        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True)
     }
     return HttpResponse(template.render(context, request))
 
@@ -197,14 +207,16 @@ def shifts_exchange(request):
     return HttpResponse(template.render(context, request))
 
 def faqBDM(request):
-    template = loader.get_template('members_space/faq.html')
-    context = {
-        'title': 'foire aux questions',
-    }
+    template_path = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
+    content = ''
+    if template_path:
+        template = loader.get_template(template_path)
+        context = {
+            'title': 'foire aux questions',
+        }
+        content = template.render(context, request)
 
-    msettings = MConfig.get_settings('members')
-    
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(content)
 
 def no_content(request):
     """ Endpoint the front-end will call to load the "No content" page. """
@@ -224,5 +236,14 @@ def get_shifts_history(request):
     offset = int(request.GET.get('offset'))
     date_from = getattr(settings, 'START_DATE_FOR_SHIFTS_HISTORY', '2018-01-01')
     res["data"] = m.get_shifts_history(partner_id, limit, offset, date_from)
+
+    return JsonResponse(res)
+
+def offer_extra_shift(request):
+    res = {}
+    partner_id = int(request.POST['partner_id'])
+
+    m = CagetteMember(partner_id)
+    res = m.update_extra_shift_done(0)
 
     return JsonResponse(res)

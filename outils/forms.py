@@ -9,7 +9,7 @@ class OdooEntityFieldsForm(forms.Form):
 class ExportComptaForm(forms.Form):
     mois = forms.DateField(
         required=True,
-        widget=MonthYearWidget()
+        widget=MonthYearWidget(years=range(datetime.date.today().year-2,datetime.date.today().year+1))
     )
     #fichier = forms.FileField()
     # CHOICES = [('zip', '1 fichier par journal'),('compact', '1 seul fichier')]

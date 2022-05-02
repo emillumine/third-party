@@ -31,12 +31,14 @@ var search_field = $('input[name="search_string"]');
 var shift_title = $('#current_shift_title');
 var shift_members = $('#current_shift_members');
 var service_validation = $('#service_validation');
+var associated_service_validation = $('#associated_service_validation');
 var validation_last_call = 0;
 var rattrapage_wanted = $('[data-next="rattrapage_1"]');
 var webcam_is_attached = false;
 var photo_advice = $('#photo_advice');
 var photo_studio = $('#photo_studio');
 var coop_info = $('.coop-info');
+var service_data = null;
 
 const missed_begin_msg = $('#missed_begin_msg').html();
 
@@ -93,8 +95,9 @@ function fill_member_slide(member) {
     html_elts.image_medium.html('<img src="'+img_src+'" width="128" />');
     html_elts.cooperative_state.html(member.cooperative_state);
     if (member.cooperative_state == 'Rattrapage') {
-      var explanation = "Tu as dû manquer un service! Pour pouvoir faire tes courses aujourd'hui, tu dois d'abord sélectionner un rattrapage sur ton espace membre."
-      html_elts.status_explanation.html(explanation)
+        var explanation = "Tu as dû manquer un service! Pour pouvoir faire tes courses aujourd'hui, tu dois d'abord sélectionner un rattrapage sur ton espace membre.";
+
+        html_elts.status_explanation.html(explanation);
     }
     if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red');
     else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé' || member.cooperative_state == 'Rattrapage') coop_info.addClass('b_orange');
@@ -146,9 +149,17 @@ function preview_results() {
 
     for (i in results) {
 
-        if (results[i].is_member != false || results[i].is_associated_people != false) {
-            var m = $('<button>').attr('data-i', i)
-                .text(results[i].name);
+        if (results[i].is_member != false) {
+            var m = $('<button class="button_is_member">').attr('data-i', i)
+                .text(results[i].barcode_base + ' - ' + results[i].name);
+
+            html_elts.multi_results.append(m);
+        }
+        if (results[i].is_associated_people != false) {
+            m = $('<button class="button_is_associated_people"></button_is_member>').attr('data-i', i)
+                .text('B ' + results[i].barcode_base + ' - ' + results[i].name);
+
+
 
             html_elts.multi_results.append(m);
         }
@@ -255,7 +266,7 @@ function get_simple_service_name(s) {
 }
 
 function move_service_validation_to(page) {
-    service_validation.find('.btn').data('stid', '0');
+    service_data.stid=0;
     page.find('.validation_wrapper')
         .append(service_validation.detach());
 }
@@ -275,8 +286,18 @@ function fill_service_entry(s) {
             var li_class = "btn";
             var li_data = "";
 
-            if (e.state == "done") {
+            if (e.state == "done" && coop_is_connected()) {
+                li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
                 li_class += "--inverse";
+                if (e.is_late == true) {
+                    li_class += " late";
+                }
+                if (e.associate_registered=='both') {
+                    li_class += " both";
+                }
+            } else if (e.state == "done" && !coop_is_connected()) {
+                li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
+                li_class += "--inverse not_connected";
                 if (e.is_late == true) {
                     li_class += " late";
                 }
@@ -312,13 +333,29 @@ function clean_service_entry() {
 function fill_service_validation(rid, coop_num_name, coop_id) {
     var coop_name_elts = coop_num_name.split(' - ');
 
+    for (member of loaded_services[0].members) {
+        if (member.id ==rid) {
+            if (member.associate_name) {
+                pages.service_entry_validation.find('#service_validation').hide();
+                pages.service_entry_validation.find('#associated_service_validation').show();
+                pages.service_entry_validation.find('#associated_btn').text(member.associate_name);
+                pages.service_entry_validation.find('#partner_btn').text(member.partner_name);
+
+            } else {
+                pages.service_entry_validation.find('#associated_service_validation').hide();
+                pages.service_entry_validation.find('#service_validation').show();
+
+            }
+        }
+    }
+    service_data={
+        rid: rid,
+        sid: selected_service.id,
+        mid: coop_id};
+
+
     pages.service_entry_validation.find('span.member_name').text(coop_name_elts[1]);
     move_service_validation_to(pages.service_entry_validation);
-    service_validation.find('.btn')
-        .data('rid', rid)
-        .data('sid', selected_service.id)
-        .data('mid', coop_id);
-
 }
 
 function select_possible_service() {
@@ -363,7 +400,6 @@ function get_service_entry_data() {
         dataType : 'json'
     })
         .done(function(rData) {
-        //console.log(rData);
             info_place.text('');
             var page_title = pages.service_entry.find('h1');
 
@@ -388,6 +424,7 @@ function get_service_entry_data() {
                         page_title.text('Quel est ton service ?');
 
                     } else {
+                        loaded_services = rData.res;
                         fill_service_entry(rData.res[0]);
                     }
                 }
@@ -434,22 +471,21 @@ function fill_service_entry_sucess(member) {
 
 }
 
-function record_service_presence() {
+function record_service_presence(e) {
     var d = new Date();
     var elapsed_since_last_call = d.getTime() - validation_last_call;
 
-    if (elapsed_since_last_call > 10000) {
+    if (elapsed_since_last_call > 1000) {
         loading2.show();
         validation_last_call = d.getTime();
-        var clicked = service_validation.find('.btn');
-        var rid = clicked.data('rid');
-        var mid = clicked.data('mid');
-        var sid = clicked.data('sid');
-        var stid = clicked.data('stid');
+        var rid = service_data.rid;
+        var mid = service_data.mid;
+        var sid = service_data.sid;
+        var stid = service_data.stid;
 
         post_form(
             '/members/service_presence/',
-            {'mid': mid, 'rid': rid, 'sid': sid, 'stid' : stid},
+            {'mid': mid, 'rid': rid, 'sid': sid, 'stid' : stid, 'cancel': false, 'type': e.data.type},
             function(err, rData) {
                 if (!err) {
                     var res = rData.res;
@@ -471,6 +507,28 @@ function record_service_presence() {
     }
 }
 
+function cancel_service_presence(mid, rid) {
+    var d = new Date();
+    var elapsed_since_last_call = d.getTime() - validation_last_call;
+
+    if (elapsed_since_last_call > 1000) {
+        loading2.show();
+        validation_last_call = d.getTime();
+        var sid = selected_service.id;
+
+        post_form(
+            '/members/service_presence/',
+            {'mid': mid, 'rid': rid, 'sid': sid, 'stid' : 0, 'cancel': true},
+            function(err) {
+                if (!err) {
+                    get_service_entry_data();
+                }
+                loading2.hide();
+            }
+        );
+    }
+}
+
 function fill_rattrapage_2() {
     pages.rattrapage_2.find('span.member_name').text(current_displayed_member.name);
     var msg = "Bienvenue pour ton rattrapage !";
@@ -485,13 +543,11 @@ function fill_rattrapage_2() {
         msg = "Tu es en désincrit.e ... La situation doit être réglée avez le Bureau des Membres";
     } else {
         move_service_validation_to(pages.rattrapage_2);
-
-
-        service_validation.find('.btn')
-            .data('rid', 0)
-            .data('sid', selected_service.id)
-            .data('stid', shift_ticket_id)
-            .data('mid', current_displayed_member.id);
+        service_data = {
+            rid : 0,
+            sid : selected_service.id,
+            stid : shift_ticket_id,
+            mid : current_displayed_member.id};
     }
     pages.rattrapage_2.find('h2').text(msg);
 
@@ -632,7 +688,10 @@ $('.btn[data-next]').click(function() {
 
 });
 
-service_validation.on("click", ".btn", record_service_presence);
+service_validation.on("click", ".btn", {type:'normal'}, record_service_presence);
+associated_service_validation.on("click", "#associated_btn", {type:'associate'}, record_service_presence);
+associated_service_validation.on("click", "#partner_btn", {type:'partner'}, record_service_presence);
+associated_service_validation.on("click", "#both_btn", {type:'both'}, record_service_presence);
 
 shift_members.on("click", '.btn[data-rid]', function() {
     var clicked = $(this);
@@ -642,6 +701,16 @@ shift_members.on("click", '.btn[data-rid]', function() {
     goto_page(pages.service_entry_validation);
     fill_service_validation(rid, clicked.text(), mid);
 
+});
+
+shift_members.on("click", '.btn--inverse', function() {
+    if (coop_is_connected()) {
+        var clicked = $(this);
+        var rid = clicked.data('rid');
+        var mid = clicked.data('mid');
+
+        cancel_service_presence(mid, rid);
+    }
 });
 
 pages.shopping_entry.on('css', function() {

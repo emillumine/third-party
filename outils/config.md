@@ -28,6 +28,9 @@
 
 - COMPANY_NAME = 'Les Grains de Sel'
 
+- COMPANY_LOGO = 'https://domaine.name/img/logo.png'
+
+
 - ADMIN_IDS = [13]
 
         Used to show hidden things. for example, input barcode in shelf adding product (Odoo user id array)
@@ -65,6 +68,8 @@
 - SUBSCRIPTION_NAME_SEP = ', '
 
 - COOP_BARCODE_RULE_ID = 11
+
+- ASSOCIATE_BARCODE_RULE_ID = 12
 
 - FUNDRAISING_CAT_ID = 1
 
@@ -125,6 +130,13 @@
 - USE_STANDARD_SHIFT = True (by default)
 
         La Cagette use False to implement custom rules
+
+- ASSOCIATE_MEMBER_SHIFT = ''
+
+        Id number of the associate shift template
+
+- PREPA_ODOO_URL = ''
+        URL of the "prepa_odoo" page
 
 ### Scales and labels files generation
 
@@ -311,6 +323,16 @@
 
         Message shown to people when they connect to the Member Space
 
+- MEMBERS_SPACE_FAQ_TEMPLATE = None
+
+        If set to None, "FAQ menu" will not be shown. To use a custom content add a template and set it's relative path
+- MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS = False
+
+        By default, is True. If False, tile showing explanations is not shown
+
+- BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE = False
+        Attached people can or not change his services
+
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True
@@ -366,6 +388,12 @@
 - AMNISTIE_DATE = "2021-11-24 00:00:00"
         In members_space history display a special activity about amnistie
 
+
+### BDM Admin
+
+- BDM_SHOW_FTOP_BUTTON = True (by default)
+
+        If True, in BDM Admin manage shift template, on the calendar when subscribing a partner to a shift, "Volant" button is included
 
 ### Miscellious
 

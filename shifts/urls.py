@@ -13,7 +13,9 @@ urlpatterns = [
     url(r'^get_test', views.get_test),
 #    url(r'^get_list', views.get_list),
     url(r'^change_shift', views.change_shift),
+    url(r'^affect_shift', views.affect_shift),
     url(r'^add_shift', views.add_shift),
+    url(r'^cancel_shift', views.cancel_shift),
     url(r'^request_delay', views.request_delay),
     url(r'^reset_members_positive_points', views.reset_members_positive_points)
 ]

@@ -5,12 +5,14 @@
 <link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
 <link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/oders_helper_style.css' %}">
+<link rel="stylesheet" href="{% static 'quill/quill.snow.css' %}">
 {% endblock %}
 
 {% block additionnal_scripts %}
 <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v="></script>
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
+<script type="text/javascript" src="{% static 'quill/quill.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -33,6 +35,13 @@
             <h2>Ou, continuer une commande en cours de création</h2>
             <div id="existing_orders"></div>
         </div>
+        <div id="common_info_area" style="display:none;">
+            <h2>Informations</h2>
+            <div id="common_info_editor_container"> 
+                <div id="common_info_editor"></div>
+            </div>
+            <button class="btn--primary" id="save_common_info">Sauvegarder</button>
+        </div>
     </div>
 
     <div id="main_content" class="page_content" style="display:none;">
@@ -41,7 +50,6 @@
                 <i class="fas fa-arrow-left"></i>&nbsp; Retour
             </button>
             <div class="right_action_buttons">
-                
                 <div id="actions_buttons_wrapper">
                     <button type="button" class='btn--primary' id="toggle_action_buttons">
                         <span class="button_content">
@@ -95,10 +103,11 @@
             <form action="javascript:;" id="coverage_form" class="order_form_item">
                 <div class="input-wrapper">
                     <input type="number" name="coverage_days" id="coverage_days_input" placeholder="Nb jours de couverture" min="1">
+                    <input type="number" name="targeted_amount" id="targeted_amount_input" placeholder="Montant en €" min="1">
                     <input type="number" name="percent_adjustement" id="percent_adjust_input" placeholder="ajustement en %">
                 </div>
                 <div>
-                    <button  type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg'></i>
+                    <button  type="submit" class='btn--primary'>Calculer les besoins</button> <i class='main fa fa-info-circle fa-lg average_consumption_explanation_icon'></i>
                 </div>
             </form>
         </div>
@@ -213,7 +222,7 @@
             <p class="remove_order_modal_text">
                 Vous vous apprêtez à <b style="color: #d9534f;">supprimer</b> cette commande en cours : <span class="remove_order_name"></span>.<br/>
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
     
@@ -224,7 +233,7 @@
                 Les produits associés uniquement à ce fournisseur seront supprimés du tableau.<br/>
                 Les données renseignées dans la colonne de ce fournisseur seront perdues.
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
     
@@ -250,7 +259,7 @@
             <p> 
                 L'association sera sauvegardée dès que vous aurez cliqué sur "Valider".<br/>
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
 
@@ -263,7 +272,7 @@
             <p> 
                 L'association sera supprimée dès que vous aurez cliqué sur "Valider".<br/>
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
         </div>
     
@@ -271,25 +280,58 @@
             <p> 
                 Vous vous apprêtez à créer un inventaire de <span class="inventory_products_count"></span> produits.
             </p>
-            <p>Êtez-vous sûr ?</p>
+            <p>Êtez-vous sûr.e ?</p>
             <hr/>
+        </div>
+
+        <div id="product_price_action_template">
+            <div class="product_price_action">
+                <span class="supplier_name"></span>
+                <input type="number" class="product_supplier_price" name="" value="" />
+            </div>
         </div>
 
         <div id="modal_product_actions">
             Actions sur <h3><span class="product_name"></span></h3>
-            <p>
-                <h4>NPA</h4>
-                <div class="npa-options">
-                    <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
-                    <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
-                    <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+            <div class="product_actions_container">
+                <div class="product_actions_section">
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">NPA</h4>
+                        <div class="npa-options">
+                            <label><input type="checkbox" name="npa-actions" value="simple-npa" /> Mettre le produit en NPA </label>
+                            <label><input type="checkbox" name="npa-actions" value="npa-in-name" /> Mettre le produit en NPA et afficher NPA</label>
+                            <label><input type="checkbox" name="npa-actions" value="fds-in-name" /> Mettre le produit en NPA et afficher FDS</label>
+                        </div>
+                    </div>
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">Archiver le produit</h4>
+                        <label class="checkbox_action_disabled"><input type="checkbox" name="archive-action" value="archive" disabled /> Archiver </label>
+                        <div class="tooltip">
+                            <i class='main fa fa-info-circle'></i>
+                            <span class="tooltiptext tooltip-xl tt_twolines">
+                                Un produit ne peut pas être archivé si une quantité entrante est prévue.
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </p>
-            <p>
-                <h4>Stock minimum</h4>
-                <input type="number" name="minimal_stock" value="" />
-            </p>
-
+                <div class="product_actions_section">
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">Stock minimum</h4>
+                        <input type="number" name="minimal_stock" value="" />
+                    </div>
+                    <div class="product_actions_column">
+                        <h4 class="modal_product_actions_title">Stock réel</h4>
+                        <input type="number" name="actual_stock" value="" />
+                    </div>
+                </div>
+                <div class="product_actions_section">
+                    <div class="product_actions_full_column">
+                        <h4 class="modal_product_actions_title product_prices_title">Prix</h4>
+                        <i class="product_prices_title_label">(par fournisseur dans cette commande)</i>
+                        <div class="product_prices_area"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="modal_create_order">

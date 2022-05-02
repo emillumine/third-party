@@ -1,3 +1,9 @@
+/* Comments : */
+/* - Screens */
+/* -- Sections */
+
+/* - Common */
+
 .page_body{
     position: relative;
 }
@@ -8,8 +14,6 @@
     left: 0;
     right: 0;
 }
-
-/* - Common */
 
 .pill {
     border-radius: 30px;
@@ -52,7 +56,8 @@
 }
 
 /* - Order selection screen */
-#new_order_area {
+#new_order_area,
+#existing_orders_area {
     margin-bottom: 40px;
 }
 
@@ -163,6 +168,11 @@
     border-bottom: 1px solid #004aa6;
 }
 
+#common_info_editor_container {
+    width: 50%;
+    margin:  15px auto;
+}
+
 /* -- Order data */
 #order_data_container {
     font-size: 1.8rem;
@@ -173,7 +183,7 @@
 }
 
 #order_forms_container {
-    margin-top: 20px;
+    margin: 25px 0;
     display: flex;  
     flex-wrap: wrap;
     justify-content: space-evenly;
@@ -193,12 +203,12 @@
     min-width: 200px;
 }
 
-#date_planned_input, #coverage_days_input, #stats_date_period_select {
+#date_planned_input, #coverage_days_input, #targeted_amount_input, #percent_adjust_input, #stats_date_period_select {
     border-radius: 3px;
 }
 
 #coverage_form > div {
-    display:inline-block;
+    display:block;
     float:left;
 }
 
@@ -206,11 +216,11 @@
     margin-right: 3px;
 }
 
-#coverage_days_input, #percent_adjust_input {
+#coverage_days_input, #targeted_amount_input, #percent_adjust_input {
     display:  block;
 }
 
-#coverage_days_input {
+#coverage_days_input, #targeted_amount_input {
     margin-bottom: 3px;
 }
 
@@ -260,7 +270,8 @@
     padding: .5rem .5rem;
 }
 
-.supplier_package_qty {
+.supplier_package_qty,
+.supplier_price {
     font-style: italic;
     font-size: 1.3rem;
 }
@@ -317,16 +328,18 @@
     justify-content: center;
     align-items: center;
     flex-wrap: wrap; 
-    margin: 30px 0 20px 0;
+    margin: 15px 0;
     position: -webkit-sticky;
     position: sticky;
     top: 140px;
     z-index: 5;
+    pointer-events: none;
 }
 
 .supplier_pill {
-    background-color: #a0daff;
-    border: 1px solid #6ea8cc;
+    background-color: #ffebcd;
+    border: 2px solid black;
+    pointer-events: auto;
 }
 
 .pill_supplier_name {
@@ -367,7 +380,7 @@
     width: 90%;
 }
 
-/* product actions modal*/
+/* -- Product actions modal*/
 .npa-options {
     width: fit-content;
     text-align: left;
@@ -376,6 +389,59 @@
 .npa-options label {
     display:  block;
 }
+
+.product_actions_container {
+    display: flex;
+    flex-direction: column;
+}
+
+.product_actions_section {
+    width: 100%;
+    display: flex;
+    margin: 1em 0;
+}
+
+.product_actions_column {
+    width: 50%;
+}
+.product_actions_full_column {
+    width: 100%;
+}
+
+.product_actions_column .tooltip {
+    margin-left: 5px;
+}
+
+.product_prices_title {
+    margin-bottom: 0 !important;
+}
+
+.product_prices_area {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.product_price_action {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal_product_actions_title {
+    font-weight: bold;
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.checkbox_action_disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+
+
 /* - Orders created screen */
 
 .order_created_header {

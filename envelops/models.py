@@ -43,13 +43,32 @@ class CagetteEnvelops(models.Model):
 
         try:
             # Get invoice
-            cond = [['partner_id', '=', data['partner_id']]]
+
+            # Get specific invoice if id is given
+            if 'invoice_id' in data:
+                cond = [['id', '=', data['invoice_id']], ["number", "!=", False]]
+            else:
+                cond = [['partner_id', '=', data['partner_id']], ["number", "!=", False]]
+
             fields = ['id', 'name', 'number', 'partner_id', 'residual_signed']
             invoice_res = self.o_api.search_read('account.invoice', cond, fields)
 
             # Check if invoice exists
             if len(invoice_res) > 0:
-                invoice = invoice_res[0]
+                invoice = None
+                # Get first invoice for which amount being paid <= amount left to pay in invoice 
+                for invoice_item in invoice_res:
+                    if int(float(data['amount']) * 100) <= int(float(invoice_item['residual_signed']) * 100):
+                        invoice = invoice_item
+
+                if invoice is None:
+                    res['error'] = 'The amount is too high for the invoices found for this partner.'
+                    try:
+                        # Got an error while logging...
+                        coop_logger.error(res['error'] + ' : %s', str(data))
+                    except Exception as e:
+                        print(str(e))
+                    return res
             else:
                 res['error'] = 'No invoice found for this partner, can\'t create payment.'
                 coop_logger.error(res['error'] + ' : %s', str(data))
@@ -79,6 +98,7 @@ class CagetteEnvelops(models.Model):
             except Exception as e:
                 res['error'] = repr(e)
                 coop_logger.error(res['error'] + ' : %s', str(args))
+
             # Exception rises when odoo method returns nothing
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'
             try:
@@ -102,7 +122,6 @@ class CagetteEnvelops(models.Model):
             coop_logger.error(res['error'] + ' : %s', str(data))
 
         if not ('error' in res):
-
             res['done'] = True
             res['payment_id'] = payment_id
 
@@ -110,6 +129,11 @@ class CagetteEnvelops(models.Model):
 
     def delete_envelop(self, envelop):
         return self.c_db.delete(envelop)
+
+    def archive_envelop(self, envelop):
+        envelop['archive'] = True
+        envelop['cashing_date'] = datetime.date.today().strftime("%d/%m/%Y")
+        return self.c_db.dbc.update([envelop])
 
     def generate_envelop_display_id(self):
         """Generate a unique incremental id to display"""
@@ -172,7 +196,7 @@ class CagetteEnvelops(models.Model):
         else:
             # Get the oldest check envelops, limited by the number of checks
             docs = []
-            for item in c_db.dbc.view('index/by_type', key='ch', include_docs=True, limit=payment_data['checks_nb']):
+            for item in c_db.dbc.view('index/by_type_not_archive', key='ch', include_docs=True, limit=payment_data['checks_nb']):
                 docs.append(item.doc)
 
             # If only 1 check to save

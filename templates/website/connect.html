@@ -3,6 +3,10 @@
 {% block content %}
 {% if with_shop_header %}
     {% include "shop/connect_header.html" %}
+{% elif COMPANY_LOGO %}
+    <div style="width:100%; text-align: center">
+      <img src="{{COMPANY_LOGO}}" alt="{{COMPANY_NAME}}" width=250 />
+    </div>
 {% endif %}
 <div id="connect_form_template" style="text-align:center;">
         <form method="POST">

@@ -35,14 +35,15 @@ function get_shift_name(s_data) {
 
     if (s_data && s_data.week) {
         shift_name = weeks_name[s_data.week];
-        if (s_data.type == 2 && typeof manage_ftop != "undefined" && manage_ftop == true) {
+        if (s_data.type == 2 && typeof manage_ftop != "undefined" && manage_ftop == true && s_data.id != ASSOCIATE_MEMBER_SHIFT) {
             shift_name = 'Volant';
+        } else if(s_data.id == ASSOCIATE_MEMBER_SHIFT) {
+            shift_name = 'Binôme';
         } else {
             shift_name += s_data.day + ' - ' + s_data.begin;
             shift_name += ' - ' + s_data.place;
         }
     }
-
     return shift_name;
 }
 
@@ -52,8 +53,13 @@ function subscribe_shift(shift_t_id) {
     var s_data = shift_templates[shift_t_id].data;
     var shift_name = get_shift_name(s_data);
 
+    if (committees_shift_id !== undefined && committees_shift_id !== "None" && shift_name === "Volant") {
+        shift_name = 'des Comités'
+    }
+    let msg = 'On inscrit le membre au créneau ' + shift_name
+
     openModal(
-        'On inscrit le membre au créneau ' + shift_name,
+        msg,
         function() {
             closeModal();
             current_coop.shift_template = shift_templates[shift_t_id];
@@ -98,8 +104,8 @@ function single_shift_click() {
     }
 }
 
-function select_shift_among_compact() {
-    var clicked = $(this);
+function select_shift_among_compact(event, clicked_item = null, subscribe = true) {
+    var clicked = clicked_item === null ? $(this) : $(clicked_item);
     var day = clicked.closest('td').attr('class');
     var hour = clicked.closest('tr').data('begin');
     var selected = null;
@@ -128,9 +134,11 @@ function select_shift_among_compact() {
             }
         }
     });
-    //console.log(worst_score)
-    if (selected)
+
+    if (selected && subscribe === true)
         subscribe_shift(selected);
+
+    return selected
 }
 
 
@@ -324,7 +332,14 @@ function retrieve_and_draw_shift_tempates() {
             $.each(shift_templates, function(i, e) {
 
                 if (e.data.type == 2 && volant == null) {
-                    volant = e.data.id;
+                    // has comitee shift
+                    if (committees_shift_id !== undefined && committees_shift_id !== "None") {
+                        if (e.data.id == parseInt(committees_shift_id)) {
+                            volant = e.data.id
+                        }
+                    } else {
+                        volant = e.data.id;
+                    }
                 }
             });
 

@@ -52,7 +52,6 @@
 #shifts_list {
     flex-direction: column;
     display: none;
-    width: min-content;
     max-width: 100%;
     white-space: nowrap;
 }
@@ -65,11 +64,38 @@
     }
 }
 
+.shift_line_container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.shift_line_extra_actions {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+}
+
+@media screen and (max-width:768px) {
+    .shift_line_container {
+        flex-direction: column;
+    }
+
+    .shift_line_extra_actions {
+        width: 100%;
+    }
+    
+    .affect_associate_registered {
+        margin: 0.5rem 0;
+    }
+}
+
+
 .selectable_shift_line {
+    min-width: 325px;
     display: flex;
     align-items: center;
-    margin-left: 15px;
-    margin: 0.75rem 0;
     border-radius: 5px;
 }
 
@@ -79,6 +105,35 @@
 
 .selectable_shift_line.btn {
     cursor: not-allowed;
+}
+
+.affect_associate_registered {
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+}
+
+@media screen and (min-width:768px) {
+    .selectable_shift_line {
+        margin: 0 15px;
+    }
+
+    .affect_associate_registered {
+        margin-left: 15px;
+    }
+}
+
+.selectable_shift{
+    margin: 1rem 0;
+}
+
+.delete_registration_button {
+    justify-content: center;
+    align-items: center;
+    margin: 0.75rem 15px;
+    color: #d9534f;
+    cursor: pointer;
+    display: none;
 }
 
 /* -- Calendar screen, makeups message */
@@ -101,6 +156,21 @@
     .select_makeups_message_block {
         display: block;
     }
+}
+
+/* -- Calendar screen, can delete registrations message */
+
+#can_delete_future_registrations_area {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    margin: 0 1rem 1rem 1rem;
+}
+
+#can_delete_future_registrations_area button {
+    white-space: normal;
+    word-break: normal;
+    margin: 1rem;
 }
 
 /* -- Calendar screen, calendar */
@@ -144,6 +214,19 @@ td{
 }
 
 .fc-list-event.shift_booked {
+    color: white;
+}
+
+.fc-event.shift_booked_makeup {
+    background-color: #f0ad4e;
+    cursor: auto;
+    border-color: #f0ad4e;
+}
+.fc-event.shift_booked_makeup td {
+    --fc-list-event-hover-bg-color:#f0ad4e;
+}
+
+.fc-list-event.shift_booked_makeup {
     color: white;
 }
 
@@ -194,4 +277,14 @@ td{
 #calendar_explaination_button {
     max-width: 60%;
     margin: 2rem auto 0.5rem auto;
+}
+
+/* -- Assign shift modal */
+
+.modal_affect_shift_buttons {
+    margin: 1rem 0;
+}
+
+.assign_shift_button {
+    margin: 0.25rem;
 }

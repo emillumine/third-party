@@ -166,6 +166,11 @@ body {
     font-size: 1.5rem;
 }
 
+.remove_future_registration {
+    display: none;
+    white-space: normal;
+}
+
 .unsuscribed_form_link {
     display: none;
     text-decoration: none;
@@ -334,4 +339,14 @@ body {
 
 .no_content_title {
     margin-bottom: 1.5rem;
+}
+
+/* - block_actions_for_attached_people is true or false */
+
+.attached-blocked {
+    display: none;
+}
+
+.attached-unblocked {
+    display: none;
 }

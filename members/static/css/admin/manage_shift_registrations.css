@@ -1,0 +1,79 @@
+.header {
+    margin: 1rem 0;
+}
+
+.login_area {
+    position: absolute;
+    display: block;
+    top: 5px;
+    right: 5px;
+}
+
+#back_to_admin_index {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+#table_top_area {
+    display: none;
+    width: 90%;
+    margin: 35px auto 0 auto;
+    text-align: center;
+}
+
+.table_area {
+    margin: 0 auto;
+    width: 90%;
+    display: flex;
+    justify-content: center;
+}
+
+.delete_shift_registration {
+    color: #d9534f;
+    cursor: pointer;
+}
+
+#member_shifts_table_filter {
+    padding-top: 0.755em;
+}
+
+/* Search members area */
+.makeup_row {
+    background-color: #ffc854 !important;
+}
+
+#search_member_area {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#search_member_form_area {
+    display:flex;
+    align-items: center;
+}
+
+#search_member_form {
+    margin-left: 10px;
+}
+
+.search_member_results_area {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.search_results_text {
+    min-width: 150px;
+}
+
+.search_member_results {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.btn_possible_member {
+    margin: 0.5rem 1rem;
+}

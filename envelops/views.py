@@ -21,13 +21,13 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 def archive_envelop(request):
-    """Save members payment and destroy the envelop"""
+    """Save members payment and archive the envelop"""
     m = CagetteEnvelops()
     res_payments = []
     res_envelop = ""
 
     envelop = json.loads(request.body.decode())
-
+    
     # save each partner payment
     for partner_id in envelop['envelop_content']:
         # If payment_id in payment details: payment already saved. Skip saving.
@@ -39,6 +39,9 @@ def archive_envelop(request):
                     'amount' : envelop['envelop_content'][partner_id]['amount'],
                     'type' : envelop['type']
                 }
+
+                if 'invoice_id' in envelop['envelop_content'][partner_id]:
+                    data['invoice_id'] = int(envelop['envelop_content'][partner_id]['invoice_id'])
 
                 res = m.save_payment(data)
             except Exception as e:
@@ -52,7 +55,7 @@ def archive_envelop(request):
                 # Immediately save a token than this payment has been saved
                 #   If an error occurs, this payment won't be saved again
                 envelop['envelop_content'][partner_id]['payment_id'] = res['payment_id']
-                updated_envelop = m.c_db.updateDoc(envelop);
+                updated_envelop = m.c_db.updateDoc(envelop)
                 envelop['_rev'] = updated_envelop['_rev']
             else:
                 # Handling error when saving payment, return data to display error message
@@ -75,8 +78,8 @@ def archive_envelop(request):
                     coop_logger.error("Cannot attach payment error message to member : %s",  str(e))
 
     try:
-        # Delete envelop from couchdb
-        res_envelop = m.delete_envelop(envelop)
+        # archive envelop in couchdb
+        res_envelop = m.archive_envelop(envelop)
     except Exception as e:
         res_envelop = "error"
 

@@ -31,10 +31,12 @@ urlpatterns = [
     url(r'^latest_coop_id/$', views.latest_coop_id),
     url(r'^get/([0-9]+)$', views.get),
     url(r'^exists/([a-zA-Z0-9_\-\.\+@]+)$', views.exists),
+    url(r'^is_associated/([0-9]+)$', views.is_associated),
     url(r'^get_couchdb_odoo_markers/(.+)$', views.get_couchdb_odoo_markers),
     url(r'^menu/$', views.menu),
     url(r'^verify_final_state$', views.verify_final_state),
     url(r'^update_couchdb_barcodes$', views.update_couchdb_barcodes),
+    url(r'^add_shares_to_member$', views.add_shares_to_member),
     #  Borne accueil
     url(r'^search/([^\/.]+)/?([0-9]*)', views.search),
     url(r'^save_photo/([0-9]+)$', views.save_photo, name='save_photo'),
@@ -49,11 +51,24 @@ urlpatterns = [
     url(r'^easy_validate_shift_presence$', views.easy_validate_shift_presence),
     # conso / groupe recherche / socio
     url(r'^panel_get_purchases$', views.panel_get_purchases),
-    # BDM 
+    # BDM
     url(r'^save_partner_info$', views.save_partner_info),
 
     # BDM - members admin
-    url(r'^admin$', admin.admin),
+    url(r'^admin/?$', admin.admin),
+    url(r'^admin/manage_makeups$', admin.manage_makeups),
+    url(r'^admin/manage_shift_registrations$', admin.manage_shift_registrations),
+    url(r'^admin/manage_regular_shifts$', admin.manage_regular_shifts),
     url(r'^get_makeups_members$', admin.get_makeups_members),
     url(r'^update_members_makeups$', admin.update_members_makeups),
+    url(r'^delete_shift_registration$', admin.delete_shift_registration),
+    url(r'^delete_shift_template_registration$', admin.delete_shift_template_registration),
+    url(r'^shift_subscription$', admin.shift_subscription),
+    url(r'^admin/manage_attached$', admin.manage_attached),
+    url(r'^admin/manage_attached/create_pair$', admin.create_pair),
+    url(r'^admin/manage_attached/delete_pair$', admin.delete_pair),
+    url(r'^get_makeups_members$', admin.get_makeups_members),
+    url(r'^update_members_makeups$', admin.update_members_makeups),
+    url(r'^get_member_info/(\d+)$', admin.get_member_info),
+    url(r'^get_attached_members$', admin.get_attached_members),
 ]

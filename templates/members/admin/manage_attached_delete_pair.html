@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin/manage_attached.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="template" style="display:None;">
+  <div id="confirmModal">
+      <h3>Le binôme est sur le point d'être désolidarisé</h3>
+      <br />
+      Êtes-vous sûr.e de vouloir désolidariser :
+      <div>
+       
+        <div class="attached-members">
+            <div class="member">
+                <div class="name">
+                    <strong><span id="parentName"></span></strong> (titulaire)<br />
+                    <i><span id="parentEmail"></span></i>
+                    <div class="select_after_unattached_state">
+                        <input type="checkbox" name="parent_gone" class="after_unattached_state" />
+                    </div>
+                </div> 
+            </div>
+            et
+            <div class="member">
+                <div class="name">
+                    <strong><span id="childName"></span></strong><br />
+                    <i><span id="childEmail"></span></i>
+                    <div class="select_after_unattached_state">
+                        <input type="checkbox" name="child_gone" class="after_unattached_state" />
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+      <p class="warning_instruction">
+        Si vous souhaitez attribuer le statut "Parti·e" à l'un·e des deux membres, <br/>
+        cochez la case correspondante.<br/>
+        Attention, ce statut est réservé aux personnes qui ont demandé à être désinscrit·e·s de leur créneau pour une durée longue ou indéfinie tout en restant membre de La Cagette.
+      </p>
+      <hr/>
+  </div>
+</div>
+<div class="page_body">
+    <div id="back_to_admin_index">
+        <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+    </div>
+    <div class="login_area">
+        {% include "common/conn_admin.html" %}
+    </div>
+    <div class="header txtcenter">
+        <h1>Gestion des Binômes</h1>
+    </div>
+
+    <div class="page_content">
+
+        <div id="subheader">
+            <h4>Liste des membres en binômes</h4>
+        </div>
+        <div class="table_area">
+            <table id="attached_members_table" class="display" cellspacing="0" width="100%"></table>
+        </div>
+    </div>
+</div>
+
+<script src='{% static "js/all_common.js" %}?v='></script>
+<script src='{% static "js/admin/manage_attached.js" %}?v='></script>
+{% endblock %}

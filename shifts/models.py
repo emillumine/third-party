@@ -38,14 +38,28 @@ class CagetteShift(models.Model):
                   'cooperative_state', 'final_standard_point', 'create_date',
                   'final_ftop_point', 'shift_type', 'leave_ids', 'makeups_to_do', 'barcode_base',
                   'street', 'street2', 'zip', 'city', 'mobile', 'phone', 'email',
-                  'is_associated_people', 'parent_id']
+                  'is_associated_people', 'parent_id', 'extra_shift_done']
         partnerData = self.o_api.search_read('res.partner', cond, fields, 1)
+        
         if partnerData:
             partnerData = partnerData[0]
+            if partnerData['is_associated_people']:
+                cond = [['id', '=', partnerData['parent_id'][0]]]
+                fields = ['create_date', 'makeups_to_do', 'date_delay_stop', 'extra_shift_done']
+                parentData = self.o_api.search_read('res.partner', cond, fields, 1)
+                if parentData:
+                    partnerData['parent_create_date'] = parentData[0]['create_date']
+                    partnerData['parent_makeups_to_do'] = parentData[0]['makeups_to_do']
+                    partnerData['parent_date_delay_stop'] = parentData[0]['date_delay_stop']
+                    partnerData['parent_extra_shift_done'] = parentData[0]['extra_shift_done']
+
             if partnerData['shift_type'] == 'standard':
                 partnerData['in_ftop_team'] = False
                 #  Because 'in_ftop_team' doesn't seem to be reset to False in Odoo
-            cond = [['partner_id.id', '=', id]]
+            if partnerData['is_associated_people']:
+                cond = [['partner_id.id', '=', partnerData['parent_id'][0]]]
+            else:
+                cond = [['partner_id.id', '=', id]]
             fields = ['shift_template_id', 'is_current']
             shiftTemplate = self.o_api.search_read('shift.template.registration', cond, fields)
             if (shiftTemplate and len(shiftTemplate) > 0):
@@ -83,7 +97,7 @@ class CagetteShift(models.Model):
     def get_shift_partner(self, id):
         """Récupère les shift du membre"""
         fields = ['date_begin', 'date_end','final_standard_point',
-                  'shift_id', 'shift_type','partner_id',  "id"] # res.partner
+                  'shift_id', 'shift_type','partner_id',  "id", "associate_registered", "is_makeup"] # res.partner
         cond = [['partner_id.id', '=', id],['state', '=', 'open'],
                ['date_begin', '>', datetime.datetime.now().isoformat()]]
         shiftData = self.o_api.search_read('shift.registration', cond, fields, order ="date_begin ASC")
@@ -166,10 +180,40 @@ class CagetteShift(models.Model):
                 if res:
                     st_r_id = True
         return st_r_id
+    
+    def affect_shift(self, data):
+        """Affect shift to partner, his associate or both"""
+        response = None
+        # partner_id can be 'associated_people' one, which is never use as shift partner_id reference
+        # So, let's first retrieved data about the res.partner involved
+        cond = [['id', '=', int(data['idPartner'])]]
+        fields = ['parent_id']
+        partner = self.o_api.search_read('res.partner', cond, fields, 1)
+        if partner:
+            if partner[0]['parent_id']:
+                partner_id = partner[0]['parent_id'][0]
+            else:
+                partner_id = int(data['idPartner'])
+            cond = [['partner_id', '=', partner_id],
+                    ['id', '=', int(data['idShiftRegistration'])]]
+            fields = ['id']
+            try:
+                # make sure there is coherence between shift.registration id and partner_id (to avoid forged request)
+                shit_to_affect = self.o_api.search_read('shift.registration', cond, fields, 1)
+                if (len(shit_to_affect) == 1):
+                    shift_res = shit_to_affect[0]
+                    fieldsDatas = { "associate_registered":data['affected_partner']}
+                    response = self.o_api.update('shift.registration', [shift_res['id']],  fieldsDatas)
+            except Exception as e:
+                coop_logger.error("Model affect shift : %s", str(e))
+        else:
+            coop_logger.error("Model affect shift nobody found : %s", str(cond))
+        return response
 
-    def cancel_shift(self, idsRegisteur):
+    def cancel_shift(self, idsRegisteur, origin='memberspace'):
         """Annule un shift"""
         fieldsDatas = { "related_shift_state": 'cancel',
+                        "origin": origin,
                         "state": 'cancel'}
 
         return self.o_api.update('shift.registration', idsRegisteur,  fieldsDatas)
@@ -330,3 +374,7 @@ class CagetteShift(models.Model):
     def member_can_have_delay(self, partner_id):
         """ Can a member have a delay? """
         return self.o_api.execute('res.partner', 'can_have_extension', [partner_id])
+
+    def update_counter_event(self, fields):
+        """ Add/remove points """
+        return self.o_api.create('shift.counter.event', fields)

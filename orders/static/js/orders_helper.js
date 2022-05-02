@@ -9,13 +9,21 @@ var suppliers_list = [],
     new_product_supplier_association = {
         package_qty: null,
         price: null
-    };
+    },
+    qties_values = {},
+    clicked_order_pill = null,
+    userAgent = navigator.userAgent;
+
+timerId = null,
+info_editor = null;
 
 var dbc = null,
     sync = null,
+    fingerprint = null,
     order_doc = {
         _id: null,
         coverage_days: null,
+        targeted_amount: null,
         stats_date_period: '',
         last_update: {
             timestamp: null,
@@ -25,9 +33,11 @@ var dbc = null,
         selected_suppliers: [],
         selected_rows: []
     },
-    fingerprint = null;
-
-var clicked_order_pill = null;
+    common_info_doc_name = "common_info",
+    info_doc = {
+        _id: null,
+        content: ""
+    };
 
 
 /* - UTILS */
@@ -43,6 +53,7 @@ function reset_data() {
     order_doc = {
         _id: null,
         coverage_days: null,
+        targeted_amount: null,
         stats_date_period: '',
         last_update : {
             timestamp: null,
@@ -116,13 +127,83 @@ function _compute_stats_date_from() {
     return val;
 }
 
+function debounceFunction(func, delay = 1000) {
+    clearTimeout(timerId);
+
+    timerId = setTimeout(func, delay);
+}
+
 /* - PRODUCTS */
+
+var process_new_product_qty = function(input) {
+    // Remove line coloring on input blur
+    const row = $(input).closest('tr');
+
+    row.removeClass('focused_line');
+
+    let val = ($(input).val() == '') ? 0 : $(input).val();
+
+    const id_split = $(input).attr('id')
+        .split('_');
+    const prod_id = id_split[1];
+    const supplier_id = id_split[3];
+
+    if (val == -1) {
+        let modal_end_supplier_product_association = $('#templates #modal_end_supplier_product_association');
+
+        const product = products.find(p => p.id == prod_id);
+
+        modal_end_supplier_product_association.find(".product_name").text(product.name);
+        const supplier = selected_suppliers.find(s => s.id == supplier_id);
+
+        modal_end_supplier_product_association.find(".supplier_name").text(supplier.display_name);
+
+        openModal(
+            modal_end_supplier_product_association.html(),
+            () => {
+                if (is_time_to('validate_end_supplier_product_association')) {
+                    end_supplier_product_association(product, supplier);
+                }
+            },
+            'Valider',
+            false,
+            true,
+            () => {
+                // Reset value in input on cancel
+                const psi = product.suppliersinfo.find(psi_item => psi_item.supplier_id == supplier_id);
+
+                $(input).val(psi.qty);
+            }
+        );
+    } else {
+        val = parseFloat(val);
+
+        // If value is a number
+        if (!isNaN(val)) {
+            // Save value
+            save_product_supplier_qty(prod_id, supplier_id, val);
+
+            // Update row
+            const product = products.find(p => p.id == prod_id);
+            const new_row_data = prepare_datatable_data([product.id])[0];
+
+            products_table.row($(input).closest('tr')).data(new_row_data)
+                .draw();
+
+            debounceFunction(update_cdb_order);
+            display_total_values();
+        } else {
+            $(input).val('');
+        }
+    }
+};
 
 /**
  * Add a product.
  *
  * @returns -1 if validation failed, 0 otherwise
  */
+
 function add_product() {
     const user_input = $("#product_input").val();
 
@@ -165,7 +246,7 @@ function add_product() {
                 res.default_code = ' ';
                 products.unshift(res);
                 update_main_screen({'sort_order_dir':'desc'});
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
             } else {
                 alert("L'article n'a pas toutes les caractéristiques pour être ajouté.");
             }
@@ -183,50 +264,103 @@ function add_product() {
 
     return 0;
 }
+function compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days) {
+    let purchase_qty_for_coverage = 0,
+        purchase_package_qty_for_coverage = 0;
+
+    if (stock == 0 && daily_conso == 0) {
+        purchase_package_qty_for_coverage = 1;
+
+    } else {
+        purchase_qty_for_coverage = days * daily_conso - stock - incoming_qty + product.minimal_stock;
+        purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+
+        // Reduce to nb of packages to purchase
+        purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
+
+        if (coeff != 1) {
+            purchase_package_qty_for_coverage *= coeff;
+        }
+    }
+
+    return Math.ceil(purchase_package_qty_for_coverage); // return Round up to unit for all products
+}
+
+function compute_and_affect_product_supplier_quantities(coeff, days) {
+    for (const [
+        key,
+        product
+    ] of Object.entries(products)) {
+        if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
+            // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
+            const stock = product.qty_available;
+            const incoming_qty = product.incoming_qty;
+            const daily_conso = product.daily_conso;
+
+            let purchase_package_qty_for_coverage = compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days);
+            // Set qty to purchase for first supplier only
+
+            products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
+        }
+    }
+}
 
 /**
  * Compute the qty to buy for each product, depending the coverage days.
  * Set the computed qty for the first supplier only.
  */
 function compute_products_coverage_qties() {
-    const pc_adjust = $('#percent_adjust_input').val();
-    let coeff = 1;
-    if (!isNaN(parseFloat(pc_adjust))) {
-        coeff = (1 + parseFloat(pc_adjust) /100);
-    }
+    return new Promise((resolve) => {
+        const pc_adjust = $('#percent_adjust_input').val();
+        let coeff = 1;
 
-    if (order_doc.coverage_days != null) {
-        order_doc.coeff = coeff;
-        for (const [
-            key,
-            product
-        ] of Object.entries(products)) {
-            if ('suppliersinfo' in product && product.suppliersinfo.length > 0) {
-                let purchase_qty_for_coverage = null;
-
-                // Durée couverture produit = (stock + qté entrante + qté commandée ) / conso quotidienne
-                const stock = product.qty_available;
-                const incoming_qty = product.incoming_qty;
-                const daily_conso = product.daily_conso;
-
-
-                purchase_qty_for_coverage = order_doc.coverage_days * daily_conso - stock - incoming_qty + product.minimal_stock;
-                purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
-
-                // Reduce to nb of packages to purchase
-                purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
-
-                if (order_doc.coeff != 1) {
-                    purchase_package_qty_for_coverage *= order_doc.coeff;
-                }
-                // Round up to unit for all products
-                purchase_package_qty_for_coverage = Math.ceil(purchase_package_qty_for_coverage);
-
-                // Set qty to purchase for first supplier only
-                products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
-            }
+        if (!isNaN(parseFloat(pc_adjust))) {
+            coeff = (1 + parseFloat(pc_adjust) /100);
         }
-    }
+        order_doc.coeff = coeff;
+        if (order_doc.coverage_days != null) {
+            compute_and_affect_product_supplier_quantities(coeff, order_doc.coverage_days);
+        } else if (order_doc.targeted_amount != null) {
+            const small_step = 0.1,
+                max_iter = 182; // Assume that no more than 1/2 year coverage is far enough
+            let go_on = true,
+                iter = 0,
+                days = 1,
+                step = 1;
+
+            //Let's compute the nearst amount, by changing days quantity
+            while (go_on == true && iter < max_iter) {
+                order_total_value = 0;
+                compute_and_affect_product_supplier_quantities(coeff, days);
+                _compute_total_values_by_supplier();
+                for (let supplier of selected_suppliers) {
+                    order_total_value += supplier.total_value;
+                }
+                let order_total_value_f = parseFloat(order_total_value),
+                    targeted_amount_f = parseFloat(order_doc.targeted_amount);
+
+                if (order_total_value_f >= targeted_amount_f) {
+                    if (order_total_value_f != targeted_amount_f && iter < max_iter) {
+                        step = small_step; // we have gone too far, let's go back, using small step
+                        days -= step;
+                    }
+                } else {
+                    if (step == small_step) {
+                        // amount was above the target, let's compute again with the previous value
+                        go_on = false;
+                        compute_and_affect_product_supplier_quantities(coeff, days + step);
+                    } else {
+                        days += step;
+                    }
+                }
+
+                iter++;
+            }
+
+        }
+
+        resolve();
+    });
 }
 
 /**
@@ -261,8 +395,12 @@ function check_products_data() {
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
                 success: function(data) {
+                    let loaded_products_ids = products.map(p => p.id);
+
+                    // Going through products fetched from server
                     for (let product of data.res.products) {
-                        const p_index = products.findIndex(p => p.id == product.id);
+                        const p_id = product.id;
+                        const p_index = products.findIndex(p => p.id == p_id);
 
                         if (p_index === -1) {
                             // Add product if it wasn't fetched before (made available since last access to order)
@@ -283,9 +421,41 @@ function check_products_data() {
                                 }
                             }
                         }
+
+                        // Remove fetched product id from loaded products list
+                        const loaded_p_index = loaded_products_ids.indexOf(p_id);
+
+                        if (loaded_p_index > -1) {
+                            loaded_products_ids.splice(loaded_p_index, 1);
+                        }
                     }
 
                     $('.notifyjs-wrapper').trigger('notify-hide');
+
+                    /**
+                     * If loaded p_ids are remaining:
+                     *  these products were loaded but don't match the conditions to be fetched anymore.
+                     * Remove them.
+                     */
+                    if (loaded_products_ids.length > 0) {
+                        for (pid of loaded_products_ids) {
+                            const p_index = products.findIndex(p => p.id == pid);
+                            const p_name = products[p_index].name;
+
+                            products.splice(p_index, 1);
+
+                            $.notify(
+                                `Produit "${p_name}" retiré de la commande.\nIl a probablement été passé en archivé ou en NPA sur un autre poste.`,
+                                {
+                                    globalPosition:"top left",
+                                    className: "info",
+                                    autoHideDelay: 12000,
+                                    clickToHide: false
+                                }
+                            );
+                        }
+                    }
+
                     resolve();
                 },
                 error: function(data) {
@@ -346,7 +516,7 @@ function update_product_ref(input_el, p_id, p_index) {
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(data),
             success: () => {
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
 
                 $(".actions_buttons_area .right_action_buttons").notify(
                     "Référence sauvegardée !",
@@ -424,7 +594,7 @@ function add_supplier() {
             save_supplier_products(supplier, data.res.products);
             update_main_screen();
             $("#supplier_input").val("");
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             closeModal();
         },
         error: function(data) {
@@ -460,7 +630,7 @@ function remove_supplier(supplier_id) {
     products = products.filter(product => product.suppliersinfo.length > 0);
 
     update_main_screen();
-    update_cdb_order();
+    debounceFunction(update_cdb_order);
 }
 
 
@@ -503,13 +673,14 @@ function save_supplier_product_association(product, supplier, cell) {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
-        success: () => {
+        success: (res_data) => {
             // Save supplierinfo in product
             if (!('suppliersinfo' in product)) {
                 product.suppliersinfo = [];
             }
 
             product.suppliersinfo.push({
+                id: res_data.res.psi_id,
                 supplier_id: supplier.id,
                 package_qty: package_qty,
                 product_code: false,
@@ -527,7 +698,7 @@ function save_supplier_product_association(product, supplier, cell) {
             products_table.row(row).data(new_row_data)
                 .draw();
 
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             closeModal();
         },
         error: function(data) {
@@ -581,7 +752,7 @@ function end_supplier_product_association(product, supplier) {
             // Update table
             display_products();
 
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             closeModal();
         },
         error: function(data) {
@@ -688,21 +859,44 @@ function _compute_total_values_by_supplier() {
 
 /* - PRODUCT */
 
-function save_products_npa_minimal_stock(product, inputs) {
-    let actions = {npa: [], minimal_stock: 0, id: product.id, name: product.name};
-    inputs.each(function (i,e) {
-        const input = $(e)
-        if (input.attr('type') == 'checkbox') {
+function commit_actions_on_product(product, inputs) {
+    let actions = {
+        npa: [],
+        to_archive: false,
+        minimal_stock: 0,
+        qty_available: 0,
+        id: product.id,
+        name: product.name,
+        suppliersinfo: []
+    };
+
+    inputs.each(function (i, e) {
+        const input = $(e);
+
+        if (input.attr('name') == 'npa-actions') {
             if (input.prop('checked') == true) {
-                actions.npa.push(input.val())
+                actions.npa.push(input.val());
             }
         } else if (input.attr('name') == "minimal_stock") {
-            actions.minimal_stock = input.val()
+            actions.minimal_stock = input.val();
+        } else if (input.attr('name') == "archive-action") {
+            if (input.prop('checked') == true && product.incoming_qty === 0) {
+                actions.to_archive = true;
+            }
+        } else if (input.attr('name') == "actual_stock") {
+            actions.qty_available = parseFloat(input.val());
+        } else if (input.attr('class') !== undefined && input.attr('class').includes("product_supplier_price")) {
+            actions.suppliersinfo.push({
+                supplierinfo_id: parseInt(input.attr('supplierinfo_id')),
+                price: parseFloat(input.val())
+            });
         }
     });
+
+    openModal();
     $.ajax({
         type: "POST",
-        url: "/products/update_npa_and_minimal_stock",
+        url: "/products/commit_actions_on_product",
         dataType: "json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
@@ -710,43 +904,63 @@ function save_products_npa_minimal_stock(product, inputs) {
         success: () => {
             const index = products.findIndex(p => p.id == product.id);
 
-            // Give time for modal to fade
-            setTimeout(function() {
-                $(".actions_buttons_area .right_action_buttons").notify(
-                    "Actions enregistrées !",
-                    {
-                        elementPosition:"bottom right",
-                        className: "success",
-                        arrowShow: false
-                    }
-                );
-            }, 500);
             products[index].minimal_stock = actions.minimal_stock;
-            if (actions.npa.length > 0) {
-                // Remove NPA products
+
+            if (actions.npa.length > 0 || actions.to_archive === true) {
+                // Remove NPA & archived products
                 products.splice(index, 1);
-                update_main_screen();
-                update_cdb_order();
+                debounceFunction(update_cdb_order);
             }
 
-            closeModal();
+            check_products_data()
+                .then(() => {
+                    update_cdb_order();
+                    update_main_screen();
+                    closeModal();
+
+                    // Give time for modal to fade
+                    setTimeout(function() {
+                        $(".actions_buttons_area .right_action_buttons").notify(
+                            "Actions enregistrées !",
+                            {
+                                elementPosition:"bottom right",
+                                className: "success",
+                                arrowShow: false
+                            }
+                        );
+                    }, 500);
+                });
         },
         error: function(data) {
             let msg = "erreur serveur lors de la sauvegarde".
                 msg += ` (product_tmpl_id: ${product.id})`;
 
-            err = {msg: msg, ctx: 'save_products_npa_minimal_stock'};
+            err = {msg: msg, ctx: 'commit_actions_on_product'};
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
             report_JS_error(err, 'orders');
 
-            closeModal();
-            alert('Erreur lors de la sauvegarde de la donnée. Veuillez ré-essayer plus tard.');
-            update_main_screen();
+            try {
+                if (data.responseJSON.code === "archiving_with_incoming_qty") {
+                    alert("Ce produit a des quantités entrantes, vous ne pouvez pas l'archiver.");
+                } else if (data.responseJSON.code === "error_stock_update") {
+                    alert('Erreur lors de la mise à zéro du stock du produit archivé. Les actions ont bien été réalisées.');
+                } else {
+                    alert('Erreur lors de la sauvegarde des données. Veuillez ré-essayer plus tard.');
+                }
+            } catch (error) {
+                alert('Erreur lors de la sauvegarde des données. Veuillez ré-essayer plus tard.');
+            }
+
+            check_products_data()
+                .then(() => {
+                    update_cdb_order();
+                    update_main_screen();
+                    closeModal();
+                });
         }
     });
-
 }
 
 
@@ -1160,7 +1374,7 @@ function goto_main_screen(doc) {
 
     check_products_data()
         .then(() => {
-            update_cdb_order();
+            debounceFunction(update_cdb_order);
             update_main_screen();
             switch_screen();
         });
@@ -1224,12 +1438,23 @@ function display_suppliers() {
     });
 }
 
+/**
+ * Compute data to display in products table
+ *
+ * Package qties & prices are related to suppliers,
+ *  so 1 product can have multiple values for these.
+ * In case of different values, display value under input in supplier column
+ *
+ * @param {Object} product
+ * @returns Object of computed data to add to product object
+ */
 function _compute_product_data(product) {
     let item = {};
 
     /* Supplier related data */
     let purchase_qty = 0; // Calculate product's total purchase qty
     let p_package_qties = []; // Look for differences in package qties
+    let p_price = [];
 
     for (let p_supplierinfo of product.suppliersinfo) {
         // Preset qty for input if product related to supplier: existing qty or null (null -> qty to be set, display an empty input)
@@ -1244,6 +1469,7 @@ function _compute_product_data(product) {
 
         // Store temporarily product package qties
         p_package_qties.push(p_supplierinfo.package_qty);
+        p_price.push(p_supplierinfo.price);
     }
 
     item.purchase_qty = purchase_qty;
@@ -1256,11 +1482,17 @@ function _compute_product_data(product) {
     }
 
     if (p_package_qties.length == 0 || !p_package_qties.every((val, i, arr) => val === arr[0])) {
-        // Don't display package qty if no supplierinf or if not all package qties are equals,
+        // Don't display package qty if no supplierinfo or if not all package qties are equals
         item.package_qty = 'X';
     } else {
         // If all package qties are equals, display it
         item.package_qty = p_package_qties[0];
+    }
+
+    if (p_price.length == 0 || !p_price.every((val, i, arr) => val === arr[0])) {
+        item.price = 'X';
+    } else {
+        item.price = p_price[0];
     }
 
     /* Coverage related data */
@@ -1400,6 +1632,7 @@ function prepare_datatable_columns() {
                     let content = `<div id="${base_id}_cell_content" class="custom_cell_content">
                                         <input type="number" class="product_qty_input" id="${base_id}_qty_input" min="-1" value=${data}>`;
 
+                    // Add package qty & price data if they differ between suppliers
                     if (full.package_qty === 'X') {
                         let product_data = products.find(p => p.id == full.id);
 
@@ -1407,6 +1640,16 @@ function prepare_datatable_columns() {
                             let supplierinfo = product_data.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
 
                             content += `<span class="supplier_package_qty">Colisage : ${supplierinfo.package_qty}</span>`;
+                        }
+                    }
+
+                    if (full.price === 'X') {
+                        let product_data = products.find(p => p.id == full.id);
+
+                        if (product_data !== undefined) {
+                            let supplierinfo = product_data.suppliersinfo.find(psi => psi.supplier_id == supplier.id);
+
+                            content += `<span class="supplier_price">Prix HT : ${supplierinfo.price} €</span>`;
                         }
                     }
 
@@ -1433,18 +1676,29 @@ function prepare_datatable_columns() {
     });
 
     columns.push({
+        data: "price",
+        title: "Prix HT",
+        className: "dt-body-center",
+        render: function (data) {
+            return (data === 'X') ? data : `${data} €`;
+        },
+        width: "4%"
+    });
+
+    columns.push({
         data: "purchase_qty",
         title: "Qté Achat",
         className: "dt-body-center",
         width: "4%"
     });
 
-    columns.push({
-        data: "qty_not_covered",
-        title: "Besoin non couvert (qté)",
-        className: "dt-body-center",
-        width: "4%"
-    });
+    // Not in use for now
+    // columns.push({
+    //     data: "qty_not_covered",
+    //     title: "Besoin non couvert (qté)",
+    //     className: "dt-body-center",
+    //     width: "4%"
+    // });
 
     columns.push({
         data: "days_covered",
@@ -1457,7 +1711,7 @@ function prepare_datatable_columns() {
         title: ``,
         className: "dt-body-center",
         orderable: false,
-        render: function (data) {
+        render: function () {
             return `<button type="button" class="btn--primary product_actions">Actions</button>`;
         },
         width: "4%"
@@ -1538,7 +1792,7 @@ function display_products(params) {
             }
         }
     });
-
+    products_table.search('');
     $('.main').show();
     $('#main_content_footer').show();
     $('#do_inventory').show();
@@ -1550,71 +1804,17 @@ function display_products(params) {
         row.addClass('focused_line');
     });
 
+
     // Manage data on inputs blur
-    $('#products_table').on('blur', 'tbody td .product_qty_input', function () {
-        // Remove line coloring on input blur
-        const row = $(this).closest('tr');
-
-        row.removeClass('focused_line');
-
-        let val = ($(this).val() == '') ? 0 : $(this).val();
-
-        const id_split = $(this).attr('id')
-            .split('_');
-        const prod_id = id_split[1];
-        const supplier_id = id_split[3];
-
-        if (val == -1) {
-            let modal_end_supplier_product_association = $('#templates #modal_end_supplier_product_association');
-
-            const product = products.find(p => p.id == prod_id);
-
-            modal_end_supplier_product_association.find(".product_name").text(product.name);
-            const supplier = selected_suppliers.find(s => s.id == supplier_id);
-
-            modal_end_supplier_product_association.find(".supplier_name").text(supplier.display_name);
-
-            openModal(
-                modal_end_supplier_product_association.html(),
-                () => {
-                    if (is_time_to('validate_end_supplier_product_association')) {
-                        end_supplier_product_association(product, supplier);
-                    }
-                },
-                'Valider',
-                false,
-                true,
-                () => {
-                    // Reset value in input on cancel
-                    const psi = product.suppliersinfo.find(psi_item => psi_item.supplier_id == supplier_id);
-
-                    $(this).val(psi.qty);
-                }
-            );
-        } else {
-            val = parseFloat(val);
-
-            // If value is a number
-            if (!isNaN(val)) {
-                // Save value
-                save_product_supplier_qty(prod_id, supplier_id, val);
-
-                // Update row
-                const product = products.find(p => p.id == prod_id);
-                const new_row_data = prepare_datatable_data([product.id])[0];
-
-                products_table.row($(this).closest('tr')).data(new_row_data)
-                    .draw();
-
-                update_cdb_order();
-                display_total_values();
-            } else {
-                $(this).val('');
-            }
-        }
-    })
+    $('#products_table')
+        .on('focus', 'tbody td .product_qty_input', function () {
+            this.select();
+        })
+        .on('blur', 'tbody td .product_qty_input', function () {
+            process_new_product_qty(this);
+        })
         .on('keypress', 'tbody td .product_qty_input', function(e) {
-            // Validate on Enter pressed
+        // Validate on Enter pressed
             if (e.which == 13) {
                 $(this).blur();
             }
@@ -1624,15 +1824,18 @@ function display_products(params) {
                 e.preventDefault();
 
                 // On arrow up pressed, focus next row input
-                let next_input = $(this).closest("tr").prev().find(".product_qty_input");
+                let next_input = $(this).closest("tr")
+                    .prev()
+                    .find(".product_qty_input");
+
                 next_input.focus();
 
                 // Scroll to a position where the target input is not hidden by the sticky suppliers container
                 const suppliers_container_top_offset =
-                    $("#suppliers_container").offset().top
-                    - $(window).scrollTop()
-                    + $("#suppliers_container").outerHeight();
-                    const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
+                $("#suppliers_container").offset().top
+                - $(window).scrollTop()
+                + $("#suppliers_container").outerHeight();
+                const next_input_top_offset = next_input.offset().top - $(window).scrollTop();
 
                 if (next_input_top_offset < suppliers_container_top_offset) {
                     window.scrollTo({
@@ -1643,38 +1846,72 @@ function display_products(params) {
                 e.preventDefault();
 
                 // On arrow down pressed, focus previous row input
-                $(this).closest("tr").next().find(".product_qty_input").focus();
+                $(this).closest("tr")
+                    .next()
+                    .find(".product_qty_input")
+                    .focus();
 
             } else if (e.which == 13) {
                 e.preventDefault();
 
                 // On enter pressed, focus previous row input
-                $(this).closest("tr").next().find(".product_qty_input").focus();
+                $(this).closest("tr")
+                    .next()
+                    .find(".product_qty_input")
+                    .focus();
             }
         })
-        .on('click', 'tbody td .product_actions', function(e){
-             // Save / unsave selected row
+        .on('click', 'tbody td .product_actions', function() {
+        // Save / unsave selected row
             const p_id = products_table.row($(this).closest('tr')).data().id;
-
             const product = products.find(p => p.id == p_id);
 
             let modal_product_actions = $('#templates #modal_product_actions');
 
             modal_product_actions.find(".product_name").text(product.name);
+            modal_product_actions.find(".actual_stock_input").val(product.qty_available);
 
-            //modal_product_actions.find(".product_npa").text(null ? 'Ne Pas Acheter' : 'Peut Être Acheté');
+            const product_can_be_archived = product.incoming_qty === 0;
+
+            if (product_can_be_archived == true) {
+                modal_product_actions.find('input[name="archive-action"]').prop("disabled", false);
+                modal_product_actions.find('input[name="archive-action"]').closest("label")
+                    .removeClass("checkbox_action_disabled");
+            } else {
+                modal_product_actions.find('input[name="archive-action"]').prop("disabled", true);
+                modal_product_actions.find('input[name="archive-action"]').closest("label")
+                    .addClass("checkbox_action_disabled");
+            }
+
+            let product_price_action_template = $('#templates #product_price_action_template');
+
+            modal_product_actions.find(".product_prices_area").empty();
+            for (let supplierinfo of product.suppliersinfo) {
+                let supplier = suppliers_list.find(s => s.id == supplierinfo.supplier_id);
+
+                product_price_action_template.find(".supplier_name").text(supplier.display_name);
+                product_price_action_template.find(".product_supplier_price").attr('supplierinfo_id', supplierinfo.id);
+
+                modal_product_actions.find(".product_prices_area").append(product_price_action_template.html());
+            }
 
             openModal(
                 modal_product_actions.html(),
                 () => {
                     if (is_time_to('validate_product_actions')) {
-                        save_products_npa_minimal_stock(product, modal.find('input'));
+                        commit_actions_on_product(product, modal.find('input'));
                     }
                 },
                 'Valider',
                 false
             );
-            modal.find('input[name="minimal_stock"]').val(product.minimal_stock)
+
+            // Set inputs val after modal is displayed
+            modal.find('input[name="minimal_stock"]').val(product.minimal_stock);
+            modal.find('input[name="actual_stock"]').val(product.qty_available);
+            for (let supplierinfo of product.suppliersinfo) {
+                modal.find(`input[supplierinfo_id="${supplierinfo.id}"]`).val(supplierinfo.price);
+            }
 
         });
 
@@ -1892,7 +2129,11 @@ function update_main_screen(params) {
     } else {
         $("#coverage_days_input").val('');
     }
-
+    if (order_doc.targeted_amount !== null) {
+        $('#targeted_amount_input').val(order_doc.targeted_amount);
+    } else {
+        $('#targeted_amount_input').val('');
+    }
     if (order_doc.coeff && order_doc.coeff != 1) {
         $("#percent_adjust_input").val(-Math.ceil((1 - order_doc.coeff) * 100));
     }
@@ -1905,7 +2146,7 @@ function update_main_screen(params) {
 }
 
 function display_average_consumption_explanation() {
-     openModal($('#explanations').html())
+    openModal($('#explanations').html());
 }
 /**
  * Update DOM display on the order selection screen
@@ -1919,20 +2160,25 @@ function update_order_selection_screen() {
             // Remove listener before recreating them
                 $(".order_pill").off();
 
+                // Reset orders data
                 let existing_orders_container = $("#existing_orders");
 
                 existing_orders_container.empty();
                 $('#new_order_name').val('');
 
-                if (result.rows.length === 0) {
+                if (
+                    result.rows.length === 0
+                    || result.rows.length === 0 && result.rows[0].id === common_info_doc_name) {
                     existing_orders_container.append(`<i>Aucune commande en cours...</i>`);
                 } else {
                     for (let row of result.rows) {
-                        let template = $("#templates #order_pill_template");
+                        if (row.id !== common_info_doc_name) {
+                            let template = $("#templates #order_pill_template");
 
-                        template.find(".pill_order_name").text(row.id);
+                            template.find(".pill_order_name").text(row.id);
 
-                        existing_orders_container.append(template.html());
+                            existing_orders_container.append(template.html());
+                        }
                     }
 
                     $(".order_pill").on("click", order_pill_on_click);
@@ -2057,6 +2303,15 @@ function init_pouchdb_sync() {
                     );
                     back();
                     break;
+                } else if (doc._id === common_info_doc_name) {
+                    init_info_editor();
+                    $.notify(
+                        "Nouveau message dans le bloc d'information !",
+                        {
+                            globalPosition:"top right",
+                            className: "info"
+                        }
+                    );
                 }
             }
 
@@ -2072,11 +2327,162 @@ function init_pouchdb_sync() {
     });
 }
 
+/* - INFO AREA */
+
+/**
+ * Init the Quill module (Text editor)
+ * @param {Object} params
+ */
+function quillify(params) {
+    info_editor = new Quill(params.id, {
+        modules: {
+            toolbar: [
+                [
+                    { header: [
+                        1,
+                        2,
+                        false
+                    ] }
+                ],
+                [
+                    'bold',
+                    'italic',
+                    'underline'
+                ],
+                [
+                    { 'size': [
+                        'small',
+                        false,
+                        'large',
+                        'huge'
+                    ] }
+                ],
+                [
+                    { 'color': [] },
+                    { 'background': [] }
+                ]
+            ]
+        },
+        placeholder: "Indiquez ici un message pour le reste de l'équipe",
+        theme: 'snow'
+    });
+    info_editor.root.innerHTML = params.content;
+}
+
+/**
+ * Init object & dom for the info editor.
+ * Await retrieving content.
+ */
+async function init_info_editor() {
+    let info_content = await get_or_create_common_info();
+
+    // Reset info editor
+    info_editor = null;
+    $("#common_info_editor_container").empty();
+    $("#common_info_editor_container").append(`<div id="common_info_editor"></div>`);
+
+    // Init text editor for Info textarea
+    let quill_params = {
+        id: '#common_info_editor',
+        content: info_content
+    };
+
+    quillify(quill_params);
+
+    $("#save_common_info").on("click", function() {
+        if (is_time_to('save_common_info', 1000)) {
+            let content = $("#common_info_editor").find('.ql-editor')
+                .html();
+
+            if (content === "<p><br></p>") {
+                content = "";
+            }
+
+            update_common_info(content);
+        }
+    });
+
+}
+
+/**
+ * Get common info HTML content. If doc doesn't exist, create & return empty string
+ * @returns String HTML content | ""
+ */
+function get_or_create_common_info() {
+    // todo await async
+    return new Promise((resolve) => {
+        dbc.get(common_info_doc_name).then((doc) => {
+            info_doc = doc;
+            resolve(doc.content);
+        })
+            .catch(function (err) {
+                if (err.status == 404) {
+                // First access, create
+                    info_doc._id = common_info_doc_name;
+                    dbc.put(info_doc, function callback(err, result) {
+                        if (!err) {
+                            info_doc._rev = result.rev;
+                        } else {
+                            $.notify(
+                                "Erreur lors de l'initialisation du bloc d'informations",
+                                {
+                                    globalPosition:"top right",
+                                    className: "error"
+                                }
+                            );
+                            console.log(err);
+                        }
+                        resolve("");
+                    });
+                } else {
+                    $.notify(
+                        "Erreur lors de la récupération du bloc d'informations",
+                        {
+                            globalPosition:"top right",
+                            className: "error"
+                        }
+                    );
+                    console.log(err);
+                    resolve("");
+                }
+            });
+    });
+}
+
+/**
+ * Update couchdb info document with textarea (HTML) content
+ * @param {String} content
+ */
+function update_common_info(content) {
+    info_doc.content = content;
+    dbc.put(info_doc, function callback(err, result) {
+        if (!err) {
+            info_doc._rev = result.rev;
+            $.notify(
+                "Bloc d'informations mis à jour",
+                {
+                    globalPosition:"top right",
+                    className: "success"
+                }
+            );
+        } else {
+            $.notify(
+                "Erreur lors de la mise à jour du bloc d'informations",
+                {
+                    globalPosition:"top right",
+                    className: "error"
+                }
+            );
+            console.log(err);
+        }
+    });
+}
 
 $(document).ready(function() {
     if (coop_is_connected()) {
         $('#new_order_form').show();
         $('#existing_orders_area').show();
+        $('#common_info_area').show();
 
         fingerprint = new Fingerprint({canvas: true}).get();
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
@@ -2093,18 +2499,28 @@ $(document).ready(function() {
         $("#coverage_form").on("submit", function(e) {
             e.preventDefault();
             if (is_time_to('submit_coverage_form', 1000)) {
-                let val = $("#coverage_days_input").val();
+                let days_val = $("#coverage_days_input").val(),
+                    amount_val = $('#targeted_amount_input').val();
 
-                val = parseInt(val);
+                days_val = parseInt(days_val);
+                amount_val = parseInt(amount_val);
+                if (isNaN(days_val)) days_val = null;
+                if (isNaN(amount_val)) amount_val = null;
 
-                if (!isNaN(val)) {
-                    order_doc.coverage_days = val;
-                    compute_products_coverage_qties();
-                    update_cdb_order();
-                    update_main_screen();
+                if (days_val !== null || amount_val !== null) {
+                    order_doc.coverage_days = days_val;
+                    order_doc.targeted_amount = amount_val;
+                    compute_products_coverage_qties()
+                        .then(() => {
+                            debounceFunction(update_cdb_order);
+                            update_main_screen();
+                        });
+
                 } else {
-                    $("#coverage_days_input").val(order_doc.coverage_days);
-                    alert(`Valeur non valide pour le nombre de jours de couverture !`);
+                    $("#coverage_days_input").val(order_doc.coverage_days || '');
+                    $('#targeted_amount_input').val(order_doc.targeted_amount || '');
+                    alert("Ni le nombre de jours de couverture, ni le montant à atteindre sont correctement renseignés");
+
                 }
             }
         });
@@ -2158,10 +2574,13 @@ $(document).ready(function() {
 
                 check_products_data()
                     .then(() => {
-                        compute_products_coverage_qties();
-                        update_main_screen();
-                        update_cdb_order();
-                        closeModal();
+                        compute_products_coverage_qties()
+                            .then(() => {
+                                update_main_screen();
+                                debounceFunction(update_cdb_order);
+                                closeModal();
+                            });
+
                     });
             }
         });
@@ -2177,7 +2596,7 @@ $(document).ready(function() {
                 openModal();
                 check_products_data()
                     .then(() => {
-                        update_cdb_order();
+                        debounceFunction(update_cdb_order);
                         update_main_screen();
                         $("#toggle_action_buttons").click();
                         closeModal();
@@ -2279,7 +2698,7 @@ $(document).ready(function() {
             return 0;
         });
 
-        $(document).on("click",".fa-info-circle", display_average_consumption_explanation)
+        $(document).on("click", ".average_consumption_explanation_icon", display_average_consumption_explanation);
 
         $.datepicker.regional['fr'] = {
             monthNames: [
@@ -2311,11 +2730,13 @@ $(document).ready(function() {
 
         // Order selection screen
         update_order_selection_screen();
+        init_info_editor();
 
         $("#new_order_form").on("submit", function(e) {
             e.preventDefault();
             if (is_time_to('submit_new_order_form', 1000)) {
                 create_cdb_order();
+
             }
         });
 
@@ -2340,8 +2761,6 @@ $(document).ready(function() {
                 $("#supplier_input").autocomplete({
                     source: suppliers_list.map(a => a.display_name)
                 });
-
-
             },
             error: function(data) {
                 err = {msg: "erreur serveur lors de la récupération des fournisseurs", ctx: 'get_suppliers'};
@@ -2416,6 +2835,39 @@ $(document).ready(function() {
                 alert('Erreur lors de la récupération des articles, rechargez la page plus tard');
             }
         });
+
+        $(document).on('click', '.accordion', function() {
+            /* Toggle between adding and removing the "active" class,
+            to highlight the button that controls the panel */
+            this.classList.toggle("active");
+
+            /* Toggle between hiding and showing the active panel */
+            var panel = this.nextElementSibling;
+
+            if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+        });
+
+        if (/Firefox\//.exec(userAgent)) {
+            // needed to prevent bug using number input arrow to change quantity (https://bugzilla.mozilla.org/show_bug.cgi?id=1012818)
+            // Have to capture mousedown and mouseup events, instead of using only click event
+            // Indeed, capturing click only remove the ability to click to have focus on the input to type a number.
+            $(document).on("mousedown", '[type="number"]', function() {
+                qties_values[$(this).attr('id')] = $(this).val();
+            });
+            $(document).on("mouseup", '[type="number"]', function() {
+                try {
+                    if ($(this).val() != qties_values[$(this).attr('id')]) {
+                        process_new_product_qty(this);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            });
+        }
     } else {
         $('#not_connected_content').show();
     }

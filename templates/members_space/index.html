@@ -31,15 +31,39 @@
     <div id="shift_line_template">
       <div class="shift_line">
         <i class="fas fa-chevron-right shift_line_chevron"></i>
-        <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+        <span class="shift_line_date"></span> - <span class="shift_line_time"></span>  <span class="shift_line_associate"> </span>
       </div>
     </div>
 
     <div id="selectable_shift_line_template">
-      <div class="selectable_shift_line btn--primary">
-        <input type="checkbox" class="checkbox">
-        <div class="selectable_shift_line_text">
-          <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+      <div class="d-flex shift_line_container selectable_shift">
+        <div class="selectable_shift_line btn--primary">
+          <input type="checkbox" class="checkbox">
+          <div class="selectable_shift_line_text">
+            <span class="shift_line_date"></span> - <span class="shift_line_time"></span>
+          </div>
+        </div>
+        <div class="shift_line_extra_actions">
+          <div class="affect_associate_registered">
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="delete_registration_button_template">
+      <div class="delete_registration_button"><i class="fas fa-lg fa-trash"></i></div>
+    </div>
+
+    <div id="modal_affect_shift">
+      <div>Qui sera présent.e ?</div>
+      <div class="modal_affect_shift_buttons">
+        <div id="shift_partner" class="btn--primary assign_shift_button">
+        </div>
+        <div id="shift_associate" class=" btn--primary assign_shift_button">
+        </div>
+        <div id="shift_both" class=" btn--primary assign_shift_button">
+          Les deux
         </div>
       </div>
     </div>
@@ -57,10 +81,12 @@
 
     <div id="calendar_explaination_template"> 
       <h4>Légende du calendrier</h4>
-      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">06:00</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;- 9/12</div></div></div></div></a>
-      <p>Un service colorié en noir : je suis déjà inscrit.e à ce service.</p>
       <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_less_alf"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">10:45</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;- 3/12</div></div></div></div></a>
       <p>Un service colorié en bleu : je peux m'inscrire à ce service.</p>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">06:00</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;- 9/12</div></div></div></div></a>
+      <p>Un service colorié en noir : je suis déjà inscrit.e à ce service.</p>
+      <a class="example-event fc-daygrid-event fc-daygrid-block-event fc-h-event fc-event fc-event-start fc-event-end fc-event-future shift_booked_makeup"><div class="fc-event-main"><div class="fc-event-main-frame"><div class="fc-event-time">13:30</div><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">&nbsp;- 7/12</div></div></div></div></a>
+      <p>Un service colorié en orange : je suis inscrit.e à un rattrapage sur ce service.</p>
       <p>3/12 <i class="arrow_explanation_numbers fas fa-arrow-right"></i> il y a déjà 3 places réservées à ce service sur 12 disponibles.
           <b>Plus le chiffre de gauche est petit, plus on a besoin de coopérateurs.rices à ce service !</b></p>
     </div>
@@ -118,12 +144,15 @@
     "is_associated_people" : "{{partnerData.is_associated_people}}",
     "parent_id" : "{{partnerData.parent_id}}",
     "parent_name" : "{{partnerData.parent_name}}",
+    "parent_verif_token" : "{{partnerData.parent_verif_token}}",
     "associated_partner_id" : "{{partnerData.associated_partner_id}}",
     "associated_partner_name" : "{{partnerData.associated_partner_name}}",
     "verif_token" : "{{partnerData.verif_token}}",
     "leave_stop_date": "{{partnerData.leave_stop_date}}",
-    "comite": "{{partnerData.comite}}"
-  }
+    "comite": "{{partnerData.comite}}",
+    "extra_shift_done": parseInt("{{partnerData.extra_shift_done}}", 10)
+  };
+  var block_actions_for_attached_people = '{{block_actions_for_attached_people}}';
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/members-space-home.js" %}?v="></script>

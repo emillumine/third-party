@@ -1,5 +1,32 @@
 var actions_last_dates = {};
 
+var show_enqueued_messages = function() {
+    var stored = null;
+
+    try {
+        stored = JSON.parse(localStorage.getItem('enqueued_messages'));
+        alert(stored.join("\n"))
+        localStorage.removeItem('enqueued_messages')
+
+    } catch (e) {
+        //no rescue system for the moment
+    }
+};
+
+var enqueue_message_for_next_loading = function(msg) {
+    try {
+        let messages = [],
+            stored = localStorage.getItem('enqueued_messages');
+        if (stored) {
+            messages = JSON.parse(stored);
+        }
+        messages.push(msg)
+        localStorage.setItem('enqueued_messages', JSON.stringify(messages));
+    } catch (e) {
+        //no rescue system for the moment
+    }
+}
+
 function get_litteral_shift_template_name(name) {
     var l_name = '';
 
@@ -175,8 +202,8 @@ String.prototype.pad = function(String, len) {
 
 
 var btns = $('<div/>').addClass('btns');
-var btn_ok = $('<button/>').addClass('btn--success');
-var btn_nok = $('<button/>').addClass('btn--danger')
+var btn_ok = $('<button/>').addClass('btn--success btn-modal-ok');
+var btn_nok = $('<button/>').addClass('btn--danger btn-modal-nok')
     .attr('id', 'modal_closebtn_bottom')
     .text('Fermer');
 
@@ -201,6 +228,10 @@ function openModal() {
         btn_nok.off('click', closeModal);
         btn_ok.off('click', closeModal);
 
+        if (btn_ok.hasClass('loading')) {
+            btn_ok.removeClass('loading');
+            btn_ok.addClass('btn--success');
+        }
         // If more than one argument, add 'save' button
         if (arguments[1]) {
             btn_ok.on('click', arguments[1]); // Second argument is callback
@@ -209,6 +240,14 @@ function openModal() {
             // 4th argument: if set and false, validate button doesn't close the modal
             if (typeof (arguments[3]) == "undefined" || arguments[3] != false)
                 btn_ok.on('click', closeModal);
+            /*
+            else {
+                btn_ok.on('click', function() {
+                    $(this).addClass("loading");
+                    $(this).removeClass("btn--success");
+                })
+            }
+            */
 
             btns.append(btn_ok);
 
@@ -460,22 +499,6 @@ for (i = 0; i < acc.length; i++) {
     });
 }
 
-$(document).on('click', '.accordion', function(){
-    /* Toggle between adding and removing the "active" class,
-    to highlight the button that controls the panel */
-    this.classList.toggle("active");
-
-    /* Toggle between hiding and showing the active panel */
-    var panel = this.nextElementSibling;
-
-    if (panel.style.display === "block") {
-      panel.style.display = "none";
-    } else {
-      panel.style.display = "block";
-    }
-     console.log(panel)
-});
-
 function report_JS_error(e, m) {
     try {
         $.post('/log_js_error', {module: m, error: JSON.stringify(e)});
@@ -498,3 +521,5 @@ function isMacUser() {
 }
 
 if (isMacUser() && isSafari()) $('.mac-msg').show();
+
+show_enqueued_messages();

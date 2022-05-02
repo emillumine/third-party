@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin/manage_regular_shifts.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/notify.min.js' %}?v="></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="page_body">
+  <div id="back_to_admin_index">
+    <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+  </div>
+  <div class="login_area">
+    {% include "common/conn_admin.html" %}
+  </div>
+  <div class="header txtcenter">
+    <h1>Gestion des Créneaux</h1>
+  </div>
+  
+  <div class="page_content">
+    <div id="search_member_area">
+      <div id="search_member_form_area">
+        <h4>Rechercher un.e membre</h4>
+        <form id="search_member_form" action="javascript:;" method="post">
+          <input type="text" id="search_member_input" value="" placeholder="Nom ou numéro du coop..." required>
+          <button type="submit" class="btn--primary" id="search_member_button">Recherche</button>
+        </form>
+      </div>
+      <div class="search_member_results_area" style="display:none;">
+        <div class="search_results_text">
+          <p><i>Choisissez parmi les membres trouvés :</i></p>
+        </div>
+        <div class="search_member_results"></div>
+      </div>
+    </div>
+    <div id="partner_data_area">
+      <h4 class="member_name_container">
+        <i class="fas fa-user member_name_icon"></i>
+        <span class="member_info member_name"></span>
+      </h4>
+      <p class="shift_name_container">Créneau : <span class="member_info member_shift"></span></p>
+      <p class="status_container">Statut : <span class="member_info member_status"></span></p>
+      <p class="makeups_container">Nb rattrapage(s) : <span class="member_info member_makeups"></span></p>
+      <div id="actions_on_member">
+        <button class="btn--primary" id="remove_shift_template_button">
+          Désinscrire du créneau
+        </button>
+        <button class="btn--primary" id="change_shift_template_button">
+          Changer de créneau
+        </button>
+        <button class="btn--primary" id="subscribe_to_shift_template_button">
+          Réinscrire à un créneau
+        </button>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shifts_calendar_area">
+    {% include "members/shift_template_choice.html" %}
+  </div>
+
+  <div id="templates" style="display:none;">
+    <div id="modal_remove_shift_template">
+      <p>Voulez vraiment désinscrire ce membre du créneau <span class="shift_template_name"></span> ?</p>
+      <div class="checkbox_area">
+        <input type="checkbox" id="permanent_unsuscribe" name="permanent_unsuscribe">
+        <label for="permanent_unsuscribe">Désinscription définitive</label>
+      </div>
+    </div>
+    <div id="modal_error_change_shift_template">
+      <h3 class="error_modal_title""">Action impossible</h3>
+      <p>
+        Le ou la membre est inscrit.e à un rattrapage sur le créneau choisi (<span class="shift_template_name"></span>), cela empêche de l'inscrire sur ce créneau.
+      </p>
+      <p>Vous pouvez essayer de l'inscrire sur ce créneau une autre semaine.</p>
+    </div>
+  </div>
+</div>
+
+<script src="{% static "js/pouchdb.min.js" %}"></script>
+<script type="text/javascript">
+  var type = 2;
+  var has_committe_shift = '{{has_committe_shift}}'
+  var max_begin_hour = '{{max_begin_hour}}'
+  var couchdb_dbname = '{{db}}';
+  var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
+  var ASSOCIATE_MEMBER_SHIFT = '{{ASSOCIATE_MEMBER_SHIFT}}';
+</script>
+<script src='{% static "js/common.js" %}?v='></script>
+<script src='{% static "js/all_common.js" %}?v='></script>
+<script src='{% static "js/admin/manage_regular_shifts.js" %}?v='></script>
+{% endblock %}

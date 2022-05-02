@@ -1,0 +1,26 @@
+.header {
+    margin-top: 15px;
+}
+  
+.management_type_buttons {
+    margin-top: 60px;
+}
+  
+.management_type_button {
+    height: 2.2em;
+    width: 30%;
+    border-radius: 3px;
+    margin: 10px;
+    font-size: 1.3em;
+}
+  
+.management_type_button_icons {
+    float: right;
+    margin: 2px;
+}
+
+.login_area {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin/manage_attached.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/datatables.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+  <div id="back_to_admin_index">
+    <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+  </div>
+  <div class="login_area">
+    {% include "common/conn_admin.html" %}
+  </div>
+  <div class="header txtcenter">
+    <h1>Gestion des Binômes</h1>
+  </div>
+
+  <div class="page_content">
+    <div class="management_type_buttons txtcenter">
+      <button type="button" class="btn--primary management_type_button" id="manage_attached_create_pair_button">
+        Créer un binôme
+        <span class="management_type_button_icons"></span>
+      </button><br>
+      <button type="button" class="btn--primary management_type_button" id="manage_attached_delete_pair_button">
+        Désolidariser un binôme
+        <span class="management_type_button_icons"></span>
+      </button><br>
+    </div>
+  </div>
+</div>
+
+<script src='{% static "js/all_common.js" %}?v='></script>
+<script src='{% static "js/admin/manage_attached.js" %}?v='></script>
+<script src='{% static "js/admin/bdm_index.js" %}?v='></script>
+{% endblock %}

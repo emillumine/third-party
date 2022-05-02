@@ -1,3 +1,13 @@
+#cash, #ch {
+  margin-top: 15px;
+}
+
+#admin_connexion_button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
 .envelop_section {
   margin-bottom: 10px;
 }
@@ -6,14 +16,132 @@
   display: none;
   cursor: pointer;
   margin-bottom: 15px;
+  width: 25%;
 }
 
-#cash_envelops {
+#cash_envelops, #ch_envelops, #archive_cash_envelops, #archive_ch_envelops {
   margin-top: 30px;
 }
 
-#ch_envelops {
-  margin-top: 30px;
+.delete_envelop_button, .envelop_comment {
+  margin: 0 0 15px 15px;
+}
+
+.update_envelop_button, .add_to_envelop_button {
+  margin: 0 0 15px 10px;
+}
+
+.envelop_content_list {
+  margin: 20px 0 15px 0;
+}
+
+/* Update envelop modal */
+
+.envelop_lines {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.update_envelop_line {
+  margin: 5px 0;
+  width: 60%;
+  display: flex;
+  position: relative;
+}
+
+.deleted_line_through {
+  border-bottom: 1px solid #d9534f;
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 50%;
+  display: none;
+}
+
+.update_envelop_line div {
+  flex: 50% 1 0;
+}
+
+.update_envelop_line .line_partner_name_container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.update_envelop_line .line_partner_name {
+  text-align: left;
+  padding: 0 5px;
+}
+
+.update_envelop_line .line_partner_input_container {
+  display: flex;
+  align-items: center;
+}
+
+.delete_envelop_line_icon {
+  margin-left: 10px;
+  color: #d9534f;
+  cursor: pointer;
+}
+
+.envelop_comments {
+  width: 60%;
+  margin-bottom: 20px;
+}
+
+/* Add payments to envelop modal */
+
+.search_member_area {
+  margin: 20px 0;
+}
+
+.search_member_results_area {
+  margin: 20px 0;
+}
+
+.add_to_envelop_lines_area {
+  margin: 20px 0;
+}
+
+.add_to_envelop_lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.add_to_envelop_line {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.add_to_envelop_line .partner_name_container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.add_to_envelop_line .partner_input_container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 10px;
+  width: 300px;
+}
+
+.line_partner_amount_error {
+  display: none;
+  color: #d9534f;
+  font-style: italic;
+}
+
+.confirm_add_payment_details {
+  font-weight: bold;
+  margin: 0 3px;
 }
 
 /* Accordion style */
@@ -23,7 +151,6 @@
   color: #212529;
   cursor: pointer;
   padding: 18px;
-  /* width: 80%; */
   text-align: left;
   border: none;
   outline: none;
@@ -32,7 +159,6 @@
 
 .archive_button {
   padding: 18px;
-  /* width: 20%; */
 }
 
 hr {

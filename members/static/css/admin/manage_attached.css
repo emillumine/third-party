@@ -1,0 +1,136 @@
+.header {
+    margin: 1rem 0;
+}
+
+.login_area {
+    position: absolute;
+    display: block;
+    top: 5px;
+    right: 5px;
+}
+
+#back_to_admin_index {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+/* Buttons */
+
+.management_type_buttons {
+    margin-top: 60px;
+    display: flex;
+    justify-content: center;
+}
+
+.management_type_button {
+    height: 2.2em;
+    width: 30%;
+    border-radius: 3px;
+    margin: 10px;
+    font-size: 1.3em;
+}
+
+.create_pair_button {
+    display: flex;
+    justify-content: center;
+    margin: 120px 0 120px 0;
+}
+
+@media screen and (max-width: 992px) {
+    .create_pair_button {
+        margin: auto;
+    }
+}
+
+#createPair {
+    border-radius: 30px; 
+}
+
+/* Search membres area */
+
+.search_member_form_area {
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.search_member_form {
+    margin-left: 10px;
+}
+
+/* Member infos */
+.tile_icon {
+    margin-right: 15px;
+    color: #00a573;
+}
+
+.member_info {
+    font-weight: bold;
+}
+
+.member_status_text_container {
+    margin: 1rem;
+}
+
+/* Attached members table */
+.table_area {
+    margin-top: 20px;
+}
+
+#table_top_area {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* -- Tiles */
+
+.tiles_container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+@media screen and (max-width: 992px) {
+    .tiles_container {
+        flex-direction: column;
+    }
+}
+
+.tile {
+    flex: 1 0 20%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    border-radius: 30px;
+    margin: 1rem 1rem;
+    padding: 1rem;
+    box-shadow: 2px 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
+}
+
+.tile_content {
+    height: 100%;
+    flex-direction: column;
+    text-align: center;
+    font-size: 1.6rem;
+}
+
+.spinner {
+   height:40px;
+}
+
+/* Modale */
+.attached-members .member div {width: 50px; display: inline-block; margin: 1rem 0;}
+.attached-members .member div.name {width: 100%; position: relative;}
+.attached-members .member div.select_after_unattached_state {
+    position: absolute;
+    right:5rem;
+    top:0;
+    bottom:0;
+    margin: 0;
+    display:flex;
+    justify-content: center ;
+    align-items: center;
+}
+
+.attached-members .member .after_unattached_state {
+    cursor: pointer;
+}

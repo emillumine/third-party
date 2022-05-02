@@ -25,6 +25,9 @@
                             <button type="button" class="btn--danger choose_makeups">
                                 Je sélectionne mes rattrapages
                             </button>
+                            <button type="button" class="btn--success remove_future_registration">
+                                J'ai validé un service à deux, je peux supprimer une présence
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -102,17 +105,8 @@
                 </div>
             </div>
         </div>
-        <div class="tile full_width_tile">
-            <div class="tile_title">
-                Comprendre mon statut
-            </div>
-            <div class="my_info_line_middle">
-                Il existe différents statuts à La Cagette donnant ou non le droit de faire ses courses. Voici un schéma explicatif expliquant le passage d'un statut à un autre. Pour toute question relative aux statuts, rendez&#x2011;vous dans la rubrique <a href='faq'>Problèmes&nbsp;&&nbsp;Demandes</a>.
-            </div>
-            <a href="/static/img/diagramme_etat_statut_cooperateurs.png" target=”_blank”>
-                <img class="status_info_image" src="/static/img/diagramme_etat_statut_cooperateurs.png" alt="diagramme_etat_statut_cooperateurs"/>
-            </a>
-
-        </div>
+        {% if understand_my_status %}
+            {% include  "members_space/understand_my_status.html" %}
+        {% endif %}
     </div>
 </div>

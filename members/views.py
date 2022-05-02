@@ -8,7 +8,7 @@ from members.models import CagetteMembers
 from members.models import CagetteServices
 from outils.forms import GenericExportMonthForm
 
-
+import datetime
 
 default_fields = ['name',
                   'image_medium']
@@ -63,6 +63,10 @@ def exists(request, mail):
     answer = CagetteMember.exists(mail)
     return JsonResponse({'answer': answer})
 
+def is_associated(request, id_parent):
+    answer = CagetteMember.is_associated(id_parent)
+    return JsonResponse({'answer': answer})
+
 def getmemberimage(request, id):
     m = CagetteMember(id)
     call_res = m.get_image()
@@ -83,21 +87,27 @@ def inscriptions(request, type=1):
     """
     template = loader.get_template('members/inscriptions.html')
 
-    context = {'type': type, 'title': 'Inscriptions',
-               'couchdb_server': settings.COUCHDB['url'],
-               'mag_place_string': settings.MAG_NAME,
-               'office_place_string': settings.OFFICE_NAME,
-               'max_begin_hour': settings.MAX_BEGIN_HOUR,
-               'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
-               'force_firstname_hyphen': getattr(settings, 'FORCE_HYPHEN_IN_SUBSCRIPTION_FIRSTNAME', True),
-               'input_barcode': getattr(settings, 'SUBSCRIPTION_INPUT_BARCODE', False),
-               'email_domain': getattr(settings, 'EMAIL_DOMAIN', 'lacagette-coop.fr'),
-               'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
-               'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
-               'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
-               'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
-               'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
-               'db': settings.COUCHDB['dbs']['member']}
+    committees_shift_id = CagetteServices.get_committees_shift_id()
+    context = {
+        'type': type, 'title': 'Inscriptions',
+        'couchdb_server': settings.COUCHDB['url'],
+        'mag_place_string': settings.MAG_NAME,
+        'office_place_string': settings.OFFICE_NAME,
+        'max_begin_hour': settings.MAX_BEGIN_HOUR,
+        'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
+        'force_firstname_hyphen': getattr(settings, 'FORCE_HYPHEN_IN_SUBSCRIPTION_FIRSTNAME', True),
+        'input_barcode': getattr(settings, 'SUBSCRIPTION_INPUT_BARCODE', False),
+        'email_domain': getattr(settings, 'EMAIL_DOMAIN', 'lacagette-coop.fr'),
+        'ask_for_sex': getattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX', False),
+        'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
+        'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
+        'max_chq_nb': getattr(settings, 'MAX_CHQ_NB', 12),
+        'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
+        'db': settings.COUCHDB['dbs']['member'],
+        'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
+        'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
+        'committees_shift_id': committees_shift_id,
+    }
 
     response = HttpResponse(template.render(context, request))
     return response
@@ -237,6 +247,8 @@ def update_couchdb_barcodes(request):
 
 def search(request, needle, shift_id):
     """Search member has been requested."""
+    search_type = request.GET.get('search_type', "full")
+
     try:
         key = int(needle)
         k_type = 'barcode_base'
@@ -247,7 +259,7 @@ def search(request, needle, shift_id):
         key = needle
         k_type = 'name'
 
-    res = CagetteMember.search(k_type, key, shift_id)
+    res = CagetteMember.search(k_type, key, shift_id, search_type)
     return JsonResponse({'res': res})
 
 
@@ -275,6 +287,9 @@ def record_service_presence(request):
         mid = int(request.POST.get("mid", 0))  # member id
         sid = int(request.POST.get("sid", 0))  # shift id
         stid = int(request.POST.get("stid", 0))  # shift_ticket_id
+        cancel = request.POST.get("cancel") == 'true'
+        typeAction = str(request.POST.get("type"))
+
         app_env = getattr(settings, 'APP_ENV', "prod")
         if (rid > -1 and mid > 0):
             overrided_date = ""
@@ -284,28 +299,31 @@ def record_service_presence(request):
                 if o_date:
                     overrided_date = re.sub(r'(%20)',' ', o_date.group(1))
 
-            # rid = 0 => C'est un rattrapage, sur le service
-            if sid > 0 and stid > 0:
-                # Add member to service and take presence into account
-                res['rattrapage'] = CagetteServices.record_rattrapage(mid, sid, stid)
-                if res['rattrapage'] is True:
-                    res['update'] = 'ok'
-            else:
-                if (CagetteServices.registration_done(rid, overrided_date) is True):
-                    res['update'] = 'ok'
+            if(not cancel):
+                # rid = 0 => C'est un rattrapage, sur le service
+                if sid > 0 and stid > 0:
+                    # Add member to service and take presence into account
+                    res['rattrapage'] = CagetteServices.record_rattrapage(mid, sid, stid, typeAction)
+                    if res['rattrapage'] is True:
+                        res['update'] = 'ok'
                 else:
-                    res['update'] = 'ko'
-            if res['update'] == 'ok':
-                members = CagetteMember.search('id', mid)
-                m = members[0]
-                for k in ['image_medium', 'barcode', 'barcode_base']:
-                    del m[k]
-                next_shift = {}
-                if len(m['shifts']) > 0:
-                    next_shift = m['shifts'][0]
-                    del m['shifts']
-                    m['next_shift'] = next_shift
-                res['member'] = m
+                    if (CagetteServices.registration_done(rid, overrided_date, typeAction) is True):
+                        res['update'] = 'ok'
+                    else:
+                        res['update'] = 'ko'
+                if res['update'] == 'ok':
+                    members = CagetteMember.search('id', mid)
+                    m = members[0]
+                    for k in ['image_medium', 'barcode', 'barcode_base']:
+                        del m[k]
+                    next_shift = {}
+                    if len(m['shifts']) > 0:
+                        next_shift = m['shifts'][0]
+                        del m['shifts']
+                        m['next_shift'] = next_shift
+                    res['member'] = m
+            else: CagetteServices.reopen_registration(rid, overrided_date)
+                
     except Exception as e:
         res['error'] = str(e)
     return JsonResponse({'res': res})
@@ -391,6 +409,21 @@ def panel_get_purchases(request):
             response = HttpResponse(message)
     return response
 
+def add_shares_to_member(request):
+    res = {}
+    try:
+        data = json.loads(request.body.decode())
+        partner_id = int(data["partner_id"])
+        amount = int(data["amount"])
+        
+    except Exception as e:
+        res['error'] = "Wrong params"
+        return JsonResponse(res, safe=False, status=400)
+
+    m = CagetteMember(partner_id)
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    res = m.create_capital_subscription_invoice(amount, today)
+    return JsonResponse(res, safe=False)
 
 # # #  BDM # # #
 def save_partner_info(request):
