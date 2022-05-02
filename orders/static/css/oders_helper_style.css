@@ -56,7 +56,8 @@
 }
 
 /* - Order selection screen */
-#new_order_area {
+#new_order_area,
+#existing_orders_area {
     margin-bottom: 40px;
 }
 
@@ -167,6 +168,11 @@
     border-bottom: 1px solid #004aa6;
 }
 
+#common_info_editor_container {
+    width: 50%;
+    margin:  15px auto;
+}
+
 /* -- Order data */
 #order_data_container {
     font-size: 1.8rem;
@@ -177,7 +183,7 @@
 }
 
 #order_forms_container {
-    margin-top: 20px;
+    margin: 25px 0;
     display: flex;  
     flex-wrap: wrap;
     justify-content: space-evenly;

@@ -30,7 +30,8 @@ var reception_status = null,
     updatedProducts = [], // Keep record of updated products
     validProducts = [], // Keep record of directly validated products
     updateType = "", // step 1: qty_valid; step2: br_valid
-    barcodes = null; // Barcodes stored locally
+    barcodes = null, // Barcodes stored locally
+    priceToWeightIsCorrect = true;
 
 var dbc = null,
     sync = null,
@@ -67,38 +68,56 @@ function searchUpdatedProduct() {
 function select_product_from_bc(barcode) {
     try {
         if (editing_product == null) {
-            let p = barcodes.get_corresponding_odoo_product(barcode);
+            var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
 
-            if (p == null) {
+            priceToWeightIsCorrect = true;
+
+            if (scannedProduct == null) {
                 alert("Le code-barre " + barcode + " ne correspond à aucun article connu.");
 
                 return -1;
             }
 
-            var found = {data: null, place: null};
+            var foundProduct = {data: null, place: null};
 
             $.each(list_to_process, function(i, e) {
-                if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
-                    found.data = e;
-                    found.place = 'to_process';
+                if (e.product_id[0] == scannedProduct.data[barcodes['keys']['id']]) {
+                    foundProduct.data = e;
+                    foundProduct.place = 'to_process';
                 }
             });
 
-            if (found.data == null) {
+            if (foundProduct.data == null) {
                 $.each(list_processed, function(i, e) {
-                    if (e.product_id[0] == p.data[barcodes['keys']['id']]) {
-                        found.data = JSON.parse(JSON.stringify(e));
-                        found.place = 'processed';
+                    if (e.product_id[0] == scannedProduct.data[barcodes['keys']['id']]) {
+                        foundProduct.data = JSON.parse(JSON.stringify(e));
+                        foundProduct.data.product_qty = null;
+                        foundProduct.place = 'processed';
                     }
                 });
             }
 
-            if (found.data !== null) {
-                setLineEdition(found.data);
-                if (found.place === 'to_process') {
-                    let row = table_to_process.row($('#'+found.data.product_id[0]));
+            if (foundProduct.data !== null) {
+                if (foundProduct.data.product_uom[0] == 21) { //if qty is in weight
+                    if (scannedProduct.rule === 'weight') {
+                        editing_product = foundProduct.data;
+                        editProductInfo(foundProduct.data, scannedProduct.qty);
+                        editing_product = null;
+                    } else if (scannedProduct.rule === 'price_to_weight') {
+                        openModal($('#templates #modal_confirm_price_to_weight').html(), price_to_weight_is_wrong, 'Non', false, true, price_to_weight_confirmed_callback(foundProduct, scannedProduct));
+                        setupPopUpBtnStyle(scannedProduct);
+                    }
+                }
 
-                    remove_from_toProcess(row, found.data);
+                if (scannedProduct.rule !== 'price_to_weight') {
+                    if (foundProduct.data.product_uom[0] != 21) {
+                        setLineEdition(foundProduct.data);
+                    }
+                    if (foundProduct.place === 'to_process') {
+                        let row = table_to_process.row($('#'+foundProduct.data.product_id[0]));
+
+                        remove_from_toProcess(row, foundProduct.data);
+                    }
                 }
             }
         }
@@ -154,6 +173,65 @@ function update_distant_orders() {
         .catch((err) => {
             console.log(err);
         });
+}
+
+function price_to_weight_confirmed_callback(foundProduct, scannedProduct) {
+    return function() {
+        let newQty = null;
+
+        if (priceToWeightIsCorrect) {
+            newQty = scannedProduct.qty;
+        } else {
+            let tmp = Number((scannedProduct.value/document.getElementById("new_price_to_weight").value).toFixed(3));
+
+            if (isFinite(tmp)) {
+                newQty = tmp;
+            }
+        }
+
+        if (foundProduct.data !== null && newQty != null) {
+            if (foundProduct.place === 'to_process') {
+                let row = table_to_process.row($('#'+foundProduct.data.product_id[0]));
+
+                remove_from_toProcess(row, foundProduct.data);
+            }
+            editing_product = foundProduct.data;
+            editProductInfo(foundProduct.data, newQty);
+            editing_product = null;
+            resetPopUpButtons();
+        }
+    };
+}
+
+function price_to_weight_is_wrong() {
+    document.getElementById("new_price_to_weight").style.display = "";
+    document.getElementsByClassName("btn--success")[0].style.display = "none";
+    document.querySelector('#modal_closebtn_bottom').innerHTML = 'OK';
+    priceToWeightIsCorrect = false;
+}
+
+function setupPopUpBtnStyle(p) {
+    //On inverse en quelque sorte les boutons succes et d'annulation en mettant "Oui" sur le btn d'annulation
+    // et "Non" sur le bouton de reussite.
+    //Cela nous permet de reecrire moins de code puisque si la reponse est Oui on ne veut
+    //rien modifier et sortir du pop up, ce qui correspond au comportement du bouton annulation
+    //(ou aussi appeler cancel button)
+
+    document.querySelector('#modal_closebtn_bottom').innerHTML = 'Oui';
+    document.getElementById("modal_closebtn_bottom").style.backgroundColor = "green";
+    document.getElementsByClassName("btn--success")[0].style.backgroundColor = "red";
+
+    document.querySelector('#product_to_verify').innerHTML = p.data[0];
+    document.querySelector('#price_to_verify').innerHTML = p.data[6];
+
+    document.getElementById("new_price_to_weight").style.display = "none";
+    document.getElementsByClassName("btn--success")[0].style.display = "";
+}
+
+function resetPopUpButtons() {
+    document.getElementsByClassName("btn--success")[0].style.display = "";
+    document.getElementsByClassName("btn--success")[0].style.backgroundColor = "";
+    document.querySelector('#modal_closebtn_bottom').style.backgroundColor = "";
 }
 
 /* INIT */
@@ -857,36 +935,47 @@ function editProductInfo (productToEdit, value = null, batch = false) {
     // Check if the product is already in the 'updated' list
         var index = searchUpdatedProduct();
         var firstUpdate = false;
+        var isValid = false;
         let newValue = value;
         var addition = false;
 
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
             newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
+            newValue = newValue.isFinite() ? newValue : 0;
         }
 
         $.each(list_processed, function(i, e) {
             if (e.product_id[0] == productToEdit.product_id[0]) {
                 addition = true;
                 productToEdit = e;
-                newValue = newValue + productToEdit.product_qty;
+                newValue = Number((newValue + productToEdit.product_qty).toFixed(3));
             }
         });
         // If qty edition & Check if qty changed
-        if (reception_status == "False" && productToEdit.product_qty != newValue) {
-            if (index == -1) { // First update
-                productToEdit.old_qty = productToEdit.product_qty;
-                firstUpdate = true;
-            }
+        if (reception_status == "False") {
+            firstUpdate = (index == -1); //first update
+            if (productToEdit.product_qty != newValue) {
+                if (firstUpdate) {
+                    productToEdit.old_qty = productToEdit.product_qty;
+                } else {
+                    //if it is not the first update AND newValue is equal to the validation qty then the product is valid
+                    isValid = (newValue === productToEdit.old_qty);
+                }
 
-            // Edit product info
-            productToEdit.product_qty = newValue;
-            /*
-            If qty has changed, we choose to set detailed values as follow:
-            1 package (product_qty_package) of X products (package_qty)
-            */
-            productToEdit.product_qty_package = 1;
-            productToEdit.package_qty = productToEdit.product_qty;
+                // Edit product info
+                productToEdit.product_qty = newValue;
+                /*
+               If qty has changed, we choose to set detailed values as follow:
+               1 package (product_qty_package) of X products (package_qty)
+               */
+                productToEdit.product_qty_package = 1;
+                productToEdit.package_qty = productToEdit.product_qty;
+
+            } else if (firstUpdate) {
+                // if the product is updated for the first time and productQty is equal to the newValue then the product is validated
+                isValid = true;
+            }
         }
 
         // Check if price changed
@@ -920,27 +1009,56 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         if (firstUpdate) {
             updatedProducts.push(productToEdit);
 
-            // Create 'updated_products' list in order if not exists
-            if (!orders[productToEdit.id_po]['updated_products']) {
-                orders[productToEdit.id_po]['updated_products'] = [];
-            }
+            //if product is validated thru edition -> add to valid_products
+            if (isValid) {
+                // Create 'valid_products' list in order if not exists
+                if (!orders[productToEdit.id_po]['valid_products']) {
+                    orders[productToEdit.id_po]['valid_products'] = [];
+                }
+                orders[productToEdit.id_po]['valid_products'].push(productToEdit['id']);
+            } else {
+                // Create 'updated_products' list in order if not exists
+                if (!orders[productToEdit.id_po]['updated_products']) {
+                    orders[productToEdit.id_po]['updated_products'] = [];
+                }
 
-            // Add product to order's updated products if first update
-            orders[productToEdit.id_po]['updated_products'].push(productToEdit);
+                // Add product to order's updated products if first update
+                orders[productToEdit.id_po]['updated_products'].push(productToEdit);
 
-            // May have been directly validated then updated from processed list
-            //  -> remove from 'valid_products' list
-            for (i in orders[productToEdit.id_po]['valid_products']) {
-                if (orders[productToEdit.id_po]['valid_products'][i] == productToEdit['id']) {
-                    orders[productToEdit.id_po]['valid_products'].splice(i, 1);
+                // May have been directly validated then updated from processed list
+                //  -> remove from 'valid_products' list
+                for (i in orders[productToEdit.id_po]['valid_products']) {
+                    if (orders[productToEdit.id_po]['valid_products'][i] == productToEdit['id']) {
+                        orders[productToEdit.id_po]['valid_products'].splice(i, 1);
+                    }
                 }
             }
         } else {
-            // Look for product in order's updated products list
-            for (i in orders[productToEdit.id_po]['updated_products']) {
-                if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
-            == productToEdit['product_id'][0]) {
-                    orders[productToEdit.id_po]['updated_products'][i] = productToEdit;
+
+            if (isValid) {
+                //if product is valid -> remove from updated_products list and add to valid_products list
+                //removing from updated_products
+                for (i in orders[productToEdit.id_po]['updated_products']) {
+                    if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
+                == productToEdit['product_id'][0]) {
+                        orders[productToEdit.id_po]['updated_products'].splice(i, 1);
+                    }
+                }
+
+                //add to valid_products
+                // Create 'valid_products' list in order if not exists
+                if (!orders[productToEdit.id_po]['valid_products']) {
+                    orders[productToEdit.id_po]['valid_products'] = [];
+                }
+                orders[productToEdit.id_po]['valid_products'].push(productToEdit['id']);
+
+            } else {
+                // Look for product in order's updated products list
+                for (i in orders[productToEdit.id_po]['updated_products']) {
+                    if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
+                == productToEdit['product_id'][0]) {
+                        orders[productToEdit.id_po]['updated_products'][i] = productToEdit;
+                    }
                 }
             }
         }

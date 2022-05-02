@@ -1,6 +1,12 @@
 from django.test import SimpleTestCase
+from django.test import Client
 
 class TestUrls(SimpleTestCase):
 
-    def test_list_url_is_resolved(self):
-        assert 1==1
+    def testShelfsUrlIsResolved(self):
+
+    	c = Client()
+    	response = c.get('/shelfs/')
+    
+    	assert response.status_code == 200, "Shelfs url is not resolved"
+

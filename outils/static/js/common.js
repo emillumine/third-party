@@ -53,8 +53,13 @@ function subscribe_shift(shift_t_id) {
     var s_data = shift_templates[shift_t_id].data;
     var shift_name = get_shift_name(s_data);
 
+    if (committees_shift_id !== undefined && committees_shift_id !== "None" && shift_name === "Volant") {
+        shift_name = 'des Comités'
+    }
+    let msg = 'On inscrit le membre au créneau ' + shift_name
+
     openModal(
-        'On inscrit le membre au créneau ' + shift_name,
+        msg,
         function() {
             closeModal();
             current_coop.shift_template = shift_templates[shift_t_id];
@@ -327,7 +332,14 @@ function retrieve_and_draw_shift_tempates() {
             $.each(shift_templates, function(i, e) {
 
                 if (e.data.type == 2 && volant == null) {
-                    volant = e.data.id;
+                    // has comitee shift
+                    if (committees_shift_id !== undefined && committees_shift_id !== "None") {
+                        if (e.data.id == parseInt(committees_shift_id)) {
+                            volant = e.data.id
+                        }
+                    } else {
+                        volant = e.data.id;
+                    }
                 }
             });
 
