@@ -10,10 +10,16 @@ var suppliers_list = [],
         package_qty: null,
         price: null
     },
-    qties_values = {};
+    qties_values = {},
+    clicked_order_pill = null,
+    userAgent = navigator.userAgent;
+
+timerId = null,
+info_editor = null;
 
 var dbc = null,
     sync = null,
+    fingerprint = null,
     order_doc = {
         _id: null,
         coverage_days: null,
@@ -27,11 +33,12 @@ var dbc = null,
         selected_suppliers: [],
         selected_rows: []
     },
-    fingerprint = null;
+    common_info_doc_name = "common_info",
+    info_doc = {
+        _id: null,
+        content: ""
+    };
 
-var clicked_order_pill = null;
-let userAgent = navigator.userAgent;
-var timerId = null;
 
 /* - UTILS */
 
@@ -125,7 +132,9 @@ function debounceFunction(func, delay = 1000) {
 
     timerId = setTimeout(func, delay);
 }
+
 /* - PRODUCTS */
+
 var process_new_product_qty = function(input) {
     // Remove line coloring on input blur
     const row = $(input).closest('tr');
@@ -188,6 +197,7 @@ var process_new_product_qty = function(input) {
         }
     }
 };
+
 /**
  * Add a product.
  *
@@ -2150,20 +2160,25 @@ function update_order_selection_screen() {
             // Remove listener before recreating them
                 $(".order_pill").off();
 
+                // Reset orders data
                 let existing_orders_container = $("#existing_orders");
 
                 existing_orders_container.empty();
                 $('#new_order_name').val('');
 
-                if (result.rows.length === 0) {
+                if (
+                    result.rows.length === 0
+                    || result.rows.length === 0 && result.rows[0].id === common_info_doc_name) {
                     existing_orders_container.append(`<i>Aucune commande en cours...</i>`);
                 } else {
                     for (let row of result.rows) {
-                        let template = $("#templates #order_pill_template");
+                        if (row.id !== common_info_doc_name) {
+                            let template = $("#templates #order_pill_template");
 
-                        template.find(".pill_order_name").text(row.id);
+                            template.find(".pill_order_name").text(row.id);
 
-                        existing_orders_container.append(template.html());
+                            existing_orders_container.append(template.html());
+                        }
                     }
 
                     $(".order_pill").on("click", order_pill_on_click);
@@ -2288,6 +2303,15 @@ function init_pouchdb_sync() {
                     );
                     back();
                     break;
+                } else if (doc._id === common_info_doc_name) {
+                    init_info_editor();
+                    $.notify(
+                        "Nouveau message dans le bloc d'information !",
+                        {
+                            globalPosition:"top right",
+                            className: "info"
+                        }
+                    );
                 }
             }
 
@@ -2303,11 +2327,162 @@ function init_pouchdb_sync() {
     });
 }
 
+/* - INFO AREA */
+
+/**
+ * Init the Quill module (Text editor)
+ * @param {Object} params
+ */
+function quillify(params) {
+    info_editor = new Quill(params.id, {
+        modules: {
+            toolbar: [
+                [
+                    { header: [
+                        1,
+                        2,
+                        false
+                    ] }
+                ],
+                [
+                    'bold',
+                    'italic',
+                    'underline'
+                ],
+                [
+                    { 'size': [
+                        'small',
+                        false,
+                        'large',
+                        'huge'
+                    ] }
+                ],
+                [
+                    { 'color': [] },
+                    { 'background': [] }
+                ]
+            ]
+        },
+        placeholder: "Indiquez ici un message pour le reste de l'équipe",
+        theme: 'snow'
+    });
+    info_editor.root.innerHTML = params.content;
+}
+
+/**
+ * Init object & dom for the info editor.
+ * Await retrieving content.
+ */
+async function init_info_editor() {
+    let info_content = await get_or_create_common_info();
+
+    // Reset info editor
+    info_editor = null;
+    $("#common_info_editor_container").empty();
+    $("#common_info_editor_container").append(`<div id="common_info_editor"></div>`);
+
+    // Init text editor for Info textarea
+    let quill_params = {
+        id: '#common_info_editor',
+        content: info_content
+    };
+
+    quillify(quill_params);
+
+    $("#save_common_info").on("click", function() {
+        if (is_time_to('save_common_info', 1000)) {
+            let content = $("#common_info_editor").find('.ql-editor')
+                .html();
+
+            if (content === "<p><br></p>") {
+                content = "";
+            }
+
+            update_common_info(content);
+        }
+    });
+
+}
+
+/**
+ * Get common info HTML content. If doc doesn't exist, create & return empty string
+ * @returns String HTML content | ""
+ */
+function get_or_create_common_info() {
+    // todo await async
+    return new Promise((resolve) => {
+        dbc.get(common_info_doc_name).then((doc) => {
+            info_doc = doc;
+            resolve(doc.content);
+        })
+            .catch(function (err) {
+                if (err.status == 404) {
+                // First access, create
+                    info_doc._id = common_info_doc_name;
+                    dbc.put(info_doc, function callback(err, result) {
+                        if (!err) {
+                            info_doc._rev = result.rev;
+                        } else {
+                            $.notify(
+                                "Erreur lors de l'initialisation du bloc d'informations",
+                                {
+                                    globalPosition:"top right",
+                                    className: "error"
+                                }
+                            );
+                            console.log(err);
+                        }
+                        resolve("");
+                    });
+                } else {
+                    $.notify(
+                        "Erreur lors de la récupération du bloc d'informations",
+                        {
+                            globalPosition:"top right",
+                            className: "error"
+                        }
+                    );
+                    console.log(err);
+                    resolve("");
+                }
+            });
+    });
+}
+
+/**
+ * Update couchdb info document with textarea (HTML) content
+ * @param {String} content
+ */
+function update_common_info(content) {
+    info_doc.content = content;
+    dbc.put(info_doc, function callback(err, result) {
+        if (!err) {
+            info_doc._rev = result.rev;
+            $.notify(
+                "Bloc d'informations mis à jour",
+                {
+                    globalPosition:"top right",
+                    className: "success"
+                }
+            );
+        } else {
+            $.notify(
+                "Erreur lors de la mise à jour du bloc d'informations",
+                {
+                    globalPosition:"top right",
+                    className: "error"
+                }
+            );
+            console.log(err);
+        }
+    });
+}
 
 $(document).ready(function() {
     if (coop_is_connected()) {
         $('#new_order_form').show();
         $('#existing_orders_area').show();
+        $('#common_info_area').show();
 
         fingerprint = new Fingerprint({canvas: true}).get();
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
@@ -2555,6 +2730,7 @@ $(document).ready(function() {
 
         // Order selection screen
         update_order_selection_screen();
+        init_info_editor();
 
         $("#new_order_form").on("submit", function(e) {
             e.preventDefault();
@@ -2585,8 +2761,6 @@ $(document).ready(function() {
                 $("#supplier_input").autocomplete({
                     source: suppliers_list.map(a => a.display_name)
                 });
-
-
             },
             error: function(data) {
                 err = {msg: "erreur serveur lors de la récupération des fournisseurs", ctx: 'get_suppliers'};
@@ -2694,7 +2868,6 @@ $(document).ready(function() {
                 }
             });
         }
-
     } else {
         $('#not_connected_content').show();
     }
