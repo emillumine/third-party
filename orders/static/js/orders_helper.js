@@ -2482,6 +2482,7 @@ $(document).ready(function() {
     if (coop_is_connected()) {
         $('#new_order_form').show();
         $('#existing_orders_area').show();
+        $('#common_info_area').show();
 
         fingerprint = new Fingerprint({canvas: true}).get();
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
