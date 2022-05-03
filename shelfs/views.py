@@ -61,6 +61,15 @@ def shelf_data(request, shelf_id):
     else:
         return JsonResponse({'res': shelf})
 
+def set_begin_inventory_datetime(request, shelf_id):
+    """ Set the ongoing inventory start datetime. Set it to now. """
+    res = Shelf(shelf_id).set_begin_inventory_datetime()
+
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
 
 def all(request):
     """Get all shelves data"""

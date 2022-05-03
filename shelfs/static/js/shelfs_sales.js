@@ -17,7 +17,7 @@ function init_datatable() {
             {
                 data:"date_last_inventory",
                 title:"Date dernier inventaire",
-                render: function (data, type, full, meta) {
+                render: function (data, type) {
                     // Sort on data, not rendering
                     if (type == "sort" || type == 'type')
                         return data;
@@ -37,7 +37,7 @@ function init_datatable() {
                 title:"",
                 className:"dt-body-center",
                 width: "15%",
-                render: function (data, type, full, meta) {
+                render: function () {
                     return "<button class='btn--success do_export_sales_data'>Export Ventes</button>";
                 }
             }
