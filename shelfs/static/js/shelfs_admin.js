@@ -368,29 +368,30 @@ var addProductToList = async function(barcode) {
     //It could also be a wrong reading one
 
     odoo_product = barcodes.get_corresponding_odoo_product(barcode);
-
-    if (is_product_in_shelf_adding_queue_list(odoo_product.data[barcodes.keys.id])) {
-        console.log("Already added product");
-    } else {
-        add_to_shelf_product_ids.push(odoo_product.data[4]);
-        if (odoo_product === null) {
-            alert(barcode + ' : Code-barre inconnu');
+    if (odoo_product) {
+        if (is_product_in_shelf_adding_queue_list(odoo_product.data[barcodes.keys.id])) {
+            alert("Produit déjà présent dans la liste.");
         } else {
-            var pdt_line = $('<tr>').attr('data-id', odoo_product.data[barcodes.keys.id])
-                .attr('data-bc', odoo_product.barcode)
-                .addClass('obc');
+            add_to_shelf_product_ids.push(odoo_product.data[4]);
+            if (odoo_product === null) {
+                alert(barcode + ' : Code-barre inconnu');
+            } else {
+                var pdt_line = $('<tr>').attr('data-id', odoo_product.data[barcodes.keys.id])
+                    .attr('data-bc', odoo_product.barcode)
+                    .addClass('obc');
 
-            $('<td>').text(barcode)
-                .appendTo(pdt_line);
-            $('<td>').text(odoo_product.barcode)
-                .appendTo(pdt_line);
-            $('<td>').text(odoo_product.data[barcodes.keys.name])
-                .appendTo(pdt_line);
-            $('<td>').html(delete_icon)
-                .appendTo(pdt_line);
-            adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
-            main_content.find('button.add-products').css('display', 'block')
-                .html(add_pdts_btn_text);
+                $('<td>').text(barcode)
+                    .appendTo(pdt_line);
+                $('<td>').text(odoo_product.barcode)
+                    .appendTo(pdt_line);
+                $('<td>').text(odoo_product.data[barcodes.keys.name])
+                    .appendTo(pdt_line);
+                $('<td>').html(delete_icon)
+                    .appendTo(pdt_line);
+                adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
+                main_content.find('button.add-products').css('display', 'block')
+                    .html(add_pdts_btn_text);
+            }
         }
     }
 };

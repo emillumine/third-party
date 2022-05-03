@@ -520,6 +520,8 @@ class CagetteProducts(models.Model):
             rules = OdooAPI().search_read('barcode.rule', c, ['pattern', 'type', 'alias'], order="sequence ASC")
             # As rules are ordered by sequence, let's find where to stop (.* pattern)
             stop_idx = len(rules) - 1
+            #  .* (catchall) rules, if exists, may be not the last rule
+            #  let's find it and set stop_idx consequently
             i = 0
             for r in rules:
                 if r['pattern'] == ".*":
