@@ -479,8 +479,8 @@ function send() {
                 openModal(inventory_validated_msg.html(), refresh, msg, true, false);
 
                 // Go back to list if modal closed
-                $('#modal_closebtn_top').on('click', back);
-                $('#modal_closebtn_bottom').on('click', back);
+                $('#modal_closebtn_top').on('click', refresh);
+                $('#modal_closebtn_bottom').on('click', refresh);
 
                 // Clear local storage before leaving
                 localStorage.removeItem(originView + '_' + shelf.id);
