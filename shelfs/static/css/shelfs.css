@@ -147,6 +147,9 @@ div#container_edition {
 #edition_input_label {
   margin-right: 5px;
 }
+#product_uom {
+  font-size: small;
+}
 
 .blink_me {
   animation: blinker 1s ease-in-out;
@@ -282,3 +285,4 @@ hr {
  visibility: visible;
  opacity: 1;
 }
+

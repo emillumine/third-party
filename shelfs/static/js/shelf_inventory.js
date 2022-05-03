@@ -26,7 +26,8 @@ var shelf,
     processed_row_counter = 0, // Keep count of the order the item were added in processed list
     search_chars = [],
     user_comments = '',
-    adding_product = false; // True if modal to add a product is open
+    adding_product = false, // True if modal to add a product is open
+    barcodes = null; // Barcodes stored locally
 
 
 /* UTILS */
@@ -44,15 +45,84 @@ Number.isSafeInteger = Number.isSafeInteger || function (value) {
     return Number.isInteger(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER;
 };
 
+
+
 function back() {
     document.location.href = parent_location;
 }
 
+function get_added_qties_sum(item) {
+    let total = null;
+    function add(accumulator, a) { // for array sum
+        result = 0;
+        if (a) {
+            if (item.uom_id[1] == "kg") {
+                if (typeof a === "string") {
+                    a = a.replace(',','.')
+                }
+                result = parseFloat(accumulator) + parseFloat(a);
+                result = result.toFixed(3);
+            } else {
+                result = parseInt(accumulator, 10) + parseInt(a, 10);
+            }
+        }
+        return result;
+    }
+    if (typeof item.added_qties != "undefined" && item.added_qties.length > 0) {
+        total = item.added_qties.reduce(add);
+    }
+    
+
+    return total;
+}
+function barcode_analyzer(chars) {
+    let barcode = chars;
+    if (barcode && barcode.length >=13) {
+        barcode = barcode.substring(barcode.length-13);
+    } else if (barcode && barcode.length == 12 && barcode.indexOf('0') !== 0) {
+    // User may use a scanner which remove leading 0
+        barcode = '0' + barcode;
+    } else {
+    //manually submitted after correction
+        var barcode_input = $('#search_input');
+
+        barcode = barcode_input.val();
+    }
+
+    document.getElementById('search_input').value = '';
+    $('table.dataTable').DataTable()
+        .search('')
+        .draw();
+
+    // If modal to add a product is open
+    if (adding_product) {
+        $('input.add_product_input').val(barcode);
+        do_add_product();
+    } else {
+        select_product_from_bc(barcode);
+    }
+}
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
-    if (editing_item == null) {
-        var found = null;
+    var found = null,
+        qty = null;
+    if (isValidEAN13(barcode)) {
+            var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
 
+            if (scannedProduct == null) {
+                alert("Le code-barre " + barcode + " ne correspond à aucun article connu.");
+
+                return -1;
+            } else {
+                barcode = scannedProduct.barcode;
+                if (scannedProduct.rule.length > 0 && scannedProduct.rule != "product") {
+                    qty = scannedProduct.qty;
+                }
+            }
+    }
+
+    if (editing_item == null) {
+ 
         $.each(list_to_process, function(i, e) {
             if (e.barcode == barcode) {
                 found = e;
@@ -64,25 +134,43 @@ function select_product_from_bc(barcode) {
             $.each(shelf.list_processed, function(i, e) {
                 if (e.barcode == barcode) {
                     found = e;
+                    if (qty) {
+                        let message = "Attention, ce produit a déjà été compté.\n";
+                        message += "La quantité " + qty + " n'a pas été ajoutée !\n";
+                        // temporary add read qty and recorded one to added_qties to compute sum
+                        found.added_qties = [qty, found.qty]
+                        message += "Le total serait " + get_added_qties_sum(found);
+                        alert(message);
+                        qty = null;
+                    }
+                    
                     editing_origin = 'processed';
                 }
             });
         }
 
         if (found !== null) {
-            setLineEdition(found);
+            delete found.added_qties;
+            setLineEdition(found, qty);
             if (editing_origin === 'to_process') {
                 let row = table_to_process.row($('tr#'+found.id));
-
                 remove_from_toProcess(row);
             } else {
                 let row = table_processed.row($('tr#'+found.id));
-
                 remove_from_processed(row);
             }
         } else {
             console.log('Code barre introuvable');
         }
+    } else if (barcode == editing_item.barcode && qty){
+        // We scan the same product as the current one
+        let edition_input = $('#edition_input');
+        if (typeof editing_item.added_qties == "undefined") {
+            editing_item.added_qties = [edition_input.val()];
+        }
+        editing_item.added_qties.push(qty);
+        // TODO : add an action icon to view added quantities
+        edition_input.val(get_added_qties_sum(editing_item));
     }
 }
 
@@ -134,8 +222,12 @@ function edit_event(clicked) {
 }
 
 // Set edition area
-function setLineEdition(item) {
-    var edition_input = $('#edition_input');
+/**
+ * If qty is not null, it comes from barcode reading result
+ * */
+function setLineEdition(item, qty) {
+    var edition_input = $('#edition_input'),
+        set_focus = true;
 
     editing_item = item;
     $('#product_name').text(editing_item.name);
@@ -148,12 +240,23 @@ function setLineEdition(item) {
         edition_input.attr('type', 'number').attr('step', 0.001)
             .attr('max', 9999);
     }
+
+    if (qty) {
+        /*
+            To prevent futur data mess if someone scans barcode while focus is on edition input
+            qty is stored in editing_item object
+
+        */
+        editing_item.qty = qty;
+        edition_input.val(qty);
+        set_focus = false;
+    }
     // If item is reprocessed, set input with value
     if (editing_origin == 'processed') {
         edition_input.val(editing_item.qty);
     }
-
-    edition_input.focus();
+    if (set_focus === true)
+        edition_input.focus();
 
     // Make edition area blink when edition button clicked
     container_edition.classList.add('blink_me');
@@ -166,6 +269,7 @@ function clearLineEdition() {
     $('#product_name').text('');
     $('#edition_input').val('');
     $('#search_input').focus();
+    $("#reset_to_previous_qty").hide();
 }
 
 // Validate product edition
@@ -732,6 +836,11 @@ function init() {
       $(document.documentElement).scrollTop(scrollTo);
       */
         });
+        if ($(this).val().length > 0) {
+            $("#reset_to_previous_qty").show();
+        } else {
+            $("#reset_to_previous_qty").hide();
+        }
     })
         .on('blur', function (e) {
             $(this).off('wheel.disableScroll');
@@ -783,35 +892,30 @@ function init() {
         }
     });
 
-    // Barcode reader: listen for 13 digits read in a very short time
+    // Manual and textual input
     $('#search_input').keypress(function(e) {
-        if (e.which >= 48 && e.which <= 57) {
+        if (e.which >= 48 && e.which <= 57) { // figures [0-9]
             search_chars.push(String.fromCharCode(e.which));
-        }
-        if (search_chars.length >= 13) {
-            var barcode = search_chars.join("");
-
-            if (!isNaN(barcode)) {
-                search_chars = [];
-                setTimeout(function() {
-                    document.getElementById('search_input').value = '';
-                    $('table.dataTable').DataTable()
-                        .search('')
-                        .draw();
-
-                    // If modal to add a product is open
-                    if (adding_product) {
-                        $('input.add_product_input').val(barcode);
-                        do_add_product();
-                    } else {
-                        select_product_from_bc(barcode);
-                    }
-                }, 300);
-            }
+        } else if (e.which == 13 || search_chars.length >= 13) {
+            barcode_analyzer();
         }
     });
+
+
+    $(document).pos();
+    $(document).on('scan.pos.barcode', function(event) {
+        //access `event.code` - barcode data
+        var barcode = event.code;
+        barcode_analyzer(barcode);
+       
+    });
+
 }
 
+// Load barcodes at page loading, then barcodes are stored locally
+var get_barcodes = async function() {
+    if (barcodes == null) barcodes = await init_barcodes();
+};
 
 $(document).ready(function() {
     // Get Route parameter
@@ -842,5 +946,6 @@ $(document).ready(function() {
     } else {
         get_shelf_data();
     }
-
+    get_barcodes();
+  
 });

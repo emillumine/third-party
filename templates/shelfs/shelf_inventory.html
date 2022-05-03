@@ -10,6 +10,7 @@
 <script type="text/javascript" src="{% static 'js/download.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -59,6 +60,7 @@
                 <label for="edition_input" id="edition_input_label">Qté : </label>
                 <input type="text" class="number input_small" id="edition_input" autocomplete="off" required>
                 <span id="product_uom"></span>
+                <i class="fa fa-undo" id="reset_to_previous_qty" style="display:none;"></i>
               </div>
               <div class="col-1 center">
                 <a class="btn" id='edition_cancel'>
@@ -171,5 +173,6 @@
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src="{% static "js/common.js" %}?v="></script>
+<script src='{% static "js/barcodes.js" %}?v='></script>
 <script type="text/javascript" src="{% static 'js/shelf_inventory.js' %}"></script>
 {% endblock %}
