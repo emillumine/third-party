@@ -15,8 +15,7 @@ function init_faq() {
     $("#coop_unsubscribe_form_link_btn").prop("href", coop_unsubscribe_form_link);
     $("#helper_subscribe_form_link_btn").prop("href", helper_subscribe_form_link);
     $("#helper_unsubscribe_form_link_btn").prop("href", helper_unsubscribe_form_link);
-    $("#request_form_link_btn2").prop("href", request_form_link);
-    $("#request_form_link_btn").prop("href", request_form_link);
+    $(".ask_bdm_form_link").prop("href", request_form_link);
 
     display_messages_for_attached_people();
 }

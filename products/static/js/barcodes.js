@@ -112,7 +112,14 @@ IFCBarcodes = {
 
         // let's seek "normalized" bc in codes array or alias map
         for (alias in this.aliases) {
-            if (bc == alias) {
+            /*
+                bc.indexOf(alias) === 0
+                could be enough, 
+                but is used to keep in mind .* caracters
+                can be used in rules (have been cleaned before beeing here)
+             */
+            if (bc == alias || bc.indexOf(alias) === 0) {
+
                 is_alias = true;
                 for (barcode in this.codes) {
                     if (barcode == this.aliases[alias]) {
