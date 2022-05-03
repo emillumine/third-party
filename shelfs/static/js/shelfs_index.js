@@ -15,6 +15,24 @@ function init_datatable() {
             {data:"name", title:"Nom"},
             {data:"description", title:"Description", orderable: false},
             {
+                data:"date_last_product_added",
+                title:"Dernier ajout produit",
+                render: function (data, type) {
+                    // Sort on data, not rendering
+                    if (type == "sort" || type == 'type')
+                        return data;
+
+                    if (data == '0001-01-01')
+                        return "";
+                    else {
+                        var date = new Date(data);
+
+
+                        return date.toLocaleDateString('fr-FR');
+                    }
+                }
+            },
+            {
                 data:"date_last_inventory",
                 title:"Date dernier inventaire",
                 render: function (data, type, full, meta) {

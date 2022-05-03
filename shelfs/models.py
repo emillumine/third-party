@@ -180,6 +180,18 @@ class Shelf(models.Model):
             res['error'] = "L'enregistrement n'a pas pu se réaliser"
         return res
 
+    def update_last_product_added_date(self):
+        res = {}
+        today = date.today().strftime("%Y-%m-%d")
+        f = {'date_last_product_added': today}
+
+        try:
+            res["update"] = self.o_api.update('product.shelfs', self.id, f)
+        except Exception as e:
+            res['error'] = str(e)
+
+        return res
+
 
     def save_tmp_inventory(self, inventory_data):
         """Save inventory data in a json temp file"""
