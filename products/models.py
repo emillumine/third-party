@@ -32,7 +32,7 @@ class CagetteProduct(models.Model):
                 '|',
                 ['active', '=', True],
                 ['active', '=', False]]
-        fields = ['id', 'uom_id', 'name', 'qty_available', 'barcode', 'active', 'shelf_id']
+        fields = ['id', 'uom_id', 'name', 'qty_available', 'barcode', 'active', 'shelf_id', 'product_tmpl_id']
 
         return api.search_read('product.product', cond, fields)
 

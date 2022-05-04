@@ -8,6 +8,7 @@ var main_content = $('#main-content'),
     description = create_form.find('textarea[name="description"]'),
     eye = '<i class="fas fa-eye"></i>',
     delete_icon = '<i class="fas fa-trash"></i>',
+    print_icon = '<i class="fas fa-print"></i>',
     add_icon = '<i class="fas fa-plus-circle"></i>',
     edit_icon = '<i class="fas fa-edit"></i>',
     download_icon = '<i class="fas fa-download"></i>',
@@ -361,6 +362,32 @@ var is_product_in_shelf_adding_queue_list = function(testing_pid) {
     return found;
 };
 
+var printProduct = function () {
+  let clicked = $(this);
+  let tr_to_print = clicked.closest('tr');
+  let barcode = tr_to_print.data('bc')
+
+  try {
+    $.ajax({
+      url: '/products/get_product_data',
+      data: {'barcode': barcode}
+      })
+      .done(function(res) {
+        var product = res.product
+        var product_tmpl_id = product.product_tmpl_id[0]
+        $.ajax({
+          url: '/products/label_print/' + product_tmpl_id
+        })
+        .done(function(res) {
+          alert('Impression lancée')
+        })
+      })
+  } catch(e) {
+    alert('Une erreur est survenue...')
+  }
+
+};
+
 var addProductToList = async function(barcode) {
     if (barcodes == null) barcodes = await init_barcodes(); // May appens (after inactivity?)
     //Get Odoo corresponding barcode
@@ -387,6 +414,8 @@ var addProductToList = async function(barcode) {
                 $('<td>').text(odoo_product.data[barcodes.keys.name])
                     .appendTo(pdt_line);
                 $('<td>').html(delete_icon)
+                    .appendTo(pdt_line);
+                $('<td>').html(print_icon)
                     .appendTo(pdt_line);
                 adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
                 main_content.find('button.add-products').css('display', 'block')
@@ -541,6 +570,7 @@ $(document).ready(function() {
         $(document).on('click', '.shelfs .fa-trash', deleteShelf);
         $(document).on('click', '.shelfs .fa-download', downloadInventoryReport);
         $(document).on('click', '.obc .fa-trash', deleteBarcodeFromList);
+        $(document).on('click', '.obc .fa-print', printProduct);
         $(document).on('click', 'td.products .fa-plus-circle', addProducts);
         $(document).on('click', '#main-content button.add-products', recordProductsAddedShelf);
         $(document).on('click', 'td.p_nb', showProductsList);
