@@ -355,6 +355,10 @@
 
 - RECEPTION_SHELF_LABEL_PRINT = True
 
+- DISPLAY_COL_AUTRES = True
+
+        Display "Autres" column (showing select with action "rupture fournisseur")
+
 - COEFF_MAG_ID = 1
 
         DB coeff id, needed to compute product shelf price

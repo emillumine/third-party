@@ -355,7 +355,8 @@ function initLists() {
         // In case of group orders, add "Order" as first column for ordering
         if (Object.keys(orders).length > 1) {
             columns_to_process.push({
-                data:"order_key", title: "Comm- ande", className: "dt-body-center"
+                data:"order_key", title: "n°", className: "dt-body-center",
+                width: "20px"
             });
         }
 
@@ -394,18 +395,18 @@ function initLists() {
             },
             {
                 title:"Editer",
-                defaultContent: "<a class='btn' id='toProcess_line_edit' href='#'><i class='far fa-edit'></i></a>",
+                defaultContent: "<a class='btn toProcess_line_edit' href='#'><i class='far fa-edit'></i></a>",
                 className:"dt-body-center",
                 orderable: false
             },
             {
                 title:"Valider",
-                defaultContent: "<a class='btn' id='toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
+                defaultContent: "<a class='btn toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
                 className:"dt-body-center",
                 orderable: false
             },
             {
-                title:"Autres",
+                title:"",
                 defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
                 className:"dt-body-center",
                 orderable: false,
@@ -532,7 +533,7 @@ function initLists() {
 
     /* Listeners */
     // Direct valid from to_process
-    $('#table_to_process tbody').on('click', 'a#toProcess_line_valid', function () {
+    $('#table_to_process tbody').on('click', 'a.toProcess_line_valid', function () {
         if (is_time_to('reception_direct_valid_order_line', 500)) {
             try {
                 let row = table_to_process.row($(this).parents('tr'));
@@ -565,7 +566,7 @@ function initLists() {
     });
 
     // Edit to_process line
-    $('#table_to_process tbody').on('click', 'a#toProcess_line_edit', function () {
+    $('#table_to_process tbody').on('click', 'a.toProcess_line_edit', function () {
         try {
             // Prevent editing mutiple lines at a time
             if (editing_product == null) {
