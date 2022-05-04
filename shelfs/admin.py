@@ -58,7 +58,11 @@ def add_products(request):
         try:
             id = int(request.POST.get('shelf_id'))
             barcodes = json.loads(request.POST.get('bc'))
-            result = Shelf(id).add_products_by_barcodes(barcodes)
+            m = Shelf(id)
+            result = m.add_products_by_barcodes(barcodes)
+
+            # Update shelf last product added date 
+            result["update_last_product_added_date"] = m.update_last_product_added_date()
         except Exception as e:
             result['error'] = str(e)
     else:
