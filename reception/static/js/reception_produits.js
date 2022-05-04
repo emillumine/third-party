@@ -282,6 +282,11 @@ function fetch_data() {
                             }
 
                         } else {
+                            // Add order key in products
+                            let order_full_data = orders[order_data.id_po];
+
+                            order_data.po[i].order_key = order_full_data.key;
+
                             // Add product to list_to_process
                             list_to_process.push(order_data.po[i]);
 
@@ -310,7 +315,7 @@ function fetch_data() {
 // Init Data & listeners
 function initLists() {
     try {
-    // Un-disable validation buttons now the data's here
+    // Enable validation buttons now the data's here
         if (reception_status == "False") {
             document.getElementById("valid_qty").disabled = false;
             document.getElementById("valid_all_qties").disabled = false;
@@ -344,62 +349,151 @@ function initLists() {
             }
         }
 
+        let columns_to_process = [];
+        let columns_processed = [];
+
+        // In case of group orders, add "Order" as first column for ordering
+        if (Object.keys(orders).length > 1) {
+            columns_to_process.push({
+                data:"order_key", title: "n°", className: "dt-body-center",
+                width: "20px"
+            });
+        }
+
+        columns_to_process = columns_to_process.concat([
+            {data:"product_id.0", title: "id", visible: false},
+            {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center"},
+            {
+                data:"product_id.1",
+                title:"Produit",
+                width: "45%",
+                render: function (data, type, full) {
+                    // Add tooltip with barcode over product name
+                    let display_barcode = "Aucun";
+
+                    if ('barcode' in full) {
+                        display_barcode = full.barcode;
+                    }
+
+                    return '<div class="tooltip">' + data
+                        + ' <span class="tooltiptext tt_twolines">Code barre : '
+                        + display_barcode + '</span> </div>';
+                }
+            },
+            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
+            {
+                data:"product_qty",
+                title: "Qté",
+                className:"dt-body-center",
+                visible: (reception_status == "False")
+            },
+            {
+                data:"price_unit",
+                title:"Prix unit.",
+                className:"dt-body-center",
+                visible: (reception_status == "qty_valid")
+            },
+            {
+                title:"Editer",
+                defaultContent: "<a class='btn toProcess_line_edit' href='#'><i class='far fa-edit'></i></a>",
+                className:"dt-body-center",
+                orderable: false
+            },
+            {
+                title:"Valider",
+                defaultContent: "<a class='btn toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
+                className:"dt-body-center",
+                orderable: false
+            },
+            {
+                title:"",
+                defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
+                className:"dt-body-center",
+                orderable: false,
+                visible: display_autres === "True"
+            }
+        ]);
+
+        columns_processed = [
+            {data:"row_counter", title:"row_counter", visible: false}, // Hidden counter to display last row first
+            {data:"shelf_sortorder", title: "Rayon", className:"dt-body-center"},
+            {
+                data:"product_id.1",
+                title:"Produit",
+                width: "55%",
+                render: function (data, type, full) {
+                    // Add tooltip with barcode over product name
+                    let display_barcode = "Aucun";
+
+                    if ('barcode' in full) {
+                        display_barcode = full.barcode;
+                    }
+
+                    let display = '<div class="tooltip">' + data
+                                  + ' <span class="tooltiptext tt_twolines">Code barre : '
+                                  + display_barcode + '</span> </div>';
+
+                    if (full.supplier_shortage) {
+                        display += ' <div class="tooltip"><i class="fas fa-info-circle"></i>'
+                                  + ' <span class="tooltiptext tt_twolines">Rupture fournisseur'
+                                  + '</span> </div>';
+                    }
+
+                    return display;
+                }
+            },
+            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
+            {
+                data:"product_qty",
+                title:"Qté",
+                className:"dt-head-center dt-body-center",
+                visible: (reception_status == "False"),
+                render: function (data, type, full) {
+                    let disp = [
+                        full.product_qty,
+                        (full.old_qty !== undefined)?full.old_qty:full.product_qty
+                    ].join("/");
+
+
+                    return disp;
+                },
+                orderable: false
+            },
+            {
+                data:"price_unit",
+                title:"Prix unit",
+                className:"dt-body-center",
+                visible: (reception_status == "qty_valid")
+            },
+            {
+                title:"Editer",
+                defaultContent: "<a class='btn' id='processed_line_edit' href='#'><i class='far fa-edit'></i></a>",
+                className:"dt-body-center",
+                orderable: false
+            },
+            {
+                title:"Autres",
+                className:"dt-body-center",
+                orderable: false,
+                visible: display_autres === "True",
+                render: function (data, type, full) {
+                    let disabled = (full.supplier_shortage) ? "disabled" : '';
+
+                    return "<select class='select_product_action'>"
+                          + "<option value=''></option>"
+                          + "<option value='supplier_shortage' "+disabled+">Rupture fournisseur</option>"
+                          + "</select>";
+                }
+            }
+        ];
+
+        console.log(columns_to_process);
+
+
         // Init table for to_process content
         table_to_process = $('#table_to_process').DataTable({
             data: list_to_process,
-            columns:[
-                {data:"product_id.0", title: "id", visible: false},
-                {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center"},
-                {
-                    data:"product_id.1",
-                    title:"Produit",
-                    width: "45%",
-                    render: function (data, type, full) {
-                        // Add tooltip with barcode over product name
-                        let display_barcode = "Aucun";
-
-                        if ('barcode' in full) {
-                            display_barcode = full.barcode;
-                        }
-
-                        return '<div class="tooltip">' + data
-              + ' <span class="tooltiptext tt_twolines">Code barre : '
-              + display_barcode + '</span> </div>';
-                    }
-                },
-                {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
-                {
-                    data:"product_qty",
-                    title: "Qté",
-                    className:"dt-body-center",
-                    visible: (reception_status == "False")
-                },
-                {
-                    data:"price_unit",
-                    title:"Prix unit.",
-                    className:"dt-body-center",
-                    visible: (reception_status == "qty_valid")
-                },
-                {
-                    title:"Editer",
-                    defaultContent: "<a class='btn' id='toProcess_line_edit' href='#'><i class='far fa-edit'></i></a>",
-                    className:"dt-body-center",
-                    orderable: false
-                },
-                {
-                    title:"Valider",
-                    defaultContent: "<a class='btn' id='toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
-                    className:"dt-body-center",
-                    orderable: false
-                },
-                {
-                    title:"Autres",
-                    defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
-                    className:"dt-body-center",
-                    orderable: false,
-                    visible: display_autres === "True"
-                }
-            ],
+            columns: columns_to_process,
             rowId : "product_id.0",
             order: [
                 [
@@ -413,81 +507,11 @@ function initLists() {
             dom: 'lrtip', // Remove the search input from that table
             language: {url : '/static/js/datatables/french.json'}
         });
+
         // Init table for processed content
         table_processed = $('#table_processed').DataTable({
             data: list_processed,
-            columns:[
-                {data:"row_counter", title:"row_counter", visible: false}, // Hidden counter to display last row first
-                {data:"shelf_sortorder", title: "Rayon", className:"dt-body-center"},
-                {
-                    data:"product_id.1",
-                    title:"Produit",
-                    width: "55%",
-                    render: function (data, type, full) {
-                        // Add tooltip with barcode over product name
-                        let display_barcode = "Aucun";
-
-                        if ('barcode' in full) {
-                            display_barcode = full.barcode;
-                        }
-
-                        let display = '<div class="tooltip">' + data
-                                      + ' <span class="tooltiptext tt_twolines">Code barre : '
-                                      + display_barcode + '</span> </div>';
-
-                        if (full.supplier_shortage) {
-                            display += ' <div class="tooltip"><i class="fas fa-info-circle"></i>'
-                                      + ' <span class="tooltiptext tt_twolines">Rupture fournisseur'
-                                      + '</span> </div>';
-                        }
-
-                        return display;
-                    }
-                },
-                {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
-                {
-                    data:"product_qty",
-                    title:"Qté",
-                    className:"dt-head-center dt-body-center",
-                    visible: (reception_status == "False"),
-                    render: function (data, type, full) {
-                        let disp = [
-                            full.product_qty,
-                            (full.old_qty !== undefined)?full.old_qty:full.product_qty
-                        ].join("/");
-
-
-                        return disp;
-                    },
-                    orderable: false
-                },
-                {
-                    data:"price_unit",
-                    title:"Prix unit",
-                    className:"dt-body-center",
-                    visible: (reception_status == "qty_valid")
-                },
-                {
-                    title:"Editer",
-                    defaultContent: "<a class='btn' id='processed_line_edit' href='#'><i class='far fa-edit'></i></a>",
-                    className:"dt-body-center",
-                    orderable: false
-                },
-                {
-                    title:"Autres",
-                    className:"dt-body-center",
-                    orderable: false,
-                    visible: display_autres === "True",
-                    render: function (data, type, full) {
-                        let disabled = (full.supplier_shortage) ? "disabled" : '';
-
-                        return "<select class='select_product_action'>"
-                              + "<option value=''></option>"
-                              + "<option value='supplier_shortage' "+disabled+">Rupture fournisseur</option>"
-                              + "</select>";
-                    }
-                }
-            ],
+            columns: columns_processed,
             rowId : "product_id.0",
             order: [
                 [
@@ -509,7 +533,7 @@ function initLists() {
 
     /* Listeners */
     // Direct valid from to_process
-    $('#table_to_process tbody').on('click', 'a#toProcess_line_valid', function () {
+    $('#table_to_process tbody').on('click', 'a.toProcess_line_valid', function () {
         if (is_time_to('reception_direct_valid_order_line', 500)) {
             try {
                 let row = table_to_process.row($(this).parents('tr'));
@@ -542,7 +566,7 @@ function initLists() {
     });
 
     // Edit to_process line
-    $('#table_to_process tbody').on('click', 'a#toProcess_line_edit', function () {
+    $('#table_to_process tbody').on('click', 'a.toProcess_line_edit', function () {
         try {
             // Prevent editing mutiple lines at a time
             if (editing_product == null) {
@@ -1657,7 +1681,7 @@ function init_dom(partners_display_data) {
             };
         }
 
-        dbc.bulkDocs(Object.values(orders)).then((response) => {
+        dbc.bulkDocs(Object.values(orders)).then(() => {
             back();
         })
             .catch((err) => {
@@ -1964,12 +1988,13 @@ $(document).ready(function() {
             include_docs: true
         }).then(function (result) {
             // for each order in the group
-            for (let order_id of group_ids) {
+            for (let i in group_ids) {
                 // find order
+                let order_id = group_ids[i];
                 let order = result.rows.find(el => el.id == 'order_' + order_id);
 
                 order = order.doc;
-
+                order.key = parseInt(i) + 1;
                 orders[order_id] = order;
 
                 // Add each order's already updated and validated products to common list
@@ -1982,7 +2007,7 @@ $(document).ready(function() {
                 }
 
                 // Prepare data to display in 'partner name' area
-                partners_display_data.push(order['partner'] + ' du ' + order['date_order']);
+                partners_display_data.push(`<span class="title_partner_key">${order.key}.</span> ${order.partner} du ${order.date_order}`);
             }
 
             // Set current reception status: take first order's
