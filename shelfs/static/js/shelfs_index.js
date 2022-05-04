@@ -13,7 +13,24 @@ function init_datatable() {
                 className:"dt-body-center"
             },
             {data:"name", title:"Nom"},
-            {data:"description", title:"Description", orderable: false},
+            // {data:"description", title:"Description", orderable: false},
+            {
+                data:"ongoing_inv_start_datetime",
+                title:"Début inventaire en cours",
+                render: function (data, type) {
+                    // Sort on data, not rendering
+                    if (type == "sort" || type == 'type')
+                        return data;
+
+                    if (data == '0001-01-01 00:00:00')
+                        return "";
+                    else {
+                        var date = new Date(data);
+
+                        return `${date.toLocaleDateString('fr-FR')} ${date.toLocaleTimeString('fr-FR')}`;
+                    }
+                }
+            },
             {
                 data:"date_last_product_added",
                 title:"Dernier ajout produit",
@@ -34,8 +51,8 @@ function init_datatable() {
             },
             {
                 data:"date_last_inventory",
-                title:"Date dernier inventaire",
-                render: function (data, type, full, meta) {
+                title:"Dernier inventaire",
+                render: function (data, type) {
                     // Sort on data, not rendering
                     if (type == "sort" || type == 'type')
                         return data;
@@ -54,7 +71,7 @@ function init_datatable() {
             {
                 data:"shelf_value",
                 title:"Valeur théorique du rayon",
-                render: function (data, type, full, meta) {
+                render: function (data, type) {
                     if (type == "sort" || type == 'type')
                         return data;
 
@@ -69,44 +86,45 @@ function init_datatable() {
                 width: "5%",
                 className:"dt-body-center"
             },
-            {
-                data:"last_inv_delta_percentage",
-                title:"Delta (dernier inv.)",
-                width: "5%",
-                className:"dt-body-center",
-                render: function (data, type, full, meta) {
-                    if (type == "sort" || type == 'type')
-                        return data;
+            /* NOT IN USE */
+            // {
+            //     data:"last_inv_delta_percentage",
+            //     title:"Delta (dernier inv.)",
+            //     width: "5%",
+            //     className:"dt-body-center",
+            //     render: function (data, type) {
+            //         if (type == "sort" || type == 'type')
+            //             return data;
 
-                    if (data == -99999999) {
-                        return '/';
-                    } else {
-                        return data + ' %';
-                    }
-                }
-            },
-            {
-                data:"last_inv_losses_percentage",
-                title:"Pertes (dernier inv.)",
-                width: "5%",
-                className:"dt-body-center",
-                render: function (data, type, full, meta) {
-                    if (type == "sort" || type == 'type')
-                        return data;
+            //         if (data == -99999999) {
+            //             return '/';
+            //         } else {
+            //             return data + ' %';
+            //         }
+            //     }
+            // },
+            // {
+            //     data:"last_inv_losses_percentage",
+            //     title:"Pertes (dernier inv.)",
+            //     width: "5%",
+            //     className:"dt-body-center",
+            //     render: function (data, type) {
+            //         if (type == "sort" || type == 'type')
+            //             return data;
 
-                    if (data == -99999999) {
-                        return '/';
-                    } else {
-                        return data + ' %';
-                    }
-                }
-            },
+            //         if (data == -99999999) {
+            //             return '/';
+            //         } else {
+            //             return data + ' %';
+            //         }
+            //     }
+            // },
             {
                 data:"inventory_status",
                 title:"Inventaire à faire",
                 className:"dt-body-center",
                 width: "15%",
-                render: function (data, type, full, meta) {
+                render: function (data) {
                     if (data == '')
                         return "<button class='btn--primary do_shelf_inventory'>Inventaire en rayon</button>";
                     else
@@ -162,11 +180,13 @@ function get_shelfs_extra_data() {
 }
 
 function set_null_to_extra_data() {
-    shelfs_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    shelfs_table.rows().every(function () {
         var d = this.data();
 
         d.shelf_value = -2;
         this.invalidate(); // invalidate the data DataTables has cached for this row
+
+        return 1;
     });
 
     shelfs_table.draw();
@@ -174,7 +194,6 @@ function set_null_to_extra_data() {
 
 var getRowData = function(clicked) {
     var row = shelfs_table.row(clicked.parents('tr'));
-
 
     return row.data();
 };
