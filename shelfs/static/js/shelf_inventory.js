@@ -12,22 +12,23 @@ var validation_msg = $('#validation_msg'),
     process_all_items_msg = $('#process_all_items_msg'),
     faq_content = $("#FAQ_modal_content"),
     issues_reporting = $("#issues_reporting"),
-    add_product_form = $("#add_product_form"),
-    add_product_input = $("#add_product_input");
+    add_product_form = $("#add_product_form");
 
-var shelf,
+var shelf = null,
     parent_location = '/shelfs',
     originView = "shelf", // or custom_list (create from order view)
     list_to_process = [],
-    table_to_process,
-    table_processed,
+    table_to_process = null,
+    table_processed = null,
     editing_item = null, // Store the item currently being edited
-    editing_origin, // Keep track of where editing_item comes from
+    editing_origin = "", // Keep track of where editing_item comes from
     processed_row_counter = 0, // Keep count of the order the item were added in processed list
     search_chars = [],
     user_comments = '',
-    adding_product = false, // True if modal to add a product is open
-    barcodes = null; // Barcodes stored locally
+    adding_product = false, // True if modal to add a product is open.
+    barcodes = null, // Barcodes stored locally
+    // datetime for which shelf's ongoing_inv_start_datetime is considered null
+    default_inventory_start_datetime = "0001-01-01 00:00:00";
 
 
 /* UTILS */
@@ -104,10 +105,14 @@ function barcode_analyzer(chars) {
 }
 
 function reset_previous_value() {
-    if (editing_item != null) {
+    if (editing_item !== null) {
         $('#edition_input').val(editing_item.qty);
     }
 }
+function refresh() {
+    location.reload();
+}
+
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
     var found = null,
@@ -115,7 +120,7 @@ function select_product_from_bc(barcode) {
     if (isValidEAN13(barcode)) {
             var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
 
-            if (scannedProduct == null) {
+            if (scannedProduct === null) {
                 alert("Le code-barre " + barcode + " ne correspond à aucun article connu.");
 
                 return -1;
@@ -127,7 +132,7 @@ function select_product_from_bc(barcode) {
             }
     }
 
-    if (editing_item == null) {
+    if (editing_item === null) {
  
         $.each(list_to_process, function(i, e) {
             if (e.barcode == barcode) {
@@ -189,7 +194,7 @@ function handle_blinking_effect(element) {
     element.addEventListener('animationend', onAnimationEnd);
     element.addEventListener('webkitAnimationEnd', onAnimationEnd);
 
-    function onAnimationEnd(e) {
+    function onAnimationEnd() {
         element.classList.remove('blink_me');
     }
 }
@@ -279,7 +284,7 @@ function clearLineEdition() {
 }
 
 // Validate product edition
-function validateEdition(form) {
+function validateEdition() {
     if (editing_item != null) {
         if (editProductInfo(editing_item)) {
             clearLineEdition();
@@ -515,10 +520,12 @@ function confirmProcessAllItems() {
     openModal();
 
     // Iterate over all rows in table of items to process
-    table_to_process.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    table_to_process.rows().every(function () {
         var data = this.data();
 
         editProductInfo(data, 0);
+
+        return 1;
     });
 
     // Reset data
@@ -556,7 +563,6 @@ function send() {
         var url = "../do_" + originView + "_inventory";
         var call_begin_at = new Date().getTime();
 
-        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
         $.ajax({
             type: "PUT",
             url: url,
@@ -579,18 +585,19 @@ function send() {
                     }
                 }
 
-                var msg = (originView == 'shelf') ? 'Retour à la liste des rayons' : 'Retour';
+                var msg = (originView == 'shelf') ? 'OK, je passe à la suite !' : 'Retour';
 
-                openModal(inventory_validated_msg.html(), back, msg, true, false);
+                // Go to step 2 if step 1 is validated and modal closed
+                openModal(inventory_validated_msg.html(), refresh, msg, true, false);
 
-                // Go back to list if modal closed
-                $('#modal_closebtn_top').on('click', back);
-                $('#modal_closebtn_bottom').on('click', back);
+                // Go to step 2 if modal is closed
+                $('#modal_closebtn_top').on('click', refresh);
+                $('#modal_closebtn_bottom').on('click', refresh);
 
                 // Clear local storage before leaving
                 localStorage.removeItem(originView + '_' + shelf.id);
             },
-            error: function(jqXHR, textStatus) { // 500 error has been thrown or web server sent a timeout
+            error: function(jqXHR) { // 500 error has been thrown or web server sent a timeout
                 if (jqXHR.status == 504) {
                     /*
                         django is too long to respond.
@@ -657,6 +664,35 @@ function exit_adding_product() {
     adding_product = false;
 }
 
+/**
+ * Set the ongoing inventory start datetime.
+ * This operation is invisible to the user.
+ */
+function set_begin_inventory_datetime() {
+    if (originView === 'shelf' &&
+        (
+            shelf.ongoing_inv_start_datetime === default_inventory_start_datetime
+            || shelf.ongoing_inv_start_datetime === undefined
+        )
+    ) {
+        $.ajax({
+            type: "POST",
+            url: "/shelfs/"+shelf.id+"/set_begin_inventory_datetime",
+            dataType: "json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                shelf.ongoing_inv_start_datetime = data.res.inventory_begin_datetime;
+                // Update local storage
+                localStorage.setItem(originView + "_" + shelf.id, JSON.stringify(shelf));
+            },
+            error: function() {
+                console.log("Impossible de mettre à jour la date de début d'inventaire");
+            }
+        });
+    }
+}
+
 // Add a product that's not in the list
 function open_adding_product() {
     if (originView == 'shelf') {
@@ -673,7 +709,6 @@ function do_add_product() {
     };
 
     openModal();
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
     $.ajax({
         type: "POST",
         url: "../"+shelf.id+"/add_product",
@@ -681,7 +716,7 @@ function do_add_product() {
         traditional: true,
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(prod_data),
-        success: function(data) {
+        success: function() {
             exit_adding_product();
             closeModal();
             alert('Produit ajouté !');
@@ -728,8 +763,6 @@ function saveIssuesReport() {
 
 // Get shelf data from server if not in local storage
 function get_shelf_data() {
-    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-
     var url = (originView == 'shelf') ? '../' + shelf.id : '../get_custom_list_data?id=' + shelf.id;
 
     $.ajax({
@@ -741,6 +774,7 @@ function get_shelf_data() {
         success: function(data) {
             shelf = data.res;
             init();
+            set_begin_inventory_datetime();
         },
         error: function(data) {
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
@@ -756,7 +790,6 @@ function init() {
     // Products passed at page loading
     // TODO: get products by ajax for better ui experience (? -> warning js at loading)
     // TODO : What happens if products are being put or removed from the self before the end of the inventory ?
-    //console.log(shelf)
     list_to_process = products;
     initLists();
 
@@ -813,7 +846,7 @@ function init() {
     $(document).on('click', 'button#add_product_to_shelf', open_adding_product);
     $(document).on('click', 'button#open_issues_report', openIssuesReport);
     $(document).on('click', 'button#open_faq', openFAQ);
-    $(document).on('click', 'button#process_all_items', function (e) {
+    $(document).on('click', 'button#process_all_items', function () {
         openModal(process_all_items_msg.html(), confirmProcessAllItems, 'Confirmer', false);
     });
 
@@ -830,7 +863,7 @@ function init() {
     handle_blinking_effect(container_edition);
 
     // Disable mousewheel on an input number field when in focus
-    $('#edition_input').on('focus', function (e) {
+    $('#edition_input').on('focus', function () {
         $(this).on('wheel.disableScroll', function (e) {
             e.preventDefault();
             /*
@@ -851,7 +884,7 @@ function init() {
             $("#reset_to_previous_qty").hide();
         }
     })
-        .on('blur', function (e) {
+        .on('blur', function () {
             $(this).off('wheel.disableScroll');
         });
 
@@ -928,6 +961,8 @@ var get_barcodes = async function() {
 
 $(document).ready(function() {
     // Get Route parameter
+    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
     var pathArray = window.location.pathname.split('/');
 
     shelf = {id: pathArray[pathArray.length-1]};
@@ -947,7 +982,9 @@ $(document).ready(function() {
 
         if (stored_shelf != null) {
             shelf = stored_shelf;
+
             init();
+            set_begin_inventory_datetime();
         } else {
             // Get shelf info if not coming from shelves list
             get_shelf_data();

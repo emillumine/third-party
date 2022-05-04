@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^(?P<shelf_id>\d+)$', views.shelf_data),
     url(r'^(?P<shelf_id>\d+)/products$', views.products),
     url(r'^(?P<shelf_id>\d+)/add_product$', views.add_product),
+    url(r'^(?P<shelf_id>\d+)/set_begin_inventory_datetime$', views.set_begin_inventory_datetime),
     url(r'^do_shelf_inventory$', views.do_shelf_inventory),
     url(r'^(?P<shelf_id>\d+)/last_inventory_report$', views.get_last_inventory_report),
     url(r'^shelf_inventory_FAQ', views.shelf_inventory_FAQ),
