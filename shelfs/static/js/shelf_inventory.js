@@ -478,7 +478,7 @@ function send() {
                 // Go to step 2 if step 1 is validated and modal closed
                 openModal(inventory_validated_msg.html(), refresh, msg, true, false);
 
-                // Go back to list if modal closed
+                // Go to step 2 if modal is closed
                 $('#modal_closebtn_top').on('click', refresh);
                 $('#modal_closebtn_bottom').on('click', refresh);
 
