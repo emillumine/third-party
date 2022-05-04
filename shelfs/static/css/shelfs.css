@@ -150,7 +150,9 @@ div#container_edition {
 #product_uom {
   font-size: small;
 }
-
+#reset_to_previous_qty {
+  cursor: pointer;
+}
 .blink_me {
   animation: blinker 1s ease-in-out;
 }

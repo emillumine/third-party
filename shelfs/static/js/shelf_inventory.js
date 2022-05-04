@@ -102,6 +102,12 @@ function barcode_analyzer(chars) {
         select_product_from_bc(barcode);
     }
 }
+
+function reset_previous_value() {
+    if (editing_item != null) {
+        $('#edition_input').val(editing_item.qty);
+    }
+}
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
     var found = null,
@@ -837,7 +843,10 @@ function init() {
       */
         });
         if ($(this).val().length > 0) {
-            $("#reset_to_previous_qty").show();
+            let reset_icon = $("#reset_to_previous_qty");
+            reset_icon.show();
+            reset_icon.off();
+            reset_icon.on("click", reset_previous_value);
         } else {
             $("#reset_to_previous_qty").hide();
         }
