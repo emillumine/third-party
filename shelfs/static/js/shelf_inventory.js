@@ -48,6 +48,10 @@ function back() {
     document.location.href = parent_location;
 }
 
+function refresh() {
+    location.reload();
+}
+
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
     if (editing_item == null) {
@@ -469,13 +473,14 @@ function send() {
                     }
                 }
 
-                var msg = (originView == 'shelf') ? 'Retour à la liste des rayons' : 'Retour';
+                var msg = (originView == 'shelf') ? 'OK, je passe à la suite !' : 'Retour';
 
-                openModal(inventory_validated_msg.html(), back, msg, true, false);
+                // Go to step 2 if step 1 is validated and modal closed
+                openModal(inventory_validated_msg.html(), refresh, msg, true, false);
 
-                // Go back to list if modal closed
-                $('#modal_closebtn_top').on('click', back);
-                $('#modal_closebtn_bottom').on('click', back);
+                // Go to step 2 if modal is closed
+                $('#modal_closebtn_top').on('click', refresh);
+                $('#modal_closebtn_bottom').on('click', refresh);
 
                 // Clear local storage before leaving
                 localStorage.removeItem(originView + '_' + shelf.id);
