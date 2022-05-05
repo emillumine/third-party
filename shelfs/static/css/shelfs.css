@@ -26,6 +26,14 @@
   cursor: pointer;
 }
 
+.delete_ongoing_inv_icon:hover {
+  color: #c9302c;
+}
+
+.shelf_name {
+  font-weight: bold;
+}
+
 /*View*/
 .cancel_search {
   background-color: transparent;

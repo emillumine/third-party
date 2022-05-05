@@ -195,6 +195,29 @@ class Shelf(models.Model):
 
         return res
 
+    def delete_ongoing_inv_data(self):
+        """ Reset shelf state & inventory data """
+        res = {}
+
+        # Reset shelf state
+        f = {
+            'inventory_status': '',
+            'ongoing_inv_start_datetime': default_inventory_start_datetime
+        }
+
+        try:
+            res["update"] = self.o_api.update('product.shelfs', self.id, f)
+
+            try:
+                # Delete local file
+                res["tmp_inventory"] = self.remove_tmp_inventory()
+            except Exception as e:
+                pass
+        except Exception as e:
+            res['error'] = str(e)
+
+        return res
+
     def save_tmp_inventory(self, inventory_data):
         """Save inventory data in a json temp file"""
         res = {}
