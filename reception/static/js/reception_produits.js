@@ -407,7 +407,18 @@ function initLists() {
                         + display_barcode + '</span> </div>';
                 }
             },
-            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
+            {   data:"product_uom.1", 
+                title: "Unité vente", 
+                className:"dt-body-center", 
+                orderable: false,
+                render: function (data) {
+                    if (data.toLowerCase().indexOf('unit') === 0) {
+                        return "U";
+                    } else {
+                        return data;
+                    }
+                }
+            },
             {
                 data:"product_qty",
                 title: "Qté",
