@@ -106,7 +106,11 @@ function barcode_analyzer(chars) {
 
 function reset_previous_value() {
     if (editing_item !== null) {
+        if (typeof editing_item.added_qties !== "undefined") {
+            editing_item.qty -= editing_item.added_qties.pop();
+        }
         $('#edition_input').val(editing_item.qty);
+        $("#reset_to_previous_qty").hide();
     }
 }
 function refresh() {
@@ -181,7 +185,8 @@ function select_product_from_bc(barcode) {
         }
         editing_item.added_qties.push(qty);
         // TODO : add an action icon to view added quantities
-        edition_input.val(get_added_qties_sum(editing_item));
+        editing_item.qty = get_added_qties_sum(editing_item);
+        edition_input.val(editing_item.qty);
     }
 }
 
@@ -885,7 +890,27 @@ function init() {
         }
     })
         .on('blur', function () {
+            const current_val = $(this).val();
             $(this).off('wheel.disableScroll');
+
+            if (editing_item !== null) {
+                //Let's verify if quantity have be changed
+                if (current_val != editing_item.qty) {
+                    if (typeof editing_item.added_qties !== "undefined") {
+                        // total may have been affected by manual typing
+                        const total = get_added_qties_sum(editing_item);
+                        if (current_val != total) {
+                            // add difference in added_qties array
+                            editing_item.added_qties.push(current_val - total);
+                        }
+                    } else {
+                        // Init added_qties to take change into account
+                        editing_item.added_qties = [editing_item.qty, current_val - editing_item.qty];
+                    }
+                }
+                
+                editing_item.qty = current_val;
+            }
         });
 
     // client-side validation of numeric inputs, optionally replacing separator sign(s).
