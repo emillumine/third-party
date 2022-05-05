@@ -6,8 +6,8 @@ Informations affichées :
 */
 
 var parent_location = '/shelfs',
-    shelf,
-    table_products,
+    shelf = null,
+    table_products = null,
     search_chars = [];
 
 /* UTILS */
@@ -54,7 +54,7 @@ function initList() {
                 title:"Delta (dernier inv.)",
                 width: "10%",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data, type) {
                     if (type == "sort" || type == 'type')
                         return data;
 
@@ -70,7 +70,7 @@ function initList() {
                 title:"Pertes (dernier inv.)",
                 width: "10%",
                 className:"dt-body-center",
-                render: function (data, type, full, meta) {
+                render: function (data, type) {
                     if (type == "sort" || type == 'type')
                         return data;
 

@@ -6,7 +6,7 @@ from products.models import CagetteProducts
 from inventory.models import CagetteInventory
 
 import os
-from datetime import date
+from datetime import date, datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from statistics import *
@@ -14,6 +14,7 @@ from statistics import *
 
 # Prefix for temp shelf inventory files
 tmp_inv_file_prefix = 'temp/inventory_shelf_'
+default_inventory_start_datetime = "0001-01-01 00:00:00"
 
 def as_text(value):
     """ Utils """
@@ -106,6 +107,7 @@ class Shelf(models.Model):
             # Inventory all done
             f['inventory_status'] = ''
             f['date_last_inventory'] = date.today().strftime("%Y-%m-%d")
+            f['ongoing_inv_start_datetime'] = default_inventory_start_datetime # Reset
 
             if 'last_inventory_id' in params:
                 f['last_inventory_id'] = params['last_inventory_id']
@@ -180,6 +182,18 @@ class Shelf(models.Model):
             res['error'] = "L'enregistrement n'a pas pu se réaliser"
         return res
 
+    def set_begin_inventory_datetime(self):
+        res = {}
+        now = datetime.now().isoformat()
+        f = {'ongoing_inv_start_datetime': now}
+
+        try:
+            res["update"] = self.o_api.update('product.shelfs', self.id, f)
+            res["inventory_begin_datetime"] = now
+        except Exception as e:
+            res['error'] = str(e)
+
+        return res
 
     def save_tmp_inventory(self, inventory_data):
         """Save inventory data in a json temp file"""

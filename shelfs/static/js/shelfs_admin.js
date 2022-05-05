@@ -137,6 +137,8 @@ var update_shelf = function() {
                                 rData.res.p_nb = data.p_nb;
                                 this.data(rData.res).draw();
                             }
+
+                            return 1;
                         });
                         closeModal();
                     } else alert(rData.res.error);
@@ -203,12 +205,6 @@ var downloadInventoryReport = function() {
     }
 };
 
-
-
-var rowUpdate = function (row, rdata) {
-    //console.log(row, rdata)
-
-};
 // TODO put datatable common methods such as following in a file useable for all modules
 var rowGetData = function(clicked) {
     var row = shelfs_table.row(clicked.parents('tr'));
@@ -217,7 +213,7 @@ var rowGetData = function(clicked) {
     return row.data();
 };
 
-function coop_init_datatable(params, data, domsel, cols, action_btn) {
+function coop_init_datatable(params, data, domsel, cols) {
     var buttons = [];
     var columns = [];
 
@@ -278,10 +274,6 @@ function coop_init_datatable(params, data, domsel, cols, action_btn) {
         rowId : "id",
         data : data,
         language: {url : '/static/js/datatables/french.json'},
-        createdRow: function(row, rdata, index) {
-            rowUpdate(row, rdata);
-
-        },
         initComplete: function() {
             /*
                                 if (! coop_is_connected())
@@ -318,7 +310,7 @@ var init_and_fill_selfs_list = function() {
                             data:"last_inventory_id",
                             title:"Rapport dernier inventaire",
                             className: "action",
-                            render: function (data, type, full, meta) {
+                            render: function (data) {
                                 if (typeof data != "undefined" && data != 0) {
                                     return download_icon;
                                 } else {

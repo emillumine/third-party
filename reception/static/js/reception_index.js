@@ -365,9 +365,7 @@ function display_orders_table() {
         table_orders.clear().destroy();
         $('#orders').empty();
     }
-    for (let j in orders) {
-        console.log(orders[j].id);
-    }
+
     table_orders = $('#orders').DataTable({
         data: orders,
         columns:[
