@@ -337,9 +337,14 @@
 
 - RECEPTION_ADD_ADMIN_MODE = True
 
-- RECEPTION_ADD_ALL_LEFT_IS_GOOD = True
+- RECEPTION_ADD_ALL_LEFT_IS_GOOD_QTIES = False
 
-        A second button appears to make all pending products (left list) to be considered as "good"
+        During qties step, a  second button appears to make all pending products (left list) to be considered as "good"
+        (RECEPTION_ADD_ADMIN_MODE needs to be set at True)
+
+- RECEPTION_ADD_ALL_LEFT_IS_GOOD_PRICES = False
+
+        During prices step, a second button appears to make all pending products (left list) to be considered as "good"
         (RECEPTION_ADD_ADMIN_MODE needs to be set at True)
 
 - RECEPTION_MERGE_ORDERS_PSWD = 'pass2makeApause'

@@ -88,16 +88,18 @@
         <button class="btn--warning full_width_button" name="faq" onclick="openFAQ()">FAQ - En cas de soucis avec la marche à suivre...</button>
       </div>
       <div class="page_element txtcenter">
-        {% if add_all_left_is_good %}
-          <div id="connected_actions">
+          <div id="remaining_lines_actions_area">
             <span id="valid_all"></span>
             <span id="all_left_is_good">
-              <button class='btn--danger half_width_button'  onclick="openModal($('#templates #modal_all_left_is_good').html(), confirm_all_left_is_good, 'Confirmer', false);">Tout le reste est bon</button>
+              <button 
+                class='btn--danger half_width_button'
+                id="all_left_is_good_button"
+                onclick="openModal($('#templates #modal_all_left_is_good').html(), confirm_all_left_is_good, 'Confirmer', false);" 
+              >
+                Tout le reste est bon
+              </button>
             </span>
           </div>
-        {% else %}
-          <span id="valid_all"></span>
-        {% endif %}
       </div>
     </div>
 
@@ -194,6 +196,8 @@
   var couchdb_dbname = '{{db}}';
   var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
   var display_autres = "{{DISPLAY_AUTRES}}";
+  var add_all_left_is_good_qties = "{{ADD_ALL_LEFT_IS_GOOD_QTIES}}"
+  var add_all_left_is_good_prices = "{{ADD_ALL_LEFT_IS_GOOD_PRICES}}"
 </script>
 <script src="{% static "js/all_common.js" %}?v="></script>
 <script src='{% static "js/barcodes.js" %}?v='></script>

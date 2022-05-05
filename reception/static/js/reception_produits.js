@@ -251,6 +251,23 @@ function fetch_data() {
                 for (order_data of data.orders) {
                     // for each product in order
                     for (i in order_data.po) {
+                        // If in step 2, find old qty in previous step data
+                        if (
+                            reception_status == 'qty_valid'
+                            && "previous_steps_data" in orders[order_data.id_po]
+                            && "False" in orders[order_data.id_po]["previous_steps_data"]
+                            && "updated_products" in orders[order_data.id_po]["previous_steps_data"]["False"] // extra + secturity
+                        ) {
+                            // For each updated product in step 1
+                            for (let step1_updated_product of orders[order_data.id_po]["previous_steps_data"]["False"]["updated_products"]) {
+                                // If product found
+                                if (step1_updated_product["product_id"][0] === order_data.po[i]["product_id"][0]) {
+                                    // Add old qty
+                                    order_data.po[i].old_qty = step1_updated_product.old_qty;
+                                }
+                            }
+                        }
+
                         // Does product already exists in list_to_process?
                         var existing_index = null;
 
@@ -315,7 +332,17 @@ function fetch_data() {
 // Init Data & listeners
 function initLists() {
     try {
-    // Enable validation buttons now the data's here
+        // Set action buttons for remaining items
+        if (
+            add_all_left_is_good_qties === "True" && reception_status == "False"
+            ||
+            add_all_left_is_good_prices === "True" && reception_status == "qty_valid"
+        ) {
+            $("#remaining_lines_actions_area").addClass("connected_actions");
+            $("#all_left_is_good").show();
+        }
+
+        // Enable validation buttons now the data's here
         if (reception_status == "False") {
             document.getElementById("valid_qty").disabled = false;
             document.getElementById("valid_all_qties").disabled = false;
@@ -380,12 +407,31 @@ function initLists() {
                         + display_barcode + '</span> </div>';
                 }
             },
-            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
+            {   data:"product_uom.1", 
+                title: "Unité vente", 
+                className:"dt-body-center", 
+                orderable: false,
+                render: function (data) {
+                    if (data.toLowerCase().indexOf('unit') === 0) {
+                        return "U";
+                    } else {
+                        return data;
+                    }
+                }
+            },
             {
                 data:"product_qty",
                 title: "Qté",
                 className:"dt-body-center",
-                visible: (reception_status == "False")
+                render: function (data, type, full) {
+                    if (reception_status == "False") {
+                        return data;
+                    } else if ("old_qty" in full) {
+                        return `${data}/${full.old_qty}`;
+                    } else {
+                        return `${data}/${data}`;
+                    }
+                }
             },
             {
                 data:"price_unit",
@@ -447,13 +493,12 @@ function initLists() {
                 data:"product_qty",
                 title:"Qté",
                 className:"dt-head-center dt-body-center",
-                visible: (reception_status == "False"),
+                // visible: (reception_status == "False"),
                 render: function (data, type, full) {
                     let disp = [
-                        full.product_qty,
-                        (full.old_qty !== undefined)?full.old_qty:full.product_qty
+                        data,
+                        (full.old_qty !== undefined) ? full.old_qty : data
                     ].join("/");
-
 
                     return disp;
                 },
@@ -487,9 +532,6 @@ function initLists() {
             }
         ];
 
-        console.log(columns_to_process);
-
-
         // Init table for to_process content
         table_to_process = $('#table_to_process').DataTable({
             data: list_to_process,
@@ -505,7 +547,21 @@ function initLists() {
             scrollCollapse: true,
             paging: false,
             dom: 'lrtip', // Remove the search input from that table
-            language: {url : '/static/js/datatables/french.json'}
+            language: {url : '/static/js/datatables/french.json'},
+            createdRow: function(row) {
+                // Add class to rows with product with qty at 0
+                var row_data = $('#table_to_process').DataTable()
+                    .row(row)
+                    .data();
+
+                if (row_data !== undefined && row_data.product_qty === 0) {
+                    for (var i = 0; i < row.cells.length; i++) {
+                        const cell_node = row.cells[i];
+
+                        $(cell_node).addClass('row_product_no_qty');
+                    }
+                }
+            }
         });
 
         // Init table for processed content
@@ -523,7 +579,20 @@ function initLists() {
             scrollCollapse: true,
             paging: false,
             dom: 'lrtip', // Remove the search input from that table
-            language: {url : '/static/js/datatables/french.json'}
+            language: {url : '/static/js/datatables/french.json'},
+            createdRow: function(row) {
+                var row_data = $('#table_processed').DataTable()
+                    .row(row)
+                    .data();
+
+                if (row_data !== undefined && row_data.product_qty === 0) {
+                    for (var i = 0; i < row.cells.length; i++) {
+                        const cell_node = row.cells[i];
+
+                        $(cell_node).addClass('row_product_no_qty');
+                    }
+                }
+            }
         });
     } catch (e) {
         err = {msg: e.name + ' : ' + e.message, ctx: 'initLists: init tables'};
@@ -966,7 +1035,7 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         // If 'value' parameter not set, get value from edition input
         if (value == null) {
             newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
-            newValue = newValue.isFinite() ? newValue : 0;
+            newValue = isFinite(newValue) ? newValue : 0;
         }
 
         $.each(list_processed, function(i, e) {
@@ -1058,7 +1127,6 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                 }
             }
         } else {
-
             if (isValid) {
                 //if product is valid -> remove from updated_products list and add to valid_products list
                 //removing from updated_products
@@ -1977,7 +2045,7 @@ $(document).ready(function() {
             }
         }
 
-        // if not in group, add current order to group
+        // if not in group, add current order to group (1 order = group of 1)
         if (group_ids.length == 0) {
             group_ids.push(id);
         }
