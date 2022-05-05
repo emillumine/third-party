@@ -413,7 +413,7 @@ var addProductToList = async function(barcode) {
                     .appendTo(pdt_line);
                 $('<td>').text(odoo_product.data[barcodes.keys.name])
                     .appendTo(pdt_line);
-                $('<td>').html(odoo_product.data[barcodes.keys.standard_price] + " €")
+                $('<td>').html(odoo_product.data[barcodes.keys.list_price] + " €")
                     .appendTo(pdt_line);
                 $('<td>').html(delete_icon + " " + print_icon)
                     .appendTo(pdt_line);
