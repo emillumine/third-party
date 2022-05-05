@@ -79,6 +79,8 @@ def produits(request, id):
         'db': settings.COUCHDB['dbs']['reception'],
         'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
         "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
+        "ADD_ALL_LEFT_IS_GOOD_QTIES": False,
+        "ADD_ALL_LEFT_IS_GOOD_PRICES": False,
     }
     fixed_barcode_prefix = '0490'
 
@@ -91,10 +93,14 @@ def produits(request, id):
         fixed_barcode_prefix = settings.FIXED_BARCODE_PREFIX
     if hasattr(settings, 'RECEPTION_ADD_ADMIN_MODE'):
         context['add_admin_mode'] = settings.RECEPTION_ADD_ADMIN_MODE
-    if hasattr(settings, 'RECEPTION_ADD_ALL_LEFT_IS_GOOD'):
+    if hasattr(settings, 'RECEPTION_ADD_ALL_LEFT_IS_GOOD_QTIES'):
         is_connected_user = CagetteUser.are_credentials_ok(request)
         if is_connected_user is True:
-            context['add_all_left_is_good'] = settings.RECEPTION_ADD_ALL_LEFT_IS_GOOD
+            context['ADD_ALL_LEFT_IS_GOOD_QTIES'] = settings.RECEPTION_ADD_ALL_LEFT_IS_GOOD_QTIES
+    if hasattr(settings, 'RECEPTION_ADD_ALL_LEFT_IS_GOOD_PRICES'):
+        is_connected_user = CagetteUser.are_credentials_ok(request)
+        if is_connected_user is True:
+            context['ADD_ALL_LEFT_IS_GOOD_PRICES'] = settings.RECEPTION_ADD_ALL_LEFT_IS_GOOD_PRICES
 
     context['FIXED_BARCODE_PREFIX'] = fixed_barcode_prefix
     template = loader.get_template('reception/reception_produits.html')
@@ -113,7 +119,7 @@ def get_orders_lines(request):
     data = json.loads(request.body.decode())
     orders = []
     for id_po in data['po_ids']:
-        order_lines = CagetteReception.get_order_lines_by_po(int(id_po))
+        order_lines = CagetteReception.get_order_lines_by_po(int(id_po), nullQty = True)
         orders.append({'id_po': id_po, 'po': order_lines})
 
     return JsonResponse({'orders': orders})

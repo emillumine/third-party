@@ -58,6 +58,8 @@ RECEPTION_MERGE_ORDERS_PSWD = 'jpsrcp'
 RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \
         Merci d'indiquer un maximum d'informations, le nom du produit et son code barre."
 DISPLAY_COL_AUTRES = False
+RECEPTION_ADD_ALL_LEFT_IS_GOOD_QTIES = False
+RECEPTION_ADD_ALL_LEFT_IS_GOOD_PRICES = True
 
 
 DAV_PATH = '/shared_dir/dav/'

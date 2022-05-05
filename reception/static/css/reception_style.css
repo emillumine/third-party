@@ -147,7 +147,11 @@ table.dataTable {
   border-radius: 3px;
 }
 
-#connected_actions  .full_width_button, .half_width_button {
+#all_left_is_good {
+  display: none;
+}
+
+.connected_actions  .full_width_button, .half_width_button {
   height: 45px;
   width: 40%;
   border-radius: 3px;
@@ -191,6 +195,14 @@ div#container_edition {
 .title_partner_key {
   font-weight: bolder;
   font-size: 2rem;
+}
+
+tr.even td.row_product_no_qty {
+  background-color: #f0ad4e; /*#ec971f*/
+}
+
+tr.odd td.row_product_no_qty {
+  background-color: rgb(236, 182, 106); /*#ec971f*/
 }
 
 /* Accordion style */
