@@ -7,8 +7,8 @@ var main_content = $('#main-content'),
     shelf_name = create_form.find('input[name="name"]'),
     description = create_form.find('textarea[name="description"]'),
     eye = '<i class="fas fa-eye"></i>',
-    delete_icon = '<i class="fas fa-trash"></i>',
-    print_icon = '<i class="fas fa-print"></i>',
+    delete_icon = '<i class="fas fa-trash p_action_icon"></i>',
+    print_icon = '<i class="fas fa-print p_action_icon"></i>',
     add_icon = '<i class="fas fa-plus-circle"></i>',
     edit_icon = '<i class="fas fa-edit"></i>',
     download_icon = '<i class="fas fa-download"></i>',
@@ -367,6 +367,7 @@ var printProduct = function () {
   let tr_to_print = clicked.closest('tr');
   let barcode = tr_to_print.data('bc')
 
+  openModal();
   try {
     $.ajax({
       url: '/products/get_product_data',
@@ -378,12 +379,19 @@ var printProduct = function () {
         $.ajax({
           url: '/products/label_print/' + product_tmpl_id
         })
-        .done(function(res) {
-          alert('Impression lancée')
+        .done(function(res_print) {
+            closeModal();
+            if ("error" in res_print.res) {
+                console.log(res_print.res);
+                alert('Une erreur est survenue...');
+            } else {
+                alert('Impression lancée');
+            }
         })
       })
   } catch(e) {
-    alert('Une erreur est survenue...')
+    closeModal();
+    alert('Une erreur est survenue...');
   }
 
 };
@@ -413,11 +421,9 @@ var addProductToList = async function(barcode) {
                     .appendTo(pdt_line);
                 $('<td>').text(odoo_product.data[barcodes.keys.name])
                     .appendTo(pdt_line);
-                $('<td>').html(odoo_product.data[barcodes.keys.standard_price])
+                $('<td>').html(odoo_product.data[barcodes.keys.standard_price] + " €")
                     .appendTo(pdt_line);
-                $('<td>').html(delete_icon)
-                    .appendTo(pdt_line);
-                $('<td>').html(print_icon)
+                $('<td>').html(delete_icon + " " + print_icon)
                     .appendTo(pdt_line);
                 adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
                 main_content.find('button.add-products').css('display', 'block')

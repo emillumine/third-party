@@ -20,4 +20,9 @@ label {
   width: 140px;
   text-align: right;
   margin-right: 5px;
-}​
+}
+
+.p_action_icon {
+  cursor: pointer;
+  margin-right: 15px;
+}
