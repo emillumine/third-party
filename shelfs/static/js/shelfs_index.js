@@ -1,4 +1,5 @@
-var shelfs_table = null;
+var shelfs_table = null,
+    default_inventory_start_datetime = "0001-01-01 00:00:00";
 
 function init_datatable() {
     return $('#shelfs').DataTable({
@@ -10,13 +11,14 @@ function init_datatable() {
                 data:"sort_order",
                 title:"Numéro",
                 width: "10%",
-                className:"dt-body-center"
+                className:"dt-body-center clickable"
             },
-            {data:"name", title:"Nom"},
+            {data:"name", title:"Nom", className:"clickable"},
             // {data:"description", title:"Description", orderable: false},
             {
                 data:"ongoing_inv_start_datetime",
                 title:"Début inventaire en cours",
+                className:"dt-body-center clickable",
                 render: function (data, type) {
                     // Sort on data, not rendering
                     if (type == "sort" || type == 'type')
@@ -34,6 +36,7 @@ function init_datatable() {
             {
                 data:"date_last_product_added",
                 title:"Dernier ajout produit",
+                className:"dt-body-center clickable",
                 render: function (data, type) {
                     // Sort on data, not rendering
                     if (type == "sort" || type == 'type')
@@ -52,6 +55,7 @@ function init_datatable() {
             {
                 data:"date_last_inventory",
                 title:"Dernier inventaire",
+                className:"dt-body-center clickable",
                 render: function (data, type) {
                     // Sort on data, not rendering
                     if (type == "sort" || type == 'type')
@@ -67,7 +71,7 @@ function init_datatable() {
                     }
                 }
             },
-            {data:"p_nb", title:"Nombre de réfs", width: "5%", className:"dt-body-center"},
+            {data:"p_nb", title:"Nombre de réfs", width: "5%", className:"dt-body-center clickable"},
             {
                 data:"shelf_value",
                 title:"Valeur théorique du rayon",
@@ -84,7 +88,7 @@ function init_datatable() {
                     }
                 },
                 width: "5%",
-                className:"dt-body-center"
+                className:"dt-body-center clickable"
             },
             /* NOT IN USE */
             // {
@@ -130,6 +134,15 @@ function init_datatable() {
                     else
                         return "<button class='btn--success do_shelf_inventory'>Inventaire en réserve</button>";
                 }
+            },
+            {
+                data:"id",
+                title:"Supprimer inventaire en cours",
+                className:"dt-body-center",
+                width: "5%",
+                render: function () {
+                    return `<i class="fas fa-trash delete_ongoing_inv_icon"></i>`;
+                }
             }
         ],
         dom: 'rtip',
@@ -146,7 +159,6 @@ function init_datatable() {
 
 function get_shelfs_extra_data() {
     try {
-        $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
         $.ajax({
             type: 'GET',
             url: '/shelfs/get_shelves_extra_data',
@@ -217,6 +229,58 @@ function go_to_shelf_inventory() {
     document.location.href = "shelf_inventory/" + row_data.id;
 }
 
+function pre_delete_ongoing_inventory() {
+    let clicked = $(this);
+    let row_data = getRowData(clicked);
+
+    let template = $("#modal_delete_ongoing_inv");
+
+    template.find(".shelf_name").text(row_data.name);
+
+    openModal(
+        template.html(),
+        () => {
+            delete_ongoing_inventory(row_data);
+        },
+        "Valider",
+        false
+    );
+}
+
+function delete_ongoing_inventory(row_data) {
+    openModal();
+    $.ajax({
+        type: 'POST',
+        url: `/shelfs/${row_data.id}/delete_ongoing_inv_data`,
+        dataType:"json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        success: function() {
+            row_data.inventory_status = '';
+            row_data.ongoing_inv_start_datetime = default_inventory_start_datetime;
+
+            shelfs_table
+                .row('#'+row_data.id)
+                .data(row_data)
+                .draw();
+
+            // Delete shelf data from localstorage
+            if (Modernizr.localstorage) {
+                localStorage.removeItem('shelf_' + row_data.id);
+            }
+
+            closeModal();
+        },
+        error: function(data) {
+            if (typeof data.responseJSON != 'undefined') {
+                console.log(data.responseJSON);
+            }
+            closeModal();
+            alert("Une erreur est survenue...");
+        }
+    });
+}
+
 function go_to_shelf_view() {
     openModal();
 
@@ -237,11 +301,27 @@ function go_to_shelf_view() {
 }
 
 $(document).ready(function() {
+    $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
+
+    // Check if local data is outdated
+    for (let shelf of shelfs) {
+        let stored_shelf = JSON.parse(localStorage.getItem('shelf_' + shelf.id));
+
+        if (
+            stored_shelf !== null
+            && stored_shelf.ongoing_inv_start_datetime !== undefined
+            && shelf.ongoing_inv_start_datetime !== stored_shelf.ongoing_inv_start_datetime
+        ) {
+            localStorage.removeItem('shelf_' + shelf.id);
+        }
+    }
+
     shelfs_table = init_datatable();
     get_shelfs_extra_data();
 
     $(document).on('click', 'button.do_shelf_inventory', go_to_shelf_inventory);
-    $('#shelfs').on('click', 'tbody td', go_to_shelf_view);
+    $(document).on('click', 'tbody td .delete_ongoing_inv_icon', pre_delete_ongoing_inventory);
+    $('#shelfs').on('click', 'tbody td.clickable', go_to_shelf_view);
 
     // Search input
     $('#search_input').on('keyup', function () {

@@ -70,6 +70,14 @@ def set_begin_inventory_datetime(request, shelf_id):
     else:
         return JsonResponse({'res': res})
 
+def delete_ongoing_inv_data(request, shelf_id):
+    m = Shelf(shelf_id)
+    res = m.delete_ongoing_inv_data()
+
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
 
 def all(request):
     """Get all shelves data"""
