@@ -12,7 +12,9 @@ var validation_msg = $('#validation_msg'),
     process_all_items_msg = $('#process_all_items_msg'),
     faq_content = $("#FAQ_modal_content"),
     issues_reporting = $("#issues_reporting"),
-    add_product_form = $("#add_product_form");
+    add_product_form = $("#add_product_form"),
+    change_shelf_form = $("#change_shelf_form"),
+    change_shelf_btn = $('#change_shelf_btn');
 
 var shelf = null,
     parent_location = '/shelfs',
@@ -28,7 +30,9 @@ var shelf = null,
     adding_product = false, // True if modal to add a product is open.
     barcodes = null, // Barcodes stored locally
     // datetime for which shelf's ongoing_inv_start_datetime is considered null
-    default_inventory_start_datetime = "0001-01-01 00:00:00";
+    default_inventory_start_datetime = "0001-01-01 00:00:00",
+    selected_products_for_shelf_change = [],
+    all_shelfs = null; // Use get_all_shelfs to access it's value
 
 
 /* UTILS */
@@ -297,6 +301,25 @@ function validateEdition() {
     }
 }
 
+/**
+ * Unselect all rows from datatable
+ * Only for table_to_process
+ */
+function unselect_all_rows() {
+    $("#select_all_products_cb").prop("checked", false);
+
+    table_to_process.rows().every(function() {
+        const node = $(this.node());
+
+        node.removeClass('selected');
+        node.find(".select_product_cb").first()
+            .prop("checked", false);
+
+        return 0;
+    });
+
+    selected_rows = [];
+}
 /*
  * Update a product info and add it to processed items.
  * If 'value' is set, use it as new value.
@@ -323,6 +346,102 @@ function editProductInfo (productToEdit, value = null) {
     return true;
 }
 
+/* Change shelf process */
+
+/*
+ data should be an array of {product_id: xx, shelf_id: yy}
+*/
+function record_products_shelf_on_server(data) {
+    return new Promise(resolve => {
+        $.ajax({
+                type: "POST",
+                url: "/shelfs/change_products_shelfs",
+                dataType: "json",
+                data: JSON.stringify(data),
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                success: function(data) {
+                    if (typeof data.res !== "undefined" && typeof data.res.done !== "undefined")
+                        resolve(data.res.done);
+                    else
+                        resolve(null);
+                },
+                error: function() {
+                    alert("Impossible de mettre à jour les données");
+                    resolve(null);
+                }
+            });
+    });
+}
+
+// call on change_shelf_btn click action
+async function open_change_shelf_modal() {
+    selected_products_for_shelf_change = [];
+    $('.select_product_cb:checked').each(function(idx,elt){
+        const row = $(elt).closest('tr');
+        selected_products_for_shelf_change.push(table_to_process.row(row).data())
+    });
+    if (selected_products_for_shelf_change.length > 0) {
+        /*
+          As button is not shown if no product is selected, should be always true
+          But, with CSS changes, it could happen that length == 0
+        */
+        
+        const shelfs = await get_all_shelfs();
+        if (shelfs !== null) {
+            let modal_content = $('#templates #change_shelf_form').clone(),
+                shelf_selector = $('<select>').addClass('shelf_selection'),
+                table = modal_content.find('table tbody').empty();
+
+            //construct shelfs selector
+            shelfs.forEach(
+                (shelf) => {
+                    let option = $('<option>')
+                                 .val(shelf.id)
+                                 .text(shelf.name + ' (' + shelf.sort_order + ')');
+                    shelf_selector.append(option);
+            });
+            selected_products_for_shelf_change.forEach(
+                (product) => {
+                    let tr = $('<tr>').attr('data-id',product.id)
+                            .append($('<td>').text(product.name))
+                            .append($('<td>').append(shelf_selector.clone()));
+
+                    table.append(tr);
+            });
+
+            openModal(
+                modal_content.html(),
+                () => {
+                    if (is_time_to('change_product_shelf', 500)) {
+                        make_change = async () => {
+                            // Prepare data to be transmitted to server to be recorded
+                            let data = [];
+                            $('.overlay-content table tbody tr').each(function(idx,e){
+                                data.push({
+                                            product_id : $(e).data('id'),
+                                            shelf_id : $(e).find('select').val()
+                                         });
+                            });
+                            const update_result = await record_products_shelf_on_server(data);
+                            if (update_result !== null) {
+                                update_result.forEach(
+                                    (product_id) => {
+                                       remove_from_toProcess(table_to_process.row($('tr#'+product_id))); 
+                                    });
+                            }
+                        }
+                        make_change();
+                    }
+                },
+                'Changer les produits de rayons'
+            );
+        } else {
+            alert("Les informations des autres rayons n'ont pas pu être récupérées.")
+        }
+        
+    }
+}
 
 /* LISTS HANDLING */
 
@@ -342,8 +461,24 @@ function initLists() {
     }
 
     // Init table for items to process
-    var columns_to_process = [
-        {data:"id", title: "id", visible: false},
+
+    var columns_to_process = [];
+
+    if (shelf.inventory_status !== "") {
+        columns_to_process.push({data:"id", title: "id", visible: false});
+    } else {
+        columns_to_process.push({
+                                title: `<div id="table_header_select_all" class="txtcenter">
+                                            <input type="checkbox" id="select_all_products_cb" name="select_all_products_cb" value="all">
+                                        </div>`,
+                                className: "dt-body-center",
+                                orderable: false,
+                                render: function (data) {
+                                    return `<input type="checkbox" class="select_product_cb" />`;
+                                },
+                                width: "4%"});
+    }
+    columns_to_process = columns_to_process.concat([
         {data:"name", title:"Produit", width: "60%"},
         {data:"uom_id.1", title:"Unité de mesure", className:"dt-body-center"},
         {
@@ -351,7 +486,7 @@ function initLists() {
             defaultContent: "<a class='btn' id='process_item' href='#'><i class='far fa-edit'></i></a>", "className":"dt-body-center",
             orderable: false
         }
-    ];
+    ]);
 
     if (originView == 'custom_list') {
         columns_to_process.splice(1, 0, {data:"shelf_sortorder", title:"Rayon", className:"dt-body-center"});
@@ -451,6 +586,41 @@ function initLists() {
             clearLineEdition();
         }
     });
+
+    // Select row(s) on checkbox change (copied from orders_helper.js -only table_to_process changed-)
+    $(table_to_process.table().header()).on('click', 'th #select_all_products_cb', function () {
+        if (this.checked) {
+            selected_rows = [];
+            table_to_process.rows().every(function() {
+                const node = $(this.node());
+
+                node.addClass('selected');
+                node.find(".select_product_cb").first()
+                    .prop("checked", true);
+
+                // Save selected rows in case the table is updated
+                selected_rows.push(this.data().id);
+
+                return 0;
+            });
+            change_shelf_btn.show();
+        } else {
+            unselect_all_rows();
+            change_shelf_btn.hide();
+        }
+    });
+
+    $(table_to_process.table().body()).on('click', '.select_product_cb', function () {
+        if (this.checked) {
+            change_shelf_btn.show();
+        } else {
+            // must hide change_shelf_btn only if no other product is selected
+            if ($('.select_product_cb:checked').length === 0) {
+                change_shelf_btn.hide();
+            }
+        }
+    });
+    change_shelf_btn.click(open_change_shelf_modal);
 }
 
 // Add a line to the 'items to process' list
@@ -765,6 +935,37 @@ function saveIssuesReport() {
 
 
 /* INIT */
+
+// (for shelf change)
+function get_all_shelfs() {
+    return new Promise(resolve => {
+        if (all_shelfs !== null) {
+            resolve(all_shelfs);
+        } else {
+            $.ajax({
+                type: 'GET',
+                url: "/shelfs/all/simple",
+                dataType:"json",
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                success: function(data) {
+                    shelfs = null;
+                    if (typeof data.res !== "undefined" && data.res.length > 0)
+                        shelfs = data.res;
+                    resolve(shelfs);
+                },
+                error: function(data) {
+                    err = {msg: "erreur serveur lors de la récupération des rayons", ctx: 'get_all_shelfs'};
+                    if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                        err.msg += ' : ' + data.responseJSON.error;
+                    }
+                    report_JS_error(err, 'shelf_inventory');
+                    resolve(null);
+                }
+            });
+        }
+    });
+}
 
 // Get shelf data from server if not in local storage
 function get_shelf_data() {

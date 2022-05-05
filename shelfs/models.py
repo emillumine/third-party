@@ -505,11 +505,14 @@ class Shelf(models.Model):
 
 class Shelfs(models.Model):
 
-    def get_all():
+    def get_all(precision='full'):
         res = []
         try:
             api = OdooAPI()
-            res = api.execute('product.shelfs', 'get', {})
+            if precision == 'simple':
+                res = api.search_read('product.shelfs', [], ['name', 'sort_order'], order='sort_order asc')
+            else:
+                res = api.execute('product.shelfs', 'get', {})
         except Exception as e:
             coop_logger.error("Rayons, get_all : %s", str(e))
         return res
@@ -528,4 +531,19 @@ class Shelfs(models.Model):
             res = api.search_read('product.shelfs', c, f)
         except Exception as e:
             coop_logger.error("Rayons, get_shelfs_sortorder : %s", str(e))
+        return res
+
+    @staticmethod
+    def make_products_shelf_links(data):
+        res = {}
+        try:
+            api = OdooAPI()
+            res['done'] = []
+            for elt in data:
+                f = {'shelf_id': elt['shelf_id']}
+                if api.update('product.product', [elt['product_id']], f):
+                    res['done'].append(elt['product_id'])
+        except Exception as e:
+            res['error'] = str(e)
+            coop_logger.error("Rayons, make_products_shelf_links : %s", str(e))
         return res

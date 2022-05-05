@@ -91,6 +91,9 @@
 
     <div class="container_products" id="container_left">
       <h4 id="header_container_left">Produits à compter</h4>
+      <button style="display:none;" id="change_shelf_btn" class="btn btn--primary">
+      Changer de rayon
+      </button>
       <table id="table_to_process" class="display" cellspacing="0"></table>
     </div>
     <div class="container_products" id="container_right">
@@ -166,6 +169,19 @@
       <p>Scannez le produit à ajouter au rayon, ou entrez son code barre dans le champ ci-dessous.</p>
       <input autocomplete="off" type="text" placeholder="Code barre du produit" class="add_product_input">
       <hr />
+    </div>
+    <div id="change_shelf_form">
+      <h3>Changement de rayons</h3>
+      <hr />
+      <table>
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Rayon</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>
