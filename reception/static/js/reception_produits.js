@@ -417,7 +417,7 @@ function initLists() {
                 className:"dt-body-center",
                 orderable: false,
                 render: function (data) {
-                    if (data.toLowerCase().indexOf('unit') === 0) {
+                    if (display_autres === "True" && data.toLowerCase().indexOf('unit') === 0) {
                         return "U";
                     } else {
                         return data;
