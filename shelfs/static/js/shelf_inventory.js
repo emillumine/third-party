@@ -462,7 +462,13 @@ async function open_change_shelf_modal() {
                                     message += (data.length - update_result.length) + " produit(s) non déplacé(s).";
                                     //TODO: display which products changes were in error
                                 } 
-                                alert(message);
+                                $.notify(
+                                    message,
+                                    {
+                                        globalPosition:"top right",
+                                        className: "info"
+                                    }
+                                );
                             }
                         }
                         make_change();
