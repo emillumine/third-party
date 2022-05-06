@@ -47,6 +47,7 @@ def custom_list_inventory(request, id):
 
     context = {'title': 'Inventaire',
                'products' : json.dumps(products['data']),
+               'ahead_shelfs_ids': json.dumps(getattr(settings, 'SHELFS_TO_BE_AHEAD_IN_SELECT_LIST', []))
               }
 
     # Reuse shelf inventory template: same process

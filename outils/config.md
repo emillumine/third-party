@@ -377,6 +377,12 @@
 
 - MEALS_PICKING_TYPE_ID = 10
 
+### Inventory
+
+- SHELFS_TO_BE_AHEAD_IN_SELECT_LIST = [90,74]
+
+        These shelfs (odoo ids) will be shown first in select list
+
 ### New members space
 
 - USE_NEW_MEMBERS_SPACE = True

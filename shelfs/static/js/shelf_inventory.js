@@ -387,13 +387,39 @@ async function open_change_shelf_modal() {
           But, with CSS changes, it could happen that length == 0
         */
         
-        const shelfs = await get_all_shelfs();
+        let shelfs = await get_all_shelfs();
         if (shelfs !== null) {
             let modal_content = $('#templates #change_shelf_form').clone(),
                 shelf_selector = $('<select>').addClass('shelf_selection'),
                 table = modal_content.find('table tbody').empty();
 
-            //construct shelfs selector
+            /* construct shelfs selector */
+            // first of all, sort by name
+            shelfs.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
+            // if ahead_shelfs_ids is not empty, put them ahead
+            if (ahead_shelfs_ids.length > 0) {
+               let to_move = {},
+                   idx = 0;
+               // find index of shelfs to move 
+               shelfs.forEach((shelf) => {
+                    if (ahead_shelfs_ids.indexOf(shelf.id) > -1) {
+                        to_move[shelf.id] = idx;
+                    }
+                    idx += 1;
+               });
+               // Respecting ahead_shelfs_ids order, move shelf ahead
+               // splice can not be used, since more than 1 elt could be involved
+               let ahead_elts = [];
+               ahead_shelfs_ids.forEach((shelf_id) => {
+                    let shelf = shelfs[to_move[shelf_id]];
+                    ahead_elts.push(shelf);  
+               });
+               //remove ahead elts
+               shelfs = shelfs.filter((item) => {return !ahead_elts.includes(item.id)});
+               // put them ahead by concatenation
+               shelfs = ahead_elts.concat(shelfs);
+            }
+      
             shelfs.forEach(
                 (shelf) => {
                     let option = $('<option>')
@@ -401,6 +427,7 @@ async function open_change_shelf_modal() {
                                  .text(shelf.name + ' (' + shelf.sort_order + ')');
                     shelf_selector.append(option);
             });
+            /* add product rows */
             selected_products_for_shelf_change.forEach(
                 (product) => {
                     let tr = $('<tr>').attr('data-id',product.id)
@@ -429,6 +456,13 @@ async function open_change_shelf_modal() {
                                     (product_id) => {
                                        remove_from_toProcess(table_to_process.row($('tr#'+product_id))); 
                                     });
+                                let message = "L'opération a bien réussi.";
+                                if (update_result.length !== data.length) {
+                                    message = "L'opération a partiellement réussi.\n";
+                                    message += (data.length - update_result.length) + " produit(s) non déplacé(s).";
+                                    //TODO: display which products changes were in error
+                                } 
+                                alert(message);
                             }
                         }
                         make_change();

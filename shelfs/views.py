@@ -47,7 +47,9 @@ def shelf_inventory(request, id):
     shelf_products = Shelf(id).get_products()
 
     context = {'title': 'Inventaire du rayon',
-               'products': json.dumps(shelf_products['data'])}
+               'products': json.dumps(shelf_products['data']),
+               'ahead_shelfs_ids': json.dumps(getattr(settings, 'SHELFS_TO_BE_AHEAD_IN_SELECT_LIST', []))
+               }
     template = loader.get_template('shelfs/shelf_inventory.html')
 
     return HttpResponse(template.render(context, request))

@@ -540,10 +540,19 @@ class Shelfs(models.Model):
         try:
             api = OdooAPI()
             res['done'] = []
+            
+            #  First of all, group product by shelf_id to save api server calls
+            products_shelf = {}
             for elt in data:
-                f = {'shelf_id': elt['shelf_id']}
-                if api.update('product.product', [elt['product_id']], f):
-                    res['done'].append(elt['product_id'])
+                if elt['shelf_id'] not in products_shelf:
+                    products_shelf[elt['shelf_id']] = []
+                products_shelf[elt['shelf_id']].append(int(elt['product_id']))
+
+            # iterate on each shelf element to record changes
+            for shelf_id, product_ids in products_shelf.items():
+                f = {'shelf_id': shelf_id}
+                if api.update('product.product', product_ids , f):
+                    res['done'] += product_ids
         except Exception as e:
             res['error'] = str(e)
             coop_logger.error("Rayons, make_products_shelf_links : %s", str(e))
