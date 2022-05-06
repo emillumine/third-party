@@ -80,6 +80,7 @@ function select_product_from_bc(barcode) {
 
             var foundProduct = {data: null, place: null};
 
+            // Does the product come from to_process ?
             $.each(list_to_process, function(i, e) {
                 if (e.product_id[0] == scannedProduct.data[barcodes['keys']['id']]) {
                     foundProduct.data = e;
@@ -87,11 +88,12 @@ function select_product_from_bc(barcode) {
                 }
             });
 
+            // Does the product come from processed ?
             if (foundProduct.data == null) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == scannedProduct.data[barcodes['keys']['id']]) {
                         foundProduct.data = JSON.parse(JSON.stringify(e));
-                        foundProduct.data.product_qty = null;
+                        foundProduct.data.product_qty = null; // Set qty to null from product already scanned
                         foundProduct.place = 'processed';
                     }
                 });
@@ -101,6 +103,7 @@ function select_product_from_bc(barcode) {
                 if (foundProduct.data.product_uom[0] == 21) { //if qty is in weight
                     if (scannedProduct.rule === 'weight') {
                         editing_product = foundProduct.data;
+                        foundProduct.weightAddition = true; // product weight is directly added
                         editProductInfo(foundProduct.data, scannedProduct.qty);
                         editing_product = null;
                     } else if (scannedProduct.rule === 'price_to_weight') {
@@ -113,11 +116,13 @@ function select_product_from_bc(barcode) {
                     if (foundProduct.data.product_uom[0] != 21) {
                         setLineEdition(foundProduct.data);
                     }
+
                     if (foundProduct.place === 'to_process') {
                         let row = table_to_process.row($('#'+foundProduct.data.product_id[0]));
 
                         remove_from_toProcess(row, foundProduct.data);
                     }
+                    // Don't remove product from processed list
                 }
             }
         }
@@ -407,9 +412,9 @@ function initLists() {
                         + display_barcode + '</span> </div>';
                 }
             },
-            {   data:"product_uom.1", 
-                title: "Unité vente", 
-                className:"dt-body-center", 
+            { data:"product_uom.1",
+                title: "Unité vente",
+                className:"dt-body-center",
                 orderable: false,
                 render: function (data) {
                     if (data.toLowerCase().indexOf('unit') === 0) {
@@ -1038,30 +1043,38 @@ function editProductInfo (productToEdit, value = null, batch = false) {
             newValue = isFinite(newValue) ? newValue : 0;
         }
 
+        // addition mode = weight is directly added from scanned product
         $.each(list_processed, function(i, e) {
-            if (e.product_id[0] == productToEdit.product_id[0]) {
+            if (
+                e.product_id[0] == productToEdit.product_id[0]
+                && "weightAddition" in productToEdit
+                && productToEdit.weightAddition === true
+            ) {
                 addition = true;
                 productToEdit = e;
                 newValue = Number((newValue + productToEdit.product_qty).toFixed(3));
             }
         });
+
         // If qty edition & Check if qty changed
         if (reception_status == "False") {
             firstUpdate = (index == -1); //first update
+
             if (productToEdit.product_qty != newValue) {
                 if (firstUpdate) {
                     productToEdit.old_qty = productToEdit.product_qty;
                 } else {
-                    //if it is not the first update AND newValue is equal to the validation qty then the product is valid
+                    //if it is not the first update AND newValue is equal to the validation qty then the product is valid (qty not changed)
                     isValid = (newValue === productToEdit.old_qty);
                 }
 
                 // Edit product info
                 productToEdit.product_qty = newValue;
+
                 /*
-               If qty has changed, we choose to set detailed values as follow:
-               1 package (product_qty_package) of X products (package_qty)
-               */
+                    If qty has changed, we choose to set detailed values as follow:
+                    1 package (product_qty_package) of X products (package_qty)
+                */
                 productToEdit.product_qty_package = 1;
                 productToEdit.package_qty = productToEdit.product_qty;
 
@@ -1131,8 +1144,10 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                 //if product is valid -> remove from updated_products list and add to valid_products list
                 //removing from updated_products
                 for (i in orders[productToEdit.id_po]['updated_products']) {
-                    if (orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
-                == productToEdit['product_id'][0]) {
+                    if (
+                        orders[productToEdit.id_po]['updated_products'][i]['product_id'][0]
+                            == productToEdit['product_id'][0]
+                    ) {
                         orders[productToEdit.id_po]['updated_products'].splice(i, 1);
                     }
                 }
@@ -1160,7 +1175,10 @@ function editProductInfo (productToEdit, value = null, batch = false) {
             update_distant_order(productToEdit.id_po);
         }
 
-        if (addition) {
+        // Remove product from processed list if:
+        //  - we're adding directly weight from scanned product
+        //  - product comes from processed list
+        if (addition === true || firstUpdate === false) {
             let row = table_processed.row($('#'+productToEdit.product_id[0]));
 
             remove_from_processed(row, productToEdit);
