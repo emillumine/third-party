@@ -535,6 +535,7 @@ class Shelfs(models.Model):
 
     @staticmethod
     def make_products_shelf_links(data):
+        """Set shelf_id for each product found in data."""
         res = {}
         try:
             api = OdooAPI()
