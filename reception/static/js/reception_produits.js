@@ -93,7 +93,7 @@ function select_product_from_bc(barcode) {
                 $.each(list_processed, function(i, e) {
                     if (e.product_id[0] == scannedProduct.data[barcodes['keys']['id']]) {
                         foundProduct.data = JSON.parse(JSON.stringify(e));
-                        foundProduct.data.product_qty = null;  // Set qty to null from product already scanned 
+                        foundProduct.data.product_qty = null; // Set qty to null from product already scanned
                         foundProduct.place = 'processed';
                     }
                 });
@@ -103,7 +103,7 @@ function select_product_from_bc(barcode) {
                 if (foundProduct.data.product_uom[0] == 21) { //if qty is in weight
                     if (scannedProduct.rule === 'weight') {
                         editing_product = foundProduct.data;
-                        foundProduct.weightAddition = true; // product weight is directly added 
+                        foundProduct.weightAddition = true; // product weight is directly added
                         editProductInfo(foundProduct.data, scannedProduct.qty);
                         editing_product = null;
                     } else if (scannedProduct.rule === 'price_to_weight') {
@@ -119,6 +119,7 @@ function select_product_from_bc(barcode) {
 
                     if (foundProduct.place === 'to_process') {
                         let row = table_to_process.row($('#'+foundProduct.data.product_id[0]));
+
                         remove_from_toProcess(row, foundProduct.data);
                     }
                     // Don't remove product from processed list
@@ -411,9 +412,9 @@ function initLists() {
                         + display_barcode + '</span> </div>';
                 }
             },
-            {   data:"product_uom.1", 
-                title: "Unité vente", 
-                className:"dt-body-center", 
+            { data:"product_uom.1",
+                title: "Unité vente",
+                className:"dt-body-center",
                 orderable: false,
                 render: function (data) {
                     if (data.toLowerCase().indexOf('unit') === 0) {
@@ -1045,8 +1046,8 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         // addition mode = weight is directly added from scanned product
         $.each(list_processed, function(i, e) {
             if (
-                e.product_id[0] == productToEdit.product_id[0] 
-                && "weightAddition" in productToEdit 
+                e.product_id[0] == productToEdit.product_id[0]
+                && "weightAddition" in productToEdit
                 && productToEdit.weightAddition === true
             ) {
                 addition = true;
@@ -1179,6 +1180,7 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         //  - product comes from processed list
         if (addition === true || firstUpdate === false) {
             let row = table_processed.row($('#'+productToEdit.product_id[0]));
+
             remove_from_processed(row, productToEdit);
         }
 
