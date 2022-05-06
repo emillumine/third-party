@@ -47,7 +47,9 @@ def shelf_inventory(request, id):
     shelf_products = Shelf(id).get_products()
 
     context = {'title': 'Inventaire du rayon',
-               'products': json.dumps(shelf_products['data'])}
+               'products': json.dumps(shelf_products['data']),
+               'ahead_shelfs_ids': json.dumps(getattr(settings, 'SHELFS_TO_BE_AHEAD_IN_SELECT_LIST', []))
+               }
     template = loader.get_template('shelfs/shelf_inventory.html')
 
     return HttpResponse(template.render(context, request))
@@ -79,9 +81,9 @@ def delete_ongoing_inv_data(request, shelf_id):
     else:
         return JsonResponse({'res': res})
 
-def all(request):
+def all(request, precision):
     """Get all shelves data"""
-    return JsonResponse({'res': Shelfs.get_all()})
+    return JsonResponse({'res': Shelfs.get_all(precision)})
 
 def get_shelves_extra_data(request):
     """Get data that need calculation, so long execution time"""
@@ -133,6 +135,19 @@ def inventory_process_state(request, shelf_id):
     except Exception as e:
         res['error'] = str(e)
         coop_logger.error("Inventory process state : %s", str(e))
+    if 'error' in res:
+        return JsonResponse(res, status=500)
+    else:
+        return JsonResponse({'res': res})
+
+def change_products_shelfs(request):
+    res = {}
+    try:
+        data = json.loads(request.body.decode())
+        res = Shelfs.make_products_shelf_links(data)
+    except Exception as e:
+        res['error'] = str(e)
+        coop_logger.error("change_products_shelfs : %s", str(e))
     if 'error' in res:
         return JsonResponse(res, status=500)
     else:

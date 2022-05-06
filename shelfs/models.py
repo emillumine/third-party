@@ -528,11 +528,14 @@ class Shelf(models.Model):
 
 class Shelfs(models.Model):
 
-    def get_all():
+    def get_all(precision='full'):
         res = []
         try:
             api = OdooAPI()
-            res = api.execute('product.shelfs', 'get', {})
+            if precision == 'simple':
+                res = api.search_read('product.shelfs', [], ['name', 'sort_order'], order='sort_order asc')
+            else:
+                res = api.execute('product.shelfs', 'get', {})
         except Exception as e:
             coop_logger.error("Rayons, get_all : %s", str(e))
         return res
@@ -551,4 +554,29 @@ class Shelfs(models.Model):
             res = api.search_read('product.shelfs', c, f)
         except Exception as e:
             coop_logger.error("Rayons, get_shelfs_sortorder : %s", str(e))
+        return res
+
+    @staticmethod
+    def make_products_shelf_links(data):
+        """Set shelf_id for each product found in data."""
+        res = {}
+        try:
+            api = OdooAPI()
+            res['done'] = []
+            
+            #  First of all, group product by shelf_id to save api server calls
+            products_shelf = {}
+            for elt in data:
+                if elt['shelf_id'] not in products_shelf:
+                    products_shelf[elt['shelf_id']] = []
+                products_shelf[elt['shelf_id']].append(int(elt['product_id']))
+
+            # iterate on each shelf element to record changes
+            for shelf_id, product_ids in products_shelf.items():
+                f = {'shelf_id': shelf_id}
+                if api.update('product.product', product_ids , f):
+                    res['done'] += product_ids
+        except Exception as e:
+            res['error'] = str(e)
+            coop_logger.error("Rayons, make_products_shelf_links : %s", str(e))
         return res

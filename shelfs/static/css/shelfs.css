@@ -147,6 +147,13 @@ table.dataTable {
   padding: 5px;
 }
 
+#header_container_left {
+  float: left;
+}
+
+#change_shelf_btn {
+  float: right;
+}
 div#container_edition {
   padding: 8px;
   background-color: #e7e9ed;
@@ -294,5 +301,10 @@ hr {
 .tooltip:hover .tooltiptext {
  visibility: visible;
  opacity: 1;
+}
+
+/* Change shelf modal */
+.shelf_selection {
+  max-width:    240px;
 }
 
