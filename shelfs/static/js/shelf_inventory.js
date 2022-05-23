@@ -58,12 +58,13 @@ function back() {
 
 function get_added_qties_sum(item) {
     let total = null;
+
     function add(accumulator, a) { // for array sum
         result = 0;
         if (a) {
             if (item.uom_id[1] == "kg") {
                 if (typeof a === "string") {
-                    a = a.replace(',','.')
+                    a = a.replace(',', '.');
                 }
                 result = parseFloat(accumulator) + parseFloat(a);
                 result = result.toFixed(3);
@@ -71,17 +72,19 @@ function get_added_qties_sum(item) {
                 result = parseInt(accumulator, 10) + parseInt(a, 10);
             }
         }
+
         return result;
     }
     if (typeof item.added_qties != "undefined" && item.added_qties.length > 0) {
         total = item.added_qties.reduce(add);
     }
-    
+
 
     return total;
 }
 function barcode_analyzer(chars) {
     let barcode = chars;
+
     if (barcode && barcode.length >=13) {
         barcode = barcode.substring(barcode.length-13);
     } else if (barcode && barcode.length == 12 && barcode.indexOf('0') !== 0) {
@@ -125,23 +128,24 @@ function refresh() {
 function select_product_from_bc(barcode) {
     var found = null,
         qty = null;
+
     if (isValidEAN13(barcode)) {
-            var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
+        var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
 
-            if (scannedProduct === null) {
-                alert("Le code-barre " + barcode + " ne correspond à aucun article connu.");
+        if (scannedProduct === null) {
+            alert("Le code-barre " + barcode + " ne correspond à aucun article connu.");
 
-                return -1;
-            } else {
-                barcode = scannedProduct.barcode;
-                if (scannedProduct.rule.length > 0 && scannedProduct.rule != "product") {
-                    qty = scannedProduct.qty;
-                }
+            return -1;
+        } else {
+            barcode = scannedProduct.barcode;
+            if (scannedProduct.rule.length > 0 && scannedProduct.rule != "product") {
+                qty = scannedProduct.qty;
             }
+        }
     }
 
     if (editing_item === null) {
- 
+
         $.each(list_to_process, function(i, e) {
             if (e.barcode == barcode) {
                 found = e;
@@ -155,14 +159,18 @@ function select_product_from_bc(barcode) {
                     found = e;
                     if (qty) {
                         let message = "Attention, ce produit a déjà été compté.\n";
+
                         message += "La quantité " + qty + " n'a pas été ajoutée !\n";
                         // temporary add read qty and recorded one to added_qties to compute sum
-                        found.added_qties = [qty, found.qty]
+                        found.added_qties = [
+                            qty,
+                            found.qty
+                        ];
                         message += "Le total serait " + get_added_qties_sum(found);
                         alert(message);
                         qty = null;
                     }
-                    
+
                     editing_origin = 'processed';
                 }
             });
@@ -173,17 +181,20 @@ function select_product_from_bc(barcode) {
             setLineEdition(found, qty);
             if (editing_origin === 'to_process') {
                 let row = table_to_process.row($('tr#'+found.id));
+
                 remove_from_toProcess(row);
             } else {
                 let row = table_processed.row($('tr#'+found.id));
+
                 remove_from_processed(row);
             }
         } else {
             console.log('Code barre introuvable');
         }
-    } else if (barcode == editing_item.barcode && qty){
+    } else if (barcode == editing_item.barcode && qty) {
         // We scan the same product as the current one
         let edition_input = $('#edition_input');
+
         if (typeof editing_item.added_qties == "undefined") {
             editing_item.added_qties = [edition_input.val()];
         }
@@ -354,40 +365,42 @@ function editProductInfo (productToEdit, value = null) {
 function record_products_shelf_on_server(data) {
     return new Promise(resolve => {
         $.ajax({
-                type: "POST",
-                url: "/shelfs/change_products_shelfs",
-                dataType: "json",
-                data: JSON.stringify(data),
-                traditional: true,
-                contentType: "application/json; charset=utf-8",
-                success: function(data) {
-                    if (typeof data.res !== "undefined" && typeof data.res.done !== "undefined")
-                        resolve(data.res.done);
-                    else
-                        resolve(null);
-                },
-                error: function() {
-                    alert("Impossible de mettre à jour les données");
+            type: "POST",
+            url: "/shelfs/change_products_shelfs",
+            dataType: "json",
+            data: JSON.stringify(data),
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                if (typeof data.res !== "undefined" && typeof data.res.done !== "undefined")
+                    resolve(data.res.done);
+                else
                     resolve(null);
-                }
-            });
+            },
+            error: function() {
+                alert("Impossible de mettre à jour les données");
+                resolve(null);
+            }
+        });
     });
 }
 
 // call on change_shelf_btn click action
 async function open_change_shelf_modal() {
     selected_products_for_shelf_change = [];
-    $('.select_product_cb:checked').each(function(idx,elt){
+    $('.select_product_cb:checked').each(function(idx, elt) {
         const row = $(elt).closest('tr');
-        selected_products_for_shelf_change.push(table_to_process.row(row).data())
+
+        selected_products_for_shelf_change.push(table_to_process.row(row).data());
     });
     if (selected_products_for_shelf_change.length > 0) {
         /*
           As button is not shown if no product is selected, should be always true
           But, with CSS changes, it could happen that length == 0
         */
-        
+
         let shelfs = await get_all_shelfs();
+
         if (shelfs !== null) {
             let modal_content = $('#templates #change_shelf_form').clone(),
                 shelf_selector = $('<select>').addClass('shelf_selection'),
@@ -395,46 +408,50 @@ async function open_change_shelf_modal() {
 
             /* construct shelfs selector */
             // first of all, sort by name
-            shelfs.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
+            shelfs.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
             // if ahead_shelfs_ids is not empty, put them ahead
             if (ahead_shelfs_ids.length > 0) {
-               let to_move = {},
-                   idx = 0;
-               // find index of shelfs to move 
-               shelfs.forEach((shelf) => {
+                let to_move = {},
+                    idx = 0;
+                // find index of shelfs to move
+
+                shelfs.forEach((shelf) => {
                     if (ahead_shelfs_ids.indexOf(shelf.id) > -1) {
                         to_move[shelf.id] = idx;
                     }
                     idx += 1;
-               });
-               // Respecting ahead_shelfs_ids order, move shelf ahead
-               // splice can not be used, since more than 1 elt could be involved
-               let ahead_elts = [];
-               ahead_shelfs_ids.forEach((shelf_id) => {
+                });
+                // Respecting ahead_shelfs_ids order, move shelf ahead
+                // splice can not be used, since more than 1 elt could be involved
+                let ahead_elts = [];
+
+                ahead_shelfs_ids.forEach((shelf_id) => {
                     let shelf = shelfs[to_move[shelf_id]];
-                    ahead_elts.push(shelf);  
-               });
-               //remove ahead elts
-               shelfs = shelfs.filter((item) => {return !ahead_elts.includes(item.id)});
-               // put them ahead by concatenation
-               shelfs = ahead_elts.concat(shelfs);
+
+                    ahead_elts.push(shelf);
+                });
+                //remove ahead elts
+                shelfs = shelfs.filter((item) => {
+                    return !ahead_elts.includes(item.id);
+                });
+                // put them ahead by concatenation
+                shelfs = ahead_elts.concat(shelfs);
             }
-      
-            shelfs.forEach(
-                (shelf) => {
-                    let option = $('<option>')
-                                 .val(shelf.id)
-                                 .text(shelf.name + ' (' + shelf.sort_order + ')');
-                    shelf_selector.append(option);
+
+            shelfs.forEach((shelf) => {
+                let option = $('<option>')
+                    .val(shelf.id)
+                    .text(shelf.name + ' (' + shelf.sort_order + ')');
+
+                shelf_selector.append(option);
             });
             /* add product rows */
-            selected_products_for_shelf_change.forEach(
-                (product) => {
-                    let tr = $('<tr>').attr('data-id',product.id)
-                            .append($('<td>').text(product.name))
-                            .append($('<td>').append(shelf_selector.clone()));
+            selected_products_for_shelf_change.forEach((product) => {
+                let tr = $('<tr>').attr('data-id', product.id)
+                    .append($('<td>').text(product.name))
+                    .append($('<td>').append(shelf_selector.clone()));
 
-                    table.append(tr);
+                table.append(tr);
             });
 
             openModal(
@@ -444,24 +461,27 @@ async function open_change_shelf_modal() {
                         make_change = async () => {
                             // Prepare data to be transmitted to server to be recorded
                             let data = [];
-                            $('.overlay-content table tbody tr').each(function(idx,e){
+
+                            $('.overlay-content table tbody tr').each(function(idx, e) {
                                 data.push({
-                                            product_id : $(e).data('id'),
-                                            shelf_id : $(e).find('select').val()
-                                         });
+                                    product_id : $(e).data('id'),
+                                    shelf_id : $(e).find('select')
+                                        .val()
+                                });
                             });
                             const update_result = await record_products_shelf_on_server(data);
+
                             if (update_result !== null) {
-                                update_result.forEach(
-                                    (product_id) => {
-                                       remove_from_toProcess(table_to_process.row($('tr#'+product_id))); 
-                                    });
+                                update_result.forEach((product_id) => {
+                                    remove_from_toProcess(table_to_process.row($('tr#'+product_id)));
+                                });
                                 let message = "L'opération a bien réussi.";
+
                                 if (update_result.length !== data.length) {
                                     message = "L'opération a partiellement réussi.\n";
                                     message += (data.length - update_result.length) + " produit(s) non déplacé(s).";
                                     //TODO: display which products changes were in error
-                                } 
+                                }
                                 $.notify(
                                     message,
                                     {
@@ -470,16 +490,16 @@ async function open_change_shelf_modal() {
                                     }
                                 );
                             }
-                        }
+                        };
                         make_change();
                     }
                 },
                 'Changer les produits de rayons'
             );
         } else {
-            alert("Les informations des autres rayons n'ont pas pu être récupérées.")
+            alert("Les informations des autres rayons n'ont pas pu être récupérées.");
         }
-        
+
     }
 }
 
@@ -508,15 +528,15 @@ function initLists() {
         columns_to_process.push({data:"id", title: "id", visible: false});
     } else {
         columns_to_process.push({
-                                title: `<div id="table_header_select_all" class="txtcenter">
+            title: `<div id="table_header_select_all" class="txtcenter">
                                             <input type="checkbox" id="select_all_products_cb" name="select_all_products_cb" value="all">
                                         </div>`,
-                                className: "dt-body-center",
-                                orderable: false,
-                                render: function (data) {
-                                    return `<input type="checkbox" class="select_product_cb" />`;
-                                },
-                                width: "4%"});
+            className: "dt-body-center",
+            orderable: false,
+            render: function (data) {
+                return `<input type="checkbox" class="select_product_cb" />`;
+            },
+            width: "4%"});
     }
     columns_to_process = columns_to_process.concat([
         {data:"name", title:"Produit", width: "60%"},
@@ -1123,6 +1143,7 @@ function init() {
         });
         if ($(this).val().length > 0) {
             let reset_icon = $("#reset_to_previous_qty");
+
             reset_icon.show();
             reset_icon.off();
             reset_icon.on("click", reset_previous_value);
@@ -1132,6 +1153,7 @@ function init() {
     })
         .on('blur', function () {
             const current_val = $(this).val();
+
             $(this).off('wheel.disableScroll');
 
             if (editing_item !== null) {
@@ -1140,16 +1162,20 @@ function init() {
                     if (typeof editing_item.added_qties !== "undefined") {
                         // total may have been affected by manual typing
                         const total = get_added_qties_sum(editing_item);
+
                         if (current_val != total) {
                             // add difference in added_qties array
                             editing_item.added_qties.push(current_val - total);
                         }
                     } else {
                         // Init added_qties to take change into account
-                        editing_item.added_qties = [editing_item.qty, current_val - editing_item.qty];
+                        editing_item.added_qties = [
+                            editing_item.qty,
+                            current_val - editing_item.qty
+                        ];
                     }
                 }
-                
+
                 editing_item.qty = current_val;
             }
         });
@@ -1214,8 +1240,9 @@ function init() {
     $(document).on('scan.pos.barcode', function(event) {
         //access `event.code` - barcode data
         var barcode = event.code;
+
         barcode_analyzer(barcode);
-       
+
     });
 
 }
@@ -1259,5 +1286,5 @@ $(document).ready(function() {
         get_shelf_data();
     }
     get_barcodes();
-  
+
 });

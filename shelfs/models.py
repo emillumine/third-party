@@ -6,7 +6,7 @@ from products.models import CagetteProducts
 from inventory.models import CagetteInventory
 
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from statistics import *
@@ -196,7 +196,7 @@ class Shelf(models.Model):
 
     def set_begin_inventory_datetime(self):
         res = {}
-        now = datetime.now().isoformat()
+        now = datetime.now(timezone.utc).isoformat()  # save UTC time
         f = {'ongoing_inv_start_datetime': now}
 
         try:
