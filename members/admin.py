@@ -150,7 +150,9 @@ def get_settings(request):
             for k, v in default_msettings.items():
                 if not (k in msettings):
                     msettings[k] = v
-
+            for k,v in msettings.items():
+                if 'sort_order' not in v:
+                    msettings[k]['sort_order'] = 1
             result['settings'] = dict(sorted(msettings.items(), key=lambda k_v: k_v[1]['sort_order']))
             # on preprod server, dict order (through JsonResponse ??) is not respected !!
         except Exception as e:
