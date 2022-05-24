@@ -6,11 +6,11 @@
     <title>{{title}}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static "css/knacss.min.css" %}">
-    <link rel="stylesheet" href="{% static "css/common.css" %}?v=">
-    <link rel="stylesheet" href="{% static "fontawesome/css/fa-svg-with-js.css" %}?v=">
+    <link rel="stylesheet" href="{% static "css/common.css" %}?v=1651853225">
+    <link rel="stylesheet" href="{% static "fontawesome/css/fa-svg-with-js.css" %}?v=1651853225">
     {% if custom_css.all %}
       {% for fpath in custom_css.all %}
-        <link rel="stylesheet" href="{% static ''|add:fpath %}?v=">
+        <link rel="stylesheet" href="{% static ''|add:fpath %}?v=1651853225">
       {% endfor %}
     {% endif %}
 

@@ -1456,6 +1456,7 @@ class CagetteServices(models.Model):
         # Let's start by adding an extra shift to associated member who came together
         cond = [['date_begin', '>=', date_24h_before.isoformat()],
                 ['date_begin', '<=', end_date.isoformat()],
+                ['date_closed', '=', False],
                 ['state', '=', 'done'], ['associate_registered', '=', 'both']]
         fields = ['state', 'partner_id', 'date_begin']
         res = api.search_read('shift.registration', cond, fields)
@@ -1495,7 +1496,8 @@ class CagetteServices(models.Model):
                 (_h, _m, _s) = h.split(':')
                 if int(_h) < 21:
                     ids.append(int(r['id']))
-        f = {'state': absence_status}
+        # coop_logger.info("Traitement absences shift_registration ids %s", ids)
+        f = {'state': absence_status, 'date_closed': now.isoformat()}
         update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
         if update_shift_reg_result['update'] is True:
             update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
