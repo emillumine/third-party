@@ -29,6 +29,13 @@ function init_datatable() {
                     else {
                         var date = new Date(data);
 
+                        // Get local timezone offset in minutes
+                        const offset = date.getTimezoneOffset();
+
+                        // Add offset to saved time.
+                        // offset is negative if the local time zone is ahead of UTC.
+                        date.setTime(date.getTime() - offset * 60 * 1000);
+
                         return `${date.toLocaleDateString('fr-FR')} ${date.toLocaleTimeString('fr-FR')}`;
                     }
                 }
