@@ -355,36 +355,37 @@ var is_product_in_shelf_adding_queue_list = function(testing_pid) {
 };
 
 var printProduct = function () {
-  let clicked = $(this);
-  let tr_to_print = clicked.closest('tr');
-  let barcode = tr_to_print.data('bc')
+    let clicked = $(this);
+    let tr_to_print = clicked.closest('tr');
+    let barcode = tr_to_print.data('bc');
 
-  openModal();
-  try {
-    $.ajax({
-      url: '/products/get_product_data',
-      data: {'barcode': barcode}
-      })
-      .done(function(res) {
-        var product = res.product
-        var product_tmpl_id = product.product_tmpl_id[0]
+    openModal();
+    try {
         $.ajax({
-          url: '/products/label_print/' + product_tmpl_id
+            url: '/products/get_product_data',
+            data: {'barcode': barcode}
         })
-        .done(function(res_print) {
-            closeModal();
-            if ("error" in res_print.res) {
-                console.log(res_print.res);
-                alert('Une erreur est survenue...');
-            } else {
-                alert('Impression lancée');
-            }
-        })
-      })
-  } catch(e) {
-    closeModal();
-    alert('Une erreur est survenue...');
-  }
+            .done(function(res) {
+                var product = res.product;
+                var product_tmpl_id = product.product_tmpl_id[0];
+
+                $.ajax({
+                    url: '/products/label_print/' + product_tmpl_id
+                })
+                    .done(function(res_print) {
+                        closeModal();
+                        if ("error" in res_print.res) {
+                            console.log(res_print.res);
+                            alert('Une erreur est survenue...');
+                        } else {
+                            alert('Impression lancée');
+                        }
+                    });
+            });
+    } catch (e) {
+        closeModal();
+        alert('Une erreur est survenue...');
+    }
 
 };
 
