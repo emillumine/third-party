@@ -111,15 +111,23 @@ function barcode_analyzer(chars) {
     }
 }
 
-function reset_previous_value() {
-    if (editing_item !== null) {
-        if (typeof editing_item.added_qties !== "undefined") {
-            editing_item.qty -= editing_item.added_qties.pop();
-        }
-        $('#edition_input').val(editing_item.qty);
-        $("#reset_to_previous_qty").hide();
-    }
-}
+/**
+ * Option to display an icon next to edition input to cancel last value.
+ * Disabled for now. Look for #reset_to_previous_qty to restore.
+ *
+ * WARNING: if you restore this functionality, update validateEdition() so
+ *  canceling last value is ignored if edition_cancel is pressed.
+ */
+// function reset_previous_value() {
+//     if (editing_item !== null) {
+//         if (typeof editing_item.added_qties !== "undefined") {
+//             editing_item.qty -= editing_item.added_qties.pop();
+//         }
+//         $('#edition_input').val(editing_item.qty);
+//         $("#reset_to_previous_qty").hide();
+//     }
+// }
+
 function refresh() {
     location.reload();
 }
@@ -300,12 +308,38 @@ function clearLineEdition() {
     $('#product_name').text('');
     $('#edition_input').val('');
     $('#search_input').focus();
-    $("#reset_to_previous_qty").hide();
+    // $("#reset_to_previous_qty").hide();
 }
 
-// Validate product edition
+/**
+ * Validate product edition.
+ * Keep track of every qty change.
+ */
 function validateEdition() {
     if (editing_item != null) {
+        const current_val = $("#edition_input").val();
+
+        // Let's verify if quantity have been changed
+        if (current_val != editing_item.qty) {
+            if (typeof editing_item.added_qties !== "undefined") {
+                // total may have been affected by manual typing
+                const total = get_added_qties_sum(editing_item);
+
+                if (current_val != total) {
+                    // add difference in added_qties array
+                    editing_item.added_qties.push(current_val - total);
+                }
+            } else {
+                // Init added_qties to take change into account
+                editing_item.added_qties = [
+                    editing_item.qty,
+                    current_val - editing_item.qty
+                ];
+            }
+        }
+
+        editing_item.qty = current_val;
+
         if (editProductInfo(editing_item)) {
             clearLineEdition();
         }
@@ -1141,44 +1175,26 @@ function init() {
       $(document.documentElement).scrollTop(scrollTo);
       */
         });
-        if ($(this).val().length > 0) {
-            let reset_icon = $("#reset_to_previous_qty");
 
-            reset_icon.show();
-            reset_icon.off();
-            reset_icon.on("click", reset_previous_value);
-        } else {
-            $("#reset_to_previous_qty").hide();
-        }
+        // if ($(this).val().length > 0) {
+        //     let reset_icon = $("#reset_to_previous_qty");
+        //     reset_icon.show();
+        //     reset_icon.off();
+        //     reset_icon.on("click", reset_previous_value);
+        // } else {
+        //     $("#reset_to_previous_qty").hide();
+        // }
     })
         .on('blur', function () {
-            const current_val = $(this).val();
-
             $(this).off('wheel.disableScroll');
-
-            if (editing_item !== null) {
-                //Let's verify if quantity have be changed
-                if (current_val != editing_item.qty) {
-                    if (typeof editing_item.added_qties !== "undefined") {
-                        // total may have been affected by manual typing
-                        const total = get_added_qties_sum(editing_item);
-
-                        if (current_val != total) {
-                            // add difference in added_qties array
-                            editing_item.added_qties.push(current_val - total);
-                        }
-                    } else {
-                        // Init added_qties to take change into account
-                        editing_item.added_qties = [
-                            editing_item.qty,
-                            current_val - editing_item.qty
-                        ];
-                    }
-                }
-
-                editing_item.qty = current_val;
-            }
         });
+
+    $("#edition_input").keypress(function(event) {
+        // Force validation when enter pressed in edition
+        if (event.keyCode == 13 || event.which == 13) {
+            validateEdition();
+        }
+    });
 
     // client-side validation of numeric inputs, optionally replacing separator sign(s).
     $("input.number").on("keydown", function (e) {
@@ -1234,7 +1250,6 @@ function init() {
             barcode_analyzer();
         }
     });
-
 
     $(document).pos();
     $(document).on('scan.pos.barcode', function(event) {

@@ -1,7 +1,7 @@
 {% extends "members/base.html" %}
 {% load static %}
 {% block additionnal_css %}
-  <link rel="stylesheet" href="{% static "css/inscriptions.css" %}?v=">
+  <link rel="stylesheet" href="{% static "css/inscriptions.css" %}?v=1651853225">
   <style>
     .shift[data-place="{{mag_place_string}}"], [data-select="{{mag_place_string}}"] {background: #c8deff;}
     .shift[data-place="{{office_place_string}}"], [data-select="{{office_place_string}}"]  {background: #f9b2ff;}
@@ -184,8 +184,8 @@
         var committees_shift_id = '{{committees_shift_id}}';
 
 </script>
-<script src="{% static "js/all_common.js" %}?v="></script>
-<script src="{% static "js/common.js" %}?v="></script>
-<script src="{% static "js/inscriptions.js" %}?v="></script>
+<script src="{% static "js/all_common.js" %}?v=1651853225"></script>
+<script src="{% static "js/common.js" %}?v=1651853225"></script>
+<script src="{% static "js/inscriptions.js" %}?v=1651853225"></script>
 
 {% endblock %}
