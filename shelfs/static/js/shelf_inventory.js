@@ -32,8 +32,8 @@ var shelf = null,
     // datetime for which shelf's ongoing_inv_start_datetime is considered null
     default_inventory_start_datetime = "0001-01-01 00:00:00",
     selected_products_for_shelf_change = [],
-    all_shelfs = null,
-    debounce_timeout = null; // Use get_all_shelfs to access it's value
+    all_shelfs = null,  // Use get_all_shelfs to access it's value
+    debounce_timeout = null;
 
 
 /* UTILS */
