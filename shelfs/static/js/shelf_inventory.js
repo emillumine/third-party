@@ -32,7 +32,8 @@ var shelf = null,
     // datetime for which shelf's ongoing_inv_start_datetime is considered null
     default_inventory_start_datetime = "0001-01-01 00:00:00",
     selected_products_for_shelf_change = [],
-    all_shelfs = null; // Use get_all_shelfs to access it's value
+    all_shelfs = null, // Use get_all_shelfs to access it's value
+    debounce_timeout = null;
 
 
 /* UTILS */
@@ -54,6 +55,11 @@ Number.isSafeInteger = Number.isSafeInteger || function (value) {
 
 function back() {
     document.location.href = parent_location;
+}
+
+function debounce(func, delay = 100) {
+    clearTimeout(debounce_timeout);
+    debounce_timeout = setTimeout(func, delay);
 }
 
 function get_added_qties_sum(item) {
@@ -109,6 +115,8 @@ function barcode_analyzer(chars) {
     } else {
         select_product_from_bc(barcode);
     }
+
+    search_chars = [];
 }
 
 /**
@@ -198,6 +206,7 @@ function select_product_from_bc(barcode) {
             }
         } else {
             console.log('Code barre introuvable');
+            alert("Le produit bippé n'est pas enregistré dans ce rayon.");
         }
     } else if (barcode == editing_item.barcode && qty) {
         // We scan the same product as the current one
@@ -211,6 +220,8 @@ function select_product_from_bc(barcode) {
         editing_item.qty = get_added_qties_sum(editing_item);
         edition_input.val(editing_item.qty);
     }
+
+    return null;
 }
 
 /*
@@ -567,7 +578,7 @@ function initLists() {
                                         </div>`,
             className: "dt-body-center",
             orderable: false,
-            render: function (data) {
+            render: function () {
                 return `<input type="checkbox" class="select_product_cb" />`;
             },
             width: "4%"});
@@ -1247,7 +1258,7 @@ function init() {
         if (e.which >= 48 && e.which <= 57) { // figures [0-9]
             search_chars.push(String.fromCharCode(e.which));
         } else if (e.which == 13 || search_chars.length >= 13) {
-            barcode_analyzer();
+            debounce(barcode_analyzer); // Avoid concurrent barcode analysing
         }
     });
 
@@ -1256,8 +1267,7 @@ function init() {
         //access `event.code` - barcode data
         var barcode = event.code;
 
-        barcode_analyzer(barcode);
-
+        debounce(() => barcode_analyzer(barcode)); // Avoid concurrent barcode analysing
     });
 
 }
