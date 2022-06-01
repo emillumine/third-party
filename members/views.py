@@ -450,6 +450,5 @@ def save_partner_info(request):
 def external_login(request):
     """Post request send from external login page, such as Question2Answer."""
     # TODO : Allow only known host (based on domain ? key ?)
-    res = {}
-    CagetteMember.get_credentials(request, external=True)
+    res = {'credentials': CagetteMember.get_credentials(request, external=True)}
     return JsonResponse(res, safe=False)

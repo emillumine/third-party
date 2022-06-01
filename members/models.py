@@ -160,6 +160,15 @@ class CagetteMember(models.Model):
                     data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
                     data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
                     data['coop_state'] = coop_state
+                    if external is True:
+                        from outils.functions import extract_firstname_lastname
+                        name_sep = getattr(settings, 'SUBSCRIPTION_NAME_SEP', ' ')
+                        name_elts = extract_firstname_lastname(coop['name'], name_sep)
+                        data['lastname'] = name_elts['lastname']
+                        if name_elts['firstname'] != name_elts['lastname']:
+                            data['firstname'] = name_elts['firstname']
+                        else:
+                            data['firstname'] = ''
 
                 if not ('auth_token' in data):
                     data['failure'] = True
