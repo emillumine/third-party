@@ -121,7 +121,7 @@ class CagetteMember(models.Model):
                                      'id DESC')
 
     @staticmethod
-    def get_credentials(request):
+    def get_credentials(request, external=False):
         import hashlib
 
         data = {}
@@ -171,7 +171,7 @@ class CagetteMember(models.Model):
                 data['errnum'] = 2
                 #  data['res'] = res
 
-        elif 'token' in request.COOKIES and 'id' in request.COOKIES:
+        elif external is False and 'token' in request.COOKIES and 'id' in request.COOKIES:
             api = OdooAPI()
             cond = [['id', '=', request.COOKIES['id']]]
             fields = ['create_date','email']
@@ -187,10 +187,11 @@ class CagetteMember(models.Model):
         else:
             data['failure'] = True
         if not ('failure' in data):
-            data['login'] = login
-            c_db_data = CagetteMember.get_couchdb_data(login)
-            if len(c_db_data) > 0 and 'validation_state' in c_db_data:
-                data['validation_state'] = c_db_data['validation_state']
+            if external is False:
+                data['login'] = login
+                c_db_data = CagetteMember.get_couchdb_data(login)
+                if len(c_db_data) > 0 and 'validation_state' in c_db_data:
+                    data['validation_state'] = c_db_data['validation_state']
         #  print(str(data))
         return data
 

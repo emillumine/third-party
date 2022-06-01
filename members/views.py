@@ -443,3 +443,13 @@ def save_partner_info(request):
     else:
         res['error'] = "Forbidden"
         return JsonResponse(res, safe=False)
+
+### External login 
+
+@csrf_exempt
+def external_login(request):
+    """Post request send from external login page, such as Question2Answer."""
+    # TODO : Allow only known host (based on domain ? key ?)
+    res = {}
+    CagetteMember.get_credentials(request, external=True)
+    return JsonResponse(res, safe=False)
