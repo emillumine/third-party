@@ -121,7 +121,7 @@ class CagetteMember(models.Model):
                                      'id DESC')
 
     @staticmethod
-    def get_credentials(request):
+    def get_credentials(request, external=False):
         import hashlib
 
         data = {}
@@ -138,7 +138,7 @@ class CagetteMember(models.Model):
                 cond.append(['is_member', '=', True])
                 cond.append(['is_associated_people', '=', True])
 
-            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people']
+            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people', 'barcode_base']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
                 coop_id = None
@@ -160,6 +160,16 @@ class CagetteMember(models.Model):
                     data['auth_token'] = hashlib.sha256(auth_token_seed.encode('utf-8')).hexdigest()
                     data['token'] = hashlib.sha256(coop['create_date'].encode('utf-8')).hexdigest()
                     data['coop_state'] = coop_state
+                    if external is True:
+                        from outils.functions import extract_firstname_lastname
+                        name_sep = getattr(settings, 'SUBSCRIPTION_NAME_SEP', ' ')
+                        name_elts = extract_firstname_lastname(coop['name'], name_sep)
+                        data['lastname'] = name_elts['lastname']
+                        if name_elts['firstname'] != name_elts['lastname']:
+                            data['firstname'] = name_elts['firstname']
+                        else:
+                            data['firstname'] = ''
+                        data['coop_num'] = coop['barcode_base']
 
                 if not ('auth_token' in data):
                     data['failure'] = True
@@ -171,7 +181,7 @@ class CagetteMember(models.Model):
                 data['errnum'] = 2
                 #  data['res'] = res
 
-        elif 'token' in request.COOKIES and 'id' in request.COOKIES:
+        elif external is False and 'token' in request.COOKIES and 'id' in request.COOKIES:
             api = OdooAPI()
             cond = [['id', '=', request.COOKIES['id']]]
             fields = ['create_date','email']
@@ -187,10 +197,11 @@ class CagetteMember(models.Model):
         else:
             data['failure'] = True
         if not ('failure' in data):
-            data['login'] = login
-            c_db_data = CagetteMember.get_couchdb_data(login)
-            if len(c_db_data) > 0 and 'validation_state' in c_db_data:
-                data['validation_state'] = c_db_data['validation_state']
+            if external is False:
+                data['login'] = login
+                c_db_data = CagetteMember.get_couchdb_data(login)
+                if len(c_db_data) > 0 and 'validation_state' in c_db_data:
+                    data['validation_state'] = c_db_data['validation_state']
         #  print(str(data))
         return data
 
