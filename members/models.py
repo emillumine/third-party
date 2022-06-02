@@ -138,7 +138,7 @@ class CagetteMember(models.Model):
                 cond.append(['is_member', '=', True])
                 cond.append(['is_associated_people', '=', True])
 
-            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people']
+            fields = ['name', 'email', 'birthdate', 'create_date', 'cooperative_state', 'is_associated_people', 'barcode_base']
             res = api.search_read('res.partner', cond, fields)
             if (res and len(res) >= 1):
                 coop_id = None
@@ -169,6 +169,7 @@ class CagetteMember(models.Model):
                             data['firstname'] = name_elts['firstname']
                         else:
                             data['firstname'] = ''
+                        data['coop_num'] = coop['barcode_base']
 
                 if not ('auth_token' in data):
                     data['failure'] = True
