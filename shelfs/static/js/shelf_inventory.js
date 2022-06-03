@@ -851,9 +851,12 @@ function send() {
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(shelf),
             success: function(data) {
+                let next_step_call = back;
                 // If step 1, display additionnal message in validation popup
                 if (shelf.inventory_status == '') {
                     inventory_validated_msg.find('#step1_validated').show();
+                    next_step_call = refresh;
+
                 }
 
                 if (typeof data.res.inventory != 'undefined') {
@@ -867,12 +870,10 @@ function send() {
 
                 var msg = (originView == 'shelf') ? 'OK, je passe à la suite !' : 'Retour';
 
-                // Go to step 2 if step 1 is validated and modal closed
-                openModal(inventory_validated_msg.html(), refresh, msg, true, false);
-
-                // Go to step 2 if modal is closed
-                $('#modal_closebtn_top').on('click', refresh);
-                $('#modal_closebtn_bottom').on('click', refresh);
+                // Go to next step if modal closed
+                openModal(inventory_validated_msg.html(), next_step_call, msg, true, false);
+                $('#modal_closebtn_top').on('click', next_step_call);
+                $('#modal_closebtn_bottom').on('click', next_step_call);
 
                 // Clear local storage before leaving
                 localStorage.removeItem(originView + '_' + shelf.id);
