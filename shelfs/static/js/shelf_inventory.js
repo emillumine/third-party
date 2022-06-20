@@ -158,6 +158,9 @@ function select_product_from_bc(barcode) {
                 qty = scannedProduct.qty;
             }
         }
+    } else {
+        alert("Le code-barre " + barcode + " n'est pas reconnu comme un EAN13 valide.'");
+        return -1;
     }
 
     if (editing_item === null) {
