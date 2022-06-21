@@ -1750,7 +1750,9 @@ var get_barcodes = async function() {
     if (barcodes == null) barcodes = await init_barcodes();
 };
 
+function add_products_action() {
 
+}
 
 /**
  * Init the page according to order(s) data (texts, colors, events...)
@@ -1922,6 +1924,20 @@ function init_dom(partners_display_data) {
         // Force validation when enter pressed in edition
         if (event.keyCode == 13 || event.which == 13) {
             validateEdition();
+        }
+    });
+
+    $("#add_products_button").on('click', () => {
+        let pswd = prompt('Merci de demander à un.e salarié.e le mot de passe pour ajouter des produits à la commande');
+
+        // Minimum security level
+        if (pswd == add_products_pswd) {
+            console.log('ok');
+            // TODO
+        } else if (pswd == null) {
+            return;
+        } else {
+            alert('Mauvais mot de passe !');
         }
     });
 

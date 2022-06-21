@@ -55,6 +55,7 @@ EM_URL = ''
 
 
 RECEPTION_MERGE_ORDERS_PSWD = 'jpsrcp'
+RECEPTION_ADD_PRODUCTS_PSWD = 'jpsrcp'
 RECEPTION_PB = "Ici, vous pouvez signaler toute anomalie lors d'une réception, les produits non commandés, cassés ou pourris. \
         Merci d'indiquer un maximum d'informations, le nom du produit et son code barre."
 DISPLAY_COL_AUTRES = False

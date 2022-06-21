@@ -82,6 +82,7 @@ def produits(request, id):
         "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
         "ADD_ALL_LEFT_IS_GOOD_QTIES": False,
         "ADD_ALL_LEFT_IS_GOOD_PRICES": False,
+        'add_products_pswd': getattr(settings, 'RECEPTION_ADD_PRODUCTS_PSWD', 'makeastop'),
     }
     fixed_barcode_prefix = '0490'
 
