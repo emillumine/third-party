@@ -16,7 +16,6 @@ var main_content = $('#main-content'),
     adding_pdts_tpl = $('#adding-products').clone()
         .removeAttr('id'),
     active_phase = 'main',
-    add_pdts_btn_text = 'AJOUTER AU RAYON',
     add_to_shelf_product_ids = [],
     barcodes = null;
 
@@ -418,8 +417,7 @@ var addProductToList = async function(barcode) {
             $('<td>').html(delete_icon + " " + print_icon)
                 .appendTo(pdt_line);
             adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
-            main_content.find('button.add-products').css('display', 'block')
-                .html(add_pdts_btn_text);
+            main_content.find('.add-products').css('display', 'block')
         }
     }
 };
@@ -436,7 +434,7 @@ var addProducts = async function() {
 
     main_content.html(adding_pdts_tpl);
     active_phase = "adding_products";
-    main_content.find('button.add-products').css('display', 'none');
+    main_content.find('.add-products').css('display', 'none');
     if (admin_ids.find(id => id == getCookie("uid"))) $('.add-search').show();
 
 };
@@ -453,7 +451,7 @@ var recordProductsAddedShelf = function() {
         });
 
         if (is_time_to('add_pdts_to_shelf', 5000)) { // prevent double click or browser hic up bug
-            main_content.find('button.add-products').html(loading_img);
+            main_content.find('.add-products').html(loading_img);
             post_form(
                 '/shelfs/admin/add_products',
                 {bc: JSON.stringify(barcodes), shelf_id: id},
@@ -477,7 +475,7 @@ var recordProductsAddedShelf = function() {
                         else if (typeof rData.res.msg != "undefined")
                             msg = rData.res.msg;
                         alert(msg);
-                        main_content.find('button.add-products').html(add_pdts_btn_text);
+                        main_content.find('.add-products')
                     }
 
                 }
@@ -571,7 +569,7 @@ $(document).ready(function() {
         $(document).on('click', '.obc .fa-trash', deleteBarcodeFromList);
         $(document).on('click', '.obc .fa-print', printProduct);
         $(document).on('click', 'td.products .fa-plus-circle', addProducts);
-        $(document).on('click', '#main-content button.add-products', recordProductsAddedShelf);
+        $(document).on('click', '#main-content .add-products', recordProductsAddedShelf);
         $(document).on('click', 'td.p_nb', showProductsList);
         try {
             if (admin_ids.find(id => id == getCookie("uid"))) {
