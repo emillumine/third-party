@@ -1830,6 +1830,9 @@ function init_dom(partners_display_data) {
         document.getElementById('edition_header').innerHTML = "Editer les quantités";
         document.getElementById('edition_input_label').innerHTML = "Qté";
 
+        // Add products button
+        document.getElementById('add_products_button').style.display = "block";
+
         document.getElementById("valid_all").innerHTML = "<button class='btn--danger full_width_button' id='valid_all_qties' onclick=\"openModal($('#templates #modal_no_qties').html(), setAllQties, 'Confirmer');\" disabled>Il n'y a plus de produits à compter</button>";
         document.getElementById("validation_button").innerHTML = "<button class='btn--primary full_width_button' id='valid_qty' onclick=\"pre_send('qty_valid')\" disabled>Valider le comptage des produits</button>";
 

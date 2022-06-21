@@ -205,6 +205,16 @@ tr.odd td.row_product_no_qty {
   background-color: rgb(236, 182, 106); /*#ec971f*/
 }
 
+.add_products_button_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#add_products_button {
+  display: none;
+}
+
 /* Accordion style */
 
 /* Style the buttons that are used to open and close the accordion panel */
