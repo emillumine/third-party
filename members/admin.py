@@ -351,6 +351,7 @@ def manage_regular_shifts(request):
         'open_on_sunday': getattr(settings, 'OPEN_ON_SUNDAY', False),
         'show_ftop_button': getattr(settings, 'BDM_SHOW_FTOP_BUTTON', True),
         'has_committe_shift': committees_shift_id is not None,
+        'committees_shift_id': committees_shift_id,
         'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
     }
     return HttpResponse(template.render(context, request))
