@@ -261,9 +261,7 @@ def save_error_report(request):
 
             try:
                 for i, order in enumerate(data['orders']) :
-                    # list of temp files: 1 report per order & group
-                    data['orders'][i]['temp_file_name'] = "temp/" + order['name'] + "_rapport-reception_temp.xlsx"
-
+                    # 1 report per order & 1 for the group
                     group_ids.append(order['id'])
 
                     orders_name_elts.append(order['name'])
@@ -287,7 +285,6 @@ def save_error_report(request):
                         'date_order': data['orders'][0]['date_order'],
                         'amount_total': data['group_amount_total'],
                         'updated_products': data['updated_products'],
-                        'temp_file_name': temp_group_file_name,
                         'group_ids': group_ids
                     }
 
