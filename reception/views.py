@@ -60,6 +60,7 @@ def get_list_orders(request):
             "id"                : order["id"],
             "name"              : order["name"],
             "date_order"        : order["date_order"],
+            "partner_id"        : order["partner_id"][0],
             "partner"           : order["partner_id"][1],
             "date_planned"      : order["date_planned"],
             "amount_untaxed"    : round(order["amount_untaxed"],2),
