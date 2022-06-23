@@ -58,11 +58,13 @@ function is_grouped_order() {
  */
 function get_suppliers_id() {
     let suppliers_id = [];
+
     for (var order_id in orders) {
-        if ('partner_id' in orders[order_id]) {  // for versions transition
+        if ('partner_id' in orders[order_id]) { // check for versions transition
             suppliers_id.push(orders[order_id].partner_id);
         }
     }
+
     return suppliers_id;
 }
 
@@ -394,9 +396,9 @@ function get_pdf_labels() {
 function fetch_suppliers_products() {
     if (suppliers_products.length === 0) {
         openModal();
-    
+
         let suppliers_id = get_suppliers_id();
-    
+
         // Fetch supplier products
         $.ajax({
             type: 'GET',
@@ -418,7 +420,7 @@ function fetch_suppliers_products() {
                     err.msg += ' : ' + data.responseJSON.error;
                 }
                 report_JS_error(err, 'reception');
-    
+
                 closeModal();
                 alert('Erreur lors de la récupération des produits, réessayer plus tard.');
             }
@@ -1803,10 +1805,12 @@ function add_products_action() {
 
     for (let qty_input of qty_inputs) {
         if ($(qty_input).val() === "") {
-            has_empty_qty_input = true
-            $(qty_input).siblings(".product_qty_input_alert").show();
+            has_empty_qty_input = true;
+            $(qty_input).siblings(".product_qty_input_alert")
+                .show();
         } else {
-            $(qty_input).siblings(".product_qty_input_alert").hide();
+            $(qty_input).siblings(".product_qty_input_alert")
+                .hide();
         }
     }
 
@@ -1825,8 +1829,9 @@ function create_orders() {
 
     // Mock order date_planned : today
     let date_object = new Date();
+
     formatted_date = date_object.toISOString().replace('T', ' ')
-        .split('.')[0];  // Get ISO format bare string
+        .split('.')[0]; // Get ISO format bare string
 
     for (let supplier_id of get_suppliers_id()) {
         orders_data.suppliers_data[supplier_id] = {
@@ -1839,12 +1844,16 @@ function create_orders() {
     for (let p of products_to_add) {
         // Get product qty from input
         let product_qty = 0;
-        
-        let add_products_lines = $("#modal .add_product_line")
+
+        let add_products_lines = $("#modal .add_product_line");
+
         for (let i = 0; i < add_products_lines.length; i++) {
             let line = add_products_lines[i];
-            if ($(line).find(".product_name").text() === p.name) {
-                product_qty = parseFloat($(line).find(".product_qty_input").val());
+
+            if ($(line).find(".product_name")
+                .text() === p.name) {
+                product_qty = parseFloat($(line).find(".product_qty_input")
+                    .val());
                 break;
             }
         }
@@ -1874,6 +1883,7 @@ function create_orders() {
     }
 
     openModal();
+    $("#modal em:contains('Chargement en cours...')").append("<br/>L'opération peut prendre un certain temps...");
 
     $.ajax({
         type: "POST",
@@ -1883,7 +1893,7 @@ function create_orders() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(orders_data),
         success: (result) => {
-            po_ids = []
+            po_ids = [];
             for (let po of result.res.created) {
                 po_ids.push(po.id_po);
             }
@@ -1906,18 +1916,18 @@ function create_orders() {
                         // Add key (position in orders list) to new orders data
                         current_orders_key += 1;
                         new_order.key = current_orders_key;
-                        
+
                         // Consider new order lines as updated products
                         new_order.updated_products = new_order.po;
-                        delete(new_order.po)
+                        delete(new_order.po);
 
                         // Add necessary data to order updated products
                         for (let noup of new_order.updated_products) {
                             noup.order_key = current_orders_key;
                             noup.id_po = String(new_order.id);
-                            noup.old_qty = 0;  // products weren't originally ordered
+                            noup.old_qty = 0; // products weren't originally ordered
                         }
-                        
+
                         // Create couchdb doc for the new order
                         create_order_doc(new_order);
                     }
@@ -1937,23 +1947,13 @@ function create_orders() {
                                 }
                             }
                         }
-                        
+
                         dbc.put(doc, () => {
-                            window.location.reload();  
+                            // Update screen
+                            // The easy way: reload page now all data is correctly set.
+                            window.location.reload();
                         });
-
-                    })
-
-                    // now we have order_lines in result2 orders
-
-                    // TODO
-                    // reload ! (should be fine) (or more complex : initList & set title)
-
-                    // TODO aussi, ne permettre d'ajouter des produits que dans étape 1 (jcrois c'est déjà fait)
-                    // TODO aussi, enlever de la liste des produits à ajouter, les produits déjà récupérés
-                    // TODO bug : peut pas sélectionner produit à ajouter si déjà une recherche dans page principale
-                    // TODO aussi : press enter sur item du dropdown
-                    // TODO aussi sur page d'accueil action quand groups doc est maj (surement reload)
+                    });
                 },
                 error: function(data) {
                     err = {msg: "erreur serveur lors de la récupération des commandes", ctx: 'get_list_orders'};
@@ -1966,8 +1966,6 @@ function create_orders() {
                     alert('Erreur lors de la récupération des commandes, rechargez la page plus tard.');
                 }
             });
-
-            // closeModal();
         },
         error: function(data) {
             let msg = "erreur serveur lors de la création des product orders";
@@ -1989,7 +1987,7 @@ function create_orders() {
  *
  * @param {Object} order_data
  */
- function create_order_doc(order_data) {
+function create_order_doc(order_data) {
     const order_doc_id = 'order_' + order_data.id;
 
     order_data._id = order_doc_id;
@@ -2042,7 +2040,14 @@ function openErrorReport() {
  * Filter autocomplete data by removing products already selected.
  */
 function set_products_autocomplete() {
-    let autocomplete_products = suppliers_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
+    // Filter autocomplete products on products already in orders
+    let autocomplete_products = suppliers_products.filter(p => list_to_process.findIndex(ptp => ptp.product_id[1] === p.name) === -1);
+
+    autocomplete_products = autocomplete_products.filter(p => list_processed.findIndex(pp => pp.product_id[1] === p.name) === -1);
+
+    console.log(products_to_add);
+    // Filter autocomplete products on products already selected
+    autocomplete_products = autocomplete_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
 
     try {
         $("#modal .search_product_input").autocomplete("destroy");
@@ -2055,46 +2060,48 @@ function set_products_autocomplete() {
         classes: {
             "ui-autocomplete": "autocomplete_dropdown"
         },
-        delay: 0
-    });
+        delay: 0,
+        select: function(event, ui) {
+            // Action called when an item is selected
+            event.preventDefault();
+            let product_name = ui.item.label;
 
-    $(".autocomplete_dropdown").off("click"); // todo + enter
-    $(".autocomplete_dropdown").on("click", (e) => {
-        let product_name = e.target.textContent;
+            // extra secutiry but shouldn't happen
+            if (products_to_add.findIndex(p => p.name === product_name) === -1) {
+                let product = suppliers_products.find(p => p.name === product_name);
 
-        // extra secutiry but shouldn't happen
-        if (products_to_add.findIndex(p => p.name === product_name) === -1) {
-            let product = suppliers_products.find(p => p.name === product_name);
-            products_to_add.push(product);
-    
-            // Reset search elements
-            $(".autocomplete_dropdown").hide();
-            $("#modal .search_product_input").val('');
-            set_products_autocomplete();
-            
-            // Display
-            let add_product_template = $("#add_product_line_template");
-            add_product_template.find(".product_name").text(product_name);
-            $("#modal .products_lines").append(add_product_template.html());
+                products_to_add.push(product);
 
-            if (products_to_add.length === 1) {
-                $("#modal .products_lines").show();
+                // Display
+                let add_product_template = $("#add_product_line_template");
+
+                add_product_template.find(".product_name").text(product_name);
+                $("#modal .products_lines").append(add_product_template.html());
+
+                if (products_to_add.length === 1) {
+                    $("#modal .products_lines").show();
+                }
+
+                $(".remove_line_icon").off("click");
+                $(".remove_line_icon").on("click", remove_product_line);
+
+                // Reset search elements
+                $("#modal .search_product_input").val('');
+                set_products_autocomplete();
             }
-
-            $(".remove_line_icon").off("click");
-            $(".remove_line_icon").on("click", remove_product_line);
         }
     });
 }
 
 /**
  * Remove product from list of products to add & remove line from DOM
- * @param {Event} e 
+ * @param {Event} e
  */
 function remove_product_line(e) {
     let product_line = $(e.target).closest(".add_product_line");
     let product_name = product_line.find(".product_name").text();
     let product_to_add_index = products_to_add.findIndex(p => p.name === product_name);
+
     products_to_add.splice(product_to_add_index, 1);
     product_line.remove();
     set_products_autocomplete();
@@ -2105,9 +2112,10 @@ function remove_product_line(e) {
  */
 function set_add_products_modal() {
     let add_products_modal = $("#modal_add_products");
+
     openModal(
-        add_products_modal.html(), 
-        add_products_action, 
+        add_products_modal.html(),
+        add_products_action,
         'Ajouter les produits',
         false
     );
@@ -2289,15 +2297,17 @@ function init_dom(partners_display_data) {
     });
 
     $("#add_products_button").on('click', () => {
-        let pswd = prompt('Merci de demander à un.e salarié.e le mot de passe pour ajouter des produits à la commande');
+        if (reception_status == "False") {
+            let pswd = prompt('Merci de demander à un.e salarié.e le mot de passe pour ajouter des produits à la commande');
 
-        // Minimum security level
-        if (pswd == add_products_pswd) {
-            fetch_suppliers_products();
-        } else if (pswd == null) {
-            return;
-        } else {
-            alert('Mauvais mot de passe !');
+            // Minimum security level
+            if (pswd == add_products_pswd) {
+                fetch_suppliers_products();
+            } else if (pswd == null) {
+                return;
+            } else {
+                alert('Mauvais mot de passe !');
+            }
         }
     });
 

@@ -217,6 +217,9 @@ tr.odd td.row_product_no_qty {
 
 .search_products_to_add_area {
   margin: 2rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .search_product_input {
@@ -225,6 +228,10 @@ tr.odd td.row_product_no_qty {
 
 .autocomplete_dropdown {
   z-index: 10000001 !important;
+}
+
+.search_product_help {
+  margin-left: 10px;
 }
 
 .products_lines {
