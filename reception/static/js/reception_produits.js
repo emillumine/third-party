@@ -1589,7 +1589,8 @@ function send() {
                             // Save current step updated data
                             orders[order_id].previous_steps_data = {};
                             orders[order_id].previous_steps_data[reception_status] = {
-                                updated_products: orders[order_id].updated_products || []
+                                updated_products: orders[order_id].updated_products || [],
+                                user_comments: user_comments
                             };
                             orders[order_id].reception_status = updateType;
 
