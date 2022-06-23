@@ -13,6 +13,7 @@ from openpyxl.styles import Alignment
 
 from reception.models import CagetteReception
 from outils.common import OdooAPI
+from outils.common import CouchDB
 from members.models import CagetteUser
 from products.models import CagetteProduct
 
@@ -260,9 +261,7 @@ def save_error_report(request):
 
             try:
                 for i, order in enumerate(data['orders']) :
-                    # list of temp files: 1 report per order & group
-                    data['orders'][i]['temp_file_name'] = "temp/" + order['name'] + "_rapport-reception_temp.xlsx"
-
+                    # 1 report per order & 1 for the group
                     group_ids.append(order['id'])
 
                     orders_name_elts.append(order['name'])
@@ -286,108 +285,86 @@ def save_error_report(request):
                         'date_order': data['orders'][0]['date_order'],
                         'amount_total': data['group_amount_total'],
                         'updated_products': data['updated_products'],
-                        'temp_file_name': temp_group_file_name,
                         'group_ids': group_ids
                     }
 
-                    data['orders'].append(group_order)
+                    data['orders'].append(group_order)  # group "order" has to be last in orders list
                 else:
                     coop_logger.info("data['orders'] is a single PO (not inside group)")
             except Exception as e2:
                 coop_logger.error("Save reception report : Error while create group_order %s", str(e2))
 
-            # Save qties & comments after step 1
+            # no action needed after step 1
             if data['update_type'] == 'qty_valid':
-                for order in data['orders']:
-                    try:
-                        wb = Workbook()
-                        ws = wb.active
-                        ws.title = "Commande " + order['name']
-
-                        ws.append(['type',
-                                    'nom_contenu',
-                                    'supplier_code',
-                                    'barcode',
-                                    'old_qty',
-                                    'product_qty',
-                                    'price_unit',
-                                    'supplier_shortage'])
-
-                        # If in group add group name
-                        if len(data['orders']) > 1:
-                            ws.append(['group', orders_name])
-                        try:
-                            if 'updated_products' in order:
-                                for product in order['updated_products']:
-                                    # Don't store products with same qties
-                                    if product['old_qty'] != product['product_qty']:
-                                        if 'supplier_code' in product:
-                                            supplier_code = str(product['supplier_code'])
-                                        else:
-                                            supplier_code = 'X'
-
-                                        if 'supplier_shortage' in product:
-                                            supplier_shortage = '/!\ Rupture fournisseur'
-                                        else:
-                                            supplier_shortage = ''
-
-                                        ws.append(['produit',
-                                                    product['product_id'][1],
-                                                    supplier_code,
-                                                    str(product['barcode']),
-                                                    product['old_qty'],
-                                                    product['product_qty'],
-                                                    product['price_unit'],
-                                                    supplier_shortage])
-                        except Exception as exp:
-                            coop_logger.error("Error while updating products in report : %s", str(exp))
-
-                        if ('user_comments' in data) and data['user_comments'] != "":
-                            ws.append( ['commentaire', data['user_comments']] )
-                        else:
-                            ws.append( ['commentaire', 'Aucun commentaire.'] )
-
-                        # Save file
-                        wb.save(filename=order['temp_file_name'])
-                    except Exception as e3:
-                        coop_logger.error("Save reception report : Error while create order Workbook %s", str(e3))
-
+                pass  # removed, keep check to ensure transition process
 
             # Create report with data from steps 1 & 2
             elif data['update_type'] == 'br_valid':
+                c_db = CouchDB(arg_db='reception')
+
+                concat_updated_products = []
+                concat_user_comments = ''
                 for order in data['orders']:
-                    # Read step 1 data from temp file
-                    data_qties = {}
-                    data_comment_s1 = ""
-                    group_name = ""
-
-                    # Try to find temp file
                     try:
-                        wb2 = load_workbook(order['temp_file_name'])
-                        ws = wb2.active
+                        data_qties = {}
+                        data_comment_s1 = ""
 
-                        for row in ws.iter_rows(min_row=2, values_only=True):
-                            if row[0] == 'produit':
-                                # products info
-                                data_qties[row[1]] = {
-                                    'nom_contenu' : row[1],
-                                    'supplier_code' : row[2],
-                                    'barcode' : row[3],
-                                    'old_qty' : row[4],
-                                    'product_qty' : row[5],
-                                    'price_unit' : row[6],
-                                    'supplier_shortage' : row[7]
-                                }
-                            elif row[0] == 'group':
-                                group_name = row[1]         # group's orders name : Unused
-                            elif row[0] == 'commentaire':
-                                data_comment_s1 = row[1]    # user comments
+                        if 'group_ids' in order :
+                            # For groups, concatenate orders step 1 data 
+                            step_1_data = {
+                                'updated_products': concat_updated_products,
+                                'user_comments': concat_user_comments
+                            }
+                        else:
+                            # Read step 1 data from couch db document
+                            order_id = f"order_{order['name'].split('PO')[1]}"
+                            order_doc = c_db.getDocById(order_id)
 
-                        # Clear step 1 temp file
-                        os.remove(order['temp_file_name'])
-                    except Exception as e4:
-                        coop_logger.error("Save reception report : reloading first step xlsx file %s", str(e4))
-                        data_comment_s1 = "Données de la première étape absentes !"
+                            try:
+                                step_1_data = order_doc['previous_steps_data']['False']
+                            except KeyError:
+                                continue  # No step 1 data
+
+                        if 'updated_products' in step_1_data:
+                            # Concatenate updated products from all orders
+                            if 'group_ids' not in order :
+                                concat_updated_products = concat_updated_products + step_1_data['updated_products']
+
+                            for product in step_1_data['updated_products']:
+                                # Don't store products with unchanged qties in step 1 data
+                                if product['old_qty'] != product['product_qty']:
+                                    if 'supplier_code' in product:
+                                        supplier_code = str(product['supplier_code'])
+                                    else:
+                                        supplier_code = 'X'
+
+                                    if 'supplier_shortage' in product:
+                                        supplier_shortage = '/!\ Rupture fournisseur'
+                                    else:
+                                        supplier_shortage = ''
+
+                                    product_name = product['product_id'][1]
+                                    data_qties[product_name] = {
+                                        'nom_contenu' : product_name,
+                                        'supplier_code' : supplier_code,
+                                        'barcode' : str(product['barcode']),
+                                        'old_qty' : product['old_qty'],
+                                        'product_qty' : product['product_qty'],
+                                        'price_unit' : product['price_unit'],
+                                        'supplier_shortage' : supplier_shortage
+                                    }
+
+                        if 'user_comments' in step_1_data:
+                            # Get user comments from all orders (same for all group orders)
+                            if 'group_ids' not in order\
+                                and step_1_data['user_comments'] != ""\
+                                and concat_user_comments != step_1_data['user_comments']:
+                                concat_user_comments = step_1_data['user_comments']
+
+                            data_comment_s1 = step_1_data['user_comments'] if step_1_data['user_comments'] != "" else 'Aucun commentaire.'
+
+                    except Exception as e:
+                        data_comment_s1 = "Données de l'étape 1 manquantes (erreur : " + str(e) + ")"
 
                     # Add data from step 2
                     data_full = []
