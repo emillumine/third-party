@@ -264,8 +264,13 @@ function resetPopUpButtons() {
 
 /* FETCH SERVER DATA */
 
-// Get order(s) data from server
-function fetch_data() {
+/**
+ * Get order(s) data from server
+ * @param {Array} po_ids if set, fetch data for these po only
+ */
+function fetch_data(po_ids = null) {
+    let po_to_fetch = (po_ids === null) ? group_ids : po_ids;
+
     try {
         $.ajax({
             type: 'POST',
@@ -273,7 +278,7 @@ function fetch_data() {
             dataType:"json",
             traditional: true,
             contentType: "application/json; charset=utf-8",
-            data: JSON.stringify({'po_ids' : group_ids}),
+            data: JSON.stringify({'po_ids' : po_to_fetch}),
             success: function(data) {
                 // for each order
                 for (order_data of data.orders) {
@@ -1789,7 +1794,8 @@ function saveErrorReport() {
 }
 
 /**
- * Check if all qty inputs are set, if so do add products
+ * Check if all qty inputs are set first.
+ * Adding products leads to creating a new order (for each supplier) that will be grouped with the current one(s)
  */
 function add_products_action() {
     let qty_inputs = $("#modal .products_lines").find(".product_qty_input");
@@ -1805,8 +1811,203 @@ function add_products_action() {
     }
 
     if (qty_inputs.length > 0 && has_empty_qty_input === false) {
-        // TODO do add products
+        create_orders();
     }
+}
+
+/**
+ * Send request to create the new orders
+ */
+function create_orders() {
+    let orders_data = {
+        "suppliers_data": {}
+    };
+
+    // Mock order date_planned : today
+    let date_object = new Date();
+    formatted_date = date_object.toISOString().replace('T', ' ')
+        .split('.')[0];  // Get ISO format bare string
+
+    for (let supplier_id of get_suppliers_id()) {
+        orders_data.suppliers_data[supplier_id] = {
+            date_planned: formatted_date,
+            lines: []
+        };
+    }
+
+    // Prepare data: get products with their qty
+    for (let p of products_to_add) {
+        // Get product qty from input
+        let product_qty = 0;
+        
+        let add_products_lines = $("#modal .add_product_line")
+        for (let i = 0; i < add_products_lines.length; i++) {
+            let line = add_products_lines[i];
+            if ($(line).find(".product_name").text() === p.name) {
+                product_qty = parseFloat($(line).find(".product_qty_input").val());
+                break;
+            }
+        }
+
+        let p_supplierinfo = p.suppliersinfo[0]; // product is ordered at its first supplier
+        const supplier_id = p_supplierinfo.supplier_id;
+
+        orders_data.suppliers_data[supplier_id].lines.push({
+            'package_qty': p_supplierinfo.package_qty,
+            'product_id': p.id,
+            'name': p.name,
+            'product_qty_package': (product_qty / p_supplierinfo.package_qty).toFixed(2),
+            'product_qty': product_qty,
+            'product_uom': p.uom_id[0],
+            'price_unit': p_supplierinfo.price,
+            'supplier_taxes_id': p.supplier_taxes_id,
+            'product_variant_ids': p.product_variant_ids,
+            'product_code': p_supplierinfo.product_code
+        });
+    }
+
+    // Remove supplier from order data if no lines
+    for (const supplier_id in orders_data.suppliers_data) {
+        if (orders_data.suppliers_data[supplier_id].lines.length === 0) {
+            delete(orders_data.suppliers_data[supplier_id]);
+        }
+    }
+
+    openModal();
+
+    $.ajax({
+        type: "POST",
+        url: "/orders/create_orders",
+        dataType: "json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(orders_data),
+        success: (result) => {
+            po_ids = []
+            for (let po of result.res.created) {
+                po_ids.push(po.id_po);
+            }
+
+            // Get orders data as needed by the module with order lines
+            $.ajax({
+                type: 'GET',
+                url: "/reception/get_list_orders",
+                dataType:"json",
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                data: {
+                    poids: po_ids,
+                    get_order_lines: true
+                },
+                success: function(result2) {
+                    let current_orders_key = group_ids.length;
+
+                    for (let new_order of result2.data) {
+                        // Add key (position in orders list) to new orders data
+                        current_orders_key += 1;
+                        new_order.key = current_orders_key;
+                        
+                        // Consider new order lines as updated products
+                        new_order.updated_products = new_order.po;
+                        delete(new_order.po)
+
+                        // Add necessary data to order updated products
+                        for (let noup of new_order.updated_products) {
+                            noup.order_key = current_orders_key;
+                            noup.id_po = String(new_order.id);
+                            noup.old_qty = 0;  // products weren't originally ordered
+                        }
+                        
+                        // Create couchdb doc for the new order
+                        create_order_doc(new_order);
+                    }
+
+                    dbc.get("grouped_orders").then((doc) => {
+                        // Not a group (yet)
+                        if (group_ids.length === 1) {
+                            group_ids = group_ids.concat(po_ids);
+                            doc.groups.push(group_ids);
+                        } else {
+                            for (let i in doc.groups) {
+                                // If group found in saved distatnt groups
+                                if (group_ids.findIndex(e => e == doc.groups[i][0]) !== -1) {
+                                    doc.groups[i] = doc.groups[i].concat(po_ids);
+                                    doc.groups[i].sort();
+                                    group_ids = doc.groups[i];
+                                }
+                            }
+                        }
+                        
+                        dbc.put(doc, () => {
+                            window.location.reload();  
+                        });
+
+                    })
+
+                    // now we have order_lines in result2 orders
+
+                    // TODO
+                    // reload ! (should be fine) (or more complex : initList & set title)
+
+                    // TODO aussi, ne permettre d'ajouter des produits que dans étape 1 (jcrois c'est déjà fait)
+                    // TODO aussi, enlever de la liste des produits à ajouter, les produits déjà récupérés
+                    // TODO bug : peut pas sélectionner produit à ajouter si déjà une recherche dans page principale
+                    // TODO aussi : press enter sur item du dropdown
+                    // TODO aussi sur page d'accueil action quand groups doc est maj (surement reload)
+                },
+                error: function(data) {
+                    err = {msg: "erreur serveur lors de la récupération des commandes", ctx: 'get_list_orders'};
+                    if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                        err.msg += ' : ' + data.responseJSON.error;
+                    }
+                    report_JS_error(err, 'orders');
+
+                    closeModal();
+                    alert('Erreur lors de la récupération des commandes, rechargez la page plus tard.');
+                }
+            });
+
+            // closeModal();
+        },
+        error: function(data) {
+            let msg = "erreur serveur lors de la création des product orders";
+
+            err = {msg: msg, ctx: 'create_orders', data: orders_data};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'reception');
+
+            closeModal();
+            alert('Erreur lors de la création des commandes. Veuillez ré-essayer plus tard.');
+        }
+    });
+}
+
+/**
+ * Create a couchdb document for an order
+ *
+ * @param {Object} order_data
+ */
+ function create_order_doc(order_data) {
+    const order_doc_id = 'order_' + order_data.id;
+
+    order_data._id = order_doc_id;
+    order_data.last_update = {
+        timestamp: Date.now(),
+        fingerprint: fingerprint
+    };
+
+    dbc.put(order_data).then(() => {})
+        .catch((err) => {
+            error = {
+                msg: 'Erreur dans la creation de la commande dans couchdb',
+                ctx: 'create_order_doc',
+                details: err
+            };
+            report_JS_error(error, 'reception');
+            console.log(error);
+        });
 }
 
 /* DOM */
@@ -2162,8 +2363,7 @@ $(document).ready(function() {
             alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
             back();
         }
-        console.log('erreur sync');
-        console.log(err);
+        console.log('erreur sync', err);
     });
 
     // Disable alert errors from datatables
@@ -2244,7 +2444,7 @@ $(document).ready(function() {
 
         // if not in group, add current order to group (1 order = group of 1)
         if (group_ids.length == 0) {
-            group_ids.push(id);
+            group_ids.push(parseInt(id));
         }
 
         let partners_display_data = [];

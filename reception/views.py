@@ -43,7 +43,11 @@ def home(request):
 
 
 def get_list_orders(request):
-    ordersOdoo = CagetteReception.get_orders()
+    poids = [int(i) for i in request.GET.getlist('poids', [])]
+    get_order_lines = request.GET.get('get_order_lines', False)
+    get_order_lines = get_order_lines == "true"
+
+    ordersOdoo = CagetteReception.get_orders(poids)
     orders = []
     for order in ordersOdoo:
         # Order with date at 'False' was found.
@@ -67,6 +71,11 @@ def get_list_orders(request):
             "amount_total"      : round(order["amount_total"],2),
             "reception_status"  : str(order["x_reception_status"])
         }
+
+        if get_order_lines is True:
+            order_lines = CagetteReception.get_order_lines_by_po(int(order["id"]), nullQty = True)
+            ligne["po"] = order_lines
+
         orders.append(ligne)
 
     return JsonResponse({"data": orders}, safe=False)

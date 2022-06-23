@@ -17,18 +17,22 @@ class CagetteReception(models.Model):
         self.id = int(id)
         self.o_api = OdooAPI()
 
-    def get_orders():
-        """Recupere la liste des BC en cours """
+    def get_orders(pids=[]):
+        """
+            Recupere la liste des BC en cours.
+            pids: Id des purchase.order à récupérer. Limite la recherche si défini.
+        """
         orders = []
         try:
             api = OdooAPI()
-            f = ["purchase_id"]
-            c = [['picking_type_id', '=', 1], ["state", "in", ['assigned', 'partially_available']]]
-            res = api.search_read('stock.picking', c, f)
-            pids = []
-            if res and len(res) > 0:
-                for r in res:
-                    pids.append(int(r['purchase_id'][0]))
+            if len(pids) == 0:
+                f = ["purchase_id"]
+                c = [['picking_type_id', '=', 1], ["state", "in", ['assigned', 'partially_available']]]
+                res = api.search_read('stock.picking', c, f)
+                pids = []
+                if res and len(res) > 0:
+                    for r in res:
+                        pids.append(int(r['purchase_id'][0]))
 
             if len(pids):
                 f=["id","name","date_order", "partner_id", "date_planned", "amount_untaxed", "amount_total", "x_reception_status", 'create_uid']
