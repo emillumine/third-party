@@ -357,6 +357,10 @@
         Password to enter to add products to an order during reception
         Same principle as previous pswd
 
+- RECEPTION_UPDATE_QTY_PSWD = 'pass2makeApause'
+
+        Password to update a product qty during prices step.
+
 - RECEPTION_PDT_LABELS_BTN_TEXT = 'Lancer l\'impression'
 
 - RECEPTION_PDT_LABELS_FN = 'print_product_labels()'

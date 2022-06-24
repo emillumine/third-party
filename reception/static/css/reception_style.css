@@ -275,6 +275,32 @@ tr.odd td.row_product_no_qty {
   background-color: #acb3c2;
 }
 
+
+#error_report {
+  width: 100%;
+  height: 200px;
+  border: 2px solid #555;
+  border-radius: 10px;
+  white-space: pre-wrap;
+}
+
+#main_content {width: 100%;}
+
+.select_product_action {
+  max-width: 5px;
+}
+
+.toProcess_line_edit, .toProcess_line_valid {
+  min-width: 11px;
+}
+
+.product_qty_cell {
+  cursor: pointer;
+}
+.product_qty_cell:hover {
+  background-color: #e7e9ed;
+}
+
 /* Accordion style */
 
 /* Style the buttons that are used to open and close the accordion panel */
@@ -321,22 +347,4 @@ hr {
 
 .panel.active:after {
   margin-bottom: 30px;
-}
-
-#error_report {
-  width: 100%;
-  height: 200px;
-  border: 2px solid #555;
-  border-radius: 10px;
-  white-space: pre-wrap;
-}
-
-#main_content {width: 100%;}
-
-.select_product_action {
-  max-width: 5px;
-}
-
-.toProcess_line_edit, .toProcess_line_valid {
-  min-width: 11px;
 }

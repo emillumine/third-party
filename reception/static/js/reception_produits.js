@@ -490,6 +490,13 @@ function initLists() {
             });
         }
 
+        // Titles for Qty column
+        const base_qty_title = "Qté";
+        const qty_title_tooltip = `<div class="tooltip tt_twolines">
+                                    Qté
+                                    <span class="tooltiptext">Qté comptée / Qté commandée</span>
+                                </div>`;
+
         columns_to_process = columns_to_process.concat([
             {data:"product_id.0", title: "id", visible: false},
             {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center"},
@@ -524,8 +531,8 @@ function initLists() {
             },
             {
                 data:"product_qty",
-                title: "Qté",
-                className:"dt-body-center",
+                title: (reception_status == "qty_valid") ? qty_title_tooltip : base_qty_title,
+                className: (reception_status == "qty_valid") ? "dt-body-center product_qty_cell" : "dt-body-center",
                 render: function (data, type, full) {
                     if (reception_status == "False") {
                         return data;
@@ -594,7 +601,7 @@ function initLists() {
             {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
             {
                 data:"product_qty",
-                title:"Qté",
+                title: qty_title_tooltip,
                 className:"dt-head-center dt-body-center",
                 // visible: (reception_status == "False"),
                 render: function (data, type, full) {
@@ -881,6 +888,18 @@ function initLists() {
             }
             clearLineEdition();
         }
+    });
+
+    $('#table_to_process tbody').on('click', '.product_qty_cell', function () {
+        let pswd = prompt('Mot de passe requis pour éditer la quantité de ce produit');
+            if (pswd == update_qty_pswd) {
+                
+                console.log('clicked'); //
+            } else if (pswd == null) {
+                return;
+            } else {
+                alert('Mauvais mot de passe !');
+            }
     });
 }
 
