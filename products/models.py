@@ -56,7 +56,7 @@ class CagetteProduct(models.Model):
         cond = [['product_tmpl_id.id', '=', template_id]]
         fields = ['barcode', 'product_tmpl_id', 'pricetag_rackinfos',
                   'price_weight_net', 'price_volume', 'list_price',
-                  'weight_net', 'volume', 'to_weight']
+                  'weight_net', 'volume', 'to_weight', 'meal_voucher_ok']
         additionnal_fields = getattr(settings, 'SHELF_LABELS_ADD_FIELDS', [])
         fields += additionnal_fields
         product_data = api.search_read('product.product', cond, fields)
