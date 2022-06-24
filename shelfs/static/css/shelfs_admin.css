@@ -5,7 +5,7 @@
      padding: 20px;
 }
 span.shelf {font-weight: bold;}
-button.add-products {display: none;}
+.add-products {display: none;}
 
 td.p_nb ,
 td.products .fa-plus-circle,
