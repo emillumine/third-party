@@ -15,7 +15,6 @@ var main_content = $('#main-content'),
     destroy_shelf_msg = $('#destroy-shelf-msg'),
     adding_pdts_tpl = $('#adding-products').clone()
         .removeAttr('id'),
-    add_products = $('.add-products'),
     active_phase = 'main',
     add_to_shelf_product_ids = [],
     barcodes = null;
@@ -452,7 +451,8 @@ var recordProductsAddedShelf = function() {
         });
 
         if (is_time_to('add_pdts_to_shelf', 5000)) { // prevent double click or browser hic up bug
-            main_content.find('.add-products').html(loading_img);
+            openModal();  // loading on
+            
             post_form(
                 '/shelfs/admin/add_products',
                 {bc: JSON.stringify(barcodes), shelf_id: id},
@@ -468,6 +468,8 @@ var recordProductsAddedShelf = function() {
                                 msg += "\n" + bc;
                             });
                         }
+                        closeModal();
+
                         alert(msg);
                         backToMain();
                     } else {
@@ -476,7 +478,8 @@ var recordProductsAddedShelf = function() {
                         else if (typeof rData.res.msg != "undefined")
                             msg = rData.res.msg;
                         alert(msg);
-                        main_content.find('.add-products').html(add_products);
+                        main_content.find('.add-products').show();
+                        closeModal();
                     }
 
                 }
