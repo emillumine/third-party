@@ -298,9 +298,20 @@ function compute_and_affect_product_supplier_quantities(coeff, days) {
             const daily_conso = product.daily_conso;
 
             let purchase_package_qty_for_coverage = compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days);
-            // Set qty to purchase for first supplier only
+            
+            // Set qty to purchase for supplier with higher priority
+            let target_supplierinfo_index = 0;
+            let min_sequence = Number.POSITIVE_INFINITY;  // min sequence = higher priority
+            for (let i in products[key].suppliersinfo) {
+                let suppliersinfo_sequence = products[key].suppliersinfo[i].sequence;
 
-            products[key].suppliersinfo[0].qty = purchase_package_qty_for_coverage;
+                if (suppliersinfo_sequence < min_sequence) {
+                    min_sequence = suppliersinfo_sequence;
+                    target_supplierinfo_index = i;
+                }
+            }
+
+            products[key].suppliersinfo[target_supplierinfo_index].qty = purchase_package_qty_for_coverage;
         }
     }
 }
