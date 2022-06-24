@@ -13,7 +13,6 @@ Sémantiquement, ici :
 * Associative array of current order(s)
 * If more than 1 element: group of orders
 * If 1 element: single order
-* -> check for Object.keys(orders).length to know if we're in a group case
 */
 var orders = {},
     group_ids = [];
@@ -31,7 +30,9 @@ var reception_status = null,
     validProducts = [], // Keep record of directly validated products
     updateType = "", // step 1: qty_valid; step2: br_valid
     barcodes = null, // Barcodes stored locally
-    priceToWeightIsCorrect = true;
+    priceToWeightIsCorrect = true,
+    suppliers_products = [], // All products of current order(s) supplier(s)
+    products_to_add = []; // Products to add to order
 
 var dbc = null,
     sync = null,
@@ -41,6 +42,30 @@ var dbc = null,
 
 function back() {
     document.location.href = "/reception";
+}
+
+/**
+ * Dingle order or grouped orders?
+ * @returns Boolean
+ */
+function is_grouped_order() {
+    return Object.keys(orders).length > 1;
+}
+
+/**
+ * Get distinct suppliers id of current orders
+ * @returns Boolean
+ */
+function get_suppliers_id() {
+    let suppliers_id = [];
+
+    for (var order_id in orders) {
+        if ('partner_id' in orders[order_id]) { // check for versions transition
+            suppliers_id.push(orders[order_id].partner_id);
+        }
+    }
+
+    return suppliers_id;
 }
 
 /** Search if the product being edited is already in the updated products.
@@ -239,10 +264,15 @@ function resetPopUpButtons() {
     document.querySelector('#modal_closebtn_bottom').style.backgroundColor = "";
 }
 
-/* INIT */
+/* FETCH SERVER DATA */
 
-// Get order(s) data from server
-function fetch_data() {
+/**
+ * Get order(s) data from server
+ * @param {Array} po_ids if set, fetch data for these po only
+ */
+function fetch_data(po_ids = null) {
+    let po_to_fetch = (po_ids === null) ? group_ids : po_ids;
+
     try {
         $.ajax({
             type: 'POST',
@@ -250,7 +280,7 @@ function fetch_data() {
             dataType:"json",
             traditional: true,
             contentType: "application/json; charset=utf-8",
-            data: JSON.stringify({'po_ids' : group_ids}),
+            data: JSON.stringify({'po_ids' : po_to_fetch}),
             success: function(data) {
                 // for each order
                 for (order_data of data.orders) {
@@ -331,6 +361,74 @@ function fetch_data() {
     }
 }
 
+// Load barcodes at page loading, then barcodes are stored locally
+var get_barcodes = async function() {
+    if (barcodes == null) barcodes = await init_barcodes();
+};
+
+// Get labels to print for current orders from server
+function get_pdf_labels() {
+    try {
+        if (is_time_to('print_pdf_labels', 10000)) {
+            // Concatenate orders id into a string, separated with comas, to retrieve
+            oids = group_ids.join(',');
+
+            // Send request & diret download pdf
+            var filename = "codebarres_" + group_ids[0] + ".pdf";
+
+            $.ajax({
+                url: "../../orders/get_pdf_labels?oids=" + oids,
+                success: download.bind(true, "pdf", filename)
+            });
+        } else {
+            alert("Vous avez cliqué il y a moins de 10s... Patience, la demande est en cours de traitement.");
+        }
+    } catch (e) {
+        err = {msg: e.name + ' : ' + e.message, ctx: 'get_pdf_labels'};
+        console.error(err);
+        report_JS_error(err, 'reception');
+    }
+}
+
+/**
+ * Get products of order(s) supplier(s) if not already fetched
+ */
+function fetch_suppliers_products() {
+    if (suppliers_products.length === 0) {
+        openModal();
+
+        let suppliers_id = get_suppliers_id();
+
+        // Fetch supplier products
+        $.ajax({
+            type: 'GET',
+            url: "/orders/get_supplier_products",
+            data: {
+                sids: suppliers_id
+            },
+            dataType:"json",
+            traditional: true,
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                suppliers_products = data.res.products;
+                closeModal();
+                set_add_products_modal();
+            },
+            error: function(data) {
+                err = {msg: "erreur serveur lors de la récupération des produits du fournisseur", ctx: 'get_supplier_products'};
+                if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                    err.msg += ' : ' + data.responseJSON.error;
+                }
+                report_JS_error(err, 'reception');
+
+                closeModal();
+                alert('Erreur lors de la récupération des produits, réessayer plus tard.');
+            }
+        });
+    } else {
+        set_add_products_modal();
+    }
+}
 
 /* LISTS HANDLING */
 
@@ -385,7 +483,7 @@ function initLists() {
         let columns_processed = [];
 
         // In case of group orders, add "Order" as first column for ordering
-        if (Object.keys(orders).length > 1) {
+        if (is_grouped_order()) {
             columns_to_process.push({
                 data:"order_key", title: "n°", className: "dt-body-center",
                 width: "20px"
@@ -1223,30 +1321,6 @@ function setAllQties() {
 
 /* ACTIONS */
 
-// Get labels to print for current orders from server
-function get_pdf_labels() {
-    try {
-        if (is_time_to('print_pdf_labels', 10000)) {
-            // Concatenate orders id into a string, separated with comas, to retrieve
-            oids = group_ids.join(',');
-
-            // Send request & diret download pdf
-            var filename = "codebarres_" + group_ids[0] + ".pdf";
-
-            $.ajax({
-                url: "../../orders/get_pdf_labels?oids=" + oids,
-                success: download.bind(true, "pdf", filename)
-            });
-        } else {
-            alert("Vous avez cliqué il y a moins de 10s... Patience, la demande est en cours de traitement.");
-        }
-    } catch (e) {
-        err = {msg: e.name + ' : ' + e.message, ctx: 'get_pdf_labels'};
-        console.error(err);
-        report_JS_error(err, 'reception');
-    }
-}
-
 function print_product_labels() {
     try {
         if (is_time_to('print_pdt_labels', 10000)) {
@@ -1551,7 +1625,7 @@ function send() {
                         }
 
                         // Set order(s) name in popup DOM
-                        if (Object.keys(orders).length === 1) { // Single order
+                        if (is_grouped_order() === false) { // Single order
                             document.getElementById("order_ref").innerHTML = orders[Object.keys(orders)[0]].name;
                         } else { // group
                             document.getElementById("success_order_name_container").hidden = true;
@@ -1633,7 +1707,7 @@ function send() {
                             let couchdb_update_data = Object.values(orders);
 
                             // We're in a group, remove it & update groups doc
-                            if (Object.keys(orders).length > 1) {
+                            if (is_grouped_order()) {
                                 let groups_doc = doc;
 
                                 let first_order_id = parseInt(Object.keys(orders)[0]);
@@ -1709,6 +1783,233 @@ function confirm_all_left_is_good() {
     closeModal();
 }
 
+function saveErrorReport() {
+    user_comments = document.getElementById("error_report").value;
+
+    // Save comments in all orders
+    for (order_id of Object.keys(orders)) {
+        orders[order_id].user_comments = user_comments;
+        update_distant_order(order_id);
+    }
+
+    document.getElementById("search_input").focus();
+}
+
+/**
+ * Check if all qty inputs are set first.
+ * Adding products leads to creating a new order (for each supplier) that will be grouped with the current one(s)
+ */
+function add_products_action() {
+    let qty_inputs = $("#modal .products_lines").find(".product_qty_input");
+    let has_empty_qty_input = false;
+
+    for (let qty_input of qty_inputs) {
+        if ($(qty_input).val() === "") {
+            has_empty_qty_input = true;
+            $(qty_input).siblings(".product_qty_input_alert")
+                .show();
+        } else {
+            $(qty_input).siblings(".product_qty_input_alert")
+                .hide();
+        }
+    }
+
+    if (qty_inputs.length > 0 && has_empty_qty_input === false) {
+        create_orders();
+    }
+}
+
+/**
+ * Send request to create the new orders
+ */
+function create_orders() {
+    let orders_data = {
+        "suppliers_data": {}
+    };
+
+    // Mock order date_planned : today
+    let date_object = new Date();
+
+    formatted_date = date_object.toISOString().replace('T', ' ')
+        .split('.')[0]; // Get ISO format bare string
+
+    for (let supplier_id of get_suppliers_id()) {
+        orders_data.suppliers_data[supplier_id] = {
+            date_planned: formatted_date,
+            lines: []
+        };
+    }
+
+    // Prepare data: get products with their qty
+    for (let p of products_to_add) {
+        // Get product qty from input
+        let product_qty = 0;
+
+        let add_products_lines = $("#modal .add_product_line");
+
+        for (let i = 0; i < add_products_lines.length; i++) {
+            let line = add_products_lines[i];
+
+            if ($(line).find(".product_name")
+                .text() === p.name) {
+                product_qty = parseFloat($(line).find(".product_qty_input")
+                    .val());
+                break;
+            }
+        }
+
+        let p_supplierinfo = p.suppliersinfo[0]; // product is ordered at its first supplier
+        const supplier_id = p_supplierinfo.supplier_id;
+
+        orders_data.suppliers_data[supplier_id].lines.push({
+            'package_qty': p_supplierinfo.package_qty,
+            'product_id': p.id,
+            'name': p.name,
+            'product_qty_package': (product_qty / p_supplierinfo.package_qty).toFixed(2),
+            'product_qty': product_qty,
+            'product_uom': p.uom_id[0],
+            'price_unit': p_supplierinfo.price,
+            'supplier_taxes_id': p.supplier_taxes_id,
+            'product_variant_ids': p.product_variant_ids,
+            'product_code': p_supplierinfo.product_code
+        });
+    }
+
+    // Remove supplier from order data if no lines
+    for (const supplier_id in orders_data.suppliers_data) {
+        if (orders_data.suppliers_data[supplier_id].lines.length === 0) {
+            delete(orders_data.suppliers_data[supplier_id]);
+        }
+    }
+
+    openModal();
+    $("#modal em:contains('Chargement en cours...')").append("<br/>L'opération peut prendre un certain temps...");
+
+    $.ajax({
+        type: "POST",
+        url: "/orders/create_orders",
+        dataType: "json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(orders_data),
+        success: (result) => {
+            po_ids = [];
+            for (let po of result.res.created) {
+                po_ids.push(po.id_po);
+            }
+
+            // Get orders data as needed by the module with order lines
+            $.ajax({
+                type: 'GET',
+                url: "/reception/get_list_orders",
+                dataType:"json",
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                data: {
+                    poids: po_ids,
+                    get_order_lines: true
+                },
+                success: function(result2) {
+                    let current_orders_key = group_ids.length;
+
+                    for (let new_order of result2.data) {
+                        // Add key (position in orders list) to new orders data
+                        current_orders_key += 1;
+                        new_order.key = current_orders_key;
+
+                        // Consider new order lines as updated products
+                        new_order.updated_products = new_order.po;
+                        delete(new_order.po);
+
+                        // Add necessary data to order updated products
+                        for (let noup of new_order.updated_products) {
+                            noup.order_key = current_orders_key;
+                            noup.id_po = String(new_order.id);
+                            noup.old_qty = 0; // products weren't originally ordered
+                        }
+
+                        // Create couchdb doc for the new order
+                        create_order_doc(new_order);
+                    }
+
+                    dbc.get("grouped_orders").then((doc) => {
+                        // Not a group (yet)
+                        if (group_ids.length === 1) {
+                            group_ids = group_ids.concat(po_ids);
+                            doc.groups.push(group_ids);
+                        } else {
+                            for (let i in doc.groups) {
+                                // If group found in saved distatnt groups
+                                if (group_ids.findIndex(e => e == doc.groups[i][0]) !== -1) {
+                                    doc.groups[i] = doc.groups[i].concat(po_ids);
+                                    doc.groups[i].sort();
+                                    group_ids = doc.groups[i];
+                                }
+                            }
+                        }
+
+                        dbc.put(doc, () => {
+                            // Update screen
+                            // The easy way: reload page now all data is correctly set.
+                            window.location.reload();
+                        });
+                    });
+                },
+                error: function(data) {
+                    err = {msg: "erreur serveur lors de la récupération des commandes", ctx: 'get_list_orders'};
+                    if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                        err.msg += ' : ' + data.responseJSON.error;
+                    }
+                    report_JS_error(err, 'orders');
+
+                    closeModal();
+                    alert('Erreur lors de la récupération des commandes, rechargez la page plus tard.');
+                }
+            });
+        },
+        error: function(data) {
+            let msg = "erreur serveur lors de la création des product orders";
+
+            err = {msg: msg, ctx: 'create_orders', data: orders_data};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'reception');
+
+            closeModal();
+            alert('Erreur lors de la création des commandes. Veuillez ré-essayer plus tard.');
+        }
+    });
+}
+
+/**
+ * Create a couchdb document for an order
+ *
+ * @param {Object} order_data
+ */
+function create_order_doc(order_data) {
+    const order_doc_id = 'order_' + order_data.id;
+
+    order_data._id = order_doc_id;
+    order_data.last_update = {
+        timestamp: Date.now(),
+        fingerprint: fingerprint
+    };
+
+    dbc.put(order_data).then(() => {})
+        .catch((err) => {
+            error = {
+                msg: 'Erreur dans la creation de la commande dans couchdb',
+                ctx: 'create_order_doc',
+                details: err
+            };
+            report_JS_error(error, 'reception');
+            console.log(error);
+        });
+}
+
+/* DOM */
+
 function openFAQ() {
     openModal($("div#modal_FAQ_content").html(), function() {}, 'Compris !', true, false);
 }
@@ -1733,24 +2034,94 @@ function openErrorReport() {
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 }
 
-function saveErrorReport() {
-    user_comments = document.getElementById("error_report").value;
+/**
+ * Set the autocomplete on add products modal, search product input.
+ * If extists, destroys instance and recreate it.
+ * Filter autocomplete data by removing products already selected.
+ */
+function set_products_autocomplete() {
+    // Filter autocomplete products on products already in orders
+    let autocomplete_products = suppliers_products.filter(p => list_to_process.findIndex(ptp => ptp.product_id[1] === p.name) === -1);
 
-    // Save comments in all orders
-    for (order_id of Object.keys(orders)) {
-        orders[order_id].user_comments = user_comments;
-        update_distant_order(order_id);
+    autocomplete_products = autocomplete_products.filter(p => list_processed.findIndex(pp => pp.product_id[1] === p.name) === -1);
+
+    console.log(products_to_add);
+    // Filter autocomplete products on products already selected
+    autocomplete_products = autocomplete_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
+
+    try {
+        $("#modal .search_product_input").autocomplete("destroy");
+    } catch (error) {
+        // autocomplete not set yet, do nothing
     }
 
-    document.getElementById("search_input").focus();
+    $("#modal .search_product_input").autocomplete({
+        source: autocomplete_products.map(p => p.name),
+        classes: {
+            "ui-autocomplete": "autocomplete_dropdown"
+        },
+        delay: 0,
+        select: function(event, ui) {
+            // Action called when an item is selected
+            event.preventDefault();
+            let product_name = ui.item.label;
+
+            // extra secutiry but shouldn't happen
+            if (products_to_add.findIndex(p => p.name === product_name) === -1) {
+                let product = suppliers_products.find(p => p.name === product_name);
+
+                products_to_add.push(product);
+
+                // Display
+                let add_product_template = $("#add_product_line_template");
+
+                add_product_template.find(".product_name").text(product_name);
+                $("#modal .products_lines").append(add_product_template.html());
+
+                if (products_to_add.length === 1) {
+                    $("#modal .products_lines").show();
+                }
+
+                $(".remove_line_icon").off("click");
+                $(".remove_line_icon").on("click", remove_product_line);
+
+                // Reset search elements
+                $("#modal .search_product_input").val('');
+                set_products_autocomplete();
+            }
+        }
+    });
 }
 
-// Load barcodes at page loading, then barcodes are stored locally
-var get_barcodes = async function() {
-    if (barcodes == null) barcodes = await init_barcodes();
-};
+/**
+ * Remove product from list of products to add & remove line from DOM
+ * @param {Event} e
+ */
+function remove_product_line(e) {
+    let product_line = $(e.target).closest(".add_product_line");
+    let product_name = product_line.find(".product_name").text();
+    let product_to_add_index = products_to_add.findIndex(p => p.name === product_name);
 
+    products_to_add.splice(product_to_add_index, 1);
+    product_line.remove();
+    set_products_autocomplete();
+}
 
+/**
+ * Set & display the modal to search products
+ */
+function set_add_products_modal() {
+    let add_products_modal = $("#modal_add_products");
+
+    openModal(
+        add_products_modal.html(),
+        add_products_action,
+        'Ajouter les produits',
+        false
+    );
+
+    set_products_autocomplete();
+}
 
 /**
  * Init the page according to order(s) data (texts, colors, events...)
@@ -1777,7 +2148,7 @@ function init_dom(partners_display_data) {
     });
 
     // Grouped orders
-    if (Object.keys(orders).length > 1) {
+    if (is_grouped_order()) {
         $('#partner_name').html(Object.keys(orders).length + " commandes");
 
         // Display order data for each order
@@ -1829,6 +2200,9 @@ function init_dom(partners_display_data) {
 
         document.getElementById('edition_header').innerHTML = "Editer les quantités";
         document.getElementById('edition_input_label').innerHTML = "Qté";
+
+        // Add products button
+        document.getElementById('add_products_button').style.display = "block";
 
         document.getElementById("valid_all").innerHTML = "<button class='btn--danger full_width_button' id='valid_all_qties' onclick=\"openModal($('#templates #modal_no_qties').html(), setAllQties, 'Confirmer');\" disabled>Il n'y a plus de produits à compter</button>";
         document.getElementById("validation_button").innerHTML = "<button class='btn--primary full_width_button' id='valid_qty' onclick=\"pre_send('qty_valid')\" disabled>Valider le comptage des produits</button>";
@@ -1922,6 +2296,21 @@ function init_dom(partners_display_data) {
         }
     });
 
+    $("#add_products_button").on('click', () => {
+        if (reception_status == "False") {
+            let pswd = prompt('Merci de demander à un.e salarié.e le mot de passe pour ajouter des produits à la commande');
+
+            // Minimum security level
+            if (pswd == add_products_pswd) {
+                fetch_suppliers_products();
+            } else if (pswd == null) {
+                return;
+            } else {
+                alert('Mauvais mot de passe !');
+            }
+        }
+    });
+
     // Barcode reader
     $(document).pos();
     $(document).on('scan.pos.barcode', function(event) {
@@ -1984,8 +2373,7 @@ $(document).ready(function() {
             alert("Une erreur de synchronisation s'est produite, la commande a sûrement été modifiée sur un autre navigateur. Vous allez être redirigé.e.");
             back();
         }
-        console.log('erreur sync');
-        console.log(err);
+        console.log('erreur sync', err);
     });
 
     // Disable alert errors from datatables
@@ -2066,7 +2454,7 @@ $(document).ready(function() {
 
         // if not in group, add current order to group (1 order = group of 1)
         if (group_ids.length == 0) {
-            group_ids.push(id);
+            group_ids.push(parseInt(id));
         }
 
         let partners_display_data = [];

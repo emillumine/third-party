@@ -352,6 +352,11 @@
         Password to enter to validate merge orders processing
         It has been set only to stop member action, considering the impact of the merge
 
+- RECEPTION_ADD_PRODUCTS_PSWD = 'pass2makeApause'
+
+        Password to enter to add products to an order during reception
+        Same principle as previous pswd
+
 - RECEPTION_PDT_LABELS_BTN_TEXT = 'Lancer l\'impression'
 
 - RECEPTION_PDT_LABELS_FN = 'print_product_labels()'

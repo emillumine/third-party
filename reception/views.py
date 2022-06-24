@@ -43,7 +43,11 @@ def home(request):
 
 
 def get_list_orders(request):
-    ordersOdoo = CagetteReception.get_orders()
+    poids = [int(i) for i in request.GET.getlist('poids', [])]
+    get_order_lines = request.GET.get('get_order_lines', False)
+    get_order_lines = get_order_lines == "true"
+
+    ordersOdoo = CagetteReception.get_orders(poids)
     orders = []
     for order in ordersOdoo:
         # Order with date at 'False' was found.
@@ -60,12 +64,18 @@ def get_list_orders(request):
             "id"                : order["id"],
             "name"              : order["name"],
             "date_order"        : order["date_order"],
+            "partner_id"        : order["partner_id"][0],
             "partner"           : order["partner_id"][1],
             "date_planned"      : order["date_planned"],
             "amount_untaxed"    : round(order["amount_untaxed"],2),
             "amount_total"      : round(order["amount_total"],2),
             "reception_status"  : str(order["x_reception_status"])
         }
+
+        if get_order_lines is True:
+            order_lines = CagetteReception.get_order_lines_by_po(int(order["id"]), nullQty = True)
+            ligne["po"] = order_lines
+
         orders.append(ligne)
 
     return JsonResponse({"data": orders}, safe=False)
@@ -82,6 +92,7 @@ def produits(request, id):
         "DISPLAY_AUTRES": getattr(settings, 'DISPLAY_COL_AUTRES', True),
         "ADD_ALL_LEFT_IS_GOOD_QTIES": False,
         "ADD_ALL_LEFT_IS_GOOD_PRICES": False,
+        'add_products_pswd': getattr(settings, 'RECEPTION_ADD_PRODUCTS_PSWD', 'makeastop'),
     }
     fixed_barcode_prefix = '0490'
 

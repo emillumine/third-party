@@ -205,6 +205,76 @@ tr.odd td.row_product_no_qty {
   background-color: rgb(236, 182, 106); /*#ec971f*/
 }
 
+.add_products_button_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#add_products_button {
+  display: none;
+}
+
+.search_products_to_add_area {
+  margin: 2rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search_product_input {
+  width: 60%;
+}
+
+.autocomplete_dropdown {
+  z-index: 10000001 !important;
+}
+
+.search_product_help {
+  margin-left: 10px;
+}
+
+.products_lines {
+  display: none;
+}
+
+.products_lines_title {
+  margin: 3rem 0 2rem 0;
+}
+
+.add_product_line {
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.add_product_line_item {
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.product_qty_input_alert {
+  color: #d9534f;
+  font-size: 1.4rem;
+  display: none;
+}
+
+.remove_line {
+  width: 10%;
+  color: #d9534f;
+  cursor: pointer;
+}
+.remove_line:hover {
+  color: #c9302c;
+}
+
+.product_already_selected,
+.product_already_selected:hover {
+  background-color: #acb3c2;
+}
+
 /* Accordion style */
 
 /* Style the buttons that are used to open and close the accordion panel */

@@ -4,6 +4,7 @@
 {% block additionnal_css %}
 <link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
 <link rel="stylesheet" href="{% static 'css/reception_style.css' %}">
+<link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
 {% endblock %}
 
 {% block additionnal_scripts %}
@@ -11,6 +12,7 @@
 <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/jquery.pos.js' %}"></script>
+<script type="text/javascript" src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}?v=1651853225"></script>
 {% endblock %}
 
 {% block content %}
@@ -103,13 +105,16 @@
       </div>
     </div>
 
-    <div class="row-2 container_products" id="container_left">
+    <div class="container_products" id="container_left">
       <h4 id="header_container_left"></h4>
       <table id="table_to_process" class="display" cellspacing="0" ></table>
     </div>
     <div class="container_products" id="container_right">
       <h4 id="header_container_right"></h4>
       <table id="table_processed" class="display" cellspacing="0" ></table>
+    </div>
+    <div class="txtcenter add_products_button_container">
+      <button id="add_products_button" class="btn--inverse full_width_button">Ajouter des produits</button>
     </div>
     <div class="txtcenter">
       <span id="validation_button"></span>
@@ -185,6 +190,36 @@
       est bien <b><span id="price_to_verify"></span></b> euros/Kg ?</p>
       <input type="number" name="Prix au Kilo" id="new_price_to_weight">
     </div>
+    <div id="modal_add_products">
+      <h3>Ajouter des produits à la commande</h3>
+      <div class="search_products_to_add_area">
+        <input type="text" class="search_product_input" name="search_product_input" placeholder="Rechercher un produit...">
+        <i 
+          class='fa fa-info-circle search_product_help'
+          title='Vous ne trouvez pas un produit ? Les produits déjà dans la commande ou déjà sélectionnés ont été retirés de la liste.'
+          >
+        </i>
+      </div>
+      <div class="products_lines">
+        <p class="products_lines_title">
+          Liste des produits qui seront ajoutés à la commande. 
+          <b>Vous devez renseigner une quantité pour chaque produit.</b>
+        </p>
+      </div>
+      <hr />
+    </div>
+    <div id="add_product_line_template">
+      <div class="add_product_line">
+        <div class="product_name add_product_line_item"></div>
+        <div class="product_qty add_product_line_item">
+          <input type="number" autocomplete="off" class="product_qty_input input_small" placeholder="Quantité">
+          <i class="product_qty_input_alert">Vous devez renseigner une quantité</i>
+        </div>
+        <div class="remove_line">
+          <i class="fas fa-times fa-lg remove_line_icon"></i>
+        </div>
+      </div>
+    </div>
   </div>
   <br/>
 </div>
@@ -198,6 +233,7 @@
   var display_autres = "{{DISPLAY_AUTRES}}";
   var add_all_left_is_good_qties = "{{ADD_ALL_LEFT_IS_GOOD_QTIES}}"
   var add_all_left_is_good_prices = "{{ADD_ALL_LEFT_IS_GOOD_PRICES}}"
+  var add_products_pswd = "{{add_products_pswd}}"
 </script>
 <script src="{% static "js/all_common.js" %}?v=1651853225"></script>
 <script src='{% static "js/barcodes.js" %}?v=1651853225'></script>
