@@ -142,6 +142,10 @@ function refresh() {
 
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
+    if (barcode === "" || barcode === null || barcode === undefined) {
+        return -1;
+    }
+
     var found = null,
         qty = null;
 
