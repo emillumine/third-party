@@ -16,7 +16,6 @@ var main_content = $('#main-content'),
     adding_pdts_tpl = $('#adding-products').clone()
         .removeAttr('id'),
     active_phase = 'main',
-    add_pdts_btn_text = 'AJOUTER AU RAYON',
     add_to_shelf_product_ids = [],
     barcodes = null;
 
@@ -396,32 +395,29 @@ var addProductToList = async function(barcode) {
     //It could also be a wrong reading one
 
     odoo_product = barcodes.get_corresponding_odoo_product(barcode);
-    if (odoo_product) {
+    if (odoo_product === null) {
+        alert(barcode + " : ce code-barre est inconnu, merci d'apporter le produit à un salarié.");
+    } else {
         if (is_product_in_shelf_adding_queue_list(odoo_product.data[barcodes.keys.id])) {
             alert("Produit déjà présent dans la liste.");
         } else {
             add_to_shelf_product_ids.push(odoo_product.data[4]);
-            if (odoo_product === null) {
-                alert(barcode + ' : Code-barre inconnu');
-            } else {
-                var pdt_line = $('<tr>').attr('data-id', odoo_product.data[barcodes.keys.id])
-                    .attr('data-bc', odoo_product.barcode)
-                    .addClass('obc');
+            var pdt_line = $('<tr>').attr('data-id', odoo_product.data[barcodes.keys.id])
+                .attr('data-bc', odoo_product.barcode)
+                .addClass('obc');
 
-                $('<td>').text(barcode)
-                    .appendTo(pdt_line);
-                $('<td>').text(odoo_product.barcode)
-                    .appendTo(pdt_line);
-                $('<td>').text(odoo_product.data[barcodes.keys.name])
-                    .appendTo(pdt_line);
-                $('<td>').html(odoo_product.data[barcodes.keys.list_price] + " €")
-                    .appendTo(pdt_line);
-                $('<td>').html(delete_icon + " " + print_icon)
-                    .appendTo(pdt_line);
-                adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
-                main_content.find('button.add-products').css('display', 'block')
-                    .html(add_pdts_btn_text);
-            }
+            $('<td>').text(barcode)
+                .appendTo(pdt_line);
+            $('<td>').text(odoo_product.barcode)
+                .appendTo(pdt_line);
+            $('<td>').text(odoo_product.data[barcodes.keys.name])
+                .appendTo(pdt_line);
+            $('<td>').html(odoo_product.data[barcodes.keys.list_price] + " €")
+                .appendTo(pdt_line);
+            $('<td>').html(delete_icon + " " + print_icon)
+                .appendTo(pdt_line);
+            adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
+            main_content.find('.add-products').css('display', 'block')
         }
     }
 };
@@ -438,7 +434,7 @@ var addProducts = async function() {
 
     main_content.html(adding_pdts_tpl);
     active_phase = "adding_products";
-    main_content.find('button.add-products').css('display', 'none');
+    main_content.find('.add-products').css('display', 'none');
     if (admin_ids.find(id => id == getCookie("uid"))) $('.add-search').show();
 
 };
@@ -455,7 +451,8 @@ var recordProductsAddedShelf = function() {
         });
 
         if (is_time_to('add_pdts_to_shelf', 5000)) { // prevent double click or browser hic up bug
-            main_content.find('button.add-products').html(loading_img);
+            openModal();  // loading on
+            
             post_form(
                 '/shelfs/admin/add_products',
                 {bc: JSON.stringify(barcodes), shelf_id: id},
@@ -471,6 +468,8 @@ var recordProductsAddedShelf = function() {
                                 msg += "\n" + bc;
                             });
                         }
+                        closeModal();
+
                         alert(msg);
                         backToMain();
                     } else {
@@ -479,7 +478,8 @@ var recordProductsAddedShelf = function() {
                         else if (typeof rData.res.msg != "undefined")
                             msg = rData.res.msg;
                         alert(msg);
-                        main_content.find('button.add-products').html(add_pdts_btn_text);
+                        main_content.find('.add-products').show();
+                        closeModal();
                     }
 
                 }
@@ -573,7 +573,7 @@ $(document).ready(function() {
         $(document).on('click', '.obc .fa-trash', deleteBarcodeFromList);
         $(document).on('click', '.obc .fa-print', printProduct);
         $(document).on('click', 'td.products .fa-plus-circle', addProducts);
-        $(document).on('click', '#main-content button.add-products', recordProductsAddedShelf);
+        $(document).on('click', '#main-content .add-products', recordProductsAddedShelf);
         $(document).on('click', 'td.p_nb', showProductsList);
         try {
             if (admin_ids.find(id => id == getCookie("uid"))) {
