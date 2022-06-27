@@ -411,6 +411,11 @@ function fetch_suppliers_products() {
             contentType: "application/json; charset=utf-8",
             success: function(data) {
                 suppliers_products = data.res.products;
+
+                // Filter supplier products on products already in orders
+                suppliers_products = suppliers_products.filter(p => list_to_process.findIndex(ptp => ptp.product_id[1] === p.name) === -1);
+                suppliers_products = suppliers_products.filter(p => list_processed.findIndex(pp => pp.product_id[1] === p.name) === -1);
+
                 closeModal();
                 set_add_products_modal();
             },
@@ -1814,7 +1819,7 @@ function add_products_action() {
         }
     }
 
-    if (qty_inputs.length > 0 && has_empty_qty_input === false) {
+    if (products_to_add.length > 0 && qty_inputs.length > 0 && has_empty_qty_input === false) {
         create_orders();
     }
 }
@@ -2039,16 +2044,10 @@ function openErrorReport() {
  * If extists, destroys instance and recreate it.
  * Filter autocomplete data by removing products already selected.
  */
-function set_products_autocomplete() {
-    // Filter autocomplete products on products already in orders
-    let autocomplete_products = suppliers_products.filter(p => list_to_process.findIndex(ptp => ptp.product_id[1] === p.name) === -1);
-
-    autocomplete_products = autocomplete_products.filter(p => list_processed.findIndex(pp => pp.product_id[1] === p.name) === -1);
-
-    console.log(products_to_add);
+function set_products_autocomplete() {    
     // Filter autocomplete products on products already selected
-    autocomplete_products = autocomplete_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
-
+    let autocomplete_products = autocomplete_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
+    
     try {
         $("#modal .search_product_input").autocomplete("destroy");
     } catch (error) {
@@ -2108,20 +2107,32 @@ function remove_product_line(e) {
 }
 
 /**
- * Set & display the modal to search products
+ * Set & display the modal to search products.
+ * If no products to add, display the according modal.
  */
 function set_add_products_modal() {
-    let add_products_modal = $("#modal_add_products");
+    if (suppliers_products.length === 0) {
+        let modal_no_product_to_add = $("#modal_no_product_to_add");
 
-    openModal(
-        add_products_modal.html(),
-        add_products_action,
-        'Ajouter les produits',
-        false
-    );
-
-    set_products_autocomplete();
+        openModal(
+            modal_no_product_to_add.html(),
+            () => {},
+            'OK'
+        );
+    } else {
+        let add_products_modal = $("#modal_add_products");
+    
+        openModal(
+            add_products_modal.html(),
+            add_products_action,
+            'Ajouter les produits',
+            false
+        );
+    
+        set_products_autocomplete();
+    }
 }
+    
 
 /**
  * Init the page according to order(s) data (texts, colors, events...)
