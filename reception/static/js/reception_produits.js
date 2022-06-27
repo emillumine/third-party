@@ -491,17 +491,16 @@ function initLists() {
         if (is_grouped_order()) {
             columns_to_process.push({
                 data:"order_key", title: "n°", className: "dt-body-center",
-                width: "20px"
+                width: "15px"
             });
         }
 
         columns_to_process = columns_to_process.concat([
             {data:"product_id.0", title: "id", visible: false},
-            {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center"},
+            {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center", width: "4%"},
             {
                 data:"product_id.1",
                 title:"Produit",
-                width: "45%",
                 render: function (data, type, full) {
                     // Add tooltip with barcode over product name
                     let display_barcode = "Aucun";
@@ -519,6 +518,7 @@ function initLists() {
                 title: "Unité vente",
                 className:"dt-body-center",
                 orderable: false,
+                width: "5%",
                 render: function (data) {
                     if (display_autres === "True" && data.toLowerCase().indexOf('unit') === 0) {
                         return "U";
@@ -531,6 +531,7 @@ function initLists() {
                 data:"product_qty",
                 title: "Qté",
                 className:"dt-body-center",
+                width: "5%",
                 render: function (data, type, full) {
                     if (reception_status == "False") {
                         return data;
@@ -545,36 +546,40 @@ function initLists() {
                 data:"price_unit",
                 title:"Prix unit.",
                 className:"dt-body-center",
-                visible: (reception_status == "qty_valid")
+                visible: (reception_status == "qty_valid"),
+                width: "5%"
             },
             {
                 title:"Editer",
                 defaultContent: "<a class='btn toProcess_line_edit' href='#'><i class='far fa-edit'></i></a>",
                 className:"dt-body-center",
-                orderable: false
+                orderable: false,
+                width: "5%"
             },
             {
                 title:"Valider",
                 defaultContent: "<a class='btn toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
                 className:"dt-body-center",
-                orderable: false
+                orderable: false,
+                width: "5%"
             },
             {
                 title:"",
                 defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
                 className:"dt-body-center",
                 orderable: false,
-                visible: display_autres === "True"
+                visible: display_autres === "True",
+                width: "5%"
             }
         ]);
 
         columns_processed = [
             {data:"row_counter", title:"row_counter", visible: false}, // Hidden counter to display last row first
-            {data:"shelf_sortorder", title: "Rayon", className:"dt-body-center"},
+            {data:"shelf_sortorder", title: "Rayon", className:"dt-body-center", width: "4%"},
             {
                 data:"product_id.1",
                 title:"Produit",
-                width: "55%",
+                // width: "55%",
                 render: function (data, type, full) {
                     // Add tooltip with barcode over product name
                     let display_barcode = "Aucun";
@@ -596,11 +601,12 @@ function initLists() {
                     return display;
                 }
             },
-            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
+            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false, width: "5%"},
             {
                 data:"product_qty",
                 title:"Qté",
                 className:"dt-head-center dt-body-center",
+                width: "5%",
                 // visible: (reception_status == "False"),
                 render: function (data, type, full) {
                     let disp = [
@@ -616,13 +622,15 @@ function initLists() {
                 data:"price_unit",
                 title:"Prix unit",
                 className:"dt-body-center",
-                visible: (reception_status == "qty_valid")
+                visible: (reception_status == "qty_valid"),
+                width: "5%",
             },
             {
                 title:"Editer",
                 defaultContent: "<a class='btn' id='processed_line_edit' href='#'><i class='far fa-edit'></i></a>",
                 className:"dt-body-center",
-                orderable: false
+                orderable: false,
+                width: "5%",
             },
             {
                 title:"Autres",
