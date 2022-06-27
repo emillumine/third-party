@@ -411,6 +411,11 @@ function fetch_suppliers_products() {
             contentType: "application/json; charset=utf-8",
             success: function(data) {
                 suppliers_products = data.res.products;
+
+                // Filter supplier products on products already in orders
+                suppliers_products = suppliers_products.filter(p => list_to_process.findIndex(ptp => ptp.product_id[1] === p.name) === -1);
+                suppliers_products = suppliers_products.filter(p => list_processed.findIndex(pp => pp.product_id[1] === p.name) === -1);
+
                 closeModal();
                 set_add_products_modal();
             },
@@ -486,17 +491,16 @@ function initLists() {
         if (is_grouped_order()) {
             columns_to_process.push({
                 data:"order_key", title: "n°", className: "dt-body-center",
-                width: "20px"
+                width: "15px"
             });
         }
 
         columns_to_process = columns_to_process.concat([
             {data:"product_id.0", title: "id", visible: false},
-            {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center"},
+            {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center", width: "4%"},
             {
                 data:"product_id.1",
                 title:"Produit",
-                width: "45%",
                 render: function (data, type, full) {
                     // Add tooltip with barcode over product name
                     let display_barcode = "Aucun";
@@ -514,6 +518,7 @@ function initLists() {
                 title: "Unité vente",
                 className:"dt-body-center",
                 orderable: false,
+                width: "5%",
                 render: function (data) {
                     if (display_autres === "True" && data.toLowerCase().indexOf('unit') === 0) {
                         return "U";
@@ -526,6 +531,7 @@ function initLists() {
                 data:"product_qty",
                 title: "Qté",
                 className:"dt-body-center",
+                width: "5%",
                 render: function (data, type, full) {
                     if (reception_status == "False") {
                         return data;
@@ -540,36 +546,40 @@ function initLists() {
                 data:"price_unit",
                 title:"Prix unit.",
                 className:"dt-body-center",
-                visible: (reception_status == "qty_valid")
+                visible: (reception_status == "qty_valid"),
+                width: "5%"
             },
             {
                 title:"Editer",
                 defaultContent: "<a class='btn toProcess_line_edit' href='#'><i class='far fa-edit'></i></a>",
                 className:"dt-body-center",
-                orderable: false
+                orderable: false,
+                width: "5%"
             },
             {
                 title:"Valider",
                 defaultContent: "<a class='btn toProcess_line_valid' href='#'><i class='far fa-check-square'></i></a>",
                 className:"dt-body-center",
-                orderable: false
+                orderable: false,
+                width: "5%"
             },
             {
                 title:"",
                 defaultContent: "<select class='select_product_action'><option value=''></option><option value='supplier_shortage'>Rupture fournisseur</option></select>",
                 className:"dt-body-center",
                 orderable: false,
-                visible: display_autres === "True"
+                visible: display_autres === "True",
+                width: "5%"
             }
         ]);
 
         columns_processed = [
             {data:"row_counter", title:"row_counter", visible: false}, // Hidden counter to display last row first
-            {data:"shelf_sortorder", title: "Rayon", className:"dt-body-center"},
+            {data:"shelf_sortorder", title: "Rayon", className:"dt-body-center", width: "4%"},
             {
                 data:"product_id.1",
                 title:"Produit",
-                width: "55%",
+                // width: "55%",
                 render: function (data, type, full) {
                     // Add tooltip with barcode over product name
                     let display_barcode = "Aucun";
@@ -591,11 +601,12 @@ function initLists() {
                     return display;
                 }
             },
-            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false},
+            {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false, width: "5%"},
             {
                 data:"product_qty",
                 title:"Qté",
                 className:"dt-head-center dt-body-center",
+                width: "5%",
                 // visible: (reception_status == "False"),
                 render: function (data, type, full) {
                     let disp = [
@@ -611,13 +622,15 @@ function initLists() {
                 data:"price_unit",
                 title:"Prix unit",
                 className:"dt-body-center",
-                visible: (reception_status == "qty_valid")
+                visible: (reception_status == "qty_valid"),
+                width: "5%",
             },
             {
                 title:"Editer",
                 defaultContent: "<a class='btn' id='processed_line_edit' href='#'><i class='far fa-edit'></i></a>",
                 className:"dt-body-center",
-                orderable: false
+                orderable: false,
+                width: "5%",
             },
             {
                 title:"Autres",
@@ -1814,7 +1827,7 @@ function add_products_action() {
         }
     }
 
-    if (qty_inputs.length > 0 && has_empty_qty_input === false) {
+    if (products_to_add.length > 0 && qty_inputs.length > 0 && has_empty_qty_input === false) {
         create_orders();
     }
 }
@@ -2039,16 +2052,10 @@ function openErrorReport() {
  * If extists, destroys instance and recreate it.
  * Filter autocomplete data by removing products already selected.
  */
-function set_products_autocomplete() {
-    // Filter autocomplete products on products already in orders
-    let autocomplete_products = suppliers_products.filter(p => list_to_process.findIndex(ptp => ptp.product_id[1] === p.name) === -1);
-
-    autocomplete_products = autocomplete_products.filter(p => list_processed.findIndex(pp => pp.product_id[1] === p.name) === -1);
-
-    console.log(products_to_add);
+function set_products_autocomplete() {    
     // Filter autocomplete products on products already selected
-    autocomplete_products = autocomplete_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
-
+    let autocomplete_products = suppliers_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
+    
     try {
         $("#modal .search_product_input").autocomplete("destroy");
     } catch (error) {
@@ -2108,20 +2115,33 @@ function remove_product_line(e) {
 }
 
 /**
- * Set & display the modal to search products
+ * Set & display the modal to search products.
+ * If no products to add, display the according modal.
  */
 function set_add_products_modal() {
-    let add_products_modal = $("#modal_add_products");
+    if (suppliers_products.length === 0) {
+        let modal_no_product_to_add = $("#modal_no_product_to_add");
 
-    openModal(
-        add_products_modal.html(),
-        add_products_action,
-        'Ajouter les produits',
-        false
-    );
-
-    set_products_autocomplete();
+        openModal(
+            modal_no_product_to_add.html(),
+            () => {},
+            'OK'
+        );
+    } else {
+        let add_products_modal = $("#modal_add_products");
+    
+        openModal(
+            add_products_modal.html(),
+            add_products_action,
+            'Ajouter les produits',
+            false
+        );
+    
+        products_to_add = []; // Reset on modal opening
+        set_products_autocomplete();
+    }
 }
+    
 
 /**
  * Init the page according to order(s) data (texts, colors, events...)
