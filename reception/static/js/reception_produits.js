@@ -2046,7 +2046,7 @@ function openErrorReport() {
  */
 function set_products_autocomplete() {    
     // Filter autocomplete products on products already selected
-    let autocomplete_products = autocomplete_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
+    let autocomplete_products = suppliers_products.filter(p => products_to_add.findIndex(pta => pta.name === p.name) === -1);
     
     try {
         $("#modal .search_product_input").autocomplete("destroy");
@@ -2129,6 +2129,7 @@ function set_add_products_modal() {
             false
         );
     
+        products_to_add = []; // Reset on modal opening
         set_products_autocomplete();
     }
 }
