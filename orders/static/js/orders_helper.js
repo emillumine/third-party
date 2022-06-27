@@ -1585,7 +1585,7 @@ function prepare_datatable_columns() {
         {
             data: "default_code",
             title: "Ref",
-            width: "8%",
+            width: "5%",
             render: function (data, type, full) {
                 if (data === false) {
                     return "";
@@ -1624,7 +1624,7 @@ function prepare_datatable_columns() {
                 return '<div class="help" title="' + full.stats+ '">' + data + '</div>';
             },
             className: "dt-body-center",
-            width: "6%"
+            width: "4%"
         }
     ];
 
@@ -1703,7 +1703,7 @@ function prepare_datatable_columns() {
         width: "4%"
     });
 
-    // Not in use for now
+    // Not used for now
     // columns.push({
     //     data: "qty_not_covered",
     //     title: "Besoin non couvert (qté)",
