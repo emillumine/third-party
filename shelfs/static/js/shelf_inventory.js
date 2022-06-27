@@ -1112,6 +1112,16 @@ function init() {
     list_to_process = products;
     initLists();
 
+    // Set processed_row_counter to current value
+    if ('list_processed' in shelf) {
+        for (let processed_item of shelf['list_processed']) {
+            if (processed_item.row_counter > processed_row_counter) {
+                processed_row_counter = processed_item.row_counter;
+            }
+        }
+    }
+    processed_row_counter++;
+
     // Set DOM
     if (originView == "shelf") {
         $('#shelf_name').text(shelf.name + ' (numéro ' + shelf.sort_order + ')');
