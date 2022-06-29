@@ -54,8 +54,7 @@ Number.isSafeInteger = Number.isSafeInteger || function (value) {
 
 
 function back() {
-    // document.location.href = parent_location;
-    barcode_analyzer("42074700");
+    document.location.href = parent_location;
 }
 
 function debounce(func, delay = 100) {
