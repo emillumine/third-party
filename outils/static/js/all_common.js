@@ -455,6 +455,27 @@ function eanCheckDigit(s) {
     return (10 - (result % 10)) % 10;
 }
 
+function isValidEAN8(ean) {
+    let answer = true;
+
+    let key = ean.substring(ean.length-1);
+    let digits = ean.substring(0, ean.length-1);
+
+    let checkSum = digits.split('').reduce(function(previousValue, currentValue, i) {
+        let temp_val = i % 2 == 0 ? parseInt(currentValue) * 3 : parseInt(currentValue);
+        return parseInt(previousValue) + temp_val;
+    }, 0);
+
+    let checkKey = 10 - checkSum % 10;
+    if (checkKey === 10) checkKey = 0;
+
+    if (checkKey != key) {
+        answer = false;
+    }
+
+    return answer;
+}
+
 function isValidEAN13(ean) {
     var answer = true;
     var checkSum = ean.split('').reduce(function(p, v, i) {

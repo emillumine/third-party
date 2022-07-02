@@ -94,12 +94,14 @@ function barcode_analyzer(chars) {
     if (barcode && barcode.length >=13) {
         barcode = barcode.substring(barcode.length-13);
     } else if (barcode && barcode.length == 12 && barcode.indexOf('0') !== 0) {
-    // User may use a scanner which remove leading 0
+        // User may use a scanner which remove leading 0
         barcode = '0' + barcode;
+    } else if (barcode && barcode.length >= 8) {
+        // For EAN8
+        barcode = barcode.substring(barcode.length-8);
     } else {
-    //manually submitted after correction
+        //manually submitted after correction
         var barcode_input = $('#search_input');
-
         barcode = barcode_input.val();
     }
 
@@ -149,7 +151,7 @@ function select_product_from_bc(barcode) {
     var found = null,
         qty = null;
 
-    if (isValidEAN13(barcode)) {
+    if (isValidEAN13(barcode) || isValidEAN8(barcode)) {
         var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
 
         if (scannedProduct === null) {
@@ -163,7 +165,7 @@ function select_product_from_bc(barcode) {
             }
         }
     } else {
-        alert("Le code-barre " + barcode + " n'est pas reconnu comme un EAN13 valide.'");
+        alert("Le code-barre " + barcode + " n'est pas reconnu comme un EAN13 ou EAN8 valide.");
         return -1;
     }
 

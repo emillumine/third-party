@@ -778,6 +778,9 @@ $(document).ready(function() {
             } else if (barcode.length == 12 && barcode.indexOf('0') !== 0) {
             // User may use a scanner which remove leading 0
                 barcode = '0' + barcode;
+            } else if (barcode.length >= 8) {
+                // For EAN8
+                barcode = barcode.substring(barcode.length-8);
             } else {
             //manually submitted after correction
                 barcode = barcode_input.val();
