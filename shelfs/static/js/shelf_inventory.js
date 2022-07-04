@@ -94,12 +94,14 @@ function barcode_analyzer(chars) {
     if (barcode && barcode.length >=13) {
         barcode = barcode.substring(barcode.length-13);
     } else if (barcode && barcode.length == 12 && barcode.indexOf('0') !== 0) {
-    // User may use a scanner which remove leading 0
+        // User may use a scanner which remove leading 0
         barcode = '0' + barcode;
+    } else if (barcode && barcode.length >= 8) {
+        // For EAN8
+        barcode = barcode.substring(barcode.length-8);
     } else {
-    //manually submitted after correction
+        //manually submitted after correction
         var barcode_input = $('#search_input');
-
         barcode = barcode_input.val();
     }
 
@@ -142,10 +144,14 @@ function refresh() {
 
 // Directly send a line to edition when barcode is read
 function select_product_from_bc(barcode) {
+    if (barcode === "" || barcode === null || barcode === undefined) {
+        return -1;
+    }
+
     var found = null,
         qty = null;
 
-    if (isValidEAN13(barcode)) {
+    if (isValidEAN13(barcode) || isValidEAN8(barcode)) {
         var scannedProduct = barcodes.get_corresponding_odoo_product(barcode);
 
         if (scannedProduct === null) {
@@ -159,7 +165,7 @@ function select_product_from_bc(barcode) {
             }
         }
     } else {
-        alert("Le code-barre " + barcode + " n'est pas reconnu comme un EAN13 valide.'");
+        alert("Le code-barre " + barcode + " n'est pas reconnu comme un EAN13 ou EAN8 valide.");
         return -1;
     }
 
@@ -1107,6 +1113,16 @@ function init() {
     // TODO : What happens if products are being put or removed from the self before the end of the inventory ?
     list_to_process = products;
     initLists();
+
+    // Set processed_row_counter to current value
+    if ('list_processed' in shelf) {
+        for (let processed_item of shelf['list_processed']) {
+            if (processed_item.row_counter > processed_row_counter) {
+                processed_row_counter = processed_item.row_counter;
+            }
+        }
+    }
+    processed_row_counter++;
 
     // Set DOM
     if (originView == "shelf") {

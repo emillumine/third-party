@@ -215,6 +215,11 @@ tr.odd td.row_product_no_qty {
   display: none;
 }
 
+.no_products_to_add_area {
+  margin: 2rem 0;
+  /* display: none; */
+}
+
 .search_products_to_add_area {
   margin: 2rem 0;
   display: flex;

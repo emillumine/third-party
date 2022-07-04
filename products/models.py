@@ -56,7 +56,7 @@ class CagetteProduct(models.Model):
         cond = [['product_tmpl_id.id', '=', template_id]]
         fields = ['barcode', 'product_tmpl_id', 'pricetag_rackinfos',
                   'price_weight_net', 'price_volume', 'list_price',
-                  'weight_net', 'volume', 'to_weight']
+                  'weight_net', 'volume', 'to_weight', 'meal_voucher_ok']
         additionnal_fields = getattr(settings, 'SHELF_LABELS_ADD_FIELDS', [])
         fields += additionnal_fields
         product_data = api.search_read('product.product', cond, fields)
@@ -607,7 +607,7 @@ class CagetteProducts(models.Model):
 
             if supplier_ids is not None and len(supplier_ids) > 0:
                 # Get products/supplier relation
-                f = ["id", "product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name', 'product_code']
+                f = ["id", "product_tmpl_id", 'date_start', 'date_end', 'package_qty', 'price', 'name', 'product_code', 'sequence']
                 c = [['name', 'in', [ int(x) for x in supplier_ids]]]
                 psi = api.search_read('product.supplierinfo', c, f)
 
@@ -669,7 +669,8 @@ class CagetteProducts(models.Model):
                                 'supplier_id': int(psi_item["name"][0]),
                                 'package_qty': psi_item["package_qty"],
                                 'price': psi_item["price"],
-                                'product_code': psi_item["product_code"]
+                                'product_code': psi_item["product_code"],
+                                'sequence': psi_item["sequence"]
                             })
 
                 for s in sales:
