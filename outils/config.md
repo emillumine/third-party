@@ -359,7 +359,7 @@
 
 - RECEPTION_UPDATE_QTY_PSWD = 'pass2makeApause'
 
-        Password to update a product qty during prices step.
+        Password to update a product qty during prices update.
 
 - RECEPTION_PDT_LABELS_BTN_TEXT = 'Lancer l\'impression'
 
