@@ -305,6 +305,9 @@ tr.odd td.row_product_no_qty {
 .product_qty_cell:hover {
   background-color: #e7e9ed;
 }
+td.row_product_no_qty.product_qty_cell:hover {
+  background-color: #db9129;
+}
 
 /* Accordion style */
 
