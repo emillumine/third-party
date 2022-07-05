@@ -253,8 +253,11 @@
 
 .main.fa-info-circle {
     color: #0275d8;
+}
+#coverage_form .fa-info-circle {
     cursor:  pointer;
 }
+
 .custom_cell_content {
     display: flex;
     flex-direction: column;
