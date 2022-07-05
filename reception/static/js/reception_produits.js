@@ -32,7 +32,8 @@ var reception_status = null,
     barcodes = null, // Barcodes stored locally
     priceToWeightIsCorrect = true,
     suppliers_products = [], // All products of current order(s) supplier(s)
-    products_to_add = []; // Products to add to order
+    products_to_add = [], // Products to add to order
+    re_editing_qty = false; // During prices edition, edit qty mode enabled
 
 var dbc = null,
     sync = null,
@@ -495,6 +496,13 @@ function initLists() {
             });
         }
 
+        // Titles for Qty column
+        const base_qty_title = "Qté";
+        const qty_title_tooltip = `<div class="tooltip tt_twolines">
+                                    Qté
+                                    <span class="tooltiptext">Qté comptée / Qté commandée</span>
+                                </div>`;
+
         columns_to_process = columns_to_process.concat([
             {data:"product_id.0", title: "id", visible: false},
             {data:"shelf_sortorder", title: "Rayon", className: "dt-body-center", width: "4%"},
@@ -529,8 +537,8 @@ function initLists() {
             },
             {
                 data:"product_qty",
-                title: "Qté",
-                className:"dt-body-center",
+                title: (reception_status == "qty_valid") ? qty_title_tooltip : base_qty_title,
+                className: (reception_status == "qty_valid") ? "dt-body-center product_qty_cell" : "dt-body-center",
                 width: "5%",
                 render: function (data, type, full) {
                     if (reception_status == "False") {
@@ -604,8 +612,8 @@ function initLists() {
             {data:"product_uom.1", title: "Unité vente", className:"dt-body-center", orderable: false, width: "5%"},
             {
                 data:"product_qty",
-                title:"Qté",
-                className:"dt-head-center dt-body-center",
+                title: qty_title_tooltip,
+                className: (reception_status == "qty_valid") ? "dt-head-center dt-body-center product_qty_cell" : "dt-head-center dt-body-center",
                 width: "5%",
                 // visible: (reception_status == "False"),
                 render: function (data, type, full) {
@@ -648,17 +656,30 @@ function initLists() {
             }
         ];
 
+
+        table_to_process_ordering = [
+            [
+                0,
+                "asc"
+            ]
+        ];
+
+        // For grouped orders, order first by number of order, then by product id
+        if (is_grouped_order()) {
+            table_to_process_ordering.push(
+                [
+                    1,
+                    "asc"
+                ]
+            )
+        }
+
         // Init table for to_process content
         table_to_process = $('#table_to_process').DataTable({
             data: list_to_process,
             columns: columns_to_process,
             rowId : "product_id.0",
-            order: [
-                [
-                    0,
-                    "asc"
-                ]
-            ],
+            order: table_to_process_ordering,
             scrollY: "33vh",
             scrollCollapse: true,
             paging: false,
@@ -895,6 +916,68 @@ function initLists() {
             clearLineEdition();
         }
     });
+
+    $('#table_to_process tbody').on('click', '.product_qty_cell', function () {
+        // Prevent editing mutiple lines at a time
+        if (editing_product == null) {
+            let pswd = prompt('Mot de passe requis pour éditer la quantité de ce produit');
+
+            if (pswd == update_qty_pswd) {
+                // Password ok, edit product qty
+                let row = table_to_process.row($(this).parents('tr'));
+                let data = row.data();
+
+                // Product goes to editing
+                editing_origin = "to_process";
+                re_editing_qty = true;
+
+                setLineEdition(data);
+                remove_from_toProcess(row, data);
+
+                document.getElementById('search_input').value = '';
+                $('table.dataTable').DataTable()
+                    .search('')
+                    .draw();
+            } else if (pswd == null) {
+                return;
+            } else {
+                alert('Mauvais mot de passe !');
+            }
+        } else {
+            alert("Il y a déjà un produit dans la zone d'édition. Terminez d'abord d'éditer ce produit.")
+        }
+    });
+
+    $('#table_processed tbody').on('click', '.product_qty_cell', function () {
+        // Prevent editing mutiple lines at a time
+        if (editing_product == null) {
+            let pswd = prompt('Mot de passe requis pour éditer la quantité de ce produit');
+
+            if (pswd == update_qty_pswd) {
+                // Password ok, edit product qty
+                let row = table_processed.row($(this).parents('tr'));
+                let data = row.data();
+
+                // Product goes to editing
+                editing_origin = "processed";
+                re_editing_qty = true;
+
+                setLineEdition(data);
+                remove_from_processed(row, data);
+
+                document.getElementById('search_input').value = '';
+                $('table.dataTable').DataTable()
+                    .search('')
+                    .draw();
+            } else if (pswd == null) {
+                return;
+            } else {
+                alert('Mauvais mot de passe !');
+            }
+        } else {
+            alert("Il y a déjà un produit dans la zone d'édition. Terminez d'abord d'éditer ce produit.")
+        }
+    });
 }
 
 // Add a line to to_process
@@ -1076,23 +1159,23 @@ function set_supplier_shortage(row, product, from_processed = false) {
 
 /* EDITION */
 
-// Set edition
+// Set edition area
 function setLineEdition(product) {
     editing_product = product;
     // name
     document.getElementById('product_name').innerHTML = editing_product.product_id[1];
 
     // intput
-    if (reception_status == "qty_valid")
-        document.getElementById('edition_input').value = editing_product.price_unit;
-    else
+    if (reception_status == 'False' || re_editing_qty === true)
         document.getElementById('edition_input').value = editing_product.product_qty;
+    else
+        document.getElementById('edition_input').value = editing_product.price_unit;
 
     document.getElementById("edition_input").focus();
 
     // uom
     if (editing_product.product_uom[0] == 1) { // Unit
-        if (reception_status == 'False') {
+        if (reception_status == 'False' || re_editing_qty === true) {
             document.getElementById('product_uom').innerHTML = ' unité(s)';
             $('#edition_input').attr('type', 'number')
                 .attr('step', 1)
@@ -1104,7 +1187,7 @@ function setLineEdition(product) {
                 .attr('max', 9999);
         }
     } else if (editing_product.product_uom[0] == 21) { // kg
-        if (reception_status == 'False') {
+        if (reception_status == 'False' || re_editing_qty === true) {
             document.getElementById('product_uom').innerHTML = ' kg';
             $('#edition_input').attr('type', 'number')
                 .attr('step', 0.001)
@@ -1115,6 +1198,12 @@ function setLineEdition(product) {
                 .attr('step', 0.01)
                 .attr('max', 9999);
         }
+    }
+
+    // If editing qty during prices edition
+    if (re_editing_qty === true) {
+        document.getElementById('edition_header').innerHTML = "Ré-éditer la quantité";
+        document.getElementById('edition_input_label').innerHTML = "Qté";
     }
 
     // Make edition area blink when edition button clicked
@@ -1130,6 +1219,13 @@ function clearLineEdition() {
     document.getElementById('edition_input').value = null;
     document.getElementById('search_input').focus();
     document.getElementById('product_uom').innerHTML = '';
+
+    if (re_editing_qty === true) {
+        document.getElementById('edition_header').innerHTML = "Editer les prix";
+        document.getElementById('edition_input_label').innerHTML = "Prix unit.";
+
+        re_editing_qty = false;
+    }
 }
 
 /**
@@ -1152,6 +1248,57 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         if (value == null) {
             newValue = parseFloat(document.getElementById('edition_input').value.replace(',', '.'));
             newValue = isFinite(newValue) ? newValue : 0;
+        }
+
+        // Particular process in case of qty reedition during prices update
+        if (re_editing_qty === true) {
+            // Look for product in product's order first step data
+            let previous_step_index = -1;
+
+            for (let i = 0; i < orders[productToEdit.id_po]["previous_steps_data"]["False"]["updated_products"].length; i++) {
+                if (
+                    orders[productToEdit.id_po]["previous_steps_data"]["False"]["updated_products"][i].id
+                    ===
+                    productToEdit.id
+                ) {
+                    previous_step_index = i;
+                    break;
+                }
+            }
+
+            if (previous_step_index === -1) {
+                // Product qty hasn't been updated yet: add to first step data
+                productToEdit.old_qty = productToEdit.product_qty;
+                
+                productToEdit.product_qty = newValue;
+                productToEdit.product_qty_package = 1;
+                productToEdit.package_qty = productToEdit.product_qty;
+
+                orders[productToEdit.id_po]["previous_steps_data"]["False"]["updated_products"].push(productToEdit)
+            } else {
+                productToEdit.product_qty = newValue;
+                productToEdit.package_qty = productToEdit.product_qty;
+                
+                // Product qty has been updated before, update first step data
+                orders[productToEdit.id_po]["previous_steps_data"]["False"]["updated_products"][previous_step_index].product_qty = newValue;
+                orders[productToEdit.id_po]["previous_steps_data"]["False"]["updated_products"][previous_step_index].package_qty = newValue;
+            }
+
+            /* Send request to server to update a single product */
+            updateType = "qty_valid";
+            send([productToEdit]);
+
+            // Update temp couchdb order
+            update_distant_order(productToEdit.id_po);
+
+            // Put back product in its original list
+            if (editing_origin === "to_process") {
+                add_to_toProcess(productToEdit);
+            } else if (editing_origin === "processed") {
+                add_to_processed(productToEdit);
+            }
+
+            return true;
         }
 
         // addition mode = weight is directly added from scanned product
@@ -1433,8 +1580,14 @@ function data_validation() {
     });
 }
 
-// Send the request to the server
-function send() {
+/**
+ * Send the request to update order(s) data
+ * 
+ * @param {Array} given_products If set, only update these products.
+ * If no given products, we're in the regular process, ie the end of a reception.
+ * Else, we're in the middle of a reception, so we'll skip some parts.
+ */
+function send(given_products = []) {
     try {
         // Loading on
         openModal();
@@ -1451,15 +1604,19 @@ function send() {
             update_data.orders[order_id] = {'po' : []};
         }
 
+        has_given_products = given_products.length > 0;
+        // If given products, update these only, else update global updatedProducts list
+        products_to_update = has_given_products === true ? given_products : updatedProducts;
+
         // for each updated product, add it to its order list
-        for (i in updatedProducts) {
+        for (i in products_to_update) {
 
             /* ---> The following part concerns products found in different orders */
-            if ('other_orders_data' in updatedProducts[i]) {
+            if ('other_orders_data' in products_to_update[i]) {
                 // for each other order of product
-                for (other_order_data of updatedProducts[i].other_orders_data) {
+                for (other_order_data of products_to_update[i].other_orders_data) {
                     // Make a clone (deep copy) of the product object
-                    let product_copy = $.extend(true, {}, updatedProducts[i]);
+                    let product_copy = $.extend(true, {}, products_to_update[i]);
 
                     // Set correct order line id for this product
                     product_copy.id = other_order_data.id_product;
@@ -1468,30 +1625,30 @@ function send() {
                     if (reception_status == 'False') {
                         // Reset initial qties in respective orders
                         product_copy.old_qty = other_order_data.initial_qty;
-                        for (j in orders[updatedProducts[i].id_po]['updated_products']) {
-                            if (orders[updatedProducts[i].id_po]['updated_products'][j].product_id[0]
+                        for (j in orders[products_to_update[i].id_po]['updated_products']) {
+                            if (orders[products_to_update[i].id_po]['updated_products'][j].product_id[0]
                             == product_copy.product_id[0]) {
-                                orders[updatedProducts[i].id_po]['updated_products'][j].old_qty -= other_order_data.initial_qty;
+                                orders[products_to_update[i].id_po]['updated_products'][j].old_qty -= other_order_data.initial_qty;
                                 break;
                             }
                         }
 
-                        if (product_copy.product_uom[0] == 21 && updatedProducts[i].product_qty > 0.1) { // kg
+                        if (product_copy.product_uom[0] == 21 && products_to_update[i].product_qty > 0.1) { // kg
                             // Add minimum qty in other orders
                             product_copy.product_qty_package = 1;
                             product_copy.package_qty = 0.1;
                             product_copy.product_qty = 0.1;
 
                             // Remove this qty from first order
-                            updatedProducts[i].package_qty -= 0.1;
-                            updatedProducts[i].product_qty -= 0.1;
-                        } else if (product_copy.product_uom[0] == 1 && updatedProducts[i].product_qty > 1) { // Unit
+                            products_to_update[i].package_qty -= 0.1;
+                            products_to_update[i].product_qty -= 0.1;
+                        } else if (product_copy.product_uom[0] == 1 && products_to_update[i].product_qty > 1) { // Unit
                             product_copy.product_qty_package = 1;
                             product_copy.package_qty = 1;
                             product_copy.product_qty = 1;
 
-                            updatedProducts[i].package_qty -= 1;
-                            updatedProducts[i].product_qty -= 1;
+                            products_to_update[i].package_qty -= 1;
+                            products_to_update[i].product_qty -= 1;
                         } else { // Not handled, all qty in one order
                             product_copy.product_qty_package = 0;
                             product_copy.package_qty = 0;
@@ -1514,72 +1671,75 @@ function send() {
             /* <--- */
 
             // Add product to order's prod list
-            prod_order_id = updatedProducts[i].id_po;
-            update_data.orders[prod_order_id]['po'].push(updatedProducts[i]);
+            prod_order_id = products_to_update[i].id_po;
+            update_data.orders[prod_order_id]['po'].push(products_to_update[i]);
         }
 
-        /* Create the error report */
-        // Send changes between items to process and processed items
-        var error_report_data = {
-            'group_amount_total' : 0,
-            'update_type' : updateType,
-            'updated_products' : updatedProducts,
-            'user_comments': user_comments,
-            'orders' : []
-        };
-
-        for (let i in orders) {
-            error_report_data.group_amount_total += orders[i].amount_total;
-            error_report_data.orders.push(orders[i]);
-        }
-
-        //Create list of articl with no barcode
-        no_barcode_list = [];
-        for (var i = 0; i < list_processed.length; i++) {
-            if (list_processed[i].product_qty != 0 && (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "")) {
-                no_barcode_list.push([
-                    list_processed[i]["product_id"][0],
-                    list_processed[i]["product_id"][1]
-                ]);
+        // Only send error report & no barcode list when no given products (ie normal process, end of reception)
+        if (has_given_products === false) {
+            /* Create the error report */
+            // Send changes between items to process and processed items
+            var error_report_data = {
+                'group_amount_total' : 0,
+                'update_type' : updateType,
+                'updated_products' : products_to_update,
+                'user_comments': user_comments,
+                'orders' : []
+            };
+    
+            for (let i in orders) {
+                error_report_data.group_amount_total += orders[i].amount_total;
+                error_report_data.orders.push(orders[i]);
             }
-        }
-
-        data_send_no_barcode={
-            "order" : orders[order_data['id_po']],
-            "no_barcode_list" : no_barcode_list
-        };
-
-
-        // Send of articl with no barcode to mail send
-        if (no_barcode_list.length > 0) {
+    
+            //Create list of articl with no barcode
+            no_barcode_list = [];
+            for (var i = 0; i < list_processed.length; i++) {
+                if (list_processed[i].product_qty != 0 && (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "")) {
+                    no_barcode_list.push([
+                        list_processed[i]["product_id"][0],
+                        list_processed[i]["product_id"][1]
+                    ]);
+                }
+            }
+    
+            data_send_no_barcode={
+                "order" : orders[order_data['id_po']],
+                "no_barcode_list" : no_barcode_list
+            };
+    
+    
+            // Send of articl with no barcode to mail send
+            if (no_barcode_list.length > 0) {
+                $.ajax({
+                    type: "POST",
+                    url: "../send_mail_no_barcode",
+                    dataType: "json",
+                    traditional: true,
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(data_send_no_barcode),
+                    success: function() {},
+                    error: function() {
+                        alert('Erreur dans l\'envoi des produite sont barre code.');
+                    }
+                });
+            }
+    
+            // Send request for error report
             $.ajax({
                 type: "POST",
-                url: "../send_mail_no_barcode",
+                url: "../save_error_report",
                 dataType: "json",
                 traditional: true,
                 contentType: "application/json; charset=utf-8",
-                data: JSON.stringify(data_send_no_barcode),
+                data: JSON.stringify(error_report_data),
                 success: function() {},
                 error: function() {
-                    alert('Erreur dans l\'envoi des produite sont barre code.');
+                    closeModal();
+                    alert('Erreur dans l\'envoi du rapport.');
                 }
             });
         }
-
-        // Send request for error report
-        $.ajax({
-            type: "POST",
-            url: "../save_error_report",
-            dataType: "json",
-            traditional: true,
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(error_report_data),
-            success: function() {},
-            error: function() {
-                closeModal();
-                alert('Erreur dans l\'envoi du rapport.');
-            }
-        });
 
         /* Update orders */
         $.ajax({
@@ -1592,163 +1752,165 @@ function send() {
             success: function() {
                 closeModal();
 
-                try {
-                    // If step 1 (counting)
-                    if (reception_status == "False") {
-                        /* Open pop-up with procedure explanation */
-                        var barcodes_to_print = false;
-
-                        // Select products with local barcode and without barcode, when qty > 0
-                        for (var i = 0; i < list_processed.length; i++) {
-                            if (list_processed[i].product_qty != 0) {
-                                // set DOM data
-                                if (typeof(list_processed[i].barcode) == "string" && list_processed[i].barcode.startsWith(fixed_barcode_prefix) && !barcodes_to_print) {
-                                    // Products with barcode to print (local barcode)
-                                    document.getElementById("barcodesToPrint").hidden = false;
-                                    document.getElementById("nothingToDo").hidden = true;
-
-                                    barcodes_to_print = true;
-                                } /* else if (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "") {
-                                    // Products with no barcode
-                                    var node = document.createElement('li');
-                                    let textNode = document.createTextNode(list_processed[i]["product_id"][1]);
-
-                                    node.appendChild(textNode);
-                                    document.getElementById('barcodesEmpty_list').appendChild(node);
-
-                                    if (document.getElementById("barcodesEmpty").hidden) {
-                                        document.getElementById("barcodesEmpty").hidden = false;
+                if (has_given_products === false) {
+                    try {
+                        // If step 1 (counting)
+                        if (reception_status == "False") {
+                            /* Open pop-up with procedure explanation */
+                            var barcodes_to_print = false;
+    
+                            // Select products with local barcode and without barcode, when qty > 0
+                            for (var i = 0; i < list_processed.length; i++) {
+                                if (list_processed[i].product_qty != 0) {
+                                    // set DOM data
+                                    if (typeof(list_processed[i].barcode) == "string" && list_processed[i].barcode.startsWith(fixed_barcode_prefix) && !barcodes_to_print) {
+                                        // Products with barcode to print (local barcode)
+                                        document.getElementById("barcodesToPrint").hidden = false;
                                         document.getElementById("nothingToDo").hidden = true;
-                                    }
-                                }*/
-                            }
-                        }
-
-                        for (let i = 0; i < no_barcode_list.length; i++) {
-                            var node = document.createElement('li');
-                            let textNode = document.createTextNode(no_barcode_list[i]);
-
-                            node.appendChild(textNode);
-                            document.getElementById('barcodesEmpty_list').appendChild(node);
-
-                            if (document.getElementById("barcodesEmpty").hidden) {
-                                document.getElementById("barcodesEmpty").hidden = false;
-                                document.getElementById("nothingToDo").hidden = true;
-                            }
-                        }
-
-                        // Set order(s) name in popup DOM
-                        if (is_grouped_order() === false) { // Single order
-                            document.getElementById("order_ref").innerHTML = orders[Object.keys(orders)[0]].name;
-                        } else { // group
-                            document.getElementById("success_order_name_container").hidden = true;
-                            document.getElementById("success_orders_name_container").hidden = false;
-
-                            for (order_id in orders) {
-                                var p_node = document.createElement('p');
-
-                                var span_node = document.createElement('span');
-
-                                span_node.className = 'order_ref_reminder';
-                                let textNode = document.createTextNode(orders[order_id].name);
-
-                                span_node.appendChild(textNode);
-
-                                textNode = document.createTextNode(orders[order_id].partner
-                                            + ' du ' + orders[order_id].date_order + ' : ');
-                                p_node.appendChild(textNode);
-                                p_node.appendChild(span_node);
-
-                                document.getElementById("orders_ref").appendChild(p_node);
-                            }
-                        }
-
-                        openModal(
-                            $('#modal_qtiesValidated').html(),
-                            back,
-                            'Retour à la liste des commandes',
-                            true,
-                            false
-                        );
-
-                        /* Not last step: update distant data */
-                        for (let order_id in orders) {
-                            // Save current step updated data
-                            orders[order_id].previous_steps_data = {};
-                            orders[order_id].previous_steps_data[reception_status] = {
-                                updated_products: orders[order_id].updated_products || [],
-                                user_comments: user_comments
-                            };
-                            orders[order_id].reception_status = updateType;
-
-                            // Unlock order
-                            orders[order_id].last_update = {
-                                timestamp: null,
-                                fingerprint: null
-                            };
-
-                            // Delete temp data
-                            delete orders[order_id].valid_products;
-                            delete orders[order_id].updated_products;
-                        }
-
-                        dbc.bulkDocs(Object.values(orders)).catch((err) => {
-                            console.log(err);
-                        });
-                    } else {
-                        // Print etiquettes with new prices
-                        if (updatedProducts.length > 0) {
-                            document.getElementById("etiquettesToPrint").hidden = false;
-                        }
-
-                        openModal(
-                            $('#templates #modal_pricesValidated').html(),
-                            back,
-                            'Retour à la liste des commandes',
-                            true,
-                            false
-                        );
-
-                        /* Last step: Clear distant data */
-                        // Delete orders doc
-                        for (let order_id in orders) {
-                            orders[order_id]._deleted = true;
-                        }
-
-                        // Remove orders group
-                        dbc.get("grouped_orders").then((doc) => {
-                            let couchdb_update_data = Object.values(orders);
-
-                            // We're in a group, remove it & update groups doc
-                            if (is_grouped_order()) {
-                                let groups_doc = doc;
-
-                                let first_order_id = parseInt(Object.keys(orders)[0]);
-
-                                for (let i in groups_doc.groups) {
-                                    if (groups_doc.groups[i].includes(first_order_id)) {
-                                        groups_doc.groups.splice(i, 1);
-                                        break;
-                                    }
+    
+                                        barcodes_to_print = true;
+                                    } /* else if (list_processed[i].barcode == false || list_processed[i].barcode == null || list_processed[i].barcode == "") {
+                                        // Products with no barcode
+                                        var node = document.createElement('li');
+                                        let textNode = document.createTextNode(list_processed[i]["product_id"][1]);
+    
+                                        node.appendChild(textNode);
+                                        document.getElementById('barcodesEmpty_list').appendChild(node);
+    
+                                        if (document.getElementById("barcodesEmpty").hidden) {
+                                            document.getElementById("barcodesEmpty").hidden = false;
+                                            document.getElementById("nothingToDo").hidden = true;
+                                        }
+                                    }*/
                                 }
-
-                                couchdb_update_data.push(groups_doc);
                             }
-
-                            return dbc.bulkDocs(couchdb_update_data);
-                        })
-                            .catch(function (err) {
+    
+                            for (let i = 0; i < no_barcode_list.length; i++) {
+                                var node = document.createElement('li');
+                                let textNode = document.createTextNode(no_barcode_list[i]);
+    
+                                node.appendChild(textNode);
+                                document.getElementById('barcodesEmpty_list').appendChild(node);
+    
+                                if (document.getElementById("barcodesEmpty").hidden) {
+                                    document.getElementById("barcodesEmpty").hidden = false;
+                                    document.getElementById("nothingToDo").hidden = true;
+                                }
+                            }
+    
+                            // Set order(s) name in popup DOM
+                            if (is_grouped_order() === false) { // Single order
+                                document.getElementById("order_ref").innerHTML = orders[Object.keys(orders)[0]].name;
+                            } else { // group
+                                document.getElementById("success_order_name_container").hidden = true;
+                                document.getElementById("success_orders_name_container").hidden = false;
+    
+                                for (order_id in orders) {
+                                    var p_node = document.createElement('p');
+    
+                                    var span_node = document.createElement('span');
+    
+                                    span_node.className = 'order_ref_reminder';
+                                    let textNode = document.createTextNode(orders[order_id].name);
+    
+                                    span_node.appendChild(textNode);
+    
+                                    textNode = document.createTextNode(orders[order_id].partner
+                                                + ' du ' + orders[order_id].date_order + ' : ');
+                                    p_node.appendChild(textNode);
+                                    p_node.appendChild(span_node);
+    
+                                    document.getElementById("orders_ref").appendChild(p_node);
+                                }
+                            }
+    
+                            openModal(
+                                $('#modal_qtiesValidated').html(),
+                                back,
+                                'Retour à la liste des commandes',
+                                true,
+                                false
+                            );
+    
+                            /* Not last step: update distant data */
+                            for (let order_id in orders) {
+                                // Save current step updated data
+                                orders[order_id].previous_steps_data = {};
+                                orders[order_id].previous_steps_data[reception_status] = {
+                                    updated_products: orders[order_id].updated_products || [],
+                                    user_comments: user_comments
+                                };
+                                orders[order_id].reception_status = updateType;
+    
+                                // Unlock order
+                                orders[order_id].last_update = {
+                                    timestamp: null,
+                                    fingerprint: null
+                                };
+    
+                                // Delete temp data
+                                delete orders[order_id].valid_products;
+                                delete orders[order_id].updated_products;
+                            }
+    
+                            dbc.bulkDocs(Object.values(orders)).catch((err) => {
                                 console.log(err);
                             });
+                        } else {
+                            // Print etiquettes with new prices
+                            if (updatedProducts.length > 0) {
+                                document.getElementById("etiquettesToPrint").hidden = false;
+                            }
+    
+                            openModal(
+                                $('#templates #modal_pricesValidated').html(),
+                                back,
+                                'Retour à la liste des commandes',
+                                true,
+                                false
+                            );
+    
+                            /* Last step: Clear distant data */
+                            // Delete orders doc
+                            for (let order_id in orders) {
+                                orders[order_id]._deleted = true;
+                            }
+    
+                            // Remove orders group
+                            dbc.get("grouped_orders").then((doc) => {
+                                let couchdb_update_data = Object.values(orders);
+    
+                                // We're in a group, remove it & update groups doc
+                                if (is_grouped_order()) {
+                                    let groups_doc = doc;
+    
+                                    let first_order_id = parseInt(Object.keys(orders)[0]);
+    
+                                    for (let i in groups_doc.groups) {
+                                        if (groups_doc.groups[i].includes(first_order_id)) {
+                                            groups_doc.groups.splice(i, 1);
+                                            break;
+                                        }
+                                    }
+    
+                                    couchdb_update_data.push(groups_doc);
+                                }
+    
+                                return dbc.bulkDocs(couchdb_update_data);
+                            })
+                                .catch(function (err) {
+                                    console.log(err);
+                                });
+                        }
+    
+                        // Back if modal closed
+                        $('#modal_closebtn_top').on('click', back);
+                        $('#modal_closebtn_bottom').on('click', back);
+                    } catch (ee) {
+                        err = {msg: ee.name + ' : ' + ee.message, ctx: 'callback update_orders'};
+                        console.error(err);
+                        report_JS_error(err, 'reception');
                     }
-
-                    // Back if modal closed
-                    $('#modal_closebtn_top').on('click', back);
-                    $('#modal_closebtn_bottom').on('click', back);
-                } catch (ee) {
-                    err = {msg: ee.name + ' : ' + ee.message, ctx: 'callback update_orders'};
-                    console.error(err);
-                    report_JS_error(err, 'reception');
                 }
             },
             error: function() {
