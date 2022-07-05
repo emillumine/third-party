@@ -285,8 +285,7 @@ function edit_event(clicked) {
  * If qty is not null, it comes from barcode reading result
  * */
 function setLineEdition(item, qty) {
-    var edition_input = $('#edition_input'),
-        set_focus = true;
+    var edition_input = $('#edition_input');
 
     editing_item = item;
     $('#product_name').text(editing_item.name);
@@ -308,14 +307,13 @@ function setLineEdition(item, qty) {
         */
         editing_item.qty = qty;
         edition_input.val(qty);
-        set_focus = false;
     }
     // If item is reprocessed, set input with value
     if (editing_origin == 'processed') {
         edition_input.val(editing_item.qty);
     }
-    if (set_focus === true)
-        edition_input.focus();
+
+    edition_input.focus();
 
     // Make edition area blink when edition button clicked
     container_edition.classList.add('blink_me');
