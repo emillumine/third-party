@@ -102,6 +102,7 @@ function barcode_analyzer(chars) {
     } else {
         //manually submitted after correction
         var barcode_input = $('#search_input');
+
         barcode = barcode_input.val();
     }
 
@@ -166,6 +167,7 @@ function select_product_from_bc(barcode) {
         }
     } else {
         alert("Le code-barre " + barcode + " n'est pas reconnu comme un EAN13 ou EAN8 valide.");
+
         return -1;
     }
 
@@ -285,7 +287,8 @@ function edit_event(clicked) {
  * If qty is not null, it comes from barcode reading result
  * */
 function setLineEdition(item, qty) {
-    var edition_input = $('#edition_input');
+    var edition_input = $('#edition_input'),
+        set_focus = true;
 
     editing_item = item;
     $('#product_name').text(editing_item.name);
@@ -307,13 +310,15 @@ function setLineEdition(item, qty) {
         */
         editing_item.qty = qty;
         edition_input.val(qty);
+        set_focus = false;
     }
     // If item is reprocessed, set input with value
     if (editing_origin == 'processed') {
         edition_input.val(editing_item.qty);
     }
 
-    edition_input.focus();
+    if (set_focus === true)
+        edition_input.focus();
 
     // Make edition area blink when edition button clicked
     container_edition.classList.add('blink_me');
@@ -392,9 +397,15 @@ function editProductInfo (productToEdit, value = null) {
     var newValue = (value == null) ? parseFloat($('#edition_input').val()
         .replace(',', '.')) : value;
 
+    if (isNaN(newValue)) {
+        alert("Veuillez rentrer une valeur valide dans le champ d'édition !");
+
+        return false;
+    }
+
     // If uom is unit, prevent float
     if (productToEdit.uom_id[0] == 1 && !Number.isSafeInteger(newValue)) {
-        alert('Vous ne pouvez pas rentrer de chiffre à virgule pour des produits à l\'unité');
+        alert('Vous ne pouvez pas rentrer de chiffre à virgule pour des produits à l\'unité.');
 
         return false;
     }
@@ -859,6 +870,7 @@ function send() {
             data: JSON.stringify(shelf),
             success: function(data) {
                 let next_step_call = back;
+
                 // If step 1, display additionnal message in validation popup
                 if (shelf.inventory_status == '') {
                     inventory_validated_msg.find('#step1_validated').show();
@@ -1218,13 +1230,6 @@ function init() {
             $(this).off('wheel.disableScroll');
         });
 
-    $("#edition_input").keypress(function(event) {
-        // Force validation when enter pressed in edition
-        if (event.keyCode == 13 || event.which == 13) {
-            validateEdition();
-        }
-    });
-
     // client-side validation of numeric inputs, optionally replacing separator sign(s).
     $("input.number").on("keydown", function (e) {
         // allow function keys and decimal separators
@@ -1276,6 +1281,7 @@ function init() {
         if (e.which >= 48 && e.which <= 57) { // figures [0-9]
             search_chars.push(String.fromCharCode(e.which));
         } else if (e.which == 13 || search_chars.length >= 13) {
+            e.stopPropagation(); // Prevent validation edition in this specific case
             debounce(barcode_analyzer); // Avoid concurrent barcode analysing
         }
     });
@@ -1329,5 +1335,15 @@ $(document).ready(function() {
         get_shelf_data();
     }
     get_barcodes();
+
+    /**
+     * Validate edition if enter pressed, wherever the focus is.
+     * validateEdition is triggered only if a product is in the edition area.
+     */
+    $(document).keypress(function(event) {
+        if (event.keyCode == 13 || event.which == 13) {
+            validateEdition();
+        }
+    });
 
 });

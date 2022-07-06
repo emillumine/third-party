@@ -417,7 +417,7 @@ var addProductToList = async function(barcode) {
             $('<td>').html(delete_icon + " " + print_icon)
                 .appendTo(pdt_line);
             adding_pdts_tpl.find('#added_products tbody').append(pdt_line);
-            main_content.find('.add-products').css('display', 'block')
+            main_content.find('.add-products').css('display', 'block');
         }
     }
 };
@@ -451,8 +451,8 @@ var recordProductsAddedShelf = function() {
         });
 
         if (is_time_to('add_pdts_to_shelf', 5000)) { // prevent double click or browser hic up bug
-            openModal();  // loading on
-            
+            openModal(); // loading on
+
             post_form(
                 '/shelfs/admin/add_products',
                 {bc: JSON.stringify(barcodes), shelf_id: id},
