@@ -1400,8 +1400,15 @@ class CagetteServices(models.Model):
         """Equivalent to click present in presence form."""
         api = OdooAPI()
         f = {'state': 'done'}
+
         if(typeAction != "normal" and typeAction != ""):
             f['associate_registered'] = typeAction
+
+        if typeAction == "both":
+            f['should_increment_extra_shift_done'] = True
+        else:
+            f['should_increment_extra_shift_done'] = False
+            
         late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
         if late_mode is True:
             # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
@@ -1445,9 +1452,15 @@ class CagetteServices(models.Model):
             "related_shift_state": 'confirm',
             "state": 'open'}
         reg_id = api.create('shift.registration', fields)
+
         f = {'state': 'done'}
         if(typeAction != "normal" and typeAction != ""):
             f['associate_registered'] = typeAction
+        if typeAction == "both":
+            f['should_increment_extra_shift_done'] = True
+        else:
+            f['should_increment_extra_shift_done'] = False
+
         return api.update('shift.registration', [int(reg_id)], f)
 
     @staticmethod
@@ -1467,16 +1480,26 @@ class CagetteServices(models.Model):
         # Let's start by adding an extra shift to associated member who came together
         cond = [['date_begin', '>=', date_24h_before.isoformat()],
                 ['date_begin', '<=', end_date.isoformat()],
-                ['date_closed', '=', False],
-                ['state', '=', 'done'], ['associate_registered', '=', 'both']]
-        fields = ['state', 'partner_id', 'date_begin']
+                ['state', '=', 'done'], 
+                ['associate_registered', '=', 'both'],
+                ['should_increment_extra_shift_done', '=', True]]
+        fields = ['id', 'state', 'partner_id', 'date_begin']
         res = api.search_read('shift.registration', cond, fields)
+
+        extra_shift_done_incremented_srids = []  # shift registration ids
         for r in res:
             cond = [['id', '=', r['partner_id'][0]]]
             fields = ['id','extra_shift_done']
-            res = api.search_read('res.partner', cond, fields)
-            f = {'extra_shift_done': res[0]['extra_shift_done'] + 1 }
+            res_partner = api.search_read('res.partner', cond, fields)
+
+            f = {'extra_shift_done': res_partner[0]['extra_shift_done'] + 1 }
             api.update('res.partner', [r['partner_id'][0]], f)
+
+            extra_shift_done_incremented_srids.append(int(r['id']))
+
+        # Make sure the counter isn't incremented twice
+        f = {'should_increment_extra_shift_done': False}
+        api.update('shift.registration', extra_shift_done_incremented_srids, f)
 
         absence_status = 'excused'
         res_c = api.search_read('ir.config_parameter',
