@@ -1486,8 +1486,6 @@ class CagetteServices(models.Model):
         fields = ['id', 'state', 'partner_id', 'date_begin']
         res = api.search_read('shift.registration', cond, fields)
 
-        print(res)
-
         extra_shift_done_incremented_srids = []  # shift registration ids
         for r in res:
             cond = [['id', '=', r['partner_id'][0]]]
