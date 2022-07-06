@@ -52,7 +52,7 @@ Le code source de ce dépôt est celui qui fournit actuellement les services sui
 
 ## Installation (sous distribution linux)
 
-Prérequis : une version de python3
+Prérequis : une version de python >= 3.8.12
 
 Avec `virtualenvwrapper` (`sudo pip install virtualenvwrapper`)
 
