@@ -1458,6 +1458,8 @@ class CagetteServices(models.Model):
             f['associate_registered'] = typeAction
         if typeAction == "both":
             f['should_increment_extra_shift_done'] = True
+        else:
+            f['should_increment_extra_shift_done'] = False
 
         return api.update('shift.registration', [int(reg_id)], f)
 
