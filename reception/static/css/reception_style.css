@@ -15,6 +15,11 @@ input[type="number"] {
   margin-bottom: 5px;
 }
 
+.group_line_content {
+  display: flex;
+  align-items: center;
+}
+
 #orders tbody tr {
   cursor: pointer;
 }
@@ -42,6 +47,24 @@ input[type="number"] {
 .order_modified_msg {
   font-size: 2rem;
   color: #e62720;
+}
+
+.group_partner_name {
+  margin: 0 3px;
+}
+
+.goto_group_button {
+  margin-left: 10px;
+}
+
+.ungroup_orders_icon {
+  margin-left: 15px;
+  color: #d9534f;
+  cursor: pointer;
+}
+
+.ungroup_precisions {
+  font-style: italic;
 }
 
 /* PRODUITS */

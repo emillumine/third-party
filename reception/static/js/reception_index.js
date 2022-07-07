@@ -289,6 +289,59 @@ function group_action() {
     }
 }
 
+/**
+ * Remove an orders group.
+ * Correctly set orders data so ungrouping goes smoothly.
+ *
+ * @param {int} group_index index in the groups array
+ */
+function ungroup(group_index) {
+    let group = order_groups.groups[group_index];
+
+    for (let order_id of group) {
+        let order_doc_id = 'order_' + order_id;
+
+        // Delete group data in each order
+        dbc.get(order_doc_id).then((doc) => {
+            if ("updated_products" in doc) {
+                for (let i = 0; i < doc.updated_products.length; i++) {
+                    delete(doc.updated_products[i].other_orders_data);
+                }
+
+                doc.last_update = {
+                    timestamp: Date.now(),
+                    fingerprint: fingerprint
+                };
+
+                dbc.put(doc).then(() => {})
+                    .catch((err) => {
+                        error = {
+                            msg: 'Erreur dans la creation de la commande dans couchdb',
+                            ctx: 'create_order_doc',
+                            details: err
+                        };
+                        report_JS_error(error, 'reception');
+                        console.log(error);
+                    });
+            }
+        })
+            .catch(function (err) {
+                console.log(err);
+            });
+    }
+
+    order_groups.groups.splice(group_index, 1);
+    dbc.put(order_groups, (err, result) => {
+        if (!err) {
+            order_groups._rev = result.rev;
+            display_orders_table();
+            display_grouped_orders();
+        } else {
+            console.log(err);
+        }
+    });
+}
+
 /* DISPLAY */
 
 /**
@@ -296,7 +349,6 @@ function group_action() {
  * Remove the grouped orders from the order table to prevent grouping in multiple groups.
  */
 function display_grouped_orders() {
-
     if (table_orders !== null) {
         var display_something = false;
 
@@ -326,33 +378,57 @@ function display_grouped_orders() {
                 // Display group
                 display_something = true;
                 document.getElementById("container_groups").hidden = false;
-                let group_row = `<li class="group_line"> Commandes de `;
+                let group_row = `<li class="group_line" group_index="${group_index}"><span class="group_line_content"> Commandes de `;
 
                 for (let i in group_orders) {
-                    if (i == group_orders.length-1) { // last element of list
-                        group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + " : ";
-                    } else {
-                        group_row += "<b>" + group_orders[i].partner + "</b> du " + group_orders[i].date_order + ", ";
+                    group_row += `<b class="group_partner_name">${group_orders[i].partner}</b> du ${group_orders[i].date_order}`;
+                    if (i != group_orders.length-1) { // for other elements than last of list
+                        group_row += ", ";
                     }
                 }
 
                 if (group_orders[0].reception_status == 'False') {
-                    group_row += "<button class='btn--primary' onClick='group_goto("
-                        + group_index
-                        + ")'>Compter les produits</button>";
+                    group_row += `
+                    <button class='btn--primary goto_group_button' onClick='group_goto(${group_index})'>
+                        Compter les produits
+                    </button>`;
                 } else {
-                    group_row += "<button class='btn--success' onClick='group_goto("
-                        + group_index
-                        + ")'>Mettre à jour les prix</button>";
+                    group_row += `
+                    <button class='btn--success goto_group_button' onClick='group_goto(${group_index})'>
+                        Mettre à jour les prix
+                    </button>`;
                 }
 
-                group_row += "</li>";
+                group_row += `<i class="fas fa-times fa-lg ungroup_orders_icon"></i>`;
+
+                group_row += "</span></li>";
                 groups_display_content += group_row;
             }
         }
+
         if (display_something === true) {
             $('#container_groups').show();
             $('#groups_items').append(groups_display_content);
+
+            setTimeout(() => {
+                $(".ungroup_orders_icon").off("click");
+                $(".ungroup_orders_icon").on("click", function() {
+                    let modal_template = $("#modal_delete_group");
+
+                    let group_to_delete_index = $(this).closest(".group_line")
+                        .attr("group_index");
+
+                    openModal(
+                        modal_template.html(),
+                        () => {
+                            ungroup(group_to_delete_index);
+                        },
+                        "Confirmer"
+                    );
+                });
+            }, 100);
+        } else {
+            $('#container_groups').hide();
         }
     }
 }
@@ -593,9 +669,8 @@ $(document).ready(function() {
         order_groups = doc;
     })
         .catch(function (err) {
-            console.log(err);
             if (err.status === 404) {
-            // Create if doesn't exist
+                // Create if doesn't exist
                 dbc.put(order_groups, (err, result) => {
                     if (!err) {
                         order_groups._rev = result.rev;
@@ -604,6 +679,8 @@ $(document).ready(function() {
                         console.log(err);
                     }
                 });
+            } else {
+                console.log(err);
             }
         });
 
