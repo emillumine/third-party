@@ -2043,11 +2043,13 @@ function create_orders() {
 
         let item_qty_package = 0;
 
+        // If package qty is > than input value, package qty will be used while creating order
         let package_qty = p_supplierinfo.package_qty;
         if (product_qty < package_qty) {
             package_qty = product_qty;
         }
 
+        // Round differently for unit & kg products
         if (product_uom.includes("kg") ) {
             item_qty_package = Math.round((product_qty / package_qty) * 1e2) / 1e2;
         } else {
