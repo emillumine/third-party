@@ -219,7 +219,10 @@
       <div class="add_product_line">
         <div class="product_name add_product_line_item"></div>
         <div class="product_qty add_product_line_item">
-          <input type="number" autocomplete="off" class="product_qty_input input_small" placeholder="Quantité">
+          <div class="input_uom_container">
+            <input type="number" autocomplete="off" class="product_qty_input input_small" placeholder="Quantité">
+            <div class="product_uom"></div>
+          </div>
           <i class="product_qty_input_alert">Vous devez renseigner une quantité</i>
         </div>
         <div class="remove_line">
