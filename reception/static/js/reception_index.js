@@ -326,7 +326,13 @@ function ungroup(group_index) {
             }
         })
             .catch(function (err) {
-                console.log(err);
+                error = {
+                    msg: 'Erreur dans la récupération du doc d\'une commande pour suppression d\'un groupe',
+                    ctx: 'ungroup',
+                    details: err
+                };
+                report_JS_error(error, 'reception');
+                console.log(error);
             });
     }
 
@@ -337,7 +343,13 @@ function ungroup(group_index) {
             display_orders_table();
             display_grouped_orders();
         } else {
-            console.log(err);
+            error = {
+                msg: 'Erreur dans la mise à jour du doc des groupes pour la suppression',
+                ctx: 'ungroup',
+                details: err
+            };
+            report_JS_error(error, 'reception');
+            console.log(error);
         }
     });
 }
@@ -680,7 +692,13 @@ $(document).ready(function() {
                     }
                 });
             } else {
-                console.log(err);
+                error = {
+                    msg: 'Erreur dans la récupération des groupes dans couchdb',
+                    ctx: 'document_init',
+                    details: err
+                };
+                report_JS_error(error, 'reception');
+                console.log(error);
             }
         });
 
