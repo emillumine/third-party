@@ -1979,10 +1979,10 @@ function add_products_action() {
     for (let qty_input of qty_inputs) {
         if ($(qty_input).val() === "") {
             has_empty_qty_input = true;
-            $(qty_input).siblings(".product_qty_input_alert")
+            $(qty_input).closest(".product_qty").find(".product_qty_input_alert")
                 .show();
         } else {
-            $(qty_input).siblings(".product_qty_input_alert")
+            $(qty_input).closest(".product_qty").find(".product_qty_input_alert")
                 .hide();
         }
     }
@@ -2017,16 +2017,23 @@ function create_orders() {
     for (let p of products_to_add) {
         // Get product qty from input
         let product_qty = 0;
+        let product_uom = "";
 
         let add_products_lines = $("#modal .add_product_line");
 
         for (let i = 0; i < add_products_lines.length; i++) {
             let line = add_products_lines[i];
 
-            if ($(line).find(".product_name")
-                .text() === p.name) {
-                product_qty = parseFloat($(line).find(".product_qty_input")
-                    .val());
+            if ($(line).find(".product_name").text() === p.name) {
+                product_uom = $(line).find(".product_uom").text();
+
+                if (product_uom.includes("kg")) {
+                    product_qty = parseFloat($(line).find(".product_qty_input")
+                        .val());
+                } else {
+                    product_qty = parseInt($(line).find(".product_qty_input")
+                        .val(), 10);
+                }
                 break;
             }
         }
@@ -2034,11 +2041,26 @@ function create_orders() {
         let p_supplierinfo = p.suppliersinfo[0]; // product is ordered at its first supplier
         const supplier_id = p_supplierinfo.supplier_id;
 
+        let item_qty_package = 0;
+
+        // If package qty is > than input value, package qty will be used while creating order
+        let package_qty = p_supplierinfo.package_qty;
+        if (product_qty < package_qty) {
+            package_qty = product_qty;
+        }
+
+        // Round differently for unit & kg products
+        if (product_uom.includes("kg") ) {
+            item_qty_package = Math.round((product_qty / package_qty) * 1e2) / 1e2;
+        } else {
+            item_qty_package = Math.round(product_qty / package_qty)
+        }
+
         orders_data.suppliers_data[supplier_id].lines.push({
-            'package_qty': p_supplierinfo.package_qty,
+            'package_qty': package_qty,
             'product_id': p.id,
             'name': p.name,
-            'product_qty_package': (product_qty / p_supplierinfo.package_qty).toFixed(2),
+            'product_qty_package': item_qty_package,
             'product_qty': product_qty,
             'product_uom': p.uom_id[0],
             'price_unit': p_supplierinfo.price,
@@ -2243,6 +2265,7 @@ function set_products_autocomplete() {
                 let add_product_template = $("#add_product_line_template");
 
                 add_product_template.find(".product_name").text(product_name);
+                add_product_template.find(".product_uom").text(product.uom_id[1]);
                 $("#modal .products_lines").append(add_product_template.html());
 
                 if (products_to_add.length === 1) {
