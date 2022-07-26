@@ -751,8 +751,10 @@ def create_pair(request):
                                                            "partner_id": parent_id,
                                                            "point_qty": -1})
 
-                api.execute('res.partner', 'run_process_target_status', [])
-
+                try:
+                    api.execute('res.partner', 'run_process_target_status', [])
+                except:
+                    pass
             
             m = CagetteMember(child_id).unsubscribe_member()
             # update child base account state

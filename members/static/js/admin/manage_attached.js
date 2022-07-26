@@ -277,19 +277,20 @@ function create_pair(payload) {
         },
         error: function(data) {
             err = {msg: "erreur serveur", ctx: 'create pair'};
-            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
-                err.msg += ' : ' + data.responseJSON.errors;
-            }
-            report_JS_error(err, 'members.admin');
-
-            closeModal();
             var message = 'Erreur lors de création du binôme.';
 
-            data.responseJSON.errors.map(function(error) {
-                message += ('\n' + error);
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.errors != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.errors;
 
-                return null;
-            });
+                data.responseJSON.errors.map(function(error) {
+                    message += ('\n' + error);
+    
+                    return null;
+                });
+            }
+
+            report_JS_error(err, 'members.admin');
+            closeModal();
             alert(message);
         }
     });
