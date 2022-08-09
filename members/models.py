@@ -1339,7 +1339,7 @@ class CagetteServices(models.Model):
 
     @staticmethod
     def get_services_at_time(time, tz_offset, with_members=True):
-        """Retrieve present services with member linked."""
+        """Retrieve present services with members linked."""
 
         default_acceptable_minutes_after_shift_begins = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_AFTER_SHIFT_BEGINS', 15)
         minutes_before_shift_starts_delay = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_BEFORE_SHIFT', 15)
@@ -1360,7 +1360,7 @@ class CagetteServices(models.Model):
         fields = ['name', 'week_number', 'registration_ids',
                   'standard_registration_ids',
                   'shift_template_id', 'shift_ticket_ids',
-                  'date_begin_tz', 'date_end_tz']
+                  'date_begin_tz', 'date_end_tz', 'state']
         services = api.search_read('shift.shift', cond, fields,order ="date_begin_tz ASC")
         for s in services:
             if (len(s['registration_ids']) > 0):
@@ -1510,13 +1510,18 @@ class CagetteServices(models.Model):
         cond = [['date_begin', '>=', date_24h_before.isoformat()],
                 ['date_begin', '<=', end_date.isoformat()],
                 ['state', '=', 'open']]
-        fields = ['state', 'partner_id', 'date_begin']
+        fields = ['state', 'partner_id', 'date_begin', 'shift_id']
         res = api.search_read('shift.registration', cond, fields)
         ids = []
         partner_ids = []
         excluded_partner = []
+        canceled_reg_ids = []  # for exempted people
+        shift_ids = []
         for r in res:
             partner_ids.append(int(r['partner_id'][0]))
+            shift_id = int(r['shift_id'][0])
+            if shift_id not in shift_ids:   
+                shift_ids.append(shift_id)
         cond = [['id', 'in', partner_ids],
                 ['cooperative_state', 'in', ['exempted']]]
         fields = ['id']
@@ -1530,12 +1535,27 @@ class CagetteServices(models.Model):
                 (_h, _m, _s) = h.split(':')
                 if int(_h) < 21:
                     ids.append(int(r['id']))
+            else:
+                canceled_reg_ids.append(int(r['id']))
         # coop_logger.info("Traitement absences shift_registration ids %s", ids)
         f = {'state': absence_status, 'date_closed': now.isoformat()}
-        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res}
+        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res, 'errors': []}
         if update_shift_reg_result['update'] is True:
             update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
+            # change shift state by triggering button_done method for all related shifts
+            if len(canceled_reg_ids) > 0:
+                f = {'state': 'cancel', 'date_closed': now.isoformat()}
+                api.update('shift.registration', canceled_reg_ids, f)
+            for sid in shift_ids:
+                try:
+                    api.execute('shift.shift', 'button_done', sid)
+                except Exception as e:
+                    marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+                    if not (marshal_none_error in str(e)):
+                        update_shift_reg_result['errors'].append({'shift_id': sid, 'msg' :str(e)})
+
         return update_shift_reg_result
+
 
     @staticmethod
     def close_ftop_service():
@@ -1668,6 +1688,104 @@ class CagetteServices(models.Model):
                 res['error'] = "Invalid coop id"
         except Exception as e:
             coop_logger.error("easy_validate_shift_presence :  %s %s", str(coop_id), str(e))
+        return res
+
+class CagetteService(models.Model):
+    """Class to handle cagette Odoo service."""
+
+    def __init__(self, id):
+        """Init with odoo id."""
+        self.id = int(id)
+        self.o_api = OdooAPI()
+
+    def _process_associated_people_extra_shift_done(self):
+        cond = [['shift_id', '=', self.id],
+                ['state', '=', 'done'], 
+                ['associate_registered', '=', 'both'],
+                ['should_increment_extra_shift_done', '=', True]]
+        fields = ['id', 'state', 'partner_id', 'date_begin']
+        res = self.o_api.search_read('shift.registration', cond, fields)
+        extra_shift_done_incremented_srids = []  # shift registration ids
+        for r in res:
+            cond = [['id', '=', r['partner_id'][0]]]
+            fields = ['id','extra_shift_done']
+            res_partner = self.o_api.search_read('res.partner', cond, fields)
+
+            f = {'extra_shift_done': res_partner[0]['extra_shift_done'] + 1 }
+            self.o_api.update('res.partner', [r['partner_id'][0]], f)
+
+            extra_shift_done_incremented_srids.append(int(r['id']))
+
+        # Make sure the counter isn't incremented twice
+        f = {'should_increment_extra_shift_done': False}
+        self.o_api.update('shift.registration', extra_shift_done_incremented_srids, f)
+
+    def _process_related_shift_registrations(self):
+        now = datetime.datetime.now()
+        absence_status = 'excused'
+        res_c = self.o_api.search_read('ir.config_parameter',
+                                [['key', '=', 'lacagette_membership.absence_status']],
+                                ['value'])
+        if len(res_c) == 1:
+            absence_status = res_c[0]['value']
+        cond = [['shift_id', '=', self.id],
+                ['state', '=', 'open']]
+        fields = ['state', 'partner_id', 'date_begin']
+        res = self.o_api.search_read('shift.registration', cond, fields)
+        ids = []
+        partner_ids = []
+        excluded_partner = []
+        canceled_reg_ids = []  # for exempted people
+
+        for r in res:
+            partner_ids.append(int(r['partner_id'][0]))
+
+        cond = [['id', 'in', partner_ids],
+                ['cooperative_state', 'in', ['exempted']]]
+        fields = ['id']
+        res_exempted = self.o_api.search_read('res.partner', cond, fields)
+        for r in res_exempted:
+            excluded_partner.append(int(r['id']))
+        for r in res:
+            if not (int(r['partner_id'][0]) in excluded_partner):
+                d_begin = r['date_begin']
+                (d, h) = d_begin.split(' ')
+                (_h, _m, _s) = h.split(':')
+                if int(_h) < 21:
+                    ids.append(int(r['id']))
+            else:
+                canceled_reg_ids.append(int(r['id']))
+        # coop_logger.info("Traitement absences shift_registration ids %s", ids)
+        f = {'state': absence_status, 'date_closed': now.isoformat()}
+        update_shift_reg_result = {'update': self.o_api.update('shift.registration', ids, f), 'reg_shift': res, 'errors': []}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = self.o_api.execute('res.partner','run_process_target_status', [])
+            # change shift state by triggering button_done method for all related shifts
+            if len(canceled_reg_ids) > 0:
+                f = {'state': 'cancel', 'date_closed': now.isoformat()}
+                self.o_api.update('shift.registration', canceled_reg_ids, f)
+           
+            try:
+                self.o_api.execute('shift.shift', 'button_done', self.id)
+            except Exception as e:
+                marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+                if not (marshal_none_error in str(e)):
+                    update_shift_reg_result['errors'].append({'shift_id': sid, 'msg' :str(e)})
+
+        return update_shift_reg_result
+
+    def record_absences(self, request):
+        """Can only been executed if an Odoo user is beeing connected."""
+        res = {}
+        try:
+            if CagetteUser.are_credentials_ok(request) is True:
+                self._process_associated_people_extra_shift_done()
+                res = self._process_related_shift_registrations()
+            else:
+                res['error'] = 'Forbidden'
+        except Exception as e:
+            coop_logger.error("CagetteService.record_absences :  %s %s", str(self.id), str(e))
+            res['error'] = str(e)
         return res
 
 class CagetteUser(models.Model):

@@ -41,6 +41,7 @@ var coop_info = $('.coop-info');
 var service_data = null;
 
 const missed_begin_msg = $('#missed_begin_msg').html();
+const current_shift_process_data_actions = $('#current_shift_process_data_actions');
 
 let no_pict_msg = $('#no-picture-msg');
 
@@ -69,6 +70,12 @@ var html_elts = {
 };
 
 var chars = []; //input chars buffer
+
+var reset_shift_process_actions_zone = function() {
+    current_shift_process_data_actions.off('click', 'a');
+    current_shift_process_data_actions.hide();
+    current_shift_process_data_actions.empty();
+}
 
 function fill_member_slide(member) {
     no_pict_msg.hide();
@@ -282,6 +289,9 @@ function fill_service_entry(s) {
         // if (typeof s.late != "undefined" && s.late == true) {
         //     m_list = '<ul class="members_list late">';
         // }
+        if (s.state == 'done') {
+            m_list = '<ul class="members_list done">';
+        }
         $.each(s.members, function(i, e) {
             var li_class = "btn";
             var li_data = "";
@@ -304,12 +314,49 @@ function fill_service_entry(s) {
             } else {
                 li_data = ' data-rid="'+e.id+'" data-mid="'+e.partner_id[0]+'"';
             }
+            if (s.state == 'done') {
+                li_data += ' disabled ';
+            }
             m_list += '<li class="'+li_class+'" '+li_data+'>';
             m_list += e.partner_id[1];
             m_list += '</li>';
         });
         m_list += '</ul>';
 
+    }
+    if (coop_is_connected()) {
+        // Add shift process data
+        reset_shift_process_actions_zone();
+        if (s.state == 'draft' || s.state == 'confirm') {
+            let btn = $('<a>').addClass('btn btn--primary txtcenter')
+                              .text('Enregistrer les absences / présences')
+                              .attr('id','record_shift_absences');
+            current_shift_process_data_actions.append(btn);
+            current_shift_process_data_actions.on('click', '#record_shift_absences', function(){
+                msg = "<p>Lancer le traitement des présences et absences de ce service</p>";
+                openModal(msg, function() {
+                    try {
+                        $.ajax({
+                            url: '/members/record_shift_absences/' + s.id,
+                            dataType : 'json'
+                        })
+                        .done(function(rData) {
+                            if (typeof rData.update !== "undefined" && rData.update == true) {
+                                enqueue_message_for_next_loading("Données de présences traitées.");
+                                location.reload();
+                            }
+                        });
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }, 'Confirmer');
+                
+            });
+        } else {
+            current_shift_process_data_actions.append("<em>Traitement des présences : " + s.state + "</em>");
+        }
+        
+        current_shift_process_data_actions.show();
     }
     rattrapage_ou_volant = null;
     shift_members.html(m_list);
@@ -401,6 +448,8 @@ function get_service_entry_data() {
     })
         .done(function(rData) {
             info_place.text('');
+            reset_shift_process_actions_zone();
+
             var page_title = pages.service_entry.find('h1');
 
             page_title.text('Qui es-tu ?');
