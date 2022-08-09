@@ -1770,7 +1770,7 @@ class CagetteService(models.Model):
             except Exception as e:
                 marshal_none_error = 'cannot marshal None unless allow_none is enabled'
                 if not (marshal_none_error in str(e)):
-                    update_shift_reg_result['errors'].append({'shift_id': sid, 'msg' :str(e)})
+                    update_shift_reg_result['errors'].append({'shift_id': self.id, 'msg' :str(e)})
 
         return update_shift_reg_result
 
