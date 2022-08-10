@@ -169,8 +169,8 @@ class CagetteShift(models.Model):
                             "origin": 'memberspace',
                             "is_makeup": data['is_makeup'],
                             "state": 'open'}
-            if shift_type == "standard" and data['is_makeup'] is not True:
-                fieldsDatas['template_created'] = 1  # It's not true but otherwise, presence add 1 standard point, which is not wanted
+            if (shift_type == "standard" and data['is_makeup'] is not True) or shift_type == "ftop":
+                fieldsDatas['template_created'] = 1  # It's not true but otherwise, presence add 1 standard point , which is not wanted
 
             st_r_id = self.o_api.create('shift.registration', fieldsDatas)
         except Exception as e:
