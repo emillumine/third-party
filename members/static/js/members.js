@@ -335,15 +335,20 @@ function fill_service_entry(s) {
             current_shift_process_data_actions.on('click', '#record_shift_absences', function(){
                 msg = "<p>Lancer le traitement des présences et absences de ce service</p>";
                 openModal(msg, function() {
+                    btn.attr('disabled', 'true')
                     try {
                         $.ajax({
                             url: '/members/record_shift_absences/' + s.id,
                             dataType : 'json'
                         })
                         .done(function(rData) {
-                            if (typeof rData.update !== "undefined" && rData.update == true) {
+                            if (typeof rData.res.update !== "undefined" && rData.res.update == true) {
                                 enqueue_message_for_next_loading("Données de présences traitées.");
                                 location.reload();
+                            } else {
+                                closeModal();
+                                btn.removeAttr('disabled');
+                                alert(JSON.stringify(rData.res));
                             }
                         });
                     } catch (e) {
