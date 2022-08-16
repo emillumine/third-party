@@ -105,6 +105,7 @@ def inscriptions(request, type=1):
         'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
         'db': settings.COUCHDB['dbs']['member'],
         'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
+        'can_create_binome': getattr(settings, 'CAN_CREATE_BINOME', True),
         'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
         'committees_shift_id': committees_shift_id,
     }
