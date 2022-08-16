@@ -550,8 +550,16 @@ def get_saleWitheNotSale(request):
 
     return JsonResponse({"data":lArticleSale}, safe=True)
 
+def stockValues(request):
+    """Page valeurs du stock (quantités positives)."""
+    context = {'title': 'Stock (quantités positives valorisées)'}
+    template = loader.get_template('stock/stock_values.html')
+    return HttpResponse(template.render(context, request))
 
-
+def get_valuable_stock(request):
+    articles = CagetteStock.get_valuable_stock()
+    return JsonResponse({"data":articles}, safe=True)
 def get_test(request):
     res = CagetteStock.get_sale_qty_by_from(1)
     return JsonResponse({"data":res}, safe=False)
+
