@@ -169,7 +169,7 @@ def home(request):
         Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
         then the front-end index will call this endpoint to load the home page
     """
-    template = loader.get_template('members_space/home.html')
+    template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_HOME_TEMPLATE', 'members_space/home.html'))
     context = {
         'title': 'Espace Membres',
     }

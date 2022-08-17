@@ -1,0 +1,121 @@
+<div id="home">
+  <div class="page_title txtcenter">
+    <h1>Espace Membre</h1>
+  </div>
+  <div class="tiles_container">
+    <div class="tile high_tile" id="home_tile_my_info">
+      <div class="tile_title">
+        <i class="fas fa-user tile_icon"></i>
+        <span class="member_info member_name"></span>
+      </div>
+      <div class="tile_content">
+        {# <p><span class="member_info member_name"></span></p> #}
+        <p class="member_status_text_container">Mon statut : <span class="member_info member_status"></span></p>
+        <div class="delay_date_stop_container">
+          ( jusqu'au <span class="delay_date_stop"></span> )
+        </div>
+        <div id="member_status_action">
+          <a href="#" target="_blank" class="btn--warning unsuscribed_form_link">
+            J'accède au formulaire
+          </a>
+          <button type="button" class="btn--danger choose_makeups">
+            Je sélectionne mes rattrapages
+          </button>
+          <button type="button" class="btn--success remove_future_registration">
+            J'ai validé un service à deux, je peux supprimer une présence
+          </button>
+        </div>
+        <div class="member_shift_name_area">
+          <span>Mon créneau : </span>
+          <span class="member_shift_name member_info"></span>
+        </div>
+        <div class="member_coop_number_area">
+          <span>Mon numéro de coop : </span>
+          <span class="member_coop_number member_info"></span>
+        </div>
+        <div class="member_associated_partner_area">
+          <span>Je suis en binôme avec : </span>
+          <span class="member_associated_partner member_info"></span>
+        </div>
+        <div id="see_more_info">
+          <button type="button", class="btn btn--primary home_link_button" id="see_more_info_link">
+            Accéder à mes infos et comprendre mon statut
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="tile high_tile" id="home_tile_my_services">
+      <div class="tile_title">
+        <i class="fas fa-clipboard tile_icon"></i>
+        Mes Services
+      </div>
+      <div class="tile_content">
+        <h3>Services à venir</h3>
+        <div id="home_incoming_services">
+          <i class="fas fa-spinner fa-spin fa-lg"></i>
+        </div>
+        <div id="go_to_shift_history_area">
+          <button type="button", class="btn btn--primary" id="home_go_to_shift_history">
+            Accéder à mon historique
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="tile small_tile" id="home_tile_services_exchange">
+      <div class="tile_title">
+        <i class="fas fa-exchange-alt tile_icon"></i>
+        Échange de services
+      </div>
+      <div class="tile_content">
+        <div>
+          Un empêchement ? J'anticipe et déplace mes services jusqu'à 24h avant leur début !
+        </div>
+        <div class="home_link_button_area">
+          <button type="button" class="btn--primary home_link_button" id="go_to_shifts_calendar">
+              Accéder au calendrier d'échange de services
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="tile small_tile" id="home_tile_help">
+      <div class="tile_title">
+        <i class="fas fa-question-circle tile_icon"></i>
+        J'ai une demande
+      </div>
+      <div class="tile_content">
+        <div class="home_link_button_area">
+          <a
+            href="javascript:void(0);"
+            class="btn--primary home_link_button"
+            id="go_to_forms"
+          >
+              Accéder à la FAQ
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="tile small_tile" id="home_tile_shop_info">
+      <div class="tile_title">
+        <i class="fas fa-newspaper tile_icon"></i>
+        Informations magasins
+      </div>
+      <div id="shop_info_content">
+        <div class="shop_info_item shop_opening_hours">
+          <div class="shop_info_item_content">
+            <div class="opening_hours_title">
+              Horaires du magasin :
+            </div>
+            <div class="opening_hours_content">
+              {{shop_opening_hours|safe}}
+            </div>
+          </div>
+        </div>
+        <div class="shop_info_item shop_message">
+          <div class="shop_info_item_content shop_message_content">
+            {{msg_accueil|safe}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -330,6 +330,11 @@
 - MEMBERS_SPACE_FAQ_TEMPLATE = None
 
         If set to None, "FAQ menu" will not be shown. To use a custom content add a template and set it's relative path
+
+- MEMBERS_SPACE_HOME_TEMPLATE = 'members_space/supercafoutch/home.html'
+
+        If not set, 'members_space/home.html' (la Cagette)
+
 - MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS = False
 
         By default, is True. If False, tile showing explanations is not shown
