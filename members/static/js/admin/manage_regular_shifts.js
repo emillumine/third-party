@@ -293,7 +293,7 @@ $(document).ready(function() {
             let search_str = $('#search_member_input').val();
 
             $.ajax({
-                url: `/members/search/${search_str}?search_type=shift_template_data`,
+                url: '/members/search/' + search_str,
                 dataType : 'json',
                 success: function(data) {
                     $('#partner_data_area').hide();
