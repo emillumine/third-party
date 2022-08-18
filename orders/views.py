@@ -123,7 +123,7 @@ def get_orders_attachment(request):
 
     for item in res:
         if 'error' in item:
-            return JsonResponse(res, status=500)
+            return JsonResponse(res, status=500, safe=False)
 
     return JsonResponse({'res': res})
 
@@ -133,6 +133,7 @@ def export_one(request, oid):
         oid = int(oid)
         order = Order(oid)
         order_data = order.export()
+
         if ('success' in order_data) and (order_data['success'] is True):
             now = datetime.datetime.now()
             taxes = 0
@@ -176,7 +177,7 @@ def export_one(request, oid):
             # return response
     except Exception as e:
             msg = str(e)
-
+            coop_logger.error("Order export error : %s", msg)
     return JsonResponse({"msg": msg}, safe=False)
 
 def export_regex(request, string):
