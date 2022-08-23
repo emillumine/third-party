@@ -1079,7 +1079,7 @@ function generate_inventory() {
                                 } else {
                                     $('#do_inventory').empty()
                                         .append(`Faire un inventaire`);
-                                    let msg = "erreur serveur lors de la création de l'inventaire".
+                                    let msg = "erreur serveur lors de la création de l'inventaire",
                                         err = {msg: msg, ctx: 'generate_inventory'};
     
                                     if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
