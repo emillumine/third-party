@@ -1,6 +1,7 @@
 var calendar = null,
     selected_shift = null,
-    vw = null;
+    vw = null,
+    adding_mode = false;
 
 /* - Logic */
 
@@ -51,6 +52,9 @@ function add_or_change_shift(new_shift_id) {
 
         if (selected_shift === null) {
             tUrl = '/shifts/add_shift';
+            if (partner_data.makeups_to_do > 0) {
+                tData += '&is_makeup=1';
+            }
         } else {
             tUrl = '/shifts/change_shift';
             tData = tData + '&idOldShift='+ selected_shift.shift_id[0] +'&idRegister=' + selected_shift.id;
@@ -143,6 +147,8 @@ function add_or_change_shift(new_shift_id) {
                 }, 300);
             }
         });
+        adding_mode = false;
+        $('#start_adding_shift').prop('disabled', false);
     }
 
     return null;
@@ -315,6 +321,7 @@ function init_shifts_list() {
             if (!can_exchange_shifts()) {
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
                 shift_line_template.find(".checkbox").prop("disabled", "disabled");
+                $('#start_adding_shift').prop('disabled', true);
             } else {
                 if (shift.is_makeup==true) {
                     shift_line_template.find(".selectable_shift_line").addClass("btn--warning");
@@ -577,12 +584,27 @@ function init_calendar_page() {
                         "Valider"
                     );
                 } else if (selected_shift === null && can_exchange_shifts()) {
-                    /* could exchange shift but no old shift selected */
-                    openModal(
-                        "Je dois sélectionner un service à échanger.",
-                        closeModal,
-                        "J'ai compris"
-                    );
+                    if (adding_mode === false) {
+                        /* could exchange shift but no old shift selected */
+                        openModal(
+                            "Je dois sélectionner un service à échanger.",
+                            closeModal,
+                            "J'ai compris"
+                        );
+                    } else {
+                        // Display modal
+                        let modal_template = $("#modal_add_shift_template");
+                        modal_template.find(".date_new_shift").text(new_shift_date);
+                        modal_template.find(".time_new_shift").text(new_shift_time);
+                        openModal(
+                            modal_template.html(),
+                            () => {
+                                add_or_change_shift(new_shift_id);
+                            },
+                            "Valider"
+                        );
+                    }
+                    
                 } else if (should_select_makeup()) {
                     /* choose a makeup service */
                     // Check if selected new shift is in less than 6 months
@@ -810,6 +832,19 @@ function init_shifts_exchange() {
         $("#shifts_exchange_content").show();
         init_calendar_page();
     }
+
+    $('#start_adding_shift').click((c) => {
+            openModal(
+                "<p>Je souhaite sélectionner un service supplémentaire.</p>",
+                () => {
+                    $(c.target).prop('disabled', true);
+                    adding_mode = true; 
+                    closeModal();
+                },
+                "Confirmer",
+                false
+            );
+        });
 
     $(window).smartresize(function() {
         // only apply if a width threshold is passed

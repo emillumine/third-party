@@ -342,6 +342,10 @@
 - BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE = False
         Attached people can or not change his services
 
+- CAN_ADD_SHIFT = True
+
+        By default, False. Set if coop can or not add shifts in their memberspace calendar
+
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True

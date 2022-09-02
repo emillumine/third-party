@@ -130,6 +130,8 @@ def index(request, exception=None):
             if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
                 days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
             context['daysToHide'] = days_to_hide
+            can_add_shift = getattr(settings, 'CAN_ADD_SHIFT', False)
+            context['canAddShift'] = "true" if can_add_shift is True else "false"
 
             msettings = MConfig.get_settings('members')
             context['forms_link'] = msettings['forms_link']['value'] if 'forms_link' in msettings else ''
@@ -203,6 +205,7 @@ def shifts_exchange(request):
     template = loader.get_template('members_space/shifts_exchange.html')
     context = {
         'title': 'Échange de Services',
+        'canAddShift': getattr(settings, 'CAN_ADD_SHIFT', False)
     }
     return HttpResponse(template.render(context, request))
 

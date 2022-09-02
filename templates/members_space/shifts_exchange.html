@@ -50,6 +50,9 @@
                     <i class="fas fa-spinner fa-spin fa-lg"></i>
                 </div>
                 <div id="shifts_list"></div>
+                {% if canAddShift %}
+                <button class="btn--primary selectable_shift_line" id="start_adding_shift"><strong>+ Ajouter un service</strong></button>
+                {% endif %}
             </div>
             <div id="calendar_explaination_area"></div>
             <button id="calendar_explaination_button" class="btn--success">Légende du calendrier</button>
