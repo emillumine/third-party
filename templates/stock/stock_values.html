@@ -1,0 +1,32 @@
+{% extends "stock/stock_menu.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+  <script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/datatables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/buttons.html5.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/datatables/jszip.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/stock_values.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+<h1>Stock valorisé</h1>
+    <br>
+
+    <div class="main">
+
+          <table id="tableArticle" class="display" width="95%" cellspacing="0" ></table>
+    </div>
+    <br/>
+  <br/>
+
+  <script src="{% static "js/all_common.js" %}?v=1651853225"></script>
+  <script src="{% static "js/common.js" %}?v=1651853225"></script>
+{% endblock %}

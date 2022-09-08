@@ -126,7 +126,7 @@
   var days_to_hide = "{{daysToHide}}"
   var partner_data = {
     "partner_id":"{{partnerData.id}}",
-    "name":"{{partnerData.display_name}}",
+    "name":"{{partnerData.display_name|safe}}",
     "shift_type":"{{partnerData.shift_type}}",
     "date_delay_stop":"{{partnerData.date_delay_stop}}",
     "cooperative_state":"{{partnerData.cooperative_state}}",
@@ -134,25 +134,26 @@
     "can_have_delay" : "{{partnerData.can_have_delay}}",
     "makeups_to_do" : "{{partnerData.makeups_to_do}}",
     "barcode_base" : "{{partnerData.barcode_base}}",
-    "street" : "{{partnerData.street}}",
-    "street2" : "{{partnerData.street2}}",
+    "street" : "{{partnerData.street|safe}}",
+    "street2" : "{{partnerData.street2|safe}}",
     "zip" : "{{partnerData.zip}}",
-    "city" : "{{partnerData.city}}",
+    "city" : "{{partnerData.city|safe}}",
     "mobile" : "{{partnerData.mobile}}",
     "phone" : "{{partnerData.phone}}",
     "email" : "{{partnerData.email}}",
     "is_associated_people" : "{{partnerData.is_associated_people}}",
     "parent_id" : "{{partnerData.parent_id}}",
-    "parent_name" : "{{partnerData.parent_name}}",
+    "parent_name" : "{{partnerData.parent_name|safe}}",
     "parent_verif_token" : "{{partnerData.parent_verif_token}}",
     "associated_partner_id" : "{{partnerData.associated_partner_id}}",
-    "associated_partner_name" : "{{partnerData.associated_partner_name}}",
+    "associated_partner_name" : "{{partnerData.associated_partner_name|safe}}",
     "verif_token" : "{{partnerData.verif_token}}",
     "leave_stop_date": "{{partnerData.leave_stop_date}}",
     "comite": "{{partnerData.comite}}",
     "extra_shift_done": parseInt("{{partnerData.extra_shift_done}}", 10)
   };
   var block_actions_for_attached_people = '{{block_actions_for_attached_people}}';
+  const canAddShift = {{canAddShift}};
 </script>
 <script src="{% static "js/all_common.js" %}?v=1651853225"></script>
 <script src="{% static "js/members-space-home.js" %}?v=1651853225"></script>

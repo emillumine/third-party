@@ -79,16 +79,18 @@
       </p>
       {% endif %}
 
-      {% if ASSOCIATE_MEMBER_SHIFT %}
+      {% if can_create_binome %}
       <p id="add_binome" >+ Binomes (facultatif)</p>
       <div id="associate_area" style="display:none;">
         <div class="choice_button_area d-flex" >
           <div id="existing_member_choice" class="member_choice">
             A mettre en binome avec un.e membre existant.e
           </div>
+          {% if ASSOCIATE_MEMBER_SHIFT %}
           <div id="new_member_choice" class="member_choice">
             A mettre en binome avec un.e nouveau membre
           </div>
+          {% endif %}
         </div>
         
         <div id="existing_member_choice_action"  style="display:none;">
@@ -110,6 +112,7 @@
             </div>
           </div>
         </div>
+        {% if ASSOCIATE_MEMBER_SHIFT %}
         <div id="new_member_choice_action"  style="display:none;">
           <div >
             <div>
@@ -117,6 +120,7 @@
             </div>
           </div> 
         </div>
+        {% endif %}
       </div>
       {% endif %}
       <div>

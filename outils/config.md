@@ -131,6 +131,10 @@
 
         La Cagette use False to implement custom rules
 
+- CAN_CREATE_BINOME = True (by default)
+
+        If set to False, in new member creation form,  a member can be selected to be associated with.
+
 - ASSOCIATE_MEMBER_SHIFT = ''
 
         Id number of the associate shift template
@@ -326,12 +330,21 @@
 - MEMBERS_SPACE_FAQ_TEMPLATE = None
 
         If set to None, "FAQ menu" will not be shown. To use a custom content add a template and set it's relative path
+
+- MEMBERS_SPACE_HOME_TEMPLATE = 'members_space/supercafoutch/home.html'
+
+        If not set, 'members_space/home.html' (la Cagette)
+
 - MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS = False
 
         By default, is True. If False, tile showing explanations is not shown
 
 - BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE = False
         Attached people can or not change his services
+
+- CAN_ADD_SHIFT = True
+
+        By default, False. Set if coop can or not add shifts in their memberspace calendar
 
 ### Reception
 

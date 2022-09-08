@@ -49,6 +49,7 @@ h1 .member_name {font-weight: bold;}
 .members_list li.btn--inverse.late {background-color: #de9b00; color: white}
 .members_list li.btn--inverse.both {background-color: #0275d8 ; color: white}
 
+.members_list.done li.btn {pointer-events: none;}
 #service_entry_success {font-size: x-large;}
 #service_entry_success .explanations {margin: 25px 0; font-size: 18px;}
 #service_entry_success .points,

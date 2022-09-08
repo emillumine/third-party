@@ -365,7 +365,17 @@ class CagetteStock(models.Model):
 
         return res
 
-
+    @staticmethod
+    def get_valuable_stock():
+        articles = []
+        try:
+            api = OdooAPI()
+            cond = [['qty_available','>', 0], ['active', '=', True]]
+            fields = ["barcode", "display_name", "qty_available", "standard_price"]
+            articles = api.search_read('product.product', cond, fields, 1000000)
+        except Exception as e:
+            coop_logger.error("Erreur get_valuable_stock : %s", str(e))
+        return articles
 
     def set_test():
         o_api = OdooAPI()
