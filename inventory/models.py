@@ -90,16 +90,19 @@ class CagetteInventory(models.Model):
                         p[k] = ''
 
                 # Get shelf sortorder
-                if p['shelf_id'] is not False:
+                if p['shelf_id'] is not False and len(p['shelf_id']) > 0:
                     c = [['id', '=', p['shelf_id'][0]]]
                     f = ['id', 'sort_order']
                     res_sortorder = api.search_read('product.shelfs', c, f)
 
                     if res_sortorder:
                         p['shelf_sortorder'] = res_sortorder[0]['sort_order']
+                else:
+                    p['shelf_sortorder'] = ''
 
             res['data'] = pdts
         except Exception as e:
+            coop_logger.error("get_custom_list_products -> Erreur lors de la récupération des produits : %s", str(e))
             res['error'] = "Erreur lors de la récupération des produits (" + str(e) + ")"
 
         return res

@@ -432,6 +432,10 @@
 
         If True, in BDM Admin manage shift template, on the calendar when subscribing a partner to a shift, "Volant" button is included
 
+- ADMIN_BINOME_ACTIVE = False
+
+        By defaut, True. Show "Gestion des binômes" in bdm admin
+
 ### Miscellious
 
 - EXPORT_COMPTA_FORMAT = 'Quadratus'

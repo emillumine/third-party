@@ -29,10 +29,12 @@
                 Gestion des présences
                 <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
             </button><br>
+            {% if admin_binome_active %}
             <button type="button" class="btn--primary management_type_button" id="manage_attached_button">
                 Gestion des binômes
                 <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
             </button><br>
+            {% endif %}
             <button type="button" class="btn--primary management_type_button" id="manage_regular_shifts_button">
                 Gestion des créneaux
                 <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
