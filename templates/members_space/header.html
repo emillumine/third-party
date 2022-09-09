@@ -13,6 +13,7 @@
         {% if show_faq %}
         <a href="javascript:void(0);" class="nav_item" id="nav_faq">Problèmes et Demandes</a>
         {% endif %}
+        {% if show_abcd_calendar %}
         <a 
             href="javascript:void(0);"
             target="_blank"
@@ -21,7 +22,7 @@
         >
             Calendrier ABCD
         </a>
-
+        {% endif %}
         {# Disconnection button must have this id (logic in all_common.js) #}
         <a href="javascript:void(0);" id="deconnect">Déconnexion</a>
         <a href="javascript:void(0);" class="icon" onclick="toggleHeader()">

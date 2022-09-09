@@ -121,7 +121,7 @@ class CagetteMember(models.Model):
                                      'id DESC')
 
     @staticmethod
-    def get_credentials(request, external=False):
+    def get_credentials(request, external=False, with_id=False):
         import hashlib
 
         data = {}
@@ -191,6 +191,8 @@ class CagetteMember(models.Model):
                 calc_token = hashlib.sha256(res[0]['create_date'].encode('utf-8')).hexdigest()
                 if calc_token == request.COOKIES['token']:
                     data['success'] = True
+                    if with_id is True:
+                        data['id'] = res[0]['id']
                 else:
                     data['failure'] = True
                     data['errnum'] = 3

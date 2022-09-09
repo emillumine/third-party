@@ -423,8 +423,24 @@
 - START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
 
 - AMNISTIE_DATE = "2021-11-24 00:00:00"
+
         In members_space history display a special activity about amnistie
 
+- MEMBERS_SPACE_FAQ_TEMPLATE = 'members_space/supercoop/faq.html'
+
+        Set alternative template for FAQ
+
+- MEMBERS_SPACE_HOME_TEMPLATE = 'members_space/supercoop/home.html'
+
+        Set alternative template for home page
+
+- MEMBERS_SPACE_UNDERSTAND_MY_STATUS_TEMPLATE = 'members_space/supercoop/understand_my_status.html'
+
+        Set alternative template for understand my status
+
+- SHOW_ABCD_CALENDAR_TAB = False
+
+        True by default
 
 ### BDM Admin
 

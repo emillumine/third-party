@@ -120,6 +120,7 @@ def index(request, exception=None):
 
             m = CagetteMembersSpace()
             context['show_faq'] = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
+            context['show_abcd_calendar'] = getattr(settings, 'SHOW_ABCD_CALENDAR_TAB', True)
             partnerData["comite"] = m.is_comite(partner_id)
 
             context['partnerData'] = partnerData
@@ -174,6 +175,8 @@ def home(request):
     template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_HOME_TEMPLATE', 'members_space/home.html'))
     context = {
         'title': 'Espace Membres',
+        'coop_can_change_shift_template': getattr(settings, 'COOP_CAN_CHANGE_SHIFT_TEMPLATE', False),
+        'max_begin_hour': settings.MAX_BEGIN_HOUR,
     }
     # Get messages to display
     msettings = MConfig.get_settings('members')
@@ -188,7 +191,8 @@ def my_info(request):
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
-        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True)
+        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True),
+        'understand_my_status_template': getattr(settings, 'MEMBERS_SPACE_UNDERSTAND_MY_STATUS_TEMPLATE', "members_space/understand_my_status.html")
     }
     return HttpResponse(template.render(context, request))
 

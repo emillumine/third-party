@@ -23,7 +23,7 @@ var volant = null;
 
 function get_displayed_weeks() {
     displayed_weeks = [];
-    week_types.find('.selected_weeks :checked').each(function() {
+    $('#week_types').find('.selected_weeks :checked').each(function() {
         displayed_weeks.push($(this).val());
     });
 
@@ -32,7 +32,7 @@ function get_displayed_weeks() {
 
 function get_shift_name(s_data) {
     var shift_name = "Inconnu";
-
+    if (typeof ASSOCIATE_MEMBER_SHIFT == "undefined") ASSOCIATE_MEMBER_SHIFT = "";
     if (s_data && s_data.week) {
         shift_name = weeks_name[s_data.week];
         if (s_data.type == 2 && typeof manage_ftop != "undefined" && manage_ftop == true && s_data.id != ASSOCIATE_MEMBER_SHIFT) {
@@ -112,7 +112,7 @@ function select_shift_among_compact(event, clicked_item = null, subscribe = true
     var worst_score = 1;
 
     displayed_weeks = get_displayed_weeks();
-    var place_cond = sc_lat.find('.highlighted').data('select');
+    var place_cond = sc_lat.find('.highlighted').data('select') || "";
 
     $.each(shift_templates, function(i, e) {
         if (e.data) {
@@ -135,14 +135,23 @@ function select_shift_among_compact(event, clicked_item = null, subscribe = true
         }
     });
 
-    if (selected && subscribe === true)
-        subscribe_shift(selected);
+    if (selected && subscribe === true){
+        if (typeof partner_data !== "undefined" && typeof partner_data.barcode_base !== "undefined") {
+            //click is coming from memberspace
+            process_asked_shift_template_change(selected);
+        } else {
+            subscribe_shift(selected);
+        }
+        
+    }
 
     return selected
 }
 
 
 function draw_table(begin_hours, callback) {
+    if (shift_table.length == 0) shift_table = $('#shift_choice table');
+
     shift_table.find('tbody tr').remove();
     begin_hours.sort();
     var days = [
@@ -172,14 +181,15 @@ function draw_table(begin_hours, callback) {
 
 }
 
-function draw_shift_templates() {
+function draw_shift_templates(external) {
+    if (typeof external !== "undefined" && external == true) shift_table = $('#shift_choice table');
     var existing_shifts = shift_table.find('.shift');
 
     existing_shifts.off("click", single_shift_click);
     existing_shifts.off("click", select_shift_among_compact);
     existing_shifts.remove();
 
-    var place_cond = sc_lat.find('.highlighted').data('select');
+    var place_cond = sc_lat.find('.highlighted').data('select') || "";
     //warning MAG_NAME should correspond to data.place value of shift_templates objects
 
     dispo = 0;
@@ -199,7 +209,7 @@ function draw_shift_templates() {
 
             if (e.data.begin <= max_begin_hour && e.data.max > 0 && (place_cond == 'both' || place_cond == place)) {
                 keep_it = true;
-            }
+            } 
 
             if (keep_it == true && displayed_weeks.indexOf(e.data.week.toString()) > -1) {
                 var known_begin_hour = false;
@@ -272,7 +282,6 @@ function draw_shift_templates() {
                                 boxes[e.data.day+'_'+e.data.begin]['profil'] = profile;
                             }
                         }
-
                     }
                 }
 
@@ -280,6 +289,7 @@ function draw_shift_templates() {
             }
 
         });
+
         if (type == 1) {
             shift_table.find('.shift').on("click", single_shift_click);
         }
@@ -311,16 +321,19 @@ function draw_shift_templates() {
 
 
         sc_lat.find('.info').html(dispo + ' places disponibles<br />(/'+max+')');
-
-        closeModal();
+        if (typeof external == "undefined") {
+            closeModal();
+        } 
     });
 
 }
 
 
-function retrieve_and_draw_shift_tempates() {
-
-    openModal();
+function retrieve_and_draw_shift_tempates(external) {
+    if (shift_table.length == 0) shift_table = $('#shift_choice table');
+    if (!external) {
+        openModal();
+    } 
 
 
     shift_table.find('.shift').remove();
@@ -333,7 +346,7 @@ function retrieve_and_draw_shift_tempates() {
 
                 if (e.data.type == 2 && volant == null) {
                     // has comitee shift
-                    if (committees_shift_id !== undefined && committees_shift_id !== "None") {
+                    if (typeof committees_shift_id !== "undefined" && committees_shift_id !== "None") {
                         if (e.data.id == parseInt(committees_shift_id)) {
                             volant = e.data.id
                         }
@@ -342,33 +355,36 @@ function retrieve_and_draw_shift_tempates() {
                     }
                 }
             });
-
-            dbc.allDocs({include_docs: true, descending: true}, function(err, resp) {
-                if (err) {
-                    return console.log(err);
-                }
-                $.each(resp.rows, function(i, e) {
-                    if (e.doc.shift_template && typeof(e.doc.shift_template.data) != "undefined") {
-                        try {
-                            if (typeof shift_templates[e.doc.shift_template.data.id]!= "undefined")
-                                shift_templates[e.doc.shift_template.data.id]['data']['reserved'] += 1;
-                        } catch (ec) {
-                            console.log(ec);
-                        }
+            if (typeof dbc !== "undefined") {
+                dbc.allDocs({include_docs: true, descending: true}, function(err, resp) {
+                    if (err) {
+                        return console.log(err);
                     }
+                    $.each(resp.rows, function(i, e) {
+                        if (e.doc.shift_template && typeof(e.doc.shift_template.data) != "undefined") {
+                            try {
+                                if (typeof shift_templates[e.doc.shift_template.data.id]!= "undefined")
+                                    shift_templates[e.doc.shift_template.data.id]['data']['reserved'] += 1;
+                            } catch (ec) {
+                                console.log(ec);
+                            }
+                        }
 
+                    });
+                    draw_shift_templates(external);
                 });
-                draw_shift_templates();
-            });
+            } else {
+                draw_shift_templates(external);
+            }
+            
 
 
         });
 }
 
-function filter_weeks() {
-
+function filter_weeks(external) {
     var clicked = $(this);
-
+    var week_types = $('#week_types');
     var parent_div = clicked.closest('div');
     var w1 = week_types.find('#dw1');
     var w2 = week_types.find('#dw2');
@@ -411,8 +427,7 @@ function filter_weeks() {
     if (!w2.is(':checked') || !w4.is(':checked')) {
         $('#odd_weeks').prop('checked', false);
     }
-
-    draw_shift_templates();
+    draw_shift_templates(external);
 }
 
 function shift_loc_selection() {

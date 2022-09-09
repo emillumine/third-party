@@ -1,3 +1,5 @@
+var calendar = null;
+
 function init_my_shifts_tile() {
     if (incoming_shifts.length === 0) {
         $("#home_tile_my_services #home_incoming_services").text("Aucun service à venir...");
@@ -20,6 +22,95 @@ function init_my_shifts_tile() {
     }
 }
 
+function process_asked_shift_template_change(shift_t_id) {
+    var s_data = shift_templates[shift_t_id].data;
+    var shift_name = get_shift_name(s_data);
+    let msg = 'Inscription au créneau ' + shift_name
+
+    openModal(
+        msg,
+        function() {
+            let data = {
+                partner_id: parseInt(partner_data.partner_id, 10),
+                shift_type: 1, //force to standard
+                shift_template_id: shift_t_id,
+                unsubscribe_first: true
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: '/members/shift_subscription',
+                data: JSON.stringify(data),
+                dataType:"json",
+                traditional: true,
+                contentType: "application/json; charset=utf-8",
+                success: function(data) {
+                    stdata = data.shift_template;
+                    partner_data.regular_shift_name = stdata.name;
+                    partner_data.shift_type = "standard";
+                    init_my_info_data();
+                    closeModal();
+
+                    setTimeout(() => {
+                        $.notify("Inscription au nouveau service réussie.", {
+                            globalPosition:"top right",
+                            className: "success"
+                        });
+                    }, 200);
+                },
+                error: function(err_data) {
+                    if (
+                        err_data.status == 409
+                        && typeof (err_data.responseJSON) != "undefined"
+                        && err_data.responseJSON.code === "makeup_found"
+                    ) {
+                        let modal_template = $("#modal_error_change_shift_template");
+
+                        modal_template.find(".shift_template_name").text(shift_template_name);
+
+                        closeModal();
+                        openModal(
+                            modal_template.html(),
+                            () => {},
+                            "Compris !",
+                            true,
+                            false
+                        );
+                    } else {
+                        err = {
+                            msg: "erreur serveur lors de l'inscription du membre au créneau",
+                            ctx: 'members_space.shift_subscrition'
+                        };
+                        report_JS_error(err, 'members_space');
+                        closeModal();
+
+                        $.notify("Une erreur est survenue lors de l'inscription au créneau.", {
+                            globalPosition:"top right",
+                            className: "error"
+                        });
+                    }
+                }
+            });
+            
+        }
+    );
+}
+
+function edit_shift_template_registration(){
+    let external = true;
+    if (calendar == null) calendar = $('#modal-calendar-choice').clone();
+    if ($('#modal-calendar-choice').html().length > 0) {
+        $('#modal-calendar-choice').empty();
+
+    }
+    calendar.find('.oddeven_selector').empty();
+    displayMsg(calendar.html());
+    $('#week_types').find('input').change(()=>{filter_weeks(external)});
+    retrieve_and_draw_shift_tempates(external);
+    
+
+}
+
 function init_home() {
     $("#go_to_shifts_calendar").on("click", () => {
         goto('echange-de-services');
@@ -35,6 +126,12 @@ function init_home() {
     $("#go_to_forms").on('click', (e) => {
         e.preventDefault();
         goto('faq');
+    });
+
+    $(".member_shift_name_area").on("click", ".fa-edit", (e) => {
+        $('#week_types').find('input').change(filter_weeks);
+        e.preventDefault();
+        edit_shift_template_registration();
     });
 
     if (partner_data.is_in_association === false) {
