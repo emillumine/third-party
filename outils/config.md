@@ -442,6 +442,10 @@
 
         True by default
 
+- PERMANENT_MESSAGE_BELOW_CONNECTION_FIELDS = "Si vous avez des difficultés à vous connecter, ...."
+
+        Default is None
+
 ### BDM Admin
 
 - BDM_SHOW_FTOP_BUTTON = True (by default)

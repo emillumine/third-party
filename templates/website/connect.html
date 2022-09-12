@@ -24,6 +24,11 @@
             <p><button type="submit">Connexion</button></p>
         </form>
         <p style="color:red;">{{msg}}</p>
+        {% if permanent_message %}
+        <div id="permanent_message">
+            {{permanent_message}}
+        </div>
+        {% endif %}
         <!--<p><a href="oubli_pass">Mot de passe oublié</a></p>-->
         <script>
             try {
