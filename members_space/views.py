@@ -173,9 +173,18 @@ def home(request):
         then the front-end index will call this endpoint to load the home page
     """
     template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_HOME_TEMPLATE', 'members_space/home.html'))
+    coop_can_change_shift_template = getattr(settings, 'COOP_CAN_CHANGE_SHIFT_TEMPLATE', False)
+    if coop_can_change_shift_template is True:
+        # make further investigation only if COOP_CAN_CHANGE_SHIFT_TEMPLATE is True
+        if 'id' in request.COOKIES:
+            partner_id = request.COOKIES['id']
+        cs = CagetteShift()
+        partnerData = cs.get_data_partner(partner_id)
+        if partnerData['cooperative_state'] == "unsubscribed":
+            coop_can_change_shift_template = False
     context = {
         'title': 'Espace Membres',
-        'coop_can_change_shift_template': getattr(settings, 'COOP_CAN_CHANGE_SHIFT_TEMPLATE', False),
+        'coop_can_change_shift_template': coop_can_change_shift_template,
         'max_begin_hour': settings.MAX_BEGIN_HOUR,
     }
     # Get messages to display
