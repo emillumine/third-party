@@ -30,6 +30,7 @@ function process_asked_shift_template_change(shift_t_id) {
     openModal(
         msg,
         function() {
+            setTimeout(openModal, 300); // to show something happened , work in process
             let data = {
                 partner_id: parseInt(partner_data.partner_id, 10),
                 shift_type: 1, //force to standard
@@ -49,14 +50,7 @@ function process_asked_shift_template_change(shift_t_id) {
                     partner_data.regular_shift_name = stdata.name;
                     partner_data.shift_type = "standard";
                     init_my_info_data();
-                    closeModal();
-
-                    setTimeout(() => {
-                        $.notify("Inscription au nouveau service réussie.", {
-                            globalPosition:"top right",
-                            className: "success"
-                        });
-                    }, 200);
+                    location.reload();
                 },
                 error: function(err_data) {
                     if (
@@ -92,7 +86,11 @@ function process_asked_shift_template_change(shift_t_id) {
                 }
             });
             
-        }
+        },
+        'Valider',
+        true, // modal closes after validation
+        true,
+        edit_shift_template_registration // on cancel , reload calendar
     );
 }
 
