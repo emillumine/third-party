@@ -363,8 +363,11 @@ function retrieve_and_draw_shift_tempates(external) {
                     $.each(resp.rows, function(i, e) {
                         if (e.doc.shift_template && typeof(e.doc.shift_template.data) != "undefined") {
                             try {
-                                if (typeof shift_templates[e.doc.shift_template.data.id]!= "undefined")
-                                    shift_templates[e.doc.shift_template.data.id]['data']['reserved'] += 1;
+                                if (typeof e.doc.odoo_id == "undefined" || isNaN(e.doc.odoo_id)) {
+                                    if (typeof shift_templates[e.doc.shift_template.data.id] != "undefined")
+                                        shift_templates[e.doc.shift_template.data.id]['data']['reserved'] += 1;
+                                }
+                                
                             } catch (ec) {
                                 console.log(ec);
                             }

@@ -1280,7 +1280,7 @@ class CagetteServices(models.Model):
             api = OdooAPI()
             f = ['name', 'week_number', 'start_datetime_tz', 'end_datetime_tz',
                  'seats_reserved', 'shift_type_id', 'seats_max',
-                 'seats_available']
+                 'seats_available','registration_qty']
             c = [['active', '=', True]]
             shift_templates = api.search_read('shift.template', c, f)
 
@@ -1303,7 +1303,8 @@ class CagetteServices(models.Model):
                 line['end'] = str(end.tm_hour) + ':' + end_min
                 line['max'] = l['seats_max']
                 # line['reserved'] = nb_reserved
-                line['reserved'] = l['seats_reserved']
+                #line['reserved'] = l['seats_reserved']
+                line['reserved'] = l['registration_qty']
                 line['week'] = l['week_number']
                 line['id'] = l['id']
                 line['type'] = l['shift_type_id'][0]
