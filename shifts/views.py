@@ -215,6 +215,11 @@ def change_shift(request):
                         response = {'msg': "Old service in less than 24hours."}
                         return JsonResponse(response, status=400)
 
+                if cs.is_shift_exchange_allowed(idOldShift, data["idShift"], data["shift_type"], data["idPartner"]) is False:
+                    response = {'msg': "Not allowed to change shift"}
+                    return JsonResponse(response, status=400)
+
+
                 st_r_id = False
                 #Insertion du nouveau shift
                 try:

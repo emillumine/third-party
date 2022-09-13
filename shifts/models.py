@@ -17,6 +17,87 @@ class CagetteShift(models.Model):
         self.tz = pytz.timezone("Europe/Paris")
         self.o_api = OdooAPI()
 
+    def get_cycle_week_data(self, date=None):
+        result = {}
+        try:
+            res_param = self.o_api.search_read('ir.config_parameter',
+                                               [['key', '=', 'coop_shift.week_a_date']],
+                                               ['value'])
+            if res_param:
+                import math
+                WEEKS = ['A', 'B', 'C', 'D']
+                start_A = tz.localize(datetime.datetime.strptime(res_param[0]['value'], '%Y-%m-%d'))
+                result['start'] = start_A
+                now = datetime.datetime.now(tz)  # + datetime.timedelta(hours=72)
+                if date is not None:
+                    now = tz.localize(datetime.datetime.strptime(date, '%Y-%m-%d'))
+                diff = now - start_A
+                weeks_diff = diff.total_seconds() / 3600 / 24 / 7
+                week_index = math.floor(weeks_diff % 4)
+                result['week_name'] = WEEKS[week_index]
+                result['start_date'] = start_A + datetime.timedelta(weeks=math.floor(weeks_diff))
+
+        except Exception as e:
+            coop_logger.error("get_current_cycle_week_data %s", str(e))
+            result['error'] = str(e)
+        return result
+
+    def is_matching_ftop_rules(self, partner_id, idNewShift, idOldShift=0):
+        answer = True
+        rules = getattr(settings, 'FTOP_SERVICES_RULES', {})
+        if ("successive_shifts_allowed" in rules
+             or
+            "max_shifts_per_cycle" in rules
+            ):
+            try:
+                now = datetime.datetime.now(tz)
+                # Have to retrive shifts (from now to a cycle period forward to check rules respect)
+                [shift_registrations, is_ftop] = self.get_shift_partner(partner_id, now + datetime.timedelta(weeks=4))
+                new_shift = self.get_shift(idNewShift)  # WARNING : use date_begin_tz while shift_registrations use date_begin (UTC)
+                if "successive_shifts_allowed" in rules:
+                    min_duration = getattr(settings, 'MIN_SHIFT_DURATION', 2)
+                    for sr in shift_registrations:
+                        if int(sr['shift_id'][0]) != int(idOldShift):
+                            diff = (datetime.datetime.strptime(sr['date_begin'], '%Y-%m-%d %H:%M:%S').astimezone(tz)
+                                    - tz.localize(datetime.datetime.strptime(new_shift['date_begin_tz'], '%Y-%m-%d %H:%M:%S')))
+                            if abs(diff.total_seconds() / 3600) < (min_duration * 2) * (int(rules['successive_shifts_allowed']) + 1):
+                                answer = False
+                            #  coop_logger.info(sr['date_begin'] + ' - ' + new_shift['date_begin_tz'])
+                            #  coop_logger.info(str(diff.total_seconds()/3600) + 'h')
+                if "max_shifts_per_cycle" in rules:
+                    [ymd, hms] = new_shift['date_begin_tz'].split(" ")
+                    cw = self.get_cycle_week_data(ymd)
+                    if 'start_date' in cw:
+                        sd = cw['start_date']
+                        ed = cw['start_date'] + datetime.timedelta(weeks=4)
+                        [cycle_shift_regs, is_ftop] = self.get_shift_partner(partner_id, start_date=sd, end_date=ed)
+                        if len(cycle_shift_regs) >= int(rules['max_shifts_per_cycle']):
+                            answer = False
+                            coop_logger.info("services max par cycle atteint pour partner_id %s", str(partner_id))
+            except Exception as e:
+                coop_logger.error("is_shift_exchange_allowed %s %s", str(e), str(new_shift))
+        return answer
+
+    def is_shift_exchange_allowed(self, idOldShift, idNewShift, shift_type, partner_id):
+        answer = True
+        min_delay = getattr(settings, 'STANDARD_BLOCK_SERVICE_EXCHANGE_DELAY', 0)
+        if shift_type == "ftop":
+            min_delay = getattr(settings, 'FTOP_BLOCK_SERVICE_EXCHANGE_DELAY', 0)
+        if min_delay > 0:
+            now = datetime.datetime.now(tz)
+            old_shift = self.get_shift(idOldShift)
+            day_before_old_shift_date_start = \
+                tz.localize(datetime.datetime.strptime(old_shift['date_begin_tz'], '%Y-%m-%d %H:%M:%S')
+                            - datetime.timedelta(hours=min_delay))
+
+            if now > day_before_old_shift_date_start:
+                answer = False
+            elif shift_type == "ftop":
+                answer = self.is_matching_ftop_rules(partner_id, idNewShift, idOldShift)
+
+
+        return answer
+
     def get_shift(self, id):
         """Get one shift by id"""
         cond = [['id', '=', id]]

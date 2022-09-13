@@ -445,6 +445,9 @@
 - PERMANENT_MESSAGE_BELOW_CONNECTION_FIELDS = "Si vous avez des difficultés à vous connecter, ...."
 
         Default is None
+- STANDARD_BLOCK_SERVICE_EXCHANGE_DELAY = 36 (default = 24)
+
+        Define duration, in hours, before shift starts within exchange is not more available, for standard shift_type member
 
 ### BDM Admin
 
