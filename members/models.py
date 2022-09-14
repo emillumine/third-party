@@ -794,7 +794,7 @@ class CagetteMember(models.Model):
         else:
             cond.append(['is_associated_people', '=', False])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
-        if search_type == "full" or search_type == 'members':
+        if search_type == "full" or search_type == 'members' or search_type == "manage_shift_registrations":
             fields = CagetteMember.m_default_fields
             if not shift_id is None:
                 CagetteMember.m_default_fields.append('tmpl_reg_line_ids')
@@ -840,7 +840,7 @@ class CagetteMember(models.Model):
               
         elif search_type == "shift_template_data":
             fields = CagetteMember.m_short_default_fields
-            fields = fields + ['id', 'makeups_to_do', 'cooperative_state']
+            fields = fields + ['id', 'makeups_to_do', 'cooperative_state','parent_name']
             res = api.search_read('res.partner', cond, fields)
 
             if res:
@@ -853,6 +853,9 @@ class CagetteMember(models.Model):
                         partner['shift_template_id'] = shift_template_reg[0]['shift_template_id']
                     else:
                         partner['shift_template_id'] = None
+                    if not partner['parent_name'] is False:
+                        partner['name'] += ' (suppléant.e de son binôme ' + partner['parent_name'] + ')'
+                        del partner['parent_name']
 
             return res
         else:

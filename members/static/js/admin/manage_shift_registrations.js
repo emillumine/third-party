@@ -231,7 +231,7 @@ $(document).ready(function() {
         let search_str = $('#search_member_input').val();
 
         $.ajax({
-            url: '/members/search/' + search_str,
+            url: `/members/search/${search_str}?search_type=manage_shift_registrations`,
             dataType : 'json',
             success: function(data) {
                 members_search_results = [];
