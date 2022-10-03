@@ -8,6 +8,7 @@ from pytz import timezone
 import locale
 import re
 
+import dateutil.parser
 
 class CagetteShift(models.Model):
     """Class to handle cagette Odoo Shift."""
