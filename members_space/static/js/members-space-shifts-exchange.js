@@ -280,7 +280,7 @@ function offer_extra_shift() {
             timeout: 3000,
             success: function() {
                 partner_data.extra_shift_done -= 1;
-                
+
                 $("#can_delete_future_registrations_area").hide();
                 $(".delete_registration_button").off();
                 $(".delete_registration_button").hide();
@@ -599,6 +599,7 @@ function init_calendar_page() {
                     } else {
                         // Display modal
                         let modal_template = $("#modal_add_shift_template");
+
                         modal_template.find(".date_new_shift").text(new_shift_date);
                         modal_template.find(".time_new_shift").text(new_shift_time);
                         openModal(
@@ -609,7 +610,7 @@ function init_calendar_page() {
                             "Valider"
                         );
                     }
-                    
+
                 } else if (should_select_makeup()) {
                     /* choose a makeup service */
                     // Check if selected new shift is in less than 6 months
@@ -757,14 +758,15 @@ function init_delete_registration_buttons() {
     if (partner_data.extra_shift_done > 0) {
         $(".delete_registration_button").on("click", function() {
             let shift_name = $(this).closest("div")
-                .parent().parent()
+                .parent()
+                .parent()
                 .find(".shift_line_date")
                 .text()
                 .trim();
             let shift_id = $(this).closest(".shift_line_container")
                 .attr('id')
                 .split('_')[2];
-    
+
             openModal(
                 `<p>Je m'apprête à supprimer ma présence au service du <b>${shift_name}</b></p>`,
                 () => {
@@ -774,7 +776,7 @@ function init_delete_registration_buttons() {
                 false
             );
         });
-    
+
         $(".delete_registration_button").css('display', 'flex');
     }
 }
@@ -839,17 +841,17 @@ function init_shifts_exchange() {
     }
 
     $('#start_adding_shift').click((c) => {
-            openModal(
-                "<p>Je souhaite sélectionner un service supplémentaire.</p>",
-                () => {
-                    $(c.target).prop('disabled', true);
-                    adding_mode = true; 
-                    closeModal();
-                },
-                "Confirmer",
-                false
-            );
-        });
+        openModal(
+            "<p>Je souhaite sélectionner un service supplémentaire.</p>",
+            () => {
+                $(c.target).prop('disabled', true);
+                adding_mode = true;
+                closeModal();
+            },
+            "Confirmer",
+            false
+        );
+    });
 
     $(window).smartresize(function() {
         // only apply if a width threshold is passed

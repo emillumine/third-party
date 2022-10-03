@@ -314,6 +314,7 @@ $(document).ready(function() {
 
     // For associated people, their parent name is attached in their display name
     let partner_name_split = partner_data.name.split(', ');
+
     partner_data.name = partner_name_split[partner_name_split.length - 1];
 
     base_location = (app_env === 'dev') ? '/members_space/' : '/';

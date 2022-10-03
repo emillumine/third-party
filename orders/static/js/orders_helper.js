@@ -138,7 +138,7 @@ function debounceFunction(func, delay = 1000) {
  */
 function handle_unauthorize() {
     alert("La session a expiré. Vous allez devoir vous reconnecter.");
-    $( "#logout" ).trigger( "click" );
+    $("#logout").trigger("click");
 }
 
 /* - PRODUCTS */
@@ -310,10 +310,11 @@ function compute_and_affect_product_supplier_quantities(coeff, days) {
             const daily_conso = product.daily_conso;
 
             let purchase_package_qty_for_coverage = compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, daily_conso, days);
-            
+
             // Set qty to purchase for supplier with higher priority
             let target_supplierinfo_index = 0;
-            let min_sequence = Number.POSITIVE_INFINITY;  // min sequence = higher priority
+            let min_sequence = Number.POSITIVE_INFINITY; // min sequence = higher priority
+
             for (let i in products[key].suppliersinfo) {
                 let suppliersinfo_sequence = products[key].suppliersinfo[i].sequence;
 
@@ -491,7 +492,7 @@ function check_products_data() {
                         }
                         report_JS_error(err, 'orders');
                         alert(`Erreur lors de la vérification des données des articles. Certaines données peuvent être erronées`);
-    
+
                         $('.notifyjs-wrapper').trigger('notify-hide');
                         // Don't block process if this call fails
                         resolve();
@@ -559,15 +560,15 @@ function update_product_ref(input_el, p_id, p_index) {
                     handle_unauthorize();
                 } else {
                     let msg = "erreur serveur lors de la sauvegarde de la référence";
-    
+
                     msg += ` (product_tmpl_id: ${product.id}`;
-    
+
                     err = {msg: msg, ctx: 'update_product_ref'};
                     if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                         err.msg += ' : ' + data.responseJSON.error;
                     }
                     report_JS_error(err, 'orders');
-    
+
                     alert('Erreur lors de la sauvegarde de la référence dans Odoo. Veuillez recharger la page et ré-essayer plus tard.');
                 }
             }
@@ -637,7 +638,7 @@ function add_supplier() {
                     err.msg += ' : ' + data.responseJSON.error;
                 }
                 report_JS_error(err, 'orders');
-    
+
                 closeModal();
                 alert('Erreur lors de la récupération des produits, réessayer plus tard.');
             }
@@ -741,15 +742,15 @@ function save_supplier_product_association(product, supplier, cell) {
                 handle_unauthorize();
             } else {
                 let msg = "erreur serveur lors de la sauvegarde de l'association product/supplier";
-    
+
                 msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
-    
+
                 err = {msg: msg, ctx: 'save_supplier_product_association'};
                 if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                     err.msg += ' : ' + data.responseJSON.error;
                 }
                 report_JS_error(err, 'orders');
-    
+
                 closeModal();
                 alert('Erreur lors de la sauvegarde de l\'association. Veuillez ré-essayer plus tard.');
             }
@@ -800,13 +801,13 @@ function end_supplier_product_association(product, supplier) {
             } else {
                 let msg = "erreur serveur lors de la suppression de l'association product/supplier".
                     msg += ` (product_tmpl_id: ${product.id}; supplier_id: ${supplier.id})`;
-    
+
                 err = {msg: msg, ctx: 'end_supplier_product_association'};
                 if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                     err.msg += ' : ' + data.responseJSON.error;
                 }
                 report_JS_error(err, 'orders');
-    
+
                 closeModal();
                 alert('Erreur lors de la suppression de l\'association. Veuillez ré-essayer plus tard.');
             }
@@ -980,13 +981,13 @@ function commit_actions_on_product(product, inputs) {
             } else {
                 let msg = "erreur serveur lors de la sauvegarde".
                     msg += ` (product_tmpl_id: ${product.id})`;
-    
+
                 err = {msg: msg, ctx: 'commit_actions_on_product'};
                 if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                     err.msg += ' : ' + data.responseJSON.error;
                 }
                 report_JS_error(err, 'orders');
-    
+
                 try {
                     if (data.responseJSON.code === "archiving_with_incoming_qty") {
                         alert("Ce produit a des quantités entrantes, vous ne pouvez pas l'archiver.");
@@ -998,7 +999,7 @@ function commit_actions_on_product(product, inputs) {
                 } catch (error) {
                     alert('Erreur lors de la sauvegarde des données. Veuillez ré-essayer plus tard.');
                 }
-    
+
                 check_products_data()
                     .then(() => {
                         update_cdb_order();
@@ -1081,12 +1082,12 @@ function generate_inventory() {
                                         .append(`Faire un inventaire`);
                                     let msg = "erreur serveur lors de la création de l'inventaire",
                                         err = {msg: msg, ctx: 'generate_inventory'};
-    
+
                                     if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                                         err.msg += ' : ' + data.responseJSON.error;
                                     }
                                     report_JS_error(err, 'orders');
-    
+
                                     alert("Erreur lors de la création de l'inventaire. Réessayez plus tard.");
                                 }
                             }
@@ -1362,13 +1363,13 @@ function create_orders() {
                 handle_unauthorize();
             } else {
                 let msg = "erreur serveur lors de la création des product orders";
-    
+
                 err = {msg: msg, ctx: 'save_supplier_product_association', data: orders_data};
                 if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                     err.msg += ' : ' + data.responseJSON.error;
                 }
                 report_JS_error(err, 'orders');
-    
+
                 closeModal();
                 alert('Erreur lors de la création des commandes. Veuillez ré-essayer plus tard.');
             }
@@ -2826,7 +2827,7 @@ $(document).ready(function() {
                         err.msg += ' : ' + data.responseJSON.error;
                     }
                     report_JS_error(err, 'orders');
-    
+
                     closeModal();
                     alert('Erreur lors de la récupération des fournisseurs, rechargez la page plus tard');
                 }

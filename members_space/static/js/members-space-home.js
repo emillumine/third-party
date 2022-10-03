@@ -25,7 +25,7 @@ function init_my_shifts_tile() {
 function process_asked_shift_template_change(shift_t_id) {
     var s_data = shift_templates[shift_t_id].data;
     var shift_name = get_shift_name(s_data);
-    let msg = 'Inscription au créneau ' + shift_name
+    let msg = 'Inscription au créneau ' + shift_name;
 
     openModal(
         msg,
@@ -85,7 +85,7 @@ function process_asked_shift_template_change(shift_t_id) {
                     }
                 }
             });
-            
+
         },
         'Valider',
         true, // modal closes after validation
@@ -94,8 +94,9 @@ function process_asked_shift_template_change(shift_t_id) {
     );
 }
 
-function edit_shift_template_registration(){
+function edit_shift_template_registration() {
     let external = true;
+
     if (calendar == null) calendar = $('#modal-calendar-choice').clone();
     if ($('#modal-calendar-choice').html().length > 0) {
         $('#modal-calendar-choice').empty();
@@ -103,9 +104,12 @@ function edit_shift_template_registration(){
     }
     calendar.find('.oddeven_selector').empty();
     displayMsg(calendar.html());
-    $('#week_types').find('input').change(()=>{filter_weeks(external)});
+    $('#week_types').find('input')
+        .change(() => {
+            filter_weeks(external);
+        });
     retrieve_and_draw_shift_tempates(external);
-    
+
 
 }
 
@@ -127,7 +131,8 @@ function init_home() {
     });
 
     $(".member_shift_name_area").on("click", ".fa-edit", (e) => {
-        $('#week_types').find('input').change(filter_weeks);
+        $('#week_types').find('input')
+            .change(filter_weeks);
         e.preventDefault();
         edit_shift_template_registration();
     });

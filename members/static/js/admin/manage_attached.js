@@ -284,6 +284,7 @@ function create_pair(payload) {
 
                 data.responseJSON.errors.map(function(error) {
                     message += ('\n' + error);
+
                     return null;
                 });
             }
