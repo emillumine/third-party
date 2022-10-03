@@ -38,7 +38,7 @@ sync.on('change', function (info) {
         });
         if (need_reload == true) {
         //On recharge depuis Odoo et on traite les enregistrements depuis CouchDB
-            retrieve_and_draw_shift_tempates('without_modal');
+            retrieve_and_draw_shift_tempates({without_modal: true, shift_listener: true});
 
         }
     }

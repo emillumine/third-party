@@ -95,8 +95,7 @@ function process_asked_shift_template_change(shift_t_id) {
 }
 
 function edit_shift_template_registration() {
-    let external = true;
-
+    const calendar_params = {external: true, without_modal: true, shift_listener: true};
     if (calendar == null) calendar = $('#modal-calendar-choice').clone();
     if ($('#modal-calendar-choice').html().length > 0) {
         $('#modal-calendar-choice').empty();
@@ -106,9 +105,9 @@ function edit_shift_template_registration() {
     displayMsg(calendar.html());
     $('#week_types').find('input')
         .change(() => {
-            filter_weeks(external);
+            filter_weeks(calendar_params);
         });
-    retrieve_and_draw_shift_tempates(external);
+    retrieve_and_draw_shift_tempates(calendar_params);
 
 
 }

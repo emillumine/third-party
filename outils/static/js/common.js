@@ -181,8 +181,11 @@ function draw_table(begin_hours, callback) {
 
 }
 
-function draw_shift_templates(external) {
-    if (typeof external !== "undefined" && external == true) shift_table = $('#shift_choice table');
+function draw_shift_templates(params) {
+    if (params && typeof params.external !== "undefined" && params.external == true){
+        // Simplified calendar loaded in modal (members_space for ex.)
+        shift_table = $('#shift_choice table');
+    }
     var existing_shifts = shift_table.find('.shift');
 
     existing_shifts.off("click", single_shift_click);
@@ -291,7 +294,9 @@ function draw_shift_templates(external) {
         });
 
         if (type == 1) {
-            shift_table.find('.shift').on("click", single_shift_click);
+            if (!params || (typeof params.shift_listener !== "undefined" && params.shift_listener == true)){
+                shift_table.find('.shift').on("click", single_shift_click);
+            }
         }
         if (type == 2) {
             for (k in boxes) {
@@ -315,13 +320,15 @@ function draw_shift_templates(external) {
                 }
 
             }
-            shift_table.find('.shift').on("click", select_shift_among_compact);
+            if (!params || (typeof params.shift_listener !== "undefined" && params.shift_listener == true)){
+                shift_table.find('.shift').on("click", select_shift_among_compact);
+            }
         }
 
 
 
         sc_lat.find('.info').html(dispo + ' places disponibles<br />(/'+max+')');
-        if (typeof external == "undefined") {
+        if (!params || typeof params.without_modal === "undefined" || (typeof params.without_modal !== "undefined" && params.without_modal == false)) {
             closeModal();
         } 
     });
@@ -329,12 +336,11 @@ function draw_shift_templates(external) {
 }
 
 
-function retrieve_and_draw_shift_tempates(external) {
+function retrieve_and_draw_shift_tempates(params) {
     if (shift_table.length == 0) shift_table = $('#shift_choice table');
-    if (!external) {
+    if (!params || typeof params.without_modal === "undefined" || (typeof params.without_modal !== "undefined" && params.without_modal == false)) {
         openModal();
     } 
-
 
     shift_table.find('.shift').remove();
     $.ajax({url : st_url,
@@ -374,10 +380,10 @@ function retrieve_and_draw_shift_tempates(external) {
                         }
 
                     });
-                    draw_shift_templates(external);
+                    draw_shift_templates(params);
                 });
             } else {
-                draw_shift_templates(external);
+                draw_shift_templates(params);
             }
             
 
@@ -385,7 +391,7 @@ function retrieve_and_draw_shift_tempates(external) {
         });
 }
 
-function filter_weeks(external) {
+function filter_weeks(params) {
     var clicked = $(this);
     var week_types = $('#week_types');
     var parent_div = clicked.closest('div');
@@ -430,7 +436,7 @@ function filter_weeks(external) {
     if (!w2.is(':checked') || !w4.is(':checked')) {
         $('#odd_weeks').prop('checked', false);
     }
-    draw_shift_templates(external);
+    draw_shift_templates(params);
 }
 
 function shift_loc_selection() {
