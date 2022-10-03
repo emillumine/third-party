@@ -88,7 +88,7 @@ class FieldsView(View):
         u"""Nous allons retourner les attributs Odoo correspondants."""
         entity = request.POST.get("entity", "")
         fields = []
-        if len(entity) > 1:
+        if getattr(settings, 'APP_ENV', "prod") == "dev" and len(entity) > 1:
             api = OdooAPI()
             fields = api.get_entity_fields(entity)
         template = loader.get_template('common/entity_fields.html')

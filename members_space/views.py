@@ -29,7 +29,8 @@ def index(request, exception=None):
     context = {
         'title': 'Espace Membre',
         'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None),
-        'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True)
+        'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True),
+        'permanent_message': getattr(settings, 'PERMANENT_MESSAGE_BELOW_CONNECTION_FIELDS', None),
     }
 
     template = loader.get_template('members_space/index.html')
@@ -120,6 +121,7 @@ def index(request, exception=None):
 
             m = CagetteMembersSpace()
             context['show_faq'] = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
+            context['show_abcd_calendar'] = getattr(settings, 'SHOW_ABCD_CALENDAR_TAB', True)
             partnerData["comite"] = m.is_comite(partner_id)
 
             context['partnerData'] = partnerData
@@ -130,6 +132,8 @@ def index(request, exception=None):
             if hasattr(settings, 'SHIFT_EXCHANGE_DAYS_TO_HIDE'):
                 days_to_hide = settings.SHIFT_EXCHANGE_DAYS_TO_HIDE
             context['daysToHide'] = days_to_hide
+            can_add_shift = getattr(settings, 'CAN_ADD_SHIFT', False)
+            context['canAddShift'] = "true" if can_add_shift is True else "false"
 
             msettings = MConfig.get_settings('members')
             context['forms_link'] = msettings['forms_link']['value'] if 'forms_link' in msettings else ''
@@ -169,9 +173,20 @@ def home(request):
         Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
         then the front-end index will call this endpoint to load the home page
     """
-    template = loader.get_template('members_space/home.html')
+    template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_HOME_TEMPLATE', 'members_space/home.html'))
+    coop_can_change_shift_template = getattr(settings, 'COOP_CAN_CHANGE_SHIFT_TEMPLATE', False)
+    if coop_can_change_shift_template is True:
+        # make further investigation only if COOP_CAN_CHANGE_SHIFT_TEMPLATE is True
+        if 'id' in request.COOKIES:
+            partner_id = request.COOKIES['id']
+        cs = CagetteShift()
+        partnerData = cs.get_data_partner(partner_id)
+        if partnerData['cooperative_state'] == "unsubscribed":
+            coop_can_change_shift_template = False
     context = {
         'title': 'Espace Membres',
+        'coop_can_change_shift_template': coop_can_change_shift_template,
+        'max_begin_hour': settings.MAX_BEGIN_HOUR,
     }
     # Get messages to display
     msettings = MConfig.get_settings('members')
@@ -186,7 +201,8 @@ def my_info(request):
     template = loader.get_template('members_space/my_info.html')
     context = {
         'title': 'Mes Infos',
-        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True)
+        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True),
+        'understand_my_status_template': getattr(settings, 'MEMBERS_SPACE_UNDERSTAND_MY_STATUS_TEMPLATE', "members_space/understand_my_status.html")
     }
     return HttpResponse(template.render(context, request))
 
@@ -203,6 +219,7 @@ def shifts_exchange(request):
     template = loader.get_template('members_space/shifts_exchange.html')
     context = {
         'title': 'Échange de Services',
+        'canAddShift': getattr(settings, 'CAN_ADD_SHIFT', False)
     }
     return HttpResponse(template.render(context, request))
 

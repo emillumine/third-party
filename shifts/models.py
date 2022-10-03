@@ -17,6 +17,87 @@ class CagetteShift(models.Model):
         self.tz = pytz.timezone("Europe/Paris")
         self.o_api = OdooAPI()
 
+    def get_cycle_week_data(self, date=None):
+        result = {}
+        try:
+            res_param = self.o_api.search_read('ir.config_parameter',
+                                               [['key', '=', 'coop_shift.week_a_date']],
+                                               ['value'])
+            if res_param:
+                import math
+                WEEKS = ['A', 'B', 'C', 'D']
+                start_A = tz.localize(datetime.datetime.strptime(res_param[0]['value'], '%Y-%m-%d'))
+                result['start'] = start_A
+                now = datetime.datetime.now(tz)  # + datetime.timedelta(hours=72)
+                if date is not None:
+                    now = tz.localize(datetime.datetime.strptime(date, '%Y-%m-%d'))
+                diff = now - start_A
+                weeks_diff = diff.total_seconds() / 3600 / 24 / 7
+                week_index = math.floor(weeks_diff % 4)
+                result['week_name'] = WEEKS[week_index]
+                result['start_date'] = start_A + datetime.timedelta(weeks=math.floor(weeks_diff))
+
+        except Exception as e:
+            coop_logger.error("get_current_cycle_week_data %s", str(e))
+            result['error'] = str(e)
+        return result
+
+    def is_matching_ftop_rules(self, partner_id, idNewShift, idOldShift=0):
+        answer = True
+        rules = getattr(settings, 'FTOP_SERVICES_RULES', {})
+        if ("successive_shifts_allowed" in rules
+             or
+            "max_shifts_per_cycle" in rules
+            ):
+            try:
+                now = datetime.datetime.now(tz)
+                # Have to retrive shifts (from now to a cycle period forward to check rules respect)
+                [shift_registrations, is_ftop] = self.get_shift_partner(partner_id, now + datetime.timedelta(weeks=4))
+                new_shift = self.get_shift(idNewShift)  # WARNING : use date_begin_tz while shift_registrations use date_begin (UTC)
+                if "successive_shifts_allowed" in rules:
+                    min_duration = getattr(settings, 'MIN_SHIFT_DURATION', 2)
+                    for sr in shift_registrations:
+                        if int(sr['shift_id'][0]) != int(idOldShift):
+                            diff = (datetime.datetime.strptime(sr['date_begin'], '%Y-%m-%d %H:%M:%S').astimezone(tz)
+                                    - tz.localize(datetime.datetime.strptime(new_shift['date_begin_tz'], '%Y-%m-%d %H:%M:%S')))
+                            if abs(diff.total_seconds() / 3600) < (min_duration * 2) * (int(rules['successive_shifts_allowed']) + 1):
+                                answer = False
+                            #  coop_logger.info(sr['date_begin'] + ' - ' + new_shift['date_begin_tz'])
+                            #  coop_logger.info(str(diff.total_seconds()/3600) + 'h')
+                if "max_shifts_per_cycle" in rules:
+                    [ymd, hms] = new_shift['date_begin_tz'].split(" ")
+                    cw = self.get_cycle_week_data(ymd)
+                    if 'start_date' in cw:
+                        sd = cw['start_date']
+                        ed = cw['start_date'] + datetime.timedelta(weeks=4)
+                        [cycle_shift_regs, is_ftop] = self.get_shift_partner(partner_id, start_date=sd, end_date=ed)
+                        if len(cycle_shift_regs) >= int(rules['max_shifts_per_cycle']):
+                            answer = False
+                            coop_logger.info("services max par cycle atteint pour partner_id %s", str(partner_id))
+            except Exception as e:
+                coop_logger.error("is_shift_exchange_allowed %s %s", str(e), str(new_shift))
+        return answer
+
+    def is_shift_exchange_allowed(self, idOldShift, idNewShift, shift_type, partner_id):
+        answer = True
+        min_delay = getattr(settings, 'STANDARD_BLOCK_SERVICE_EXCHANGE_DELAY', 0)
+        if shift_type == "ftop":
+            min_delay = getattr(settings, 'FTOP_BLOCK_SERVICE_EXCHANGE_DELAY', 0)
+        if min_delay > 0:
+            now = datetime.datetime.now(tz)
+            old_shift = self.get_shift(idOldShift)
+            day_before_old_shift_date_start = \
+                tz.localize(datetime.datetime.strptime(old_shift['date_begin_tz'], '%Y-%m-%d %H:%M:%S')
+                            - datetime.timedelta(hours=min_delay))
+
+            if now > day_before_old_shift_date_start:
+                answer = False
+            elif shift_type == "ftop":
+                answer = self.is_matching_ftop_rules(partner_id, idNewShift, idOldShift)
+
+
+        return answer
+
     def get_shift(self, id):
         """Get one shift by id"""
         cond = [['id', '=', id]]
@@ -169,8 +250,8 @@ class CagetteShift(models.Model):
                             "origin": 'memberspace',
                             "is_makeup": data['is_makeup'],
                             "state": 'open'}
-            if shift_type == "standard" and data['is_makeup'] is not True:
-                fieldsDatas['template_created'] = 1  # It's not true but otherwise, presence add 1 standard point, which is not wanted
+            if (shift_type == "standard" and data['is_makeup'] is not True) or shift_type == "ftop":
+                fieldsDatas['template_created'] = 1  # It's not true but otherwise, presence add 1 standard point , which is not wanted
 
             st_r_id = self.o_api.create('shift.registration', fieldsDatas)
         except Exception as e:
@@ -373,8 +454,536 @@ class CagetteShift(models.Model):
 
     def member_can_have_delay(self, partner_id):
         """ Can a member have a delay? """
-        return self.o_api.execute('res.partner', 'can_have_extension', [partner_id])
+        answer = False
+        try:
+            answer = self.o_api.execute('res.partner', 'can_have_extension', [partner_id])
+        except Exception as e:
+            coop_logger.error("member_can_have_delay : %s", str(e))
+        return answer
 
     def update_counter_event(self, fields):
         """ Add/remove points """
         return self.o_api.create('shift.counter.event', fields)
+
+
+class CagetteServices(models.Model):
+    """Class to handle cagette Odoo services."""
+
+    @staticmethod
+    def get_all_shift_templates():
+        """Return all recorded shift templates recorded in Odoo database."""
+        creneaux = {}
+        try:
+            api = OdooAPI()
+            f = ['name', 'week_number', 'start_datetime_tz', 'end_datetime_tz',
+                 'seats_reserved', 'shift_type_id', 'seats_max',
+                 'seats_available','registration_qty']
+            c = [['active', '=', True]]
+            shift_templates = api.search_read('shift.template', c, f)
+
+            # Get count of active registrations for each shift template
+            # shift_templates_active_count = api.execute('lacagette_shifts', 'get_active_shifts', [])
+            # With LGDS tests, seats_reserved reflects better what's shown in Odoo ...
+
+            title = re.compile(r"^(\w{1})(\w{3})\. - (\d{2}:\d{2}) ?-? ?(\w*)")
+            for l in shift_templates:
+                # nb_reserved = 0
+                # for stac in shift_templates_active_count:
+                #     if stac['shift_template_id'] == l['id']:
+                #         nb_reserved = stac['seats_active_registration']
+
+                line = {}
+                end = time.strptime(l['end_datetime_tz'], "%Y-%m-%d %H:%M:%S")
+                end_min = str(end.tm_min)
+                if end_min == '0':
+                    end_min = '00'
+                line['end'] = str(end.tm_hour) + ':' + end_min
+                line['max'] = l['seats_max']
+                # line['reserved'] = nb_reserved
+                #line['reserved'] = l['seats_reserved']
+                line['reserved'] = l['registration_qty']
+                line['week'] = l['week_number']
+                line['id'] = l['id']
+                line['type'] = l['shift_type_id'][0]
+                t_elts = title.search(l['name'])
+                if t_elts:
+                    line['day'] = t_elts.group(2)
+                    line['begin'] = t_elts.group(3)
+                    line['place'] = t_elts.group(4)
+
+                creneaux[str(l['id'])] = {'data': line}
+        except Exception as e:
+            coop_logger.error(str(e))
+        return creneaux
+
+    @staticmethod
+    def get_shift_templates_next_shift(id):
+        """Retrieve next shift template shift."""
+        api = OdooAPI()
+        c = [['shift_template_id.id', '=', id],
+             ['date_begin', '>=', datetime.datetime.now().isoformat()]]
+        f = ['date_begin']
+        # c = [['id','=',2149]]
+        shift = {}
+        res = api.search_read('shift.shift', c, f, 1, 0, 'date_begin ASC')
+        if (res and res[0]):
+            locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
+            local_tz = pytz.timezone('Europe/Paris')
+            date, t = res[0]['date_begin'].split(' ')
+            year, month, day = date.split('-')
+            start = datetime.datetime(int(year), int(month), int(day),
+                                      0, 0, 0, tzinfo=pytz.utc)
+            start_date = start.astimezone(local_tz)
+            shift['date_begin'] = start_date.strftime("%A %d %B %Y")
+        return shift
+
+    @staticmethod
+    def get_services_at_time(time, tz_offset, with_members=True):
+        """Retrieve present services with members linked."""
+
+        default_acceptable_minutes_after_shift_begins = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_AFTER_SHIFT_BEGINS', 15)
+        minutes_before_shift_starts_delay = getattr(settings, 'ACCEPTABLE_ENTRANCE_MINUTES_BEFORE_SHIFT', 15)
+        minutes_after_shift_starts_delay = default_acceptable_minutes_after_shift_begins
+        late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        max_duration = getattr(settings, 'MAX_DURATION', 180)
+        if late_mode is True:
+            minutes_after_shift_starts_delay = getattr(settings, 'ENTRANCE_VALIDATION_GRACE_DELAY', 60)
+        api = OdooAPI()
+        now = dateutil.parser.parse(time) - datetime.timedelta(minutes=tz_offset)
+        start1 = now + datetime.timedelta(minutes=minutes_before_shift_starts_delay)
+        start2 = now - datetime.timedelta(minutes=minutes_after_shift_starts_delay)
+        end = start1 + datetime.timedelta(minutes=max_duration)
+        cond = [['date_end_tz', '<=', end.isoformat()]]
+        cond.append('|')
+        cond.append(['date_begin_tz', '>=', start1.isoformat()])
+        cond.append(['date_begin_tz', '>=', start2.isoformat()])
+        fields = ['name', 'week_number', 'registration_ids',
+                  'standard_registration_ids',
+                  'shift_template_id', 'shift_ticket_ids',
+                  'date_begin_tz', 'date_end_tz', 'state']
+        services = api.search_read('shift.shift', cond, fields,order ="date_begin_tz ASC")
+        for s in services:
+            if (len(s['registration_ids']) > 0):
+                if late_mode is True:
+                    s['late'] = (
+                                 now.replace(tzinfo=None)
+                                 -
+                                 dateutil.parser.parse(s['date_begin_tz']).replace(tzinfo=None)
+                                 ).total_seconds() / 60 > default_acceptable_minutes_after_shift_begins
+                if with_members is True:
+                    cond = [['id', 'in', s['registration_ids']], ['state', 'not in', ['cancel', 'waiting', 'draft']]]
+                    fields = ['partner_id', 'shift_type', 'state', 'is_late', 'associate_registered']
+                    members = api.search_read('shift.registration', cond, fields)
+                    s['members'] = sorted(members, key=lambda x: x['partner_id'][0])
+                    if len(s['members']) > 0:
+                        # search for associated people linked to these members
+                        mids = []
+                        for m in s['members']:
+                            mids.append(m['partner_id'][0])
+                        cond = [['parent_id', 'in', mids]]
+                        fields = ['id', 'parent_id', 'name','barcode_base']
+                        associated = api.search_read('res.partner', cond, fields)
+
+                        if len(associated) > 0:
+                            for m in s['members']:
+                                for a in associated:
+                                    if int(a['parent_id'][0]) == int(m['partner_id'][0]):
+                                        m['partner_name'] = m['partner_id'][1]
+                                        m['partner_id'][1] += ' en binôme avec ' + a['name']
+                                        m['associate_name'] = str(a['barcode_base']) + ' - ' + a['name']
+                                        
+
+        return services
+
+    @staticmethod
+    def registration_done(registration_id, overrided_date="", typeAction=""):
+        """Equivalent to click present in presence form."""
+        api = OdooAPI()
+        f = {'state': 'done'}
+
+        if(typeAction != "normal" and typeAction != ""):
+            f['associate_registered'] = typeAction
+
+        if typeAction == "both":
+            f['should_increment_extra_shift_done'] = True
+        else:
+            f['should_increment_extra_shift_done'] = False
+            
+        late_mode = getattr(settings, 'ENTRANCE_WITH_LATE_MODE', False)
+        if late_mode is True:
+            # services = CagetteServices.get_services_at_time('14:28',0, with_members=False)
+            if len(overrided_date) > 0 and getattr(settings, 'APP_ENV', "prod") != "prod":
+                now = overrided_date
+            else:
+                local_tz = pytz.timezone('Europe/Paris')
+                now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(local_tz).strftime("%H:%MZ")
+            # coop_logger.info("Maintenant = %s (overrided %s) %s", now, overrided_date)
+            services = CagetteServices.get_services_at_time(now, 0, with_members=False)
+            if len(services) > 0:
+                # Notice : Despite is_late is defined as boolean in Odoo, 0 or 1 is needed for api call
+                is_late = 0
+                if services[0]['late'] is True:
+                    is_late = 1
+                f['is_late'] = is_late
+            else:
+                return False
+        return api.update('shift.registration', [int(registration_id)], f)
+
+    @staticmethod
+    def reopen_registration(registration_id, overrided_date=""):
+        
+        api = OdooAPI()
+        f = {'state': 'open'}
+        return api.update('shift.registration', [int(registration_id)], f)
+
+    @staticmethod
+    def record_rattrapage(mid, sid, stid, typeAction):
+        """Add a shift registration for member mid.
+
+        (shift sid, shift ticket stid)
+        Once created, shift presence is confirmed.
+        """
+        api = OdooAPI()
+        fields = {
+            "partner_id": mid,
+            "shift_id": sid,
+            "shift_ticket_id": stid,
+            "shift_type": "standard",  # ou ftop -> voir condition
+            "related_shift_state": 'confirm',
+            "state": 'open'}
+        reg_id = api.create('shift.registration', fields)
+
+        f = {'state': 'done'}
+        if(typeAction != "normal" and typeAction != ""):
+            f['associate_registered'] = typeAction
+        if typeAction == "both":
+            f['should_increment_extra_shift_done'] = True
+        else:
+            f['should_increment_extra_shift_done'] = False
+
+        return api.update('shift.registration', [int(reg_id)], f)
+
+    @staticmethod
+    def record_absences(date):
+        """Called by cron script."""
+        import dateutil.parser
+        if len(date) > 0:
+            now = dateutil.parser.parse(date)
+        else:
+            now = datetime.datetime.now()
+        # now = dateutil.parser.parse('2020-09-15T15:00:00Z')
+        date_24h_before = now - datetime.timedelta(hours=24)
+        # let authorized people time to set presence for those who came in late
+        end_date = now - datetime.timedelta(hours=2)
+        api = OdooAPI()
+
+        # Let's start by adding an extra shift to associated member who came together
+        cond = [['date_begin', '>=', date_24h_before.isoformat()],
+                ['date_begin', '<=', end_date.isoformat()],
+                ['state', '=', 'done'], 
+                ['associate_registered', '=', 'both'],
+                ['should_increment_extra_shift_done', '=', True]]
+        fields = ['id', 'state', 'partner_id', 'date_begin']
+        res = api.search_read('shift.registration', cond, fields)
+
+        extra_shift_done_incremented_srids = []  # shift registration ids
+        for r in res:
+            cond = [['id', '=', r['partner_id'][0]]]
+            fields = ['id','extra_shift_done']
+            res_partner = api.search_read('res.partner', cond, fields)
+
+            f = {'extra_shift_done': res_partner[0]['extra_shift_done'] + 1 }
+            api.update('res.partner', [r['partner_id'][0]], f)
+
+            extra_shift_done_incremented_srids.append(int(r['id']))
+
+        # Make sure the counter isn't incremented twice
+        f = {'should_increment_extra_shift_done': False}
+        api.update('shift.registration', extra_shift_done_incremented_srids, f)
+
+        absence_status = 'excused'
+        res_c = api.search_read('ir.config_parameter',
+                                [['key', '=', 'lacagette_membership.absence_status']],
+                                ['value'])
+        if len(res_c) == 1:
+            absence_status = res_c[0]['value']
+        cond = [['date_begin', '>=', date_24h_before.isoformat()],
+                ['date_begin', '<=', end_date.isoformat()],
+                ['state', '=', 'open']]
+        fields = ['state', 'partner_id', 'date_begin', 'shift_id']
+        res = api.search_read('shift.registration', cond, fields)
+        ids = []
+        partner_ids = []
+        excluded_partner = []
+        canceled_reg_ids = []  # for exempted people
+        shift_ids = []
+        for r in res:
+            partner_ids.append(int(r['partner_id'][0]))
+            shift_id = int(r['shift_id'][0])
+            if shift_id not in shift_ids:   
+                shift_ids.append(shift_id)
+        cond = [['id', 'in', partner_ids],
+                ['cooperative_state', 'in', ['exempted']]]
+        fields = ['id']
+        res_exempted = api.search_read('res.partner', cond, fields)
+        for r in res_exempted:
+            excluded_partner.append(int(r['id']))
+        for r in res:
+            if not (int(r['partner_id'][0]) in excluded_partner):
+                d_begin = r['date_begin']
+                (d, h) = d_begin.split(' ')
+                (_h, _m, _s) = h.split(':')
+                if int(_h) < 21:
+                    ids.append(int(r['id']))
+            else:
+                canceled_reg_ids.append(int(r['id']))
+        # coop_logger.info("Traitement absences shift_registration ids %s", ids)
+        f = {'state': absence_status, 'date_closed': now.isoformat()}
+        update_shift_reg_result = {'update': api.update('shift.registration', ids, f), 'reg_shift': res, 'errors': []}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = api.execute('res.partner','run_process_target_status', [])
+            # change shift state by triggering button_done method for all related shifts
+            if len(canceled_reg_ids) > 0:
+                f = {'state': 'cancel', 'date_closed': now.isoformat()}
+                api.update('shift.registration', canceled_reg_ids, f)
+            for sid in shift_ids:
+                try:
+                    api.execute('shift.shift', 'button_done', sid)
+                except Exception as e:
+                    marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+                    if not (marshal_none_error in str(e)):
+                        update_shift_reg_result['errors'].append({'shift_id': sid, 'msg' :str(e)})
+
+        return update_shift_reg_result
+
+
+    @staticmethod
+    def close_ftop_service():
+        """Called by cron script"""
+        # Retrieve the latest past FTOP service
+        import dateutil.parser
+        now = datetime.datetime.now()
+        # now = dateutil.parser.parse('2019-10-20T00:00:00Z')
+        cond = [['shift_type_id','=', 2],['date_end', '<=', now.isoformat()],['state','=', 'draft'], ['active', '=', True]]
+        fields = ['name']
+        api = OdooAPI()
+        res = api.search_read('shift.shift', cond, fields,order ="date_end ASC", limit=1)
+        # return res[0]['id']
+        result = {}
+        if res and len(res) > 0:
+            result['service_found'] = True
+            # Exceptions are due to the fact API returns None whereas the action is really done !...
+            marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+            actual_errors = 0
+            try:
+                api.execute('shift.shift', 'button_confirm', [res[0]['id']])
+            except Exception as e:
+                if not (marshal_none_error in str(e)):
+                    result['exeption_confirm'] = str(e)
+                    actual_errors += 1
+            try:
+                api.execute('shift.shift', 'button_makeupok', [res[0]['id']])
+            except Exception as e:
+                if not (marshal_none_error in str(e)):
+                    result['exeption_makeupok'] = str(e)
+                    actual_errors += 1
+            try:
+                api.execute('shift.shift', 'button_done', [res[0]['id']])
+            except Exception as e:
+                if not (marshal_none_error in str(e)):
+                    result['exeption_done'] = str(e)
+                    actual_errors += 1
+            if actual_errors == 0:
+                result['done'] = True
+            else:
+                result['done'] = False
+            result['actual_errors'] = actual_errors
+        else:
+            result['service_found'] = False
+        return result
+
+    @staticmethod
+    def get_committees_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('ir.config_parameter',
+                                  [['key','=', 'lacagette_membership.committees_shift_id']],
+                                  ['value'])
+            if len(res) > 0:
+                try:
+                    shift_id = int(res[0]['value'])
+                except:
+                    pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
+    def get_first_ftop_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('shift.template',
+                                  [['shift_type_id','=', 2]],
+                                  ['id', 'registration_qty'])
+
+            # Get the ftop shift template with the max registrations: most likely the one in use
+            ftop_shift = {'id': None, 'registration_qty': 0}
+            for shift_reg in res:
+                if shift_reg["registration_qty"] > ftop_shift["registration_qty"]:
+                    ftop_shift = shift_reg
+
+            try:
+                shift_id = int(ftop_shift['id'])
+            except:
+                pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
+    def easy_validate_shift_presence(coop_id):
+        """Add a presence point if the request is valid."""
+        res = {}
+        try:
+            committees_shift_id = CagetteServices.get_committees_shift_id()
+            api = OdooAPI()
+            # let verify coop_id is corresponding to a ftop subscriber
+            cond = [['id', '=', coop_id]]
+            fields = ['tmpl_reg_line_ids']
+            coop = api.search_read('res.partner', cond, fields)
+            if coop:
+                if len(coop[0]['tmpl_reg_line_ids']) > 0 :
+                    cond = [['id', '=', coop[0]['tmpl_reg_line_ids'][0]]]
+                    fields = ['shift_template_id']
+                    shift_templ_res = api.search_read('shift.template.registration.line', cond, fields)
+                    if (len(shift_templ_res) > 0
+                        and
+                        shift_templ_res[0]['shift_template_id'][0] == committees_shift_id):
+
+                        evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
+                        c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
+                        f = ['create_date']
+                        last_point_mvts = api.search_read('shift.counter.event', c, f,
+                                                          order ="create_date DESC", limit=1)
+                        ok_for_adding_pt = False
+                        if len(last_point_mvts):
+                            now = datetime.datetime.now()
+                            past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
+                                                               '%Y-%m-%d %H:%M:%S')
+                            if (now - past).total_seconds() >= 3600 * 24:
+                                ok_for_adding_pt = True
+                        else:
+                            ok_for_adding_pt = True
+                        if ok_for_adding_pt is True:
+                            res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
+                        else:
+                            res['error'] = "One point has been added less then 24 hours ago"
+                    else:
+                        res['error'] = "Unallowed coop"
+                else:
+                    res['error'] = "Unregistred coop"
+            else:
+                res['error'] = "Invalid coop id"
+        except Exception as e:
+            coop_logger.error("easy_validate_shift_presence :  %s %s", str(coop_id), str(e))
+        return res
+
+class CagetteService(models.Model):
+    """Class to handle cagette Odoo service."""
+
+    def __init__(self, id):
+        """Init with odoo id."""
+        self.id = int(id)
+        self.o_api = OdooAPI()
+
+    def _process_associated_people_extra_shift_done(self):
+        cond = [['shift_id', '=', self.id],
+                ['state', '=', 'done'], 
+                ['associate_registered', '=', 'both'],
+                ['should_increment_extra_shift_done', '=', True]]
+        fields = ['id', 'state', 'partner_id', 'date_begin']
+        res = self.o_api.search_read('shift.registration', cond, fields)
+        extra_shift_done_incremented_srids = []  # shift registration ids
+        for r in res:
+            cond = [['id', '=', r['partner_id'][0]]]
+            fields = ['id','extra_shift_done']
+            res_partner = self.o_api.search_read('res.partner', cond, fields)
+
+            f = {'extra_shift_done': res_partner[0]['extra_shift_done'] + 1 }
+            self.o_api.update('res.partner', [r['partner_id'][0]], f)
+
+            extra_shift_done_incremented_srids.append(int(r['id']))
+
+        # Make sure the counter isn't incremented twice
+        f = {'should_increment_extra_shift_done': False}
+        self.o_api.update('shift.registration', extra_shift_done_incremented_srids, f)
+
+    def _process_related_shift_registrations(self):
+        now = datetime.datetime.now()
+        absence_status = 'excused'
+        res_c = self.o_api.search_read('ir.config_parameter',
+                                [['key', '=', 'lacagette_membership.absence_status']],
+                                ['value'])
+        if len(res_c) == 1:
+            absence_status = res_c[0]['value']
+        cond = [['shift_id', '=', self.id],
+                ['state', '=', 'open']]
+        fields = ['state', 'partner_id', 'date_begin']
+        res = self.o_api.search_read('shift.registration', cond, fields)
+        ids = []
+        partner_ids = []
+        excluded_partner = []
+        canceled_reg_ids = []  # for exempted people
+
+        for r in res:
+            partner_ids.append(int(r['partner_id'][0]))
+
+        cond = [['id', 'in', partner_ids],
+                ['cooperative_state', 'in', ['exempted']]]
+        fields = ['id']
+        res_exempted = self.o_api.search_read('res.partner', cond, fields)
+        for r in res_exempted:
+            excluded_partner.append(int(r['id']))
+        for r in res:
+            if not (int(r['partner_id'][0]) in excluded_partner):
+                d_begin = r['date_begin']
+                (d, h) = d_begin.split(' ')
+                (_h, _m, _s) = h.split(':')
+                if int(_h) < 21:
+                    ids.append(int(r['id']))
+            else:
+                canceled_reg_ids.append(int(r['id']))
+        # coop_logger.info("Traitement absences shift_registration ids %s", ids)
+        f = {'state': absence_status, 'date_closed': now.isoformat()}
+        update_shift_reg_result = {'update': self.o_api.update('shift.registration', ids, f), 'reg_shift': res, 'errors': []}
+        if update_shift_reg_result['update'] is True:
+            update_shift_reg_result['process_status_res'] = self.o_api.execute('res.partner','run_process_target_status', [])
+            # change shift state by triggering button_done method for all related shifts
+            if len(canceled_reg_ids) > 0:
+                f = {'state': 'cancel', 'date_closed': now.isoformat()}
+                self.o_api.update('shift.registration', canceled_reg_ids, f)
+           
+            try:
+                self.o_api.execute('shift.shift', 'button_done', self.id)
+            except Exception as e:
+                marshal_none_error = 'cannot marshal None unless allow_none is enabled'
+                if not (marshal_none_error in str(e)):
+                    update_shift_reg_result['errors'].append({'shift_id': self.id, 'msg' :str(e)})
+
+        return update_shift_reg_result
+
+    def record_absences(self, request):
+        """Can only been executed if an Odoo user is beeing connected."""
+        res = {}
+        try:
+            if CagetteUser.are_credentials_ok(request) is True:
+                self._process_associated_people_extra_shift_done()
+                res = self._process_related_shift_registrations()
+            else:
+                res['error'] = 'Forbidden'
+        except Exception as e:
+            coop_logger.error("CagetteService.record_absences :  %s %s", str(self.id), str(e))
+            res['error'] = str(e)
+        return res

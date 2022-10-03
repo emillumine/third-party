@@ -46,4 +46,8 @@ urlpatterns = [
     url(r'^get_saleWitheNotSale', views.get_saleWitheNotSale),
 
     url(r'^get_test', views.get_test),
+
+    # Values
+    url(r'^stockValues', views.stockValues),
+    url(r'^get_valuable_stock', views.get_valuable_stock),
 ]

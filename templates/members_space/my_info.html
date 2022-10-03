@@ -106,7 +106,7 @@
             </div>
         </div>
         {% if understand_my_status %}
-            {% include  "members_space/understand_my_status.html" %}
+            {% include  ""|add:understand_my_status_template %}
         {% endif %}
     </div>
 </div>

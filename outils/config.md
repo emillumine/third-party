@@ -131,6 +131,10 @@
 
         La Cagette use False to implement custom rules
 
+- CAN_CREATE_BINOME = True (by default)
+
+        If set to True, in new member creation form,  a member can be selected to be associated with.
+
 - ASSOCIATE_MEMBER_SHIFT = ''
 
         Id number of the associate shift template
@@ -326,12 +330,21 @@
 - MEMBERS_SPACE_FAQ_TEMPLATE = None
 
         If set to None, "FAQ menu" will not be shown. To use a custom content add a template and set it's relative path
+
+- MEMBERS_SPACE_HOME_TEMPLATE = 'members_space/supercafoutch/home.html'
+
+        If not set, 'members_space/home.html' (la Cagette)
+
 - MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS = False
 
         By default, is True. If False, tile showing explanations is not shown
 
 - BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE = False
         Attached people can or not change his services
+
+- CAN_ADD_SHIFT = True
+
+        By default, False. Set if coop can or not add shifts in their memberspace calendar
 
 ### Reception
 
@@ -410,14 +423,41 @@
 - START_DATE_FOR_SHIFTS_HISTORY = "2018-01-01"
 
 - AMNISTIE_DATE = "2021-11-24 00:00:00"
+
         In members_space history display a special activity about amnistie
 
+- MEMBERS_SPACE_FAQ_TEMPLATE = 'members_space/supercoop/faq.html'
+
+        Set alternative template for FAQ
+
+- MEMBERS_SPACE_HOME_TEMPLATE = 'members_space/supercoop/home.html'
+
+        Set alternative template for home page
+
+- MEMBERS_SPACE_UNDERSTAND_MY_STATUS_TEMPLATE = 'members_space/supercoop/understand_my_status.html'
+
+        Set alternative template for understand my status
+
+- SHOW_ABCD_CALENDAR_TAB = False
+
+        True by default
+
+- PERMANENT_MESSAGE_BELOW_CONNECTION_FIELDS = "Si vous avez des difficultés à vous connecter, ...."
+
+        Default is None
+- STANDARD_BLOCK_SERVICE_EXCHANGE_DELAY = 36 (default = 24)
+
+        Define duration, in hours, before shift starts within exchange is not more available, for standard shift_type member
 
 ### BDM Admin
 
 - BDM_SHOW_FTOP_BUTTON = True (by default)
 
         If True, in BDM Admin manage shift template, on the calendar when subscribing a partner to a shift, "Volant" button is included
+
+- ADMIN_BINOME_ACTIVE = False
+
+        By defaut, True. Show "Gestion des binômes" in bdm admin
 
 ### Miscellious
 

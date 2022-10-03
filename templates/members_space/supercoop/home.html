@@ -1,6 +1,13 @@
 <div id="home">
   <div class="page_title txtcenter">
-    <h1>Espace Membre</h1>
+     <h1>Bienvenue sur ton nouvel espace membre ! 🎉</h1>
+    <strong>Si tu es ex-volant.e</strong>, il te faut absolument changer ton créneau volant (DDim 22:00)par un créneau régulier qui te convient ou le moins pire... (ci-dessous)<br/>  Ensuite, tu peux déplacer ton prochain service programmé en allant sur "Echanges de services" 🤙<br/>
+    Si tu es régulier.e, rien ne change pour toi si ce n'est que tu peux anticiper une absence en déplaçant ton service. Tu n'as plus à rechercher de remplaçant ✌️<br/>
+    Concernant les <strong>binômes</strong>, il nous faut un peu plus de temps pour déployer cette nouveauté. On te tiens au courant via le mail hebdo 😉<br/>
+     Si jamais ça ne marche pas, contactes-nous à support@supercoop.fr 📧<br/>
+  </div>
+  <div>
+   
   </div>
   <div class="tiles_container">
     <div class="tile high_tile" id="home_tile_my_info">
@@ -126,6 +133,13 @@
     <div id="shift_choice">
         {% include "members/shift_template_calendar.html" %}
     </div>
+  </div>
+  <div id="modal_error_change_shift_template" style="display:none;">
+      <h3 class="error_modal_title">Action impossible</h3>
+      <p>
+        Il y a un rattrapage sur le créneau choisi (<span class="shift_template_name"></span>), cela empêche de s'inscrire sur ce créneau.
+      </p>
+      <p>Vous pouvez essayer ce créneau une autre semaine.</p>
   </div>
   <script>
     var max_begin_hour = "{{max_begin_hour}}",

@@ -23,5 +23,6 @@ def context_setting(request):
     """adding settings variable to context (can be overloaded in views)."""
     context = {'odoo': settings.ODOO['url'], 
                'app_env': getattr(settings, 'APP_ENV', "prod"),
-               'company_code': getattr(settings, 'COMPANY_CODE', '')}
+               'company_code': getattr(settings, 'COMPANY_CODE', ''),
+               'favicon_url': getattr(settings, 'FAVICON_URL', '/static/favicon.ico')}
     return context

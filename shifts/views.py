@@ -215,6 +215,11 @@ def change_shift(request):
                         response = {'msg': "Old service in less than 24hours."}
                         return JsonResponse(response, status=400)
 
+                if cs.is_shift_exchange_allowed(idOldShift, data["idShift"], data["shift_type"], data["idPartner"]) is False:
+                    response = {'msg': "Not allowed to change shift"}
+                    return JsonResponse(response, status=400)
+
+
                 st_r_id = False
                 #Insertion du nouveau shift
                 try:
@@ -281,8 +286,11 @@ def add_shift(request):
                     "idPartner": int(request.POST['idPartner']), 
                     "idShift":int(request.POST['idNewShift']), 
                     "shift_type":request.POST['shift_type'],
-                    "is_makeup":True
+                    "is_makeup": False
                 }
+
+                if 'is_makeup' in request.POST and request.POST['is_makeup'] == "1":
+                    data['is_makeup'] = True
                 
                 #Insertion du nouveau shift
                 st_r_id = False

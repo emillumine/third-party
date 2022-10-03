@@ -5,7 +5,7 @@ from outils.for_view_imports import *
 from members.models import CagetteMember
 from members.models import CagetteUser
 from members.models import CagetteMembers
-from members.models import CagetteServices
+from shifts.models import CagetteServices, CagetteService
 from outils.forms import GenericExportMonthForm
 
 import datetime
@@ -105,6 +105,7 @@ def inscriptions(request, type=1):
         'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
         'db': settings.COUCHDB['dbs']['member'],
         'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
+        'can_create_binome': getattr(settings, 'CAN_CREATE_BINOME', True),
         'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
         'committees_shift_id': committees_shift_id,
     }
@@ -346,6 +347,10 @@ def easy_validate_shift_presence(request):
 
 def record_absences(request, date):
     return JsonResponse({'res': CagetteServices.record_absences(date)})
+
+def record_shift_absences(request, id):
+    shift = CagetteService(id)
+    return JsonResponse({'res': shift.record_absences(request)})
 
 def close_ftop_service(request):
     """Close the closest past FTOP service"""

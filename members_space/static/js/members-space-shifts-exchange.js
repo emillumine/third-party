@@ -1,6 +1,7 @@
 var calendar = null,
     selected_shift = null,
-    vw = null;
+    vw = null,
+    adding_mode = false;
 
 /* - Logic */
 
@@ -51,6 +52,9 @@ function add_or_change_shift(new_shift_id) {
 
         if (selected_shift === null) {
             tUrl = '/shifts/add_shift';
+            if (partner_data.makeups_to_do > 0) {
+                tData += '&is_makeup=1';
+            }
         } else {
             tUrl = '/shifts/change_shift';
             tData = tData + '&idOldShift='+ selected_shift.shift_id[0] +'&idRegister=' + selected_shift.id;
@@ -121,6 +125,11 @@ function add_or_change_shift(new_shift_id) {
                         `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
                         `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
                         `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
+                } else if (error.status === 400 && 'msg' in error.responseJSON && error.responseJSON.msg === "Not allowed to change shift") {
+                    alert(`Désolé ! Le service que tu souhaites échanger démarre dans trop peu de temps. ` +
+                        `Afin de faciliter la logistique des services, il n'est plus possible de l'échanger. ` +
+                        `Si tu ne peux vraiment pas venir, tu seras noté.e absent.e à ton service. ` +
+                        `Tu devras alors sélectionner un service de rattrapage sur ton espace membre.`);
                 } else if (error.status === 500 && 'msg' in error.responseJSON && error.responseJSON.msg === "Fail to create shift") {
                     // TODO differentiate error cases!
                     alert(`Une erreur est survenue. ` +
@@ -143,6 +152,8 @@ function add_or_change_shift(new_shift_id) {
                 }, 300);
             }
         });
+        adding_mode = false;
+        $('#start_adding_shift').prop('disabled', false);
     }
 
     return null;
@@ -269,7 +280,7 @@ function offer_extra_shift() {
             timeout: 3000,
             success: function() {
                 partner_data.extra_shift_done -= 1;
-                
+
                 $("#can_delete_future_registrations_area").hide();
                 $(".delete_registration_button").off();
                 $(".delete_registration_button").hide();
@@ -315,6 +326,7 @@ function init_shifts_list() {
             if (!can_exchange_shifts()) {
                 shift_line_template.find(".selectable_shift_line").addClass("btn");
                 shift_line_template.find(".checkbox").prop("disabled", "disabled");
+                $('#start_adding_shift').prop('disabled', true);
             } else {
                 if (shift.is_makeup==true) {
                     shift_line_template.find(".selectable_shift_line").addClass("btn--warning");
@@ -577,12 +589,28 @@ function init_calendar_page() {
                         "Valider"
                     );
                 } else if (selected_shift === null && can_exchange_shifts()) {
-                    /* could exchange shift but no old shift selected */
-                    openModal(
-                        "Je dois sélectionner un service à échanger.",
-                        closeModal,
-                        "J'ai compris"
-                    );
+                    if (adding_mode === false) {
+                        /* could exchange shift but no old shift selected */
+                        openModal(
+                            "Je dois sélectionner un service à échanger.",
+                            closeModal,
+                            "J'ai compris"
+                        );
+                    } else {
+                        // Display modal
+                        let modal_template = $("#modal_add_shift_template");
+
+                        modal_template.find(".date_new_shift").text(new_shift_date);
+                        modal_template.find(".time_new_shift").text(new_shift_time);
+                        openModal(
+                            modal_template.html(),
+                            () => {
+                                add_or_change_shift(new_shift_id);
+                            },
+                            "Valider"
+                        );
+                    }
+
                 } else if (should_select_makeup()) {
                     /* choose a makeup service */
                     // Check if selected new shift is in less than 6 months
@@ -730,14 +758,15 @@ function init_delete_registration_buttons() {
     if (partner_data.extra_shift_done > 0) {
         $(".delete_registration_button").on("click", function() {
             let shift_name = $(this).closest("div")
-                .parent().parent()
+                .parent()
+                .parent()
                 .find(".shift_line_date")
                 .text()
                 .trim();
             let shift_id = $(this).closest(".shift_line_container")
                 .attr('id')
                 .split('_')[2];
-    
+
             openModal(
                 `<p>Je m'apprête à supprimer ma présence au service du <b>${shift_name}</b></p>`,
                 () => {
@@ -747,7 +776,7 @@ function init_delete_registration_buttons() {
                 false
             );
         });
-    
+
         $(".delete_registration_button").css('display', 'flex');
     }
 }
@@ -810,6 +839,19 @@ function init_shifts_exchange() {
         $("#shifts_exchange_content").show();
         init_calendar_page();
     }
+
+    $('#start_adding_shift').click((c) => {
+        openModal(
+            "<p>Je souhaite sélectionner un service supplémentaire.</p>",
+            () => {
+                $(c.target).prop('disabled', true);
+                adding_mode = true;
+                closeModal();
+            },
+            "Confirmer",
+            false
+        );
+    });
 
     $(window).smartresize(function() {
         // only apply if a width threshold is passed

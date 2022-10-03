@@ -28,9 +28,6 @@
         <div class="member_shift_name_area">
           <span>Mon créneau : </span>
           <span class="member_shift_name member_info"></span>
-          {% if coop_can_change_shift_template %}
-          <span><i class="fas fa-edit tile_icon edit-btn"></i></span>
-          {% endif %}
         </div>
         <div class="member_coop_number_area">
           <span>Mon numéro de coop : </span>
@@ -92,7 +89,7 @@
             class="btn--primary home_link_button"
             id="go_to_forms"
           >
-              Accéder aux formulaires
+              Accéder à la FAQ
           </a>
         </div>
       </div>
@@ -121,15 +118,4 @@
       </div>
     </div>
   </div>
-  {% if coop_can_change_shift_template %}
-  <div id="modal-calendar-choice" style="display:none;">
-    <div id="shift_choice">
-        {% include "members/shift_template_calendar.html" %}
-    </div>
-  </div>
-  <script>
-    var max_begin_hour = "{{max_begin_hour}}",
-        type = 2;
-  </script>
-  {% endif %}
 </div>

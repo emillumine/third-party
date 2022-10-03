@@ -92,12 +92,12 @@ function new_coop_validation() {
 
     coop_registration_details.find('.shift_template').text(st);
     process_state.html(current_coop.firstname + ' ' +current_coop.lastname);
-    coop_registration_details.find("#parentName").text("")
-    coop_registration_details.find("#parent").attr("hidden", true)
+    coop_registration_details.find("#parentName").text("");
+    coop_registration_details.find("#parent").attr("hidden", true);
 
     if (current_coop.parent_name !== undefined) {
-      coop_registration_details.find("#parentName").text(current_coop.parent_name)
-      coop_registration_details.find("#parent").removeAttr("hidden")
+        coop_registration_details.find("#parentName").text(current_coop.parent_name);
+        coop_registration_details.find("#parent").removeAttr("hidden");
     }
 
     if (current_coop.shift_template.data && current_coop.shift_template.data.id != ASSOCIATE_MEMBER_SHIFT) {
@@ -126,7 +126,7 @@ function create_new_coop() {
     $('.chosen_associate').html("");
     $('.chosen_associate_area').hide();
     $('.member_choice').removeClass('choice_active');
-    $(".remove_binome_icon").on("click", hide_chosen_associate)
+    $(".remove_binome_icon").on("click", hide_chosen_associate);
     local_in_process = getLocalInProcess();
     if (getLocalInProcess().length > 0) {
         empty_waiting_local_processes();
@@ -271,11 +271,13 @@ function store_new_coop(event) {
     if (active_asso_area.length > 0) {
         // If user click as if a "binôme" is beeing created, data about parent member must exist
         let associated_data_ok = false;
+
         if (
-            ($(active_asso_area[0]).attr('id') === "new_member_choice" && $('#new_member_input').val().trim().length > 0)
+            ($(active_asso_area[0]).attr('id') === "new_member_choice" && $('#new_member_input').val()
+                .trim().length > 0)
             ||
             ($(active_asso_area[0]).attr('id') === "existing_member_choice" && $('#existing_member_choice_action .chosen_associate div.member').length > 0)
-            ) {
+        ) {
             associated_data_ok = true;
         }
         if (associated_data_ok === false) errors.push("Le membre 'titulaire' du binôme n'est pas défini");
@@ -318,7 +320,7 @@ function store_new_coop(event) {
                 }
             }
         });
-}   
+}
 
 
 
@@ -361,6 +363,7 @@ function modify_current_coop() {
             $('#new_member_choice_action').hide();
             $('#existing_member_choice').addClass('choice_active');
             var member_button = '<div>' + current_coop.parent_name + '</div>';
+
             $('.chosen_associate').html(member_button);
             $('.chosen_associate_area').show();
             associated_old_choice = 'existing_member_choice';
@@ -726,7 +729,7 @@ function display_possible_members() {
 
 
 /**
- * Search for members to associate a new member with an old one. 
+ * Search for members to associate a new member with an old one.
  */
 function searchMembersForAssociate() {
     let search_str = $('#search_member_input').val();

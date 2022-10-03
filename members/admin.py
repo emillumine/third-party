@@ -5,7 +5,7 @@ from outils.common import OdooAPI
 from members.models import CagetteUser
 from members.models import CagetteMembers
 from members.models import CagetteMember
-from members.models import CagetteServices
+from shifts.models import CagetteServices
 from shifts.models import CagetteShift
 from outils.common import MConfig
 from datetime import datetime
@@ -313,7 +313,8 @@ def admin(request):
     """ Administration des membres """
     template = loader.get_template('members/admin/index.html')
     context = {'title': 'BDM',
-               'module': 'Membres'}
+               'module': 'Membres',
+               'admin_binome_active': getattr(settings, 'ADMIN_BINOME_ACTIVE', True),}
     return HttpResponse(template.render(context, request))
 
 def manage_makeups(request):
@@ -494,14 +495,19 @@ def shift_subscription(request):
             and delete all existing shifts EXCEPT makeups.
     """
     res = {}
-    if CagetteUser.are_credentials_ok(request):
-        data = json.loads(request.body.decode())
-
+    data = json.loads(request.body.decode())
+    partner_id = int(data["partner_id"])
+    is_allowed = CagetteUser.are_credentials_ok(request)
+    if is_allowed is False:
+        credentials = CagetteMember.get_credentials(request, with_id = True)
+        if 'success' in credentials and credentials['success'] is True and credentials['id'] == partner_id:
+            is_allowed = True
+    if is_allowed is True:
         partner_id = int(data["partner_id"])
         shift_type = data["shift_type"]
         if shift_type == 1:
             # 1 = standard
-            shift_template_id = data["shift_template_id"]
+            shift_template_id = int(data["shift_template_id"])
         else:
             # 2 = ftop
 
@@ -529,7 +535,6 @@ def shift_subscription(request):
                 )
 
             res["unsubscribe_member"] = m.unsubscribe_member(changing_shift = True)
-
         m.create_coop_shift_subscription(shift_template_id, shift_type)
 
         # Return necessary data
