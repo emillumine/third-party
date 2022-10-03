@@ -5,7 +5,7 @@ from outils.for_view_imports import *
 from members.models import CagetteMember
 from members.models import CagetteUser
 from members.models import CagetteMembers
-from members.models import CagetteServices, CagetteService
+from shifts.models import CagetteServices, CagetteService
 from outils.forms import GenericExportMonthForm
 
 import datetime

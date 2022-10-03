@@ -5,7 +5,7 @@ from outils.common import OdooAPI
 from members.models import CagetteUser
 from members.models import CagetteMembers
 from members.models import CagetteMember
-from members.models import CagetteServices
+from shifts.models import CagetteServices
 from shifts.models import CagetteShift
 from outils.common import MConfig
 from datetime import datetime

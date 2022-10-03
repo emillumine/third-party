@@ -1,6 +1,6 @@
 from django.db import models
 from outils.common_imports import *
-from members.models import CagetteServices
+from shifts.models import CagetteServices
 
 from outils.common import OdooAPI
 

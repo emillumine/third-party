@@ -133,7 +133,7 @@
 
 - CAN_CREATE_BINOME = True (by default)
 
-        If set to False, in new member creation form,  a member can be selected to be associated with.
+        If set to True, in new member creation form,  a member can be selected to be associated with.
 
 - ASSOCIATE_MEMBER_SHIFT = ''
 
