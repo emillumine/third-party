@@ -219,7 +219,7 @@ class ExportPOS(View):
                     totals[key]['CB_DEJ'] += cbd
                     totals[key]['CHQ_DEJ'] += chqd
                     totals[key]['TOTAL'] += round(sub_total, 2)
-                    details_lines.append([mois, s['mm_dates']['min'], s['mm_dates']['min'], s['caisse'], s['name'],
+                    details_lines.append([mois, s['mm_dates']['min'], s['mm_dates']['max'], s['caisse'], s['name'],
                                          cb, csh, chq, cbd, chqd, sub_total])
         wb = Workbook()
         ws1 = wb.create_sheet("Totaux " + mois, 0)
