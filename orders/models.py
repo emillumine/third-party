@@ -351,6 +351,21 @@ class Orders(models.Model):
 
         return labels_data
 
+    @staticmethod
+    def get_orders_between_dates(date_from, date_to):
+        """@depends on Odoo module lacagette_purchase"""
+        o_api = OdooAPI()
+        params = {'date_from': date_from, 'date_to': date_to}
+        res = {}
+        
+        try:
+            res = o_api.execute('purchase.order', 'get_received_orders_between_dates', [], params)
+        except Exception as e:
+            res["error"] = str(e)
+
+        return res
+
+
 class CagetteSuppliers(models.Model):
 
     @staticmethod
