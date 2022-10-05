@@ -632,9 +632,15 @@ class CagetteServices(models.Model):
 
     @staticmethod
     def reopen_registration(registration_id, overrided_date=""):
-        
         api = OdooAPI()
         f = {'state': 'open'}
+        try:
+            cond = [['id', '=', int(registration_id)]]
+            fields = ['partner_id']
+            res = api.search_read('shift.registration', cond, fields)
+            coop_logger.info("On invalide la présence de  %s ", res[0]['partner_id'][1])
+        except Exception as e:
+            coop_logger.error("On invalide shift_registration  %s (erreur : %s)", str(registration_id), str(e))
         return api.update('shift.registration', [int(registration_id)], f)
 
     @staticmethod
