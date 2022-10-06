@@ -344,7 +344,9 @@ function compute_products_coverage_qties() {
         order_doc.coeff = coeff;
         if (order_doc.coverage_days != null) {
             compute_and_affect_product_supplier_quantities(coeff, order_doc.coverage_days);
-        } else if (order_doc.targeted_amount != null) {
+        }
+
+        if (order_doc.targeted_amount != null) {
             const small_step = 0.1,
                 max_iter = 182; // Assume that no more than 1/2 year coverage is far enough
             let go_on = true,
