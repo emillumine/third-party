@@ -303,8 +303,6 @@ function store_new_coop(event) {
         if (associated_data_ok === false) errors.push("Le membre 'titulaire' du binôme n'est pas défini");
     }
 
-    console.log($(active_asso_area[0]).attr('id'))
-
     $.ajax({url : '/members/exists/' + email,
         dataType :'json'
     })
