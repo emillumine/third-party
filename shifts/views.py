@@ -334,10 +334,9 @@ def cancel_shift(request):
             listRegister = [int(request.POST['idRegister'])]
 
             try:
-                response = cs.cancel_shift(listRegister)
-
                 # decrement extra_shift_done if param exists
                 if 'extra_shift_done' in request.POST:
+                    response = cs.cancel_shift(listRegister, origin='memberspace extra shift done')
                     target = int(request.POST["extra_shift_done"]) - 1
 
                     # extra security
@@ -346,6 +345,8 @@ def cancel_shift(request):
 
                     cm = CagetteMember(partner_id)
                     cm.update_extra_shift_done(target)
+                else:
+                    response = cs.cancel_shift(listRegister)
 
                 return JsonResponse({"res" : 'response'})
             except Exception as e:

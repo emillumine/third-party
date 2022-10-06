@@ -276,7 +276,7 @@ function display_possible_members() {
 $(document).ready(function() {
     if (coop_is_connected()) {
         $.ajaxSetup({ headers: { "X-CSRFToken": getCookie('csrftoken') } });
-        dbc = new PouchDB(couchdb_dbname);
+        dbc = new PouchDB(couchdb_server);
 
         $(".page_content").show();
 
