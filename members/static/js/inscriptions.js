@@ -244,7 +244,6 @@ function store_new_coop(event) {
     var errors = [],
         bc = '', // barcode may not be present
         msex = '', // sex may not be present
-        associated_area_actived = $('#associate_area'); // need to ckeck if type of association is choosen
         active_asso_area = $('#associate_area .choice_active'); // need to ckeck if associated data are available
     // 1- Un coop avec le meme mail ne doit pas exister dans odoo (dans base intermediaire, le cas est géré par l'erreur à l'enregistrement)
     let email = $('input[name="email"]').val()
@@ -270,7 +269,7 @@ function store_new_coop(event) {
         }
     }
 
-    if (associated_area_actived.show()) {
+    if ($('#associate_area').is(':visible')) {
         // If user choose yes for binome, a type of association must be selected 
         let associated_data_selected = false;
 
@@ -281,7 +280,7 @@ function store_new_coop(event) {
         ) {
             associated_data_selected = true;
         }
-        if (associated_data_selected === false) errors.push("Un des deux choix doit être sélectionné");
+        if (associated_data_selected === false) errors.push("Un des deux choix concernant la mise en binôme doit être sélectionné");
 
     }
 
