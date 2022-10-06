@@ -724,6 +724,10 @@ class CagetteMember(models.Model):
             fr_state = 'A jour'
         elif coop_state == 'exempted':
             fr_state = 'Exempté(e)'
+        elif coop_state == 'associated':
+            fr_state = 'En binôme'
+        elif coop_state == 'gone':
+            fr_state = 'Parti(e)'
         else:
             fr_state = 'Inconnu'
         return fr_state
@@ -793,6 +797,7 @@ class CagetteMember(models.Model):
             cond.append(['is_associated_people', '=', True])
         else:
             cond.append(['is_associated_people', '=', False])
+        cond.append(['cooperative_state', '!=', 'associated'])
         # cond.append(['cooperative_state', '!=', 'unsubscribed'])
         if search_type == "full" or search_type == 'members' or search_type == "manage_shift_registrations":
             fields = CagetteMember.m_default_fields
