@@ -127,6 +127,7 @@ function create_new_coop() {
     $('.chosen_associate_area').hide();
     $('.member_choice').removeClass('choice_active');
     $(".remove_binome_icon").on("click", hide_chosen_associate);
+    $('input[name="binome"]').prop('checked',false);
     local_in_process = getLocalInProcess();
     if (getLocalInProcess().length > 0) {
         empty_waiting_local_processes();
@@ -243,6 +244,7 @@ function store_new_coop(event) {
     var errors = [],
         bc = '', // barcode may not be present
         msex = '', // sex may not be present
+        associated_area_actived = $('#associate_area'); // need to ckeck if type of association is choosen
         active_asso_area = $('#associate_area .choice_active'); // need to ckeck if associated data are available
     // 1- Un coop avec le meme mail ne doit pas exister dans odoo (dans base intermediaire, le cas est géré par l'erreur à l'enregistrement)
     let email = $('input[name="email"]').val()
@@ -268,6 +270,21 @@ function store_new_coop(event) {
         }
     }
 
+    if (associated_area_actived.show()) {
+        // If user choose yes for binome, a type of association must be selected 
+        let associated_data_selected = false;
+
+        if (
+            ($(active_asso_area[0]).attr('id') === "new_member_choice")
+            ||
+            ($(active_asso_area[0]).attr('id') === "existing_member_choice")
+        ) {
+            associated_data_selected = true;
+        }
+        if (associated_data_selected === false) errors.push("Un des deux choix doit être sélectionné");
+
+    }
+
     if (active_asso_area.length > 0) {
         // If user click as if a "binôme" is beeing created, data about parent member must exist
         let associated_data_ok = false;
@@ -279,9 +296,14 @@ function store_new_coop(event) {
             ($(active_asso_area[0]).attr('id') === "existing_member_choice" && $('#existing_member_choice_action .chosen_associate div.member').length > 0)
         ) {
             associated_data_ok = true;
+        } else if ($(active_asso_area[0]).attr('id') === "") {
+            associated_data_ok = false;
+            errors.push("Un des deux choix doit être sélectionné");
         }
         if (associated_data_ok === false) errors.push("Le membre 'titulaire' du binôme n'est pas défini");
     }
+
+    console.log($(active_asso_area[0]).attr('id'))
 
     $.ajax({url : '/members/exists/' + email,
         dataType :'json'
@@ -611,25 +633,26 @@ $('#coop_create').submit(store_new_coop);
 $('#generate_email').click(generate_email);
 $('#odoo_user_connect').click();
 
-$('#add_binome').click(function() {
-    if ($('#associate_area').is(':visible')) {
-        $('#associate_area').hide();
-        $('#new_member_input').val('');
-        $('#associate_area .choice_active').removeClass("choice_active");
-        associated_old_choice = null;
-        if (current_coop !=null) {
-            delete current_coop.parent_name;
-            delete current_coop.parent_id;
-            delete current_coop.is_associated_people;
-            delete current_coop.shift_template;
-        }
-    } else {
-        $('#associate_area').show();
-        $('.member_choice').removeClass('choice_active');
-        $('#existing_member_choice_action').hide();
-        $('#new_member_choice_action').hide();
-        associated_old_choice = null;
+$('#no_binome').click(function() {
+    $('#associate_area').hide();
+    $('#new_member_input').val('');
+    $('#associate_area .choice_active').removeClass("choice_active");
+    associated_old_choice = null;
+    if (current_coop !=null) {
+        delete current_coop.parent_name;
+        delete current_coop.parent_id;
+        delete current_coop.is_associated_people;
+        delete current_coop.shift_template;
     }
+});
+
+$('#add_binome').click(function() {
+    $('#associate_area').show();
+    $('.member_choice').removeClass('choice_active');
+    $('#existing_member_choice_action').hide();
+    $('#new_member_choice_action').hide();
+    associated_old_choice = null;
+
 });
 
 $('.member_choice').on('click', function() {
