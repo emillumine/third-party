@@ -362,4 +362,4 @@ function display_messages_for_service_exchange_24h_before() {
     } else {
         $(".block_service_exchange").show();
     }
-};
+}
