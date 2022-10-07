@@ -80,15 +80,25 @@
       {% endif %}
 
       {% if can_create_binome %}
-      <p id="add_binome" >+ Binomes (facultatif)</p>
+      <div>Voulez-vous mettre la personne en binôme ?</div> 
+      <label>
+        <input type="radio" name="binome" id="no_binome" required>
+        Non
+      </label><br>
+    
+      <label>
+        <input type="radio" name="binome" id="add_binome" required>
+        Oui
+      </label><br>
+      
       <div id="associate_area" style="display:none;">
         <div class="choice_button_area d-flex" >
           <div id="existing_member_choice" class="member_choice">
-            A mettre en binome avec un.e membre existant.e
+            A mettre en binôme avec un.e membre existant.e
           </div>
           {% if ASSOCIATE_MEMBER_SHIFT %}
           <div id="new_member_choice" class="member_choice">
-            A mettre en binome avec un.e nouveau membre
+            A mettre en binôme avec un nouveau membre
           </div>
           {% endif %}
         </div>
