@@ -157,4 +157,6 @@ function init_home() {
         load_partner_shifts(partner_data.concerned_partner_id)
             .then(init_my_shifts_tile);
     }
+    
+    display_messages_for_service_exchange_24h_before();
 }

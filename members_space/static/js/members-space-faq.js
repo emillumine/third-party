@@ -18,6 +18,7 @@ function init_faq() {
     $(".ask_bdm_form_link").prop("href", request_form_link);
 
     display_messages_for_attached_people();
+    display_messages_for_service_exchange_24h_before();
 }
 
 $(document).on('click', "#shift_exchange_btn", () => {
@@ -46,3 +47,5 @@ function display_messages_for_attached_people() {
         $(".attached-blocked").show();
     }
 }
+
+

@@ -350,3 +350,11 @@ body {
 .attached-unblocked {
     display: none;
 }
+
+.block_service_exchange {
+    display: none;
+}
+
+.free_service_exchange {
+    display: none;
+}
