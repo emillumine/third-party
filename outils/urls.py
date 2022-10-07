@@ -20,6 +20,7 @@ from . import monitor
 from .views import FieldsView
 from .views import ExportCompta
 from .views import ExportPOS
+from .views import ExportOrders
 
 
 urlpatterns = [
@@ -31,6 +32,7 @@ urlpatterns = [
     url(r'^entity/example$', views.entity_example, name='entity example'),
     url(r'^export_compta$', ExportCompta.as_view(), name='export_compta'),
     url(r'^export_pos$', ExportPOS.as_view(), name='Export POS'),
+    url(r'^export_orders$', ExportOrders.as_view(), name='export_orders'),
     url(r'^monitor/$', monitor.index),
     url(r'^monitor/js_errors$', monitor.js_errors),
     url(r'^members/', include('members.urls')),

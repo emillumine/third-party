@@ -15,6 +15,7 @@ from .forms import ExportComptaForm
 from outils.lib.compta import *
 from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
+from orders.models import Orders
 
 
 def test_compta(request):
@@ -375,3 +376,56 @@ class ExportPOS(View):
         if not (month is None):
             response = self.__ca_sessions_ng(month)
         return response
+
+class ExportOrders(View):
+    def get(self, request, *args, **kwargs):
+        u"""Display form"""
+        template = loader.get_template('outils/export_orders.html')
+        context = {'title': 'Export Commandes Réceptionnées'}
+
+        return HttpResponse(template.render(context, request))
+
+    def post(self, request, *args, **kwargs):
+        u"""Generate orders export between two dates"""
+        date_from = request.POST.get('from')
+        date_to = request.POST.get('to')
+
+        orders = Orders.get_orders_between_dates(date_from, date_to)
+
+        if "error" in orders:
+            error = "Une erreur est survenue, merci de contacter le service informatique."
+            return JsonResponse({'erreur': error, 'details': orders["error"]})
+
+        try:
+            wb = Workbook()
+            ws1 = wb.active
+            ws1.title = "Commandes réceptionnées"
+            ws1.append(['Fournisseur', 'Réf commande', 'Statut', 'Montant HT', 'Montant Total', 'Date réception'])
+            for order in orders["data"]:
+                supplier_name = order['supplier_name']
+                id_po = order['id_po']
+                amount_untaxed = order['amount_untaxed']
+                amount_total = order['amount_total']
+
+                if order['state'] == "purchase":
+                    state = "Commande fournisseur"
+                elif order['state'] == "done":
+                    state = "Terminé"
+                else:
+                    state = order['state']
+
+                date_done_obj = datetime.datetime.strptime(order['date_done'], '%Y-%m-%d %H:%M:%S')
+                date_done = date_done_obj.strftime("%d/%m/%Y")
+
+                ws1.append([supplier_name, id_po, state, amount_untaxed, amount_total, date_done])
+
+            wb_name = 'export_orders_' + date_from + '_' + date_to + '.xlsx'
+            response = HttpResponse(content=save_virtual_workbook(wb),
+                                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename=' + wb_name
+
+            return response
+        except Exception as e:
+            error = "Une erreur est survenue, merci de contacter le service informatique."
+            coop_logger.error("Erreur export_orders : %s", str(e))
+            return JsonResponse({'erreur': error, 'details': str(e)})
