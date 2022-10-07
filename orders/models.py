@@ -362,6 +362,7 @@ class Orders(models.Model):
             res = o_api.execute('purchase.order', 'get_received_orders_between_dates', [], params)
         except Exception as e:
             res["error"] = str(e)
+            coop_logger.error('get_orders_between_dates : %s', str(e))
 
         return res
 

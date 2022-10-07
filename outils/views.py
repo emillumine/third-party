@@ -427,4 +427,5 @@ class ExportOrders(View):
             return response
         except Exception as e:
             error = "Une erreur est survenue, merci de contacter le service informatique."
+            coop_logger.error("Erreur export_orders : %s", str(e))
             return JsonResponse({'erreur': error, 'details': str(e)})
