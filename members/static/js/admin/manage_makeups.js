@@ -151,9 +151,15 @@ function display_makeups_members() {
         const member = makeups_members.find(m => m.id == member_id);
 
         openModal(
-            `Enlever un rattrapage à ${member.name} ?`,
+            `Enlever un rattrapage à ${member.name} ?
+            <br><br><label>Explication : </label><input class="" type="text" id="decr-explanation">
+            <br><br><label>Signature : </label><input class="" type="text" id="decr-signature">`,
             () => {
-                update_members_makeups([member_id], "decrement");
+                update_members_makeups(
+                    [member_id],
+                    "decrement",
+                    $("#decr-signature")[0].value + ' : ' + $("#decr-explanation")[0].value
+                );
             },
             "Confirmer",
             false
@@ -168,9 +174,15 @@ function display_makeups_members() {
         const member = makeups_members.find(m => m.id == member_id);
 
         openModal(
-            `Ajouter un rattrapage à ${member.name} ?`,
+            `Ajouter un rattrapage à ${member.name} ?
+            <br><br><label>Explication : </label><input class="" type="text" id="incr-explanation">
+            <br><br><label>Signature : </label><input class="" type="text" id="incr-signature">`,
             () => {
-                update_members_makeups([member_id], "increment");
+                update_members_makeups(
+                    [member_id],
+                    "increment",
+                    $("#incr-signature")[0].value + ' : ' + $("#incr-explanation")[0].value
+                );
             },
             "Confirmer",
             false
@@ -198,9 +210,15 @@ function display_makeups_members() {
             if (first_select) {
                 $("#decrement_selected_members_makeups").on("click", () => {
                     openModal(
-                        `Enlever un rattrapage aux membres sélectionnés ?`,
+                        `Enlever un rattrapage aux membres sélectionnés ?
+                        <br><br><label>Explication : </label><input class="" type="text" id="decr-explanation">
+                        <br><br><label>Signature : </label><input class="" type="text" id="decr-signature">`,
                         () => {
-                            update_members_makeups(selected_rows, "decrement");
+                            update_members_makeups(
+                                selected_rows,
+                                "decrement",
+                                $("#decr-signature")[0].value + ' : ' + $("#decr-explanation")[0].value
+                            );
                         },
                         "Confirmer",
                         false
@@ -220,7 +238,7 @@ function display_makeups_members() {
  * @param {Array} member_ids
  * @param {String} action increment | decrement
  */
-function update_members_makeups(member_ids, action) {
+function update_members_makeups(member_ids, action, description) {
     openModal();
 
     data = [];
@@ -255,7 +273,8 @@ function update_members_makeups(member_ids, action) {
             target_makeups_nb: makeups_members[member_index].makeups_to_do,
             member_shift_type: makeups_members[member_index].shift_type,
             display_ftop_points: makeups_members[member_index].display_ftop_points,
-            display_std_points: makeups_members[member_index].display_std_points
+            display_std_points: makeups_members[member_index].display_std_points,
+            description: description,
         });
     }
 
@@ -332,9 +351,15 @@ function display_possible_members() {
                     });
 
                     openModal(
-                        `Ajouter un rattrapage à ${member.name} ?`,
+                        `Ajouter un rattrapage à ${member.name} ?
+                        <br><br><label>Explication : </label><input class="" type="text" id="incr-explanation">
+                        <br><br><label>Signature : </label><input class="" type="text" id="incr-signature">`,
                         () => {
-                            update_members_makeups([member.id], "increment");
+                            update_members_makeups(
+                                [member.id],
+                                "increment",
+                                $("#incr-signature")[0].value + ' : ' + $("#incr-explanation")[0].value
+                            );
                             members_search_results = [];
                             $('#search_member_input').val('');
                             $('.search_member_results_area').hide();

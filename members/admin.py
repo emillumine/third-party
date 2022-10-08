@@ -400,7 +400,7 @@ def update_members_makeups(request):
                     points_update = points_diff
 
                 data = {
-                    'name': "Modif manuelle des rattrapages depuis l'admin BDM",
+                    'name': "Admin BDM - " + member_data["description"],
                     'shift_id': False,
                     'type': member_data["member_shift_type"],
                     'partner_id': int(member_data["member_id"]),
