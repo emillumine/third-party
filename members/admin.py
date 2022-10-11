@@ -415,6 +415,19 @@ def update_members_makeups(request):
         response = JsonResponse(res, status=403)
     return response
 
+def regenerate_member_delay(request):
+    """ From BDM admin, close existing extension if exists & recreate for 6 months """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    if is_connected_user is True:
+        data = json.loads(request.body.decode())
+        print(data["member_id"])
+
+        response = JsonResponse(res, safe=False)
+    else:
+        res["message"] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response
 
 # --- Gestion des créneaux
 

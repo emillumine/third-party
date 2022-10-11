@@ -68,3 +68,7 @@
 .btn_possible_member {
     margin: 0 1rem;
 }
+
+.member_name {
+    font-weight: bold;
+}

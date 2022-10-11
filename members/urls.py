@@ -66,6 +66,7 @@ urlpatterns = [
     url(r'^delete_shift_template_registration$', admin.delete_shift_template_registration),
     url(r'^shift_subscription$', admin.shift_subscription),
     url(r'^admin/manage_attached$', admin.manage_attached),
+    url(r'^admin/regenerate_member_delay$', admin.regenerate_member_delay),
     url(r'^admin/manage_attached/create_pair$', admin.create_pair),
     url(r'^admin/manage_attached/delete_pair$', admin.delete_pair),
     url(r'^get_makeups_members$', admin.get_makeups_members),
