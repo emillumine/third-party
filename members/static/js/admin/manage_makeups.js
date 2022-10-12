@@ -56,7 +56,7 @@ function display_makeups_members() {
         columns: [
             {
                 data: "id",
-                title: '',
+                title: "",
                 className: "dt-body-center",
                 orderable: false,
                 render: function (data) {
@@ -80,7 +80,7 @@ function display_makeups_members() {
             },
             {
                 data: "date_delay_stop",
-                title: "Limite du délai",
+                title: "<div class='title_center'>Limite du délai</div>",
                 className: "dt-body-center",
                 width: "10%",
                 render: function (data) {
@@ -89,7 +89,7 @@ function display_makeups_members() {
             },
             {
                 data: "shift_type",
-                title: "Nb de points",
+                title: "<div class='title_center'>Nb de points</div>",
                 className: "dt-body-center",
                 width: "5%",
                 render: function (data, type, row) {
@@ -104,7 +104,7 @@ function display_makeups_members() {
             },
             {
                 data: "makeups_to_do",
-                title: "Nb rattrapages",
+                title: "<div class='title_center'>Nb rattrapages</div>",
                 className: "dt-body-center",
                 width: "10%",
                 render: function (data, type, full) {

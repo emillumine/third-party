@@ -72,3 +72,8 @@
 .member_name {
     font-weight: bold;
 }
+
+.title_center {
+    display: flex;
+    justify-content: center;
+}
