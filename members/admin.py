@@ -408,7 +408,13 @@ def update_members_makeups(request):
                 }
 
                 cm.update_member_points(data)
-
+        # Better to call run_process_target_status now, otherwise partner remains
+        # in alert until routine is called (every 5 minutes). It is a bit weird for users and
+        # allocation of rattrapages before the routine is executed will not trigger change to delay state !
+        # (the parner would have to go back to espace membre and click on "j'affecte mes rattrapage"
+        # even though it shows 'J'ai 0 rattrapages à effecter' for the delay state change to be eventually triggered)
+        api = OdooAPI()
+        api.execute('res.partner', 'run_process_target_status', [])
         response = JsonResponse(res)
     else:
         res["message"] = "Unauthorized"
