@@ -8,7 +8,7 @@ from members.models import CagetteMember
 from shifts.models import CagetteServices
 from shifts.models import CagetteShift
 from outils.common import MConfig
-from datetime import datetime
+from datetime import datetime, date
 
 default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
@@ -419,9 +419,28 @@ def regenerate_member_delay(request):
     """ From BDM admin, close existing extension if exists & recreate for 6 months """
     res = {}
     is_connected_user = CagetteUser.are_credentials_ok(request)
+    
     if is_connected_user is True:
-        data = json.loads(request.body.decode())
-        print(data["member_id"])
+        raw_data = json.loads(request.body.decode())
+
+        # Close extension if has one
+        member_id = int(raw_data["member_id"])
+        cm = CagetteMember(member_id)
+        cm.close_extension()
+
+        # Recreate starting now
+        cs = CagetteShift()
+        data = {
+            "idPartner": member_id,
+            "start_date": date.today().isoformat()
+        }
+
+        duration = raw_data["duration"]
+        ext_name = "Délai étendue depuis l'admin BDM"
+
+        res["create_delay"] = cs.create_delay(data=data, duration=duration, ext_name=ext_name)
+
+        res["member_data"] = CagetteMembers.get_makeups_members([member_id])[0]
 
         response = JsonResponse(res, safe=False)
     else:

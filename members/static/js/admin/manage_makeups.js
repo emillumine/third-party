@@ -237,6 +237,7 @@ function display_makeups_members() {
         const member = makeups_members.find(m => m.id == member_id);
 
         let modal = $("#modal_extend_delay_template");
+
         modal.find(".member_name").text(member.name);
 
         openModal(
@@ -322,13 +323,21 @@ function update_members_makeups(member_ids, action) {
 
 /**
  * Send request to extend the member's delay, or create one if none open.
- * @param {Object} member 
+ * @param {Object} member
  */
 function extend_member_delay(member) {
     openModal();
 
+    let today = new Date();
+    let today_plus_six_month = new Date();
+
+    today_plus_six_month.setMonth(today_plus_six_month.getMonth()+6);
+    const diff_time = Math.abs(today_plus_six_month - today);
+    const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
+
     let data = {
-        member_id: member.id
+        member_id: member.id,
+        duration: diff_days
     };
 
     $.ajax({
@@ -338,7 +347,11 @@ function extend_member_delay(member) {
         dataType:"json",
         traditional: true,
         contentType: "application/json; charset=utf-8",
-        success: function() {
+        success: function(result) {
+            let i = makeups_members.findIndex(m => m.id == result.member_data.id);
+
+            makeups_members[i].date_delay_stop = result.member_data.date_delay_stop;
+
             display_makeups_members();
             closeModal();
         },

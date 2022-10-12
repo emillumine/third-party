@@ -188,39 +188,39 @@ function set_subscription_area() {
     retrieve_and_draw_shift_tempates({shift_listener: false});
     $("#shifts_calendar_area").show();
 
-        // Cancel listeners from subscription page & set custom listeners
-        $(document).off("click", "#shifts_calendar_area button[data-select='Volant']");
-        $(document).on("click", "#shifts_calendar_area button[data-select='Volant']", function() {
-            // Subscribe to comitee/ftop shift
-            msg = (has_committe_shift === "True")
-                ? `Inscrire ${selected_member.name} au service des Comités ?`
-                : `Inscrire ${selected_member.name} en Volant ?`;
+    // Cancel listeners from subscription page & set custom listeners
+    $(document).off("click", "#shifts_calendar_area button[data-select='Volant']");
+    $(document).on("click", "#shifts_calendar_area button[data-select='Volant']", function() {
+        // Subscribe to comitee/ftop shift
+        msg = (has_committe_shift === "True")
+            ? `Inscrire ${selected_member.name} au service des Comités ?`
+            : `Inscrire ${selected_member.name} en Volant ?`;
 
-            openModal(
-                msg,
-                () => {
-                    shift_subscrition(2);
-                },
-                "Confirmer",
-                false
-            );
-        });
-        $(document).off("click", ".shift");
-        $(document).on("click", ".shift", function() {
-            // Subscribe to shift template
-            let shift_template_id = select_shift_among_compact(null, this, false); // method from common.js
-            let shift_template_data = shift_templates[shift_template_id].data;// shift_templates: var from common.js
-            let shift_template_name = get_shift_name(shift_template_data);
+        openModal(
+            msg,
+            () => {
+                shift_subscrition(2);
+            },
+            "Confirmer",
+            false
+        );
+    });
+    $(document).off("click", ".shift");
+    $(document).on("click", ".shift", function() {
+        // Subscribe to shift template
+        let shift_template_id = select_shift_among_compact(null, this, false); // method from common.js
+        let shift_template_data = shift_templates[shift_template_id].data;// shift_templates: var from common.js
+        let shift_template_name = get_shift_name(shift_template_data);
 
-            openModal(
-                `Inscrire ${selected_member.name} au créneau ${shift_template_name} ?`,
-                () => {
-                    shift_subscrition(1, parseInt(shift_template_id), shift_template_name);
-                },
-                "Confirmer",
-                false
-            );
-        });
+        openModal(
+            `Inscrire ${selected_member.name} au créneau ${shift_template_name} ?`,
+            () => {
+                shift_subscrition(1, parseInt(shift_template_id), shift_template_name);
+            },
+            "Confirmer",
+            false
+        );
+    });
 
 }
 
