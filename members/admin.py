@@ -440,6 +440,34 @@ def regenerate_member_delay(request):
 
         res["create_delay"] = cs.create_delay(data=data, duration=duration, ext_name=ext_name)
 
+        if (res["create_delay"]):
+            try:
+                # Add 0 pt to counter so odoo updates member status
+                data = {
+                    'name': "Forcer l'entrée en délai",
+                    'shift_id': False,
+                    'type': "standard",
+                    'partner_id': member_id,
+                    'point_qty': 0
+                }
+                cm.update_member_points(data)
+
+                data = {
+                    'name': "Forcer l'entrée en délai",
+                    'shift_id': False,
+                    'type': "ftop",
+                    'partner_id': member_id,
+                    'point_qty': 0
+                }
+                cm.update_member_points(data)
+
+                res["force_entry_delay"] = True
+            except Exception as e:
+                print(str(e))
+        else:
+            coop_logger.error("regenerate_member_delay: %s, %s", str(res["create_delay"]), str(data))
+            return HttpResponseServerError()
+
         res["member_data"] = CagetteMembers.get_makeups_members([member_id])[0]
 
         response = JsonResponse(res, safe=False)
