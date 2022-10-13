@@ -160,7 +160,7 @@ function display_makeups_members() {
                 update_members_makeups(
                     [member_id],
                     "decrement",
-                    ($("#decr-signature")[0].value || "pas d'explication") + ' : ' + ($("#decr-explanation")[0].value || "auteur inconnu")
+                    ($("#decr-signature")[0].value || "auteur inconnu") + ' : ' + ($("#decr-explanation")[0].value || "pas d'explication")
                 );
             },
             "Confirmer",
@@ -185,7 +185,7 @@ function display_makeups_members() {
                 update_members_makeups(
                     [member_id],
                     "increment",
-                    ($("#incr-signature")[0].value || "pas d'explication") + ' : ' + ($("#incr-explanation")[0].value || "auteur inconnu")
+                    ($("#incr-signature")[0].value || "auteur inconnu") + ' : ' + ($("#incr-explanation")[0].value || "pas d'explication")
                 );
             },
             "Confirmer",
@@ -219,7 +219,7 @@ function display_makeups_members() {
                             update_members_makeups(
                                 selected_rows,
                                 "decrement",
-                                ($("#decr-signature-selected")[0].value || "pas d'explication") + ' : ' + ($("#decr-explanation-selected")[0].value || "auteur inconnu")
+                                ($("#decr-signature-selected")[0].value || "auteur inconnu") + ' : ' + ($("#decr-explanation-selected")[0].value || "pas d'explication")
                             );
                         },
                         "Confirmer",
@@ -353,15 +353,17 @@ function display_possible_members() {
                         display_ftop_points: member.display_ftop_points
                     });
 
+                    let modal_template = $("#modal_incr_makeup_counter");
+
+                    modal_template.find(".member_name").text(member.name);
+
                     openModal(
-                        `Ajouter un rattrapage à ${member.name} ?
-                        <br><br><label>Explication : </label><input class="" type="text" id="incr-explanation">
-                        <br><br><label>Signature : </label><input class="" type="text" id="incr-signature">`,
+                        modal_template.html(),
                         () => {
                             update_members_makeups(
                                 [member.id],
                                 "increment",
-                                $("#incr-signature")[0].value + ' : ' + $("#incr-explanation")[0].value
+                                ($("#incr-signature")[0].value || "auteur inconnu") + ' : ' + ($("#incr-explanation")[0].value || "pas d'explication")
                             );
                             members_search_results = [];
                             $('#search_member_input').val('');
