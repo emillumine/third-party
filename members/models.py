@@ -1007,14 +1007,7 @@ class CagetteMember(models.Model):
 
         if changing_shift is False:
             # Close extensions if just unsubscribing, else keep it
-            c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
-            f = ['id']
-            res_ids = self.o_api.search_read("shift.extension", c, f)
-            ids = [d['id'] for d in res_ids]
-            
-            if ids:
-                f = {'date_stop': now}
-                res["close_extensions"] = self.o_api.update('shift.extension', ids, f)
+            res["close_extensions"] = self.close_extension()
 
         return res
 
@@ -1034,6 +1027,20 @@ class CagetteMember(models.Model):
         }
 
         return res
+
+    def close_extension(self):
+        now = datetime.datetime.now().isoformat()
+
+        c = [['partner_id', '=', self.id], ['date_start', '<=', now], ['date_stop', '>=', now]]
+        f = ['id']
+        res_ids = self.o_api.search_read("shift.extension", c, f)
+        ids = [d['id'] for d in res_ids]
+        
+        if ids:
+            f = {'date_stop': now}
+            return self.o_api.update('shift.extension', ids, f)
+        else:
+            return False
 
 class CagetteMembers(models.Model):
     """Class to manage operations on all members or part of them."""
@@ -1257,10 +1264,14 @@ class CagetteMembers(models.Model):
         return res
 
     @staticmethod
-    def get_makeups_members():
+    def get_makeups_members(ids=[]):
         api = OdooAPI()
         cond = [['makeups_to_do','>', 0]]
-        fields = ['id', 'name', 'display_std_points', 'display_ftop_points', 'shift_type', 'makeups_to_do']
+
+        if len(ids) > 0:
+            cond.append(['id','in', ids])
+
+        fields = ['id', 'name', 'display_std_points', 'display_ftop_points', 'shift_type', 'makeups_to_do', 'date_delay_stop']
         res = api.search_read('res.partner', cond, fields)
         return res
 

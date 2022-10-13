@@ -355,3 +355,11 @@ $(document).ready(function() {
     };
 
 })(jQuery, 'smartresize');
+
+function display_messages_for_service_exchange_24h_before() {
+    if (block_service_exchange_24h_before === "False") {
+        $(".free_service_exchange").show(); 
+    } else {
+        $(".block_service_exchange").show();
+    }
+}

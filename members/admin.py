@@ -8,7 +8,7 @@ from members.models import CagetteMember
 from shifts.models import CagetteServices
 from shifts.models import CagetteShift
 from outils.common import MConfig
-from datetime import datetime
+from datetime import datetime, date
 
 default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                              'type': 'textarea',
@@ -415,6 +415,66 @@ def update_members_makeups(request):
         response = JsonResponse(res, status=403)
     return response
 
+def regenerate_member_delay(request):
+    """ From BDM admin, close existing extension if exists & recreate for 6 months """
+    res = {}
+    is_connected_user = CagetteUser.are_credentials_ok(request)
+    
+    if is_connected_user is True:
+        raw_data = json.loads(request.body.decode())
+
+        # Close extension if has one
+        member_id = int(raw_data["member_id"])
+        cm = CagetteMember(member_id)
+        cm.close_extension()
+
+        # Recreate starting now
+        cs = CagetteShift()
+        data = {
+            "idPartner": member_id,
+            "start_date": date.today().isoformat()
+        }
+
+        duration = raw_data["duration"]
+        ext_name = "Délai étendue depuis l'admin BDM"
+
+        res["create_delay"] = cs.create_delay(data=data, duration=duration, ext_name=ext_name)
+
+        if (res["create_delay"]):
+            try:
+                # Add 0 pt to counter so odoo updates member status
+                data = {
+                    'name': "Forcer l'entrée en délai",
+                    'shift_id': False,
+                    'type': "standard",
+                    'partner_id': member_id,
+                    'point_qty': 0
+                }
+                cm.update_member_points(data)
+
+                data = {
+                    'name': "Forcer l'entrée en délai",
+                    'shift_id': False,
+                    'type': "ftop",
+                    'partner_id': member_id,
+                    'point_qty': 0
+                }
+                cm.update_member_points(data)
+
+                res["force_entry_delay"] = True
+            except Exception as e:
+                print(str(e))
+        else:
+            coop_logger.error("regenerate_member_delay: %s, %s", str(res["create_delay"]), str(data))
+            return HttpResponseServerError()
+
+        res["member_data"] = CagetteMembers.get_makeups_members([member_id])[0]
+
+        response = JsonResponse(res, safe=False)
+    else:
+        res["message"] = "Unauthorized"
+        response = JsonResponse(res, status=403)
+    return response
 
 # --- Gestion des créneaux
 

@@ -318,7 +318,7 @@ class CagetteShift(models.Model):
             coop_logger.error("Reopen shift : %s", str(e))
         return response
 
-    def create_delay(self, data, duration=28):
+    def create_delay(self, data, duration=28, ext_name="Extension créée depuis l'espace membre"):
         """
         Create a delay for a member.
         If no duration is specified, a delay is by default 28 days from the given start_date.
@@ -327,14 +327,16 @@ class CagetteShift(models.Model):
         Else, create a 28 days delay.
 
         Args:
-            idPartner: int
-            start_date: string date at iso format (eg. "2019-11-19")
-                Date from which the delay end date is calculated
-            (optionnal) extension_beginning: string date at iso format
-                If specified, will be the actual starting date of the extension.
-                Should be inferior than start_date.
-                (at creation only: odoo ignores delays if today's not inside)
+            data
+                idPartner: int
+                start_date: string date at iso format (eg. "2019-11-19")
+                    Date from which the delay end date is calculated
+                (optionnal) extension_beginning: string date at iso format
+                    If specified, will be the actual starting date of the extension.
+                    Should be inferior than start_date.
+                    (at creation only: odoo ignores delays if today's not inside)
             duration: nb of days
+            ext_name: will be displayed in odoo extensions list
         """
         action = 'create'
 
@@ -392,7 +394,7 @@ class CagetteShift(models.Model):
                 "type_id":      ext_type_id,
                 "date_start":   starting_date.isoformat(),
                 "date_stop":    ending_date.isoformat(),
-                "name":         "Extension créée depuis l'espace membre"
+                "name":         ext_name
             }
 
             response = self.o_api.create('shift.extension', fields)

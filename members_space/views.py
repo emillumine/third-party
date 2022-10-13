@@ -31,6 +31,7 @@ def index(request, exception=None):
         'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None),
         'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True),
         'permanent_message': getattr(settings, 'PERMANENT_MESSAGE_BELOW_CONNECTION_FIELDS', None),
+        'block_service_exchange_24h_before' : getattr(settings, 'BLOCK_SERVICE_EXCHANGE_24H_BEFORE', True),
     }
 
     template = loader.get_template('members_space/index.html')

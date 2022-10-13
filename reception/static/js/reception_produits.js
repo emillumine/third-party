@@ -1085,6 +1085,7 @@ function set_supplier_shortage(row, product, from_processed = false) {
                 product.old_qty = product.product_qty;
             }
             product.product_qty = 0;
+            product.package_qty = 0;
         // Step 2: for consistency purposes, updated products need these fields to be set
         } else {
             if (!from_processed) {
