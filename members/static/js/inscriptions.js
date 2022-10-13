@@ -127,7 +127,7 @@ function create_new_coop() {
     $('.chosen_associate_area').hide();
     $('.member_choice').removeClass('choice_active');
     $(".remove_binome_icon").on("click", hide_chosen_associate);
-    $('input[name="binome"]').prop('checked',false);
+    $('input[name="binome"]').prop('checked', false);
     local_in_process = getLocalInProcess();
     if (getLocalInProcess().length > 0) {
         empty_waiting_local_processes();
@@ -270,7 +270,7 @@ function store_new_coop(event) {
     }
 
     if ($('#associate_area').is(':visible')) {
-        // If user choose yes for binome, a type of association must be selected 
+        // If user choose yes for binome, a type of association must be selected
         let associated_data_selected = false;
 
         if (

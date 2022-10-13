@@ -56,7 +56,7 @@ function display_makeups_members() {
         columns: [
             {
                 data: "id",
-                title: '',
+                title: "",
                 className: "dt-body-center",
                 orderable: false,
                 render: function (data) {
@@ -69,10 +69,29 @@ function display_makeups_members() {
                 title: "Nom"
             },
             {
-                data: "shift_type",
-                title: "Nb de points",
+                data: "id",
+                title: "",
+                className: "dt-body-center",
+                orderable: false,
+                width: "10%",
+                render: function (data, type, row) {
+                    return `<button class="btn--primary extend_delay_button" data-member-id="${row.id}">Augmenter le délai</button>`;
+                }
+            },
+            {
+                data: "date_delay_stop",
+                title: "<div class='title_center'>Limite du délai</div>",
                 className: "dt-body-center",
                 width: "10%",
+                render: function (data) {
+                    return (data === false) ? "Pas de délai en cours" : new Date(data).toLocaleDateString();
+                }
+            },
+            {
+                data: "shift_type",
+                title: "<div class='title_center'>Nb de points</div>",
+                className: "dt-body-center",
+                width: "5%",
                 render: function (data, type, row) {
                     if (data == 'ftop') {
                         return row.display_ftop_points;
@@ -85,7 +104,7 @@ function display_makeups_members() {
             },
             {
                 data: "makeups_to_do",
-                title: "Nb rattrapages",
+                title: "<div class='title_center'>Nb rattrapages</div>",
                 className: "dt-body-center",
                 width: "10%",
                 render: function (data, type, full) {
@@ -212,6 +231,24 @@ function display_makeups_members() {
                 .hide();
         }
     });
+
+    $('#makeups_members_table').on('click', 'tbody td .extend_delay_button', function () {
+        const member_id = this.dataset.memberId;
+        const member = makeups_members.find(m => m.id == member_id);
+
+        let modal = $("#modal_extend_delay_template");
+
+        modal.find(".member_name").text(member.name);
+
+        openModal(
+            modal.html(),
+            () => {
+                extend_member_delay(member);
+            },
+            "Confirmer",
+            false
+        );
+    });
 }
 
 /**
@@ -276,10 +313,57 @@ function update_members_makeups(member_ids, action) {
             if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
                 err.msg += ' : ' + data.responseJSON.error;
             }
-            report_JS_error(err, 'members_admin');
+            report_JS_error(err, 'members_admin-manage_makeups');
 
             closeModal();
-            alert('Erreur serveur pour décrémenter les rattrapages. Ré-essayez plus tard.');
+            alert('Erreur serveur pour décrémenter les rattrapages. Veuillez contacer le service informatique.');
+        }
+    });
+}
+
+/**
+ * Send request to extend the member's delay, or create one if none open.
+ * @param {Object} member
+ */
+function extend_member_delay(member) {
+    openModal();
+
+    let today = new Date();
+    let today_plus_six_month = new Date();
+
+    today_plus_six_month.setMonth(today_plus_six_month.getMonth()+6);
+    const diff_time = Math.abs(today_plus_six_month - today);
+    const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
+
+    let data = {
+        member_id: member.id,
+        duration: diff_days
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: "/members/admin/regenerate_member_delay",
+        data: JSON.stringify(data),
+        dataType:"json",
+        traditional: true,
+        contentType: "application/json; charset=utf-8",
+        success: function(result) {
+            let i = makeups_members.findIndex(m => m.id == result.member_data.id);
+
+            makeups_members[i].date_delay_stop = result.member_data.date_delay_stop;
+
+            display_makeups_members();
+            closeModal();
+        },
+        error: function(data) {
+            err = {msg: "erreur serveur pour créer un délai", ctx: 'extend_member_delay'};
+            if (typeof data.responseJSON != 'undefined' && typeof data.responseJSON.error != 'undefined') {
+                err.msg += ' : ' + data.responseJSON.error;
+            }
+            report_JS_error(err, 'members_admin-manage_makeups');
+
+            closeModal();
+            alert('Erreur serveur pour créer un délai. Veuillez contacer le service informatique.');
         }
     });
 }

@@ -68,3 +68,12 @@
 .btn_possible_member {
     margin: 0 1rem;
 }
+
+.member_name {
+    font-weight: bold;
+}
+
+.title_center {
+    display: flex;
+    justify-content: center;
+}
