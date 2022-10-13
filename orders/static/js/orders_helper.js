@@ -284,8 +284,12 @@ function compute_purchase_qty_for_coverage(product, coeff, stock, incoming_qty, 
         purchase_package_qty_for_coverage = 1;
 
     } else {
-        purchase_qty_for_coverage = days * daily_conso - stock - incoming_qty + product.minimal_stock;
+        purchase_qty_for_coverage = days * daily_conso - stock - incoming_qty;
         purchase_qty_for_coverage = (purchase_qty_for_coverage < 0) ? 0 : purchase_qty_for_coverage;
+
+        if (purchase_qty_for_coverage + stock + incoming_qty < product.minimal_stock) {
+            purchase_qty_for_coverage = product.minimal_stock - stock - incoming_qty;
+        }
 
         // Reduce to nb of packages to purchase
         purchase_package_qty_for_coverage = purchase_qty_for_coverage / product.suppliersinfo[0].package_qty;
