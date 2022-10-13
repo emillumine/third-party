@@ -169,10 +169,18 @@ function display_makeups_members() {
 
         const member = makeups_members.find(m => m.id == member_id);
 
+        let modal_template = $("#modal_decr_makeup_counter");
+
+        modal_template.find(".member_name").text(member.name);
+
         openModal(
-            `Enlever un rattrapage à ${member.name} ?`,
+            modal_template.html(),
             () => {
-                update_members_makeups([member_id], "decrement");
+                update_members_makeups(
+                    [member_id],
+                    "decrement",
+                    ($("#decr-signature")[0].value || "auteur inconnu") + ' : ' + ($("#decr-explanation")[0].value || "pas d'explication")
+                );
             },
             "Confirmer",
             false
@@ -186,10 +194,18 @@ function display_makeups_members() {
 
         const member = makeups_members.find(m => m.id == member_id);
 
+        let modal_template = $("#modal_incr_makeup_counter");
+
+        modal_template.find(".member_name").text(member.name);
+
         openModal(
-            `Ajouter un rattrapage à ${member.name} ?`,
+            modal_template.html(),
             () => {
-                update_members_makeups([member_id], "increment");
+                update_members_makeups(
+                    [member_id],
+                    "increment",
+                    ($("#incr-signature")[0].value || "auteur inconnu") + ' : ' + ($("#incr-explanation")[0].value || "pas d'explication")
+                );
             },
             "Confirmer",
             false
@@ -217,9 +233,13 @@ function display_makeups_members() {
             if (first_select) {
                 $("#decrement_selected_members_makeups").on("click", () => {
                     openModal(
-                        `Enlever un rattrapage aux membres sélectionnés ?`,
+                        $("#modal_decr_selected_makeup_counter").html(),
                         () => {
-                            update_members_makeups(selected_rows, "decrement");
+                            update_members_makeups(
+                                selected_rows,
+                                "decrement",
+                                ($("#decr-signature-selected")[0].value || "auteur inconnu") + ' : ' + ($("#decr-explanation-selected")[0].value || "pas d'explication")
+                            );
                         },
                         "Confirmer",
                         false
@@ -256,8 +276,9 @@ function display_makeups_members() {
  *
  * @param {Array} member_ids
  * @param {String} action increment | decrement
+ * @param description
  */
-function update_members_makeups(member_ids, action) {
+function update_members_makeups(member_ids, action, description) {
     openModal();
 
     data = [];
@@ -292,7 +313,8 @@ function update_members_makeups(member_ids, action) {
             target_makeups_nb: makeups_members[member_index].makeups_to_do,
             member_shift_type: makeups_members[member_index].shift_type,
             display_ftop_points: makeups_members[member_index].display_ftop_points,
-            display_std_points: makeups_members[member_index].display_std_points
+            display_std_points: makeups_members[member_index].display_std_points,
+            description: description,
         });
     }
 
@@ -415,10 +437,18 @@ function display_possible_members() {
                         display_ftop_points: member.display_ftop_points
                     });
 
+                    let modal_template = $("#modal_incr_makeup_counter");
+
+                    modal_template.find(".member_name").text(member.name);
+
                     openModal(
-                        `Ajouter un rattrapage à ${member.name} ?`,
+                        modal_template.html(),
                         () => {
-                            update_members_makeups([member.id], "increment");
+                            update_members_makeups(
+                                [member.id],
+                                "increment",
+                                ($("#incr-signature")[0].value || "auteur inconnu") + ' : ' + ($("#incr-explanation")[0].value || "pas d'explication")
+                            );
                             members_search_results = [];
                             $('#search_member_input').val('');
                             $('.search_member_results_area').hide();
