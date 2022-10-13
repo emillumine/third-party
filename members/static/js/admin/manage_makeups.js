@@ -150,15 +150,17 @@ function display_makeups_members() {
 
         const member = makeups_members.find(m => m.id == member_id);
 
+        let modal_template = $("#modal_decr_makeup_counter");
+
+        modal_template.find(".member_name").text(member.name);
+
         openModal(
-            `Enlever un rattrapage à ${member.name} ?
-            <br><br><label>Explication : </label><input class="" type="text" id="decr-explanation">
-            <br><br><label>Signature : </label><input class="" type="text" id="decr-signature">`,
+            modal_template.html(),
             () => {
                 update_members_makeups(
                     [member_id],
                     "decrement",
-                    $("#decr-signature")[0].value + ' : ' + $("#decr-explanation")[0].value
+                    ($("#decr-signature")[0].value || "pas d'explication") + ' : ' + ($("#decr-explanation")[0].value || "auteur inconnu")
                 );
             },
             "Confirmer",
@@ -173,15 +175,17 @@ function display_makeups_members() {
 
         const member = makeups_members.find(m => m.id == member_id);
 
+        let modal_template = $("#modal_incr_makeup_counter");
+
+        modal_template.find(".member_name").text(member.name);
+
         openModal(
-            `Ajouter un rattrapage à ${member.name} ?
-            <br><br><label>Explication : </label><input class="" type="text" id="incr-explanation">
-            <br><br><label>Signature : </label><input class="" type="text" id="incr-signature">`,
+            modal_template.html(),
             () => {
                 update_members_makeups(
                     [member_id],
                     "increment",
-                    $("#incr-signature")[0].value + ' : ' + $("#incr-explanation")[0].value
+                    ($("#incr-signature")[0].value || "pas d'explication") + ' : ' + ($("#incr-explanation")[0].value || "auteur inconnu")
                 );
             },
             "Confirmer",
@@ -210,14 +214,12 @@ function display_makeups_members() {
             if (first_select) {
                 $("#decrement_selected_members_makeups").on("click", () => {
                     openModal(
-                        `Enlever un rattrapage aux membres sélectionnés ?
-                        <br><br><label>Explication : </label><input class="" type="text" id="decr-explanation">
-                        <br><br><label>Signature : </label><input class="" type="text" id="decr-signature">`,
+                        $("#modal_decr_selected_makeup_counter").html(),
                         () => {
                             update_members_makeups(
                                 selected_rows,
                                 "decrement",
-                                $("#decr-signature")[0].value + ' : ' + $("#decr-explanation")[0].value
+                                ($("#decr-signature-selected")[0].value || "pas d'explication") + ' : ' + ($("#decr-explanation-selected")[0].value || "auteur inconnu")
                             );
                         },
                         "Confirmer",
@@ -237,6 +239,7 @@ function display_makeups_members() {
  *
  * @param {Array} member_ids
  * @param {String} action increment | decrement
+ * @param description
  */
 function update_members_makeups(member_ids, action, description) {
     openModal();
