@@ -212,8 +212,6 @@ function delete_pair(childId, gone_checked) {
 
             payload['gone'].push(elts[0]);
         });
-    } else {
-        payload['unsubscribed'].push(elts[0]);
     }
 
     $.ajax({
