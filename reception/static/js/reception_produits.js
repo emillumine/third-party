@@ -1182,7 +1182,7 @@ function setLineEdition(product) {
         } else {
             document.getElementById('product_uom').innerHTML = ' / unité';
             $('#edition_input').attr('type', 'number')
-                .attr('step', 0.01)
+                .attr('step', (allow_four_digits_in_reception_price == "True" ? 0.0001 : 0.01))
                 .attr('max', 9999);
         }
     } else if (editing_product.product_uom[0] == 21) { // kg
@@ -1194,7 +1194,7 @@ function setLineEdition(product) {
         } else {
             document.getElementById('product_uom').innerHTML = ' / kg';
             $('#edition_input').attr('type', 'number')
-                .attr('step', 0.01)
+                .attr('step', (allow_four_digits_in_reception_price == "True" ? 0.0001 : 0.01))
                 .attr('max', 9999);
         }
     }

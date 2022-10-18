@@ -33,7 +33,7 @@ def home(request):
             'merge_orders_pswd': getattr(settings, 'RECEPTION_MERGE_ORDERS_PSWD', 'makeastop'),
             'couchdb_server': settings.COUCHDB['url'],
             'db': settings.COUCHDB['dbs']['reception'],
-            'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', '')
+            'POUCHDB_VERSION': getattr(settings, 'POUCHDB_VERSION', ''),
         }
         template = loader.get_template('reception/index.html')
 
@@ -93,7 +93,8 @@ def produits(request, id):
         "ADD_ALL_LEFT_IS_GOOD_QTIES": False,
         "ADD_ALL_LEFT_IS_GOOD_PRICES": False,
         'add_products_pswd': getattr(settings, 'RECEPTION_ADD_PRODUCTS_PSWD', 'makeastop'),
-        'update_qty_pswd': getattr(settings, 'RECEPTION_UPDATE_QTY_PSWD', 'makeastop')
+        'update_qty_pswd': getattr(settings, 'RECEPTION_UPDATE_QTY_PSWD', 'makeastop'),
+        'allow_four_digits_in_reception_price': getattr(settings, 'ALLOW_FOUR_DIGITS_IN_RECEPTION_PRICE', False),
     }
     fixed_barcode_prefix = '0490'
 
