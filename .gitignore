@@ -19,3 +19,4 @@ shop/errors.log
 .idea
 members/settings.json
 .DS_Store
+exec.*.log
