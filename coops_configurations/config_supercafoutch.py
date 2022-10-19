@@ -92,3 +92,5 @@ VRAC_SHELFS = []
 
 # Should block service exchange if old service is happening in less than 24h
 BLOCK_SERVICE_EXCHANGE_24H_BEFORE = False
+
+ALLOW_FOUR_DIGITS_IN_RECEPTION_PRICE = True
