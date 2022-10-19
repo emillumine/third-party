@@ -18,6 +18,7 @@ function init_datatable() {
             {data: "id", title:"id", "visible": false},
             {
                 data:"datetime_created",
+                orderData:[0],
                 title:"Liste",
                 render: function (data) {
                     return "Liste du " + data;

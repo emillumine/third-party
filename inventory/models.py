@@ -51,7 +51,8 @@ class CagetteInventory(models.Model):
                     with open(os.path.join(r, file)) as json_file:
                         file_data = json.load(json_file)
 
-                    date_time = datetime.fromtimestamp(int(filename))
+                    local_tz = pytz.timezone('Europe/Paris')
+                    date_time = datetime.fromtimestamp(int(filename), local_tz)
                     d = date_time.strftime("%d/%m/%Y, %H:%M")
 
                     file_data['id'] = int(filename)
