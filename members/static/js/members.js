@@ -106,7 +106,7 @@ function fill_member_slide(member) {
 
         html_elts.status_explanation.html(explanation);
     }
-    if (member.cooperative_state == 'Désinscrit(e)') coop_info.addClass('b_red');
+    if (member.cooperative_state == 'Désinscrit(e)' || member.cooperative_state == 'Parti(e)') coop_info.addClass('b_red');
     else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé' || member.cooperative_state == 'Rattrapage') coop_info.addClass('b_orange');
 
     if (member.shifts.length > 0) {
