@@ -27,6 +27,13 @@ class CagetteMembersSpace(models.Model):
                 answer = True
         return answer
 
+    def get_extension_duration(self):
+        """Return nb of months"""
+        # TODO : add a unit parameter and convert if not month
+        extension_duration = OdooAPI().get_system_param('lacagette_membership.extension_duration')
+        nb, unit = extension_duration.split(' ')
+        return nb
+
     def get_shifts_history(self, partner_id, limit, offset, date_from):
         """ Get partner shifts history """
         res = []

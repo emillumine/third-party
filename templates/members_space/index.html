@@ -93,7 +93,7 @@
     </div>
 
     <div id="cant_have_delay_msg_template">
-      <h3>Bonjour, tu avais 6 mois pour rattraper tes services manqués et il semblerait que tu ne l'aies pas fait.</h3>
+      <h3>Bonjour, tu avais {{extension_duration}} mois pour rattraper tes services manqués et il semblerait que tu ne l'aies pas fait.</h3>
       <h3>Tu ne peux plus sélectionner de rattrapages sur ton espace membre pour le moment, 
           merci de contacter le bureau des membres pour résoudre ce problème en remplissant ce formulaire : </h3>
     </div>
@@ -156,6 +156,7 @@
   var block_actions_for_attached_people = '{{block_actions_for_attached_people}}';
   var block_service_exchange_24h_before = '{{block_service_exchange_24h_before}}';
   const canAddShift = {{canAddShift}};
+  const extension_duration = {{extension_duration}};
 </script>
 <script src="{% static "js/all_common.js" %}?v=1651853225"></script>
 <script src="{% static "js/common.js" %}?v=1651853225"></script>

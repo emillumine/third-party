@@ -139,10 +139,10 @@ function request_delay() {
 
         const delay_start = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
 
-        let today_plus_six_month = new Date();
+        let today_plus_extension_duration = new Date();
 
-        today_plus_six_month.setMonth(today_plus_six_month.getMonth()+6);
-        const diff_time = Math.abs(today_plus_six_month - today);
+        today_plus_extension_duration.setMonth(today_plus_extension_duration.getMonth()+ extension_duration);
+        const diff_time = Math.abs(today_extension_duration - today);
         const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
 
         $.ajax({
@@ -157,7 +157,7 @@ function request_delay() {
             },
             success: function() {
                 partner_data.cooperative_state = 'delay';
-                partner_data.date_delay_stop = today_plus_six_month.getFullYear()+'-'+(today_plus_six_month.getMonth()+1)+'-'+today_plus_six_month.getDate();
+                partner_data.date_delay_stop = today_plus_extension_duration.getFullYear()+'-'+(today_plus_extension_duration.getMonth()+1)+'-'+today_plus_extension_duration.getDate();
 
                 resolve();
             },
