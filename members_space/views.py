@@ -184,6 +184,9 @@ def home(request):
         partnerData = cs.get_data_partner(partner_id)
         if partnerData['cooperative_state'] == "unsubscribed":
             coop_can_change_shift_template = False
+        if getattr(settings, 'ASSOCIATE_PEOPLE_CAN_CHANGE_SHIFT_TEMPLE_REGISTRATION', False) is False:
+            if partnerData['is_associated_people'] is True:
+                coop_can_change_shift_template = False
     context = {
         'title': 'Espace Membres',
         'coop_can_change_shift_template': coop_can_change_shift_template,
