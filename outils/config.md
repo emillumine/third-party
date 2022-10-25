@@ -449,6 +449,10 @@
 
         Define duration, in hours, before shift starts within exchange is not more available, for standard shift_type member
 
+- REMOVE_15_MINUTES_AT_SHIFT_END = False
+
+        True by default. Remove 15 minutes to Odoo shift end (https://redmine.cooperatic.fr/issues/1680)
+
 ### BDM Admin
 
 - BDM_SHOW_FTOP_BUTTON = True (by default)

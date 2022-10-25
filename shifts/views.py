@@ -99,7 +99,7 @@ def get_list_shift_calendar(request, partner_id):
     registerPartner = cs.get_shift_partner(partner_id)
 
     use_new_members_space = getattr(settings, 'USE_NEW_MEMBERS_SPACE', False) 
-
+    remove_15_minutes_at_shift_end = getattr(settings, 'REMOVE_15_MINUTES_AT_SHIFT_END', True)
     listRegisterPartner = []
     listMakeUpShift = []
     for v in registerPartner:
@@ -113,8 +113,8 @@ def get_list_shift_calendar(request, partner_id):
 
     events = []
     for value in listService:
-        events.append(value)
         if value['shift_type_id'][0] == 1 or getattr(settings, 'USE_STANDARD_SHIFT', True) is False:
+            #  Standard ou volant si on n'utilise pas les services standards (config)
             l = set(value['registration_ids']) & set(listRegisterPartner)
             # if (int(value['seats_reserved']) == int(value['seats_max']) and len(l) > 0 ) or (int(value['seats_reserved']) < int(value['seats_max'])):
             if (int(value['seats_available']) > 0 or len(l) > 0 ):
@@ -134,7 +134,9 @@ def get_list_shift_calendar(request, partner_id):
 
                 event["start"] = dateIsoUTC(value['date_begin_tz'])
 
-                datetime_object = datetime.datetime.strptime(value['date_end_tz'], "%Y-%m-%d %H:%M:%S") - datetime.timedelta(minutes=15)
+                datetime_object = datetime.datetime.strptime(value['date_end_tz'], "%Y-%m-%d %H:%M:%S")
+                if remove_15_minutes_at_shift_end is True:
+                    datetime_object -= datetime.timedelta(minutes=15)
                 event["end"] = dateIsoUTC(datetime_object.strftime("%Y-%m-%d %H:%M:%S"))
 
                 if len(l) > 0:
