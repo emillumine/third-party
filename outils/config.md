@@ -346,6 +346,10 @@
 
         By default, False. Set if coop can or not add shifts in their memberspace calendar
 
+- ASSOCIATE_PEOPLE_CAN_CHANGE_SHIFT_TEMPLE_REGISTRATION = True
+
+        By default, False.
+
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True
