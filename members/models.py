@@ -317,7 +317,7 @@ class CagetteMember(models.Model):
                     [invoice_id])
         return [invoice_id, invoice_line_id]
 
-    def create_coop_shift_subscription(self, shift_t_id, stype):
+    def create_coop_shift_subscription(self, shift_t_id, stype, call_nb=1):
         """Store coop shift subscription."""
         # Get shift template ticket corresponding to given shift temp. id
         sti = None
@@ -345,8 +345,12 @@ class CagetteMember(models.Model):
                                }
                 st_r_id = self.o_api.create('shift.template.registration',
                                             st_r_fields)
-            except:
-                st_r_id = None
+            except Exception as ex:
+                if 'seules les inscriptions ABCD sont possibles' in str(ex) and call_nb < 2:
+                    return self.create_coop_shift_subscription(shift_t_id, 1, call_nb + 1)
+                else:
+                    coop_logger.error("Error while creating shift.template.registration : %s, (fields =%s)", str(ex), str(st_r_fields))
+                    st_r_id = None
 
         return st_r_id
 

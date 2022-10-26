@@ -447,7 +447,10 @@ function shift_loc_selection() {
     if (clicked.data('select') != 'Volant') {
         retrieve_and_draw_shift_tempates();
     } else {
-        subscribe_shift(volant);
+        //shift_templates[volant] is not always set (when call from bdm interface)
+        if (typeof volant !== "undefined" && typeof shift_templates[volant] !== "undefined") {
+            subscribe_shift(volant);
+        } 
     }
 
 }

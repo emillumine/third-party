@@ -346,6 +346,7 @@ def manage_regular_shifts(request):
     """ Administration des créneaux des membres """
     template = loader.get_template('members/admin/manage_regular_shifts.html')
     committees_shift_id = CagetteServices.get_committees_shift_id()
+    committees_shift_name = getattr(settings, 'COMMITTEES_SHIFT_NAME', "service des Comités")
     context = {
         'title': 'BDM - Créneaux',
         'module': 'Membres',
@@ -357,6 +358,7 @@ def manage_regular_shifts(request):
         'show_ftop_button': getattr(settings, 'BDM_SHOW_FTOP_BUTTON', True),
         'has_committe_shift': committees_shift_id is not None,
         'committees_shift_id': committees_shift_id,
+        'committees_shift_name': committees_shift_name,
         'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
     }
     return HttpResponse(template.render(context, request))
@@ -582,7 +584,6 @@ def shift_subscription(request):
 
             # First try to get committees shift
             shift_template_id = CagetteServices.get_committees_shift_id()
-
             # If None, no committees shift, get the first ftop shift
             if shift_template_id is None:
                 shift_template_id = CagetteServices.get_first_ftop_shift_id()
@@ -604,19 +605,22 @@ def shift_subscription(request):
                 )
 
             res["unsubscribe_member"] = m.unsubscribe_member(changing_shift = True)
-        m.create_coop_shift_subscription(shift_template_id, shift_type)
+        reg_id = m.create_coop_shift_subscription(shift_template_id, shift_type)
 
         # Return necessary data
-        api = OdooAPI()
-        c = [['id', '=', shift_template_id]]
-        f = ['id', 'name']
-        res["shift_template"] = api.search_read('shift.template', c, f)[0]
+        if reg_id is not None:
+            api = OdooAPI()
+            c = [['id', '=', shift_template_id]]
+            f = ['id', 'name']
+            res["shift_template"] = api.search_read('shift.template', c, f)[0]
 
-        c = [['id', '=', partner_id]]
-        f = ['cooperative_state']
-        res["cooperative_state"] = api.search_read('res.partner', c, f)[0]['cooperative_state']
-
-        response = JsonResponse(res)
+            c = [['id', '=', partner_id]]
+            f = ['cooperative_state']
+            res["cooperative_state"] = api.search_read('res.partner', c, f)[0]['cooperative_state']
+            coop_logger.info("Resultat shift_subscription : %s (données reçues = %s)", str(res), str(data))
+            response = JsonResponse(res)
+        else:
+            response = JsonResponse({"message": "Subscription failed"}, status=500)
     else:
         response = JsonResponse({"message": "Unauthorized"}, status=403)
 

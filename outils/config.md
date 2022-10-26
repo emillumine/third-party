@@ -354,6 +354,9 @@
 
         By default 1. Extension type id (from shift_extension_type table) used to create extension
 
+- COMMITTEES_SHIFT_NAME = 'Coolisses'
+        By default "service des Comités"
+
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True
