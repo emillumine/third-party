@@ -193,7 +193,7 @@ function set_subscription_area() {
     $(document).on("click", "#shifts_calendar_area button[data-select='Volant']", function() {
         // Subscribe to comitee/ftop shift
         msg = (has_committe_shift === "True")
-            ? `Inscrire ${selected_member.name} au service des Comités ?`
+            ? `Inscrire ${selected_member.name} au ${committees_shift_name} ?`
             : `Inscrire ${selected_member.name} en Volant ?`;
 
         openModal(
@@ -281,7 +281,7 @@ $(document).ready(function() {
         $(".page_content").show();
 
         if (has_committe_shift === "True") {
-            $("#shifts_calendar_area button[data-select='Volant']").text("Comités");
+            $("#shifts_calendar_area button[data-select='Volant']").text(committees_shift_name);
         }
 
         // Set action to search for the member
