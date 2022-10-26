@@ -7,6 +7,7 @@ from members.models import CagetteMembers
 from members.models import CagetteMember
 from shifts.models import CagetteServices
 from shifts.models import CagetteShift
+from members_space.models import CagetteMembersSpace
 from outils.common import MConfig
 from datetime import datetime, date
 
@@ -120,7 +121,7 @@ default_msettings = {'msg_accueil': {'title': 'Message borne accueil',
                                                 'sort_order': 16
                        },
                        'member_cant_have_delay_form_link': {
-                                                'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après 6 mois',
+                                                'title': 'Lien vers le formulaire pour les membres n\'ayant pas rattrapé leur service après la durée de l\'extension',
                                                 'type': 'text',
                                                 'value': '',
                                                 'class': 'link',
@@ -320,8 +321,11 @@ def admin(request):
 def manage_makeups(request):
     """ Administration des membres """
     template = loader.get_template('members/admin/manage_makeups.html')
+    m = CagetteMembersSpace()
     context = {'title': 'BDM - Rattrapages',
-               'module': 'Membres'}
+               'module': 'Membres',
+               'extension_duration': m.get_extension_duration()
+              }
     return HttpResponse(template.render(context, request))
 
 def manage_shift_registrations(request):
@@ -443,7 +447,6 @@ def regenerate_member_delay(request):
 
         duration = raw_data["duration"]
         ext_name = "Délai étendue depuis l'admin BDM"
-
         res["create_delay"] = cs.create_delay(data=data, duration=duration, ext_name=ext_name)
 
         if (res["create_delay"]):

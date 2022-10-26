@@ -121,6 +121,7 @@ def index(request, exception=None):
                 partnerData["associated_partner_name"] = str(associated_partner["barcode_base"]) + ' - ' + partnerData["associated_partner_name"]
 
             m = CagetteMembersSpace()
+            context['extension_duration'] = m.get_extension_duration()
             context['show_faq'] = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')
             context['show_abcd_calendar'] = getattr(settings, 'SHOW_ABCD_CALENDAR_TAB', True)
             partnerData["comite"] = m.is_comite(partner_id)
@@ -221,9 +222,11 @@ def my_shifts(request):
 def shifts_exchange(request):
     """ Endpoint the front-end will call to load the "Shifts exchange" page. """
     template = loader.get_template('members_space/shifts_exchange.html')
+    m = CagetteMembersSpace()
     context = {
         'title': 'Échange de Services',
-        'canAddShift': getattr(settings, 'CAN_ADD_SHIFT', False)
+        'canAddShift': getattr(settings, 'CAN_ADD_SHIFT', False),
+        'extension_duration': m.get_extension_duration()
     }
     return HttpResponse(template.render(context, request))
 

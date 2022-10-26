@@ -351,10 +351,9 @@ function extend_member_delay(member) {
     openModal();
 
     let today = new Date();
-    let today_plus_six_month = new Date();
-
-    today_plus_six_month.setMonth(today_plus_six_month.getMonth()+6);
-    const diff_time = Math.abs(today_plus_six_month - today);
+    let today_plus_extension_duration = new Date();
+    today_plus_extension_duration.setMonth(today_plus_extension_duration.getMonth()+ extension_duration);
+    const diff_time = Math.abs(today_plus_extension_duration - today);
     const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
 
     let data = {

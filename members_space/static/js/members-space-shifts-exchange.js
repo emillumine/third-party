@@ -613,12 +613,12 @@ function init_calendar_page() {
 
                 } else if (should_select_makeup()) {
                     /* choose a makeup service */
-                    // Check if selected new shift is in less than 6 months
+                    // Check if selected new shift is in less than extension end
                     if (partner_data.date_delay_stop !== 'False') {
                         date_partner_delay_stop = new Date(partner_data.date_delay_stop);
                         if (datetime_new_shift > date_partner_delay_stop) {
                             let msg = `Vous avez jusqu'au ${date_partner_delay_stop.toLocaleDateString("fr-fr", date_options)} ` +
-                                        `pour sélectionner un rattrapage (soit une période de 6 mois depuis votre absence).`;
+                                        `pour sélectionner un rattrapage (soit une période de ${extension_duration} mois depuis votre absence).`;
 
                             alert(msg);
 
