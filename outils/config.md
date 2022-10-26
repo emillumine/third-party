@@ -350,6 +350,10 @@
 
         By default, False.
 
+- EXTENSION_TYPE_ID = 6
+
+        By default 1. Extension type id (from shift_extension_type table) used to create extension
+
 ### Reception
 
 - RECEPTION_ADD_ADMIN_MODE = True

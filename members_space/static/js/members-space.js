@@ -142,7 +142,7 @@ function request_delay() {
         let today_plus_extension_duration = new Date();
 
         today_plus_extension_duration.setMonth(today_plus_extension_duration.getMonth()+ extension_duration);
-        const diff_time = Math.abs(today_extension_duration - today);
+        const diff_time = Math.abs(today_plus_extension_duration - today);
         const diff_days = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
 
         $.ajax({

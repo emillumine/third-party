@@ -447,7 +447,6 @@ def regenerate_member_delay(request):
 
         duration = raw_data["duration"]
         ext_name = "Délai étendue depuis l'admin BDM"
-
         res["create_delay"] = cs.create_delay(data=data, duration=duration, ext_name=ext_name)
 
         if (res["create_delay"]):

@@ -345,7 +345,6 @@ class CagetteShift(models.Model):
         fields = ['extension_ids']
         partner_extensions = self.o_api.search_read('res.partner', cond, fields)
         response = False
-
         # If has extensions
         if 'extension_ids' in partner_extensions[0]:
             # Look for current extension: started before today and ends after
@@ -378,7 +377,7 @@ class CagetteShift(models.Model):
         else:
             # Get the 'Extension' type id
             extension_types = self.o_api.search_read('shift.extension.type')
-            ext_type_id = 1 # Default
+            ext_type_id = getattr(settings, 'EXTENSION_TYPE_ID', 1)
             for val in extension_types:
                 if val['name'] == 'Extension':
                     ext_type_id = val['id']
@@ -396,7 +395,7 @@ class CagetteShift(models.Model):
                 "date_stop":    ending_date.isoformat(),
                 "name":         ext_name
             }
-
+            
             response = self.o_api.create('shift.extension', fields)
 
         return response
