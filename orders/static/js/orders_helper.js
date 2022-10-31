@@ -1667,8 +1667,11 @@ function prepare_datatable_columns() {
             title: "Quantité entrante",
             className: "dt-body-center",
             width: "4%"
-        },
-        {
+        }
+        
+    ];
+
+    let conso = {
             data: "daily_conso",
             title: "Conso moy /jour",
             render: function (data, type, full) {
@@ -1676,8 +1679,15 @@ function prepare_datatable_columns() {
             },
             className: "dt-body-center",
             width: "4%"
-        }
-    ];
+    };
+    
+    if (consumption_average_unit === 'week') {
+        conso.title = "Conso moy/sem."
+        conso.render = function (data, type, full) {
+            return (parseFloat(data, 10) * open_days_per_week).toFixed(2);
+        };
+    }
+    columns.push(conso);
 
     for (const supplier of selected_suppliers) {
         columns.push({

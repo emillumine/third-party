@@ -425,6 +425,16 @@
 
         These shelfs (odoo ids) will be shown first in select list
 
+### Orders helper
+
+- OPEN_DAYS_PER_WEEK = 5
+
+        Default is 6. From monday to saturday
+        
+- CONSUMPTION_AVERAGE_UNIT = 'week'
+
+        'day' is default. All consumption figures are qty/day. This parameter is for display only.
+
 ### New members space
 
 - USE_NEW_MEMBERS_SPACE = True

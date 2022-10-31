@@ -53,7 +53,8 @@
     <div class="txtleft" style="display: none;">
         La quantité à commander pour couvrir les besoins (en jours ou à partir d'un montant en €) est le résultat de :
         <p>
-            (<em>nb_jours</em> <strong>x</strong> <em>conso_moyenne</em>) <strong>-</strong> <em>stock_existant</em> <strong>-</strong> <em>quantités_entrantes</em> <strong>+</strong> <em>stock_minimum</em>
+            (<em>nb_jours</em> <strong>x</strong> <em>conso_moyenne</em>) <strong>-</strong> <em>stock_existant</em> <strong>-</strong> <em>quantités_entrantes</em> <br/>
+            Si la quantité est inférieure à <em>stock_minimum</em> alors c'est la valeur de <em>stock_minimum</em> qui est prise.
         </p>
         <p>
             Pour plus de précisions, ce résultat peut-être ensuite ajusté en pourcentage.

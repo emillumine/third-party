@@ -23,7 +23,9 @@ def helper(request):
         'odoo_server': settings.ODOO['url'],
         'metabase_url': getattr(settings, 'ORDERS_HELPER_METABASE_URL', ''),
         'nb_past_days_to_compute_sales_average': OdooAPI().get_system_param('lacagette_products.nb_past_days_to_compute_sales_average'),
-        'nb_of_consecutive_non_sale_days_considered_as_break': OdooAPI().get_system_param('lacagette_products.nb_of_consecutive_non_sale_days_considered_as_break')
+        'nb_of_consecutive_non_sale_days_considered_as_break': OdooAPI().get_system_param('lacagette_products.nb_of_consecutive_non_sale_days_considered_as_break'),
+        'consumption_average_unit': getattr(settings, 'CONSUMPTION_AVERAGE_UNIT', 'day'),
+        'open_days_per_week': getattr(settings, 'OPEN_DAYS_PER_WEEK', 6)
     }
 
     template = loader.get_template('orders/helper.html')
