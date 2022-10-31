@@ -32,9 +32,13 @@
     <div class="pairs_info">
         <span>
             <i class="fas fa-exclamation-circle"></i> Je suis en binôme.
+            {% if not block_actions_for_attached_people %}
+            Je peux changer les services mais pas le créneau.
+            {% else %}
             Toutes les actions (changement de service, choix d'un rattrapage...) 
             ne sont faisables que sur l'espace membre du <b>binôme principal</b>.
             Dans mon espace membre, les infos ne sont visibles qu'en lecture seule.
+            {% endif %}
         </span>
     </div>
 

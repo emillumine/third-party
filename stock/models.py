@@ -13,11 +13,11 @@ class CagetteStock(models.Model):
         errors = []
 
         if movement_type == 'losses':
-            location_dest_id = settings.LOSSES_LOC_ID
+            location_dest_id = getattr(settings, 'LOSSES_LOC_ID', None)
         elif movement_type == 'meals':
-            location_dest_id = settings.MEALS_LOC_ID
+            location_dest_id = getattr(settings, 'MEALS_LOC_ID', None)
         elif movement_type == 'autoconso':
-            location_dest_id = settings.AUTOCONSO_LOC_ID
+            location_dest_id = getattr(settings, 'AUTOCONSO_LOC_ID', None)
         else:
             errors.append('Type de mouvement incorrect')
             return {'errors': errors}
@@ -40,20 +40,24 @@ class CagetteStock(models.Model):
         api = OdooAPI()
         errors = []
         picking = False
+        
+        stock_loc_id = getattr(settings, 'STOCK_LOC_ID', None)
 
+        if stock_loc_id is None:
+            return {'errors': 'No stock_loc_id', 'picking_id': None}
         # Set stock movement details according to destination
         if stock_movement_data['movement_type'] == 'losses':
             picking_name = 'Pertes - '
-            picking_type = settings.LOSSES_PICKING_TYPE_ID
-            destination = settings.LOSSES_LOC_ID
+            picking_type = getattr(settings, 'LOSSES_PICKING_TYPE_ID', None)
+            destination = getattr(settings, 'LOSSES_LOC_ID', None)
         elif stock_movement_data['movement_type'] == 'meals':
             picking_name = 'Repas Salarié - '
-            picking_type = settings.MEALS_PICKING_TYPE_ID
-            destination = settings.MEALS_LOC_ID
+            picking_type = getattr(settings, 'MEALS_PICKING_TYPE_ID', None)
+            destination = getattr(settings, 'MEALS_LOC_ID', None)
         elif stock_movement_data['movement_type'] == 'autoconso':
             picking_name = 'Autoconsommation - '
-            picking_type = settings.AUTOCONSO_PICKING_TYPE_ID
-            destination = settings.AUTOCONSO_LOC_ID
+            picking_type = getattr(settings, 'AUTOCONSO_PICKING_TYPE_ID', None)
+            destination = getattr(settings, 'AUTOCONSO_LOC_ID', None)
         else:
             errors.append('Type de mouvement incorrect')
             return {'errors': errors, 'picking_id': picking}
@@ -65,7 +69,7 @@ class CagetteStock(models.Model):
             'company_id': 1,
             'name': picking_name,
             'picking_type_id' : picking_type,       # mouvement type
-            'location_id': settings.STOCK_LOC_ID,   # movement origin
+            'location_id': stock_loc_id, # movement origin
             'location_dest_id': destination,        # movement dest
             'move_lines': [],
             'pack_operation_ids': [],
@@ -88,7 +92,7 @@ class CagetteStock(models.Model):
                   "product_uom": p['uom_id'],
                   "product_uom_qty": str(qty),
                   "picking_type_id": picking_type,
-                  "location_id": settings.STOCK_LOC_ID,
+                  "location_id": stock_loc_id,
                   "location_dest_id": destination,
                   "state": "draft",
                   "scrapped": False,
@@ -102,7 +106,7 @@ class CagetteStock(models.Model):
                 {
                   "product_qty": str(qty),
                   "qty_done": str(qty),
-                  "location_id": settings.STOCK_LOC_ID,
+                  "location_id": stock_loc_id,
                   "location_dest_id": destination,
                   "product_id": p['id'],
                   "name": p['name'],

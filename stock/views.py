@@ -12,7 +12,8 @@ from django.shortcuts import render
 def movements_page(request):
     """Page de selection de produits pour créer des mouvements de stock"""
     context = {
-        'title': 'Mouvements de stock'
+        'title': 'Mouvements de stock',
+        'meals_loc_id': getattr(settings, 'MEALS_LOC_ID', None)
     }
     template = loader.get_template('stock/stock_movements.html')
 
@@ -21,7 +22,8 @@ def movements_page(request):
 def movements_view(request):
     """Page d'extraction des mouvements de stocks"""
     context = {
-        'title': 'Mouvements de stock'
+        'title': 'Mouvements de stock',
+        'meals_loc_id': getattr(settings, 'MEALS_LOC_ID', None)
     }
     template = loader.get_template('stock/stock_movements_view.html')
 

@@ -315,7 +315,8 @@ def admin(request):
     template = loader.get_template('members/admin/index.html')
     context = {'title': 'BDM',
                'module': 'Membres',
-               'admin_binome_active': getattr(settings, 'ADMIN_BINOME_ACTIVE', True),}
+               'admin_binome_active': getattr(settings, 'ADMIN_BINOME_ACTIVE', True),
+               'other_bdm_button': getattr(settings, 'OTHER_BDM_BUTTON', None)}
     return HttpResponse(template.render(context, request))
 
 def manage_makeups(request):

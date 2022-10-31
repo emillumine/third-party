@@ -55,7 +55,7 @@ $(document).ready(function() {
         toggleHeader();
     });
 
-    if (partner_data.is_associated_people === "True" && block_actions_for_attached_people === "True") {
+    if (partner_data.is_associated_people === "True" && (block_actions_for_attached_people === "True" || always_show_pair_info === "True")) {
         $(".pairs_info").show();
     }
 });

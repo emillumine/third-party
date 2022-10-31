@@ -44,6 +44,12 @@
                 <span class="management_type_button_icons"><i class="fas fa-wrench"></i></span>
                 {# <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span> #}
             </button><br>
+            {% if other_bdm_button %}
+             <a class="btn--primary management_type_button" href="{{other_bdm_button.url}}" target="_blank">
+                {{other_bdm_button.title}}
+                <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+             </a><br>
+            {% endif %}
         </div>
     </div>
 </div>

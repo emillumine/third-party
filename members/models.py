@@ -608,7 +608,8 @@ class CagetteMember(models.Model):
                         try:
                             api.execute('res.partner', 'send_welcome_email', [partner_id])
                         except Exception as e:
-                            res['error'] = 'Erreur envoie mail invitation'
+                            res['error'] = 'Erreur envoi mail Bienvenue'
+                            coop_logger.error(" Erreur envoi mail Bienvenue: %s", str(e))
                         # from outils.common import CagetteMail
                         # try:
                         #     CagetteMail.sendWelcome(f['email'])

@@ -30,6 +30,7 @@ def index(request, exception=None):
         'title': 'Espace Membre',
         'COMPANY_LOGO': getattr(settings, 'COMPANY_LOGO', None),
         'block_actions_for_attached_people' : getattr(settings, 'BLOCK_ACTIONS_FOR_ATTACHED_PEOPLE', True),
+        'always_show_pair_info': getattr(settings, 'ALWAYS_SHOW_PAIR_INFO', False),
         'permanent_message': getattr(settings, 'PERMANENT_MESSAGE_BELOW_CONNECTION_FIELDS', None),
         'block_service_exchange_24h_before' : getattr(settings, 'BLOCK_SERVICE_EXCHANGE_24H_BEFORE', True),
     }

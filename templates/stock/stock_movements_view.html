@@ -30,7 +30,9 @@
       <select class="select_movement_element select_movement_input" id="movement_type_selector" name="">
         <option value="">-- Choisissez un type de mouvement --</option>
         <option value="losses">Pertes</option>
+        {% if meals_loc_id %}
         <option value="meals">Repas salariés</option>
+        {% endif %}
         <option value="autoconso">Autoconsomation</option>
       </select>
       <p class="select_movement_element">De : <input type="text" id="from" class="select_movement_input"></p>
