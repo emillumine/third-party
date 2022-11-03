@@ -1344,7 +1344,7 @@ function create_orders() {
                 let new_order_template = $("#templates #new_order_item_template");
 
                 new_order_template.find(".new_order_supplier_name").text(supplier_name);
-                new_order_template.find(".new_order_po").text(`PO${new_order.id_po}`);
+                new_order_template.find(".new_order_po").text(`${new_order.display_name}`);
                 new_order_template.find(".new_order_date_planned").text(`Date de livraison prévue: ${date_planned}`);
                 new_order_template.find(".download_order_file_button").attr('id', `download_attachment_${new_order.id_po}`);
 

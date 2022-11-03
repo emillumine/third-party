@@ -238,69 +238,76 @@ class Order(models.Model):
 
     @staticmethod
     def create(supplier_id, date_planned, order_lines):
-        order_data = {
-            "partner_id": int(supplier_id),
-            "partner_ref": False,
-            "currency_id": 1,
-            "date_order": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "origin": "Aide à la commande",
-            "company_id": 1,
-            "order_line": [],
-            "notes": False,
-            "date_planned": date_planned,
-            "picking_type_id": 1,
-            "dest_address_id": False,
-            "incoterm_id": False,
-            "payment_term_id": False,
-            "fiscal_position_id": False,
-            "message_follower_ids": False,
-            "message_ids": False
-        }
+        res = {}
+        try:
+            order_data = {
+                "partner_id": int(supplier_id),
+                "partner_ref": False,
+                "currency_id": 1,
+                "date_order": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "origin": "Aide à la commande",
+                "company_id": 1,
+                "order_line": [],
+                "notes": False,
+                "date_planned": date_planned,
+                "picking_type_id": 1,
+                "dest_address_id": False,
+                "incoterm_id": False,
+                "payment_term_id": False,
+                "fiscal_position_id": False,
+                "message_follower_ids": False,
+                "message_ids": False
+            }
 
-        for line in order_lines:
-            product_line_name =  line["name"]
-            if "product_code" in line and line["product_code"] is not False:
-                product_code = str(line["product_code"])
-                product_line_name = "[" + product_code + "] " + product_line_name
+            for line in order_lines:
+                product_line_name =  line["name"]
+                if "product_code" in line and line["product_code"] is not False:
+                    product_code = str(line["product_code"])
+                    product_line_name = "[" + product_code + "] " + product_line_name
 
-            order_data["order_line"].append(
-                [
-                    0,
-                    False,
-                    {
-                        "package_qty": line["package_qty"],
-                        "price_policy": "uom",
-                        "indicative_package": True,
-                        "product_id": line["product_variant_ids"][0],
-                        "name": product_line_name,
-                        "date_planned": date_planned,
-                        "account_analytic_id": False,
-                        "product_qty_package":line["product_qty_package"],
-                        "product_qty": line["product_qty"],
-                        "product_uom": line["product_uom"],
-                        "price_unit": line["price_unit"],
-                        "discount": 0,
-                        "taxes_id": [
-                            [
-                                6,
-                                False,
-                                line["supplier_taxes_id"]
+                order_data["order_line"].append(
+                    [
+                        0,
+                        False,
+                        {
+                            "package_qty": line["package_qty"],
+                            "price_policy": "uom",
+                            "indicative_package": True,
+                            "product_id": line["product_variant_ids"][0],
+                            "name": product_line_name,
+                            "date_planned": date_planned,
+                            "account_analytic_id": False,
+                            "product_qty_package":line["product_qty_package"],
+                            "product_qty": line["product_qty"],
+                            "product_uom": line["product_uom"],
+                            "price_unit": line["price_unit"],
+                            "discount": 0,
+                            "taxes_id": [
+                                [
+                                    6,
+                                    False,
+                                    line["supplier_taxes_id"]
+                                ]
                             ]
-                        ]
-                    }
-                ]
-            )
+                        }
+                    ]
+                )
 
-        api = OdooAPI()
-        id_po = api.create('purchase.order', order_data)
-        res_confirm = api.execute('purchase.order', 'button_confirm', [id_po])
+            api = OdooAPI()
+            id_po = api.create('purchase.order', order_data)
+            res_confirm = api.execute('purchase.order', 'button_confirm', [id_po])
+            res_for_name = api.search_read('purchase.order', [['id', '=', int(id_po)]], ['display_name'])
 
-        res = {
-            'id_po': id_po,
-            'confirm_po': True,
-            'supplier_id': supplier_id,
-            'date_planned': date_planned
-        }
+            res = {
+                'id_po': id_po,
+                'display_name': res_for_name[0]['display_name'],
+                'confirm_po': True,
+                'supplier_id': supplier_id,
+                'date_planned': date_planned
+            }
+        except Exception as e:
+            res = {'error': str(e)}
+            coop_logger.error("Error while creating PO : %s (order_data = %s order_lines = %s)", str(e), str(order_data), str(order_lines))
 
         return res
 
