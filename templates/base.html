@@ -36,7 +36,7 @@
     <script src="{% static "js/modernizr-custom.min.js" %}"></script>
     {% block additionnal_scripts %}{% endblock %}
     </head>
-  <body>
+  <body class="{% block body_class %}nospecific{% endblock %}">
     {% block menu %}{% endblock %}
     <!-- The overlay -->
     <div id="modal" class="overlay">

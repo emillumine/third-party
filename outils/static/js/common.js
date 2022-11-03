@@ -21,6 +21,7 @@ var volant = null;
 
 
 
+
 function get_displayed_weeks() {
     displayed_weeks = [];
     $('#week_types').find('.selected_weeks :checked').each(function() {
@@ -227,6 +228,8 @@ function draw_shift_templates(params) {
     });
 
     draw_table(begin_hours, function() {
+        const is_inscription_page = $('body').hasClass('inscriptions');
+
         $.each(shift_templates, function(i, e) {
             if (e.data) {
                 var keep_it = false;
@@ -292,9 +295,9 @@ function draw_shift_templates(params) {
             }
 
         });
-
+        
         if (type == 1) {
-            if (!params || (typeof params.shift_listener !== "undefined" && params.shift_listener == true)){
+            if (!params || (typeof params.shift_listener !== "undefined" && params.shift_listener == true) || is_inscription_page == true){
                 shift_table.find('.shift').on("click", single_shift_click);
             }
         }
@@ -320,7 +323,7 @@ function draw_shift_templates(params) {
                 }
 
             }
-            if (!params || (typeof params.shift_listener !== "undefined" && params.shift_listener == true)){
+            if (!params || (typeof params.shift_listener !== "undefined" && params.shift_listener == true) || is_inscription_page == true){
                 shift_table.find('.shift').on("click", select_shift_among_compact);
             }
         }
