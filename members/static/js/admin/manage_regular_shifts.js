@@ -37,18 +37,25 @@ function remove_from_shift_template() {
             display_member_info();
             closeModal();
         },
-        error: function() {
-            err = {
-                msg: "erreur serveur lors de la suppression du membre du créneau",
-                ctx: 'members.admin.manage_regular_shifts.remove_from_shift_template'
-            };
-            report_JS_error(err, 'members.admin');
-            closeModal();
+        error: function(err_data) {
+            if (err_data.status == 403) {
+                enqueue_message_for_next_loading("Problème d'autorisation. Merci de vous réidentifier.");
+                location.reload();
 
-            $.notify("Une erreur est survenue lors du processus de suppression du membre du créneau.", {
-                globalPosition:"top right",
-                className: "error"
-            });
+            } else {
+                err = {
+                    msg: "erreur serveur lors de la suppression du membre du créneau",
+                    ctx: 'members.admin.manage_regular_shifts.remove_from_shift_template'
+                };
+                report_JS_error(err, 'members.admin');
+                closeModal();
+
+                $.notify("Une erreur est survenue lors du processus de suppression du membre du créneau.", {
+                    globalPosition:"top right",
+                    className: "error"
+                });
+            }
+            
         }
     });
 }
@@ -115,6 +122,10 @@ function shift_subscrition(shift_type, shift_template_id = null, shift_template_
                     true,
                     false
                 );
+            } else if (err_data.status == 403) {
+                enqueue_message_for_next_loading("Problème d'autorisation. Merci de vous réidentifier.");
+                location.reload();
+
             } else {
                 err = {
                     msg: "erreur serveur lors de l'inscription du membre au créneau",
