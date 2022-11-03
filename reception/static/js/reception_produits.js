@@ -1484,8 +1484,19 @@ function print_product_labels() {
     try {
         if (is_time_to('print_pdt_labels', 10000)) {
             $.ajax("../../orders/print_product_labels?oids=" + group_ids.join(','))
-                .done(function() {
-                    alert('Impression des étiquettes à coller sur les articles lancée.');
+                .done(function(data) {
+                    let success = false;
+                    if (typeof data.res !== "undefined") {
+                        if (typeof data.res.error === "undefined") {
+                            success = true;
+                        }
+                    }
+                    if (success == true) {
+                        alert("l' impression des étiquettes à coller sur les articles vient d'être lancée.");
+                        $('#barcodesToPrint').hide();
+                    } else {
+                        alert("Une erreur est survenue.")
+                    }
                 });
         } else {
             alert("Vous avez cliqué il y a moins de 10s... Patience, la demande est en cours de traitement.");

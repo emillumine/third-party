@@ -91,7 +91,9 @@ class CagetteProduct(models.Model):
                         v = round(float(price) / float(product['weight_net']), 2)
                     if k == 'price_volume' and len(v) > 0 and len(price) > 0 and float(price) > 0:
                         v = round(float(price) / float(product['volume']), 2)
-                    txt += k + '=' + str(v).strip() + "\r\n"
+                    if directory != "/product_labels/" or (directory == "/product_labels/" and k != "meal_voucher_ok"):
+                        # add parameter to text unless it's for a product label and parameter is meal_voucher_ok
+                        txt += k + '=' + str(v).strip() + "\r\n"
                 if not (nb is None) and len(nb) > 0:
                     txt += 'nb_impression=' + str(nb) + "\r\n"
                 res['txt'] = txt
