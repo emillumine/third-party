@@ -194,7 +194,7 @@ function init_incoming_shifts() {
                 } else if (shift.associate_registered==="both") {
                     shift_line_template.find(".shift_line_associate").text(' - Les deux');
                 } else {
-                    shift_line_template.find(".shift_line_associate").text('A définir');
+                    shift_line_template.find(".shift_line_associate").text(' (A définir) ');
                 }
             } else if (partner_data.parent_id != "False") {
                 if (shift.associate_registered==="partner") {
@@ -204,7 +204,7 @@ function init_incoming_shifts() {
                 } else if (shift.associate_registered==="both") {
                     shift_line_template.find(".shift_line_associate").text(' - Les deux');
                 } else {
-                    shift_line_template.find(".shift_line_associate").text('A définir');
+                    shift_line_template.find(".shift_line_associate").text(' (A définir) ');
                 }
             }
 

@@ -459,6 +459,10 @@
 
         Set alternative template for understand my status
 
+-MEMBERS_SPACE_SHIFTS_EXCHANGE_TEMPLATE =  'members_space/supercoop/shifts_exchange.html'
+
+        Set alternative template for shifts exchange
+
 - SHOW_ABCD_CALENDAR_TAB = False
 
         True by default

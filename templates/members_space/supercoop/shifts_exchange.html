@@ -1,0 +1,74 @@
+<div class="description" style="width: 95%; margin: 0 auto 0 auto;">
+    <p>
+        Pour échanger un service programmé par un autre qui te conviendrait mieux, il te suffit de :<br>
+        <ol>
+            <li>sélectionner le service en cliquant dessus sur le carré blanc</li>
+            <li>sur le planning, choisir en cliquant dessus, un autre service qui te convient</li>
+        </ol>
+    </p>
+</div>
+<div id="shifts_exchange">
+    <div id="unsuscribed_content" class="shifts_exchange_page_content">
+        <h3>Je suis désinscrit.e, je dois remplir un formulaire pour qu'on me réinscrive à un créneau.</h3>
+        <a href="#" target="_blank" class="btn--warning unsuscribed_form_link">
+            J'accède au formulaire
+        </a>
+    </div>
+    <div id="suspended_cant_have_delay_content" class="shifts_exchange_page_content">
+        <div class="suspended_cant_have_delay_msg"></div>
+        <a href="#" target="_blank" class="btn--warning cant_have_delay_form_link">
+            J'accède au formulaire
+        </a>
+    </div>
+    <div id="comite_content" class="shifts_exchange_page_content">
+        <div class="comite_content_msg"></div>
+        <div id="read_only_calendar"></div>
+    </div>
+    <div id="suspended_content" class="shifts_exchange_page_content">
+        <h3>
+            J'ai <span class="makeups_nb"></span> rattrapage(s) à effectuer, je dois le(s) sélectionner pour pouvoir refaire mes courses.
+            J'ai {{extension_duration}} mois de délai pour le(s) rattraper.
+        </h3>
+        <h3>
+            Si besoin, je peux contacter le Bureau des membres via la rubrique "J'ai une demande" pour expliquer ma situation.
+        </h3>
+        <button type="button" class="btn--danger select_makeups">
+            Je sélectionne mes rattrapages
+        </button>
+    </div>
+    <div id="shifts_exchange_content" class="shifts_exchange_page_content">
+        <div id="need_to_select_makeups_message">
+            <span class="select_makeups_message_block">
+                <i class="fas fa-exclamation-triangle makeups_warning"></i>  
+                J'ai <span class="makeups_nb"></span> rattrapage(s) à faire. </span>
+            <span class="select_makeups_message_block">Je dois les sélectionner dans le calendrier. </span>
+            <span class="select_makeups_message_block">Je ne peux pas échanger de service tant que je n'ai pas choisi mes rattrapages. </span>
+        </div>
+        <div id="can_delete_future_registrations_area">
+            <button class="btn--success can_delete_future_registrations_button" id="delete_future_registration">
+                J'ai validé <span class="extra_shift_done"></span> service(s) à deux, je supprime un service futur
+            </button>
+            <button class="btn--success can_delete_future_registrations_button" id="offer_extra_shift">
+                Je souhaite donner <span class="extra_shift_done"></span> service(s) d'avance à la communauté
+            </button>
+        </div>
+        <div id="calendar_top_info">
+            <div id="partner_shifts_list">
+                <h4>Liste de mes services :</h4>
+                <div class="loading-incoming-shifts">
+                    <i class="fas fa-spinner fa-spin fa-lg"></i>
+                </div>
+                <div id="shifts_list"></div>
+                {% if canAddShift %}
+                <button class="btn--primary selectable_shift_line" id="start_adding_shift"><strong>+ Ajouter un service</strong></button>
+                {% endif %}
+            </div>
+            <div id="calendar_explaination_area"></div>
+            <button id="calendar_explaination_button" class="btn--success">Légende du calendrier</button>
+        </div>
+        <div class="loading-calendar">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+        </div>
+        <div id="calendar"></div>
+    </div>
+</div>

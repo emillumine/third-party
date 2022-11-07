@@ -222,7 +222,7 @@ def my_shifts(request):
 
 def shifts_exchange(request):
     """ Endpoint the front-end will call to load the "Shifts exchange" page. """
-    template = loader.get_template('members_space/shifts_exchange.html')
+    template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_SHIFTS_EXCHANGE_TEMPLATE', 'members_space/shifts_exchange.html'))
     m = CagetteMembersSpace()
     context = {
         'title': 'Échange de Services',
