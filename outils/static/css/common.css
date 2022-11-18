@@ -217,3 +217,8 @@ button.accordion.active::after {
     content: "\2212";
 }
 
+.round-rectangle {
+    border: 2px solid #585858;
+    border-radius: 15px;
+    padding: 1rem;
+}
