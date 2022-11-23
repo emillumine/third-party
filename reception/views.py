@@ -330,7 +330,8 @@ def save_error_report(request):
                             }
                         else:
                             # Read step 1 data from couch db document
-                            order_id = f"order_{order['name'].split('PO')[1]}"
+
+                            order_id = 'order_' + str(order['id'])
                             order_doc = c_db.getDocById(order_id)
 
                             try:
