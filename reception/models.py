@@ -42,7 +42,7 @@ class CagetteReception(models.Model):
 
                 orders = api.search_read('purchase.order', c, f)
         except Exception as e:
-            print(str(e))
+            coop_logger.error("get_orders : %s", str(e))
         return orders
 
     def get_order_unprocessable_products(id_po):

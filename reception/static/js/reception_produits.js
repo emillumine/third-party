@@ -2095,6 +2095,7 @@ function create_orders() {
         data: JSON.stringify(orders_data),
         success: (result) => {
             po_ids = [];
+            //WARNING : if result.res.created content is rubbishes (as error dump for exemple) couchDB database will be filled with all available orders, with updated quantities equal to original order quantities !!
             for (let po of result.res.created) {
                 po_ids.push(po.id_po);
             }
@@ -2679,7 +2680,6 @@ $(document).ready(function() {
                 // find order
                 let order_id = group_ids[i];
                 let order = result.rows.find(el => el.id == 'order_' + order_id);
-
                 order = order.doc;
                 order.key = parseInt(i) + 1;
                 orders[order_id] = order;
