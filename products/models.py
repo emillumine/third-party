@@ -536,6 +536,17 @@ class CagetteProducts(models.Model):
                         result['aliases'][alias_bc] = r['alias']
                 elif '{' in r['pattern'] or '.' in r['pattern']:
                     result['patterns'].append(r)
+            if getattr(settings, 'WITH_MULTI_BARCODE_ODOO_MODULE', False):
+                multi_barcodes = OdooAPI().search_read('product.multi.barcode', [],['product_id', 'barcode'])
+                product_ids = []
+                product_barcodes = {}
+                for mb in multi_barcodes:
+                    product_ids.append(mb['product_id'][0])
+                products = OdooAPI().search_read('product.product', [['id', 'in', product_ids]],['barcode'])
+                for p in products:
+                    product_barcodes[p['id']] = p['barcode']
+                for mb in multi_barcodes:
+                    result['aliases'][mb['barcode']] = product_barcodes[mb['product_id'][0]]
         except Exception as e:
             result['error'] = str(e)
             coop_logger.error("Get Barcode Rules : %s", str(e))
