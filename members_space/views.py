@@ -61,12 +61,12 @@ def index(request, exception=None):
                        """Signaler ici une anomalie du formulaire,
                        un problème lié à votre souscription""",
                        'referer': referer,
-                       'mag_place_string': settings.MAG_NAME,
-                       'office_place_string': settings.OFFICE_NAME,
-                       'max_begin_hour': settings.MAX_BEGIN_HOUR,
-                       'payment_meanings': settings.SUBSCRIPTION_PAYMENT_MEANINGS,
-                       'em_url': settings.EM_URL,
-                       'WELCOME_ENTRANCE_MSG': settings.WELCOME_ENTRANCE_MSG,
+                       'mag_place_string': getattr(settings, 'MAG_NAME', ''),
+                       'office_place_string': getattr(settings, 'OFFICE_NAME', ''),
+                       'max_begin_hour': getattr(settings, 'MAX_BEGIN_HOUR', ''),
+                       'payment_meanings': getattr(settings, 'SUBSCRIPTION_PAYMENT_MEANINGS',
+                       'em_url': getattr(settings, 'EM_URL', ''),
+                       'WELCOME_ENTRANCE_MSG': getattr(settings, 'WELCOME_ENTRANCE_MSG', ''),
                        'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
             if hasattr(settings, 'SUBSCRIPTION_ASK_FOR_SEX'):
                 context['ask_for_sex'] = settings.SUBSCRIPTION_ASK_FOR_SEX
