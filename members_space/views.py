@@ -64,7 +64,7 @@ def index(request, exception=None):
                        'mag_place_string': getattr(settings, 'MAG_NAME', ''),
                        'office_place_string': getattr(settings, 'OFFICE_NAME', ''),
                        'max_begin_hour': getattr(settings, 'MAX_BEGIN_HOUR', ''),
-                       'payment_meanings': getattr(settings, 'SUBSCRIPTION_PAYMENT_MEANINGS',
+                       'payment_meanings': getattr(settings, 'SUBSCRIPTION_PAYMENT_MEANINGS'),
                        'em_url': getattr(settings, 'EM_URL', ''),
                        'WELCOME_ENTRANCE_MSG': getattr(settings, 'WELCOME_ENTRANCE_MSG', ''),
                        'WELCOME_SUBTITLE_ENTRANCE_MSG': getattr(settings, 'WELCOME_SUBTITLE_ENTRANCE_MSG', '')}
