@@ -97,6 +97,9 @@ def create_orders(request):
                 supplier_data["date_planned"], 
                 supplier_data["lines"]
             )
+            if 'error' in res_created:
+              res["error"] = res_created['error']
+              return JsonResponse(res, status=500)
             res["created"].append(res_created)
             
     except Exception as e:

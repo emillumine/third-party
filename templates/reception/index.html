@@ -78,12 +78,12 @@
 </div>
 <br/>
 
-<script src="{% static "js/all_common.js" %}?v=1651853225"></script>
+<script src="{% static "js/all_common.js" %}?v=1671550230"></script>
 <script src="{% static 'js/pouchdb.min'|add:POUCHDB_VERSION|add:'.js' %}"></script>        
 <script type="text/javascript">
         var merge_orders_pswd = '{{merge_orders_pswd}}';
         var couchdb_dbname = '{{db}}';
         var couchdb_server = '{{couchdb_server}}' + couchdb_dbname;
 </script>
-<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v=1651853225"></script>
+<script type="text/javascript" src="{% static 'js/reception_index.js' %}?v=1671550230"></script>
 {% endblock %}

@@ -46,7 +46,6 @@ def get_list_orders(request):
     poids = [int(i) for i in request.GET.getlist('poids', [])]
     get_order_lines = request.GET.get('get_order_lines', False)
     get_order_lines = get_order_lines == "true"
-
     ordersOdoo = CagetteReception.get_orders(poids)
     orders = []
     for order in ordersOdoo:
