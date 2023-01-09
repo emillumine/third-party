@@ -156,8 +156,13 @@ def export_one(request, oid):
                         'Qté', 'Référence', 'code-barre','Prix Unitaire', 'Remise', 'Sous-total'])
             for line in order_data['lines']:
                 taxes += line['price_tax']
+                if 'supplier_code' in line:
+                    supplier_code = line['supplier_code']
+                else:
+                    supplier_code = "" # may occur : found in error log
+
                 ws1.append([line['product_id'][1], line['product_qty_package'], line['package_qty'],
-                            line['product_qty'], line['supplier_code'], line['barcode'], line['price_unit'], line['discount'], line['price_subtotal']])
+                            line['product_qty'], supplier_code, line['barcode'], line['price_unit'], line['discount'], line['price_subtotal']])
             ws1.append([])
             ws1.append(['', '', '', '', '', '', '', 'Montant HT', order_data['order']['amount_untaxed'], 'euros'])
             ws1.append(['', '', '', '', '', '', '', 'Taxes', taxes,  'euros'])

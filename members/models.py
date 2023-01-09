@@ -1344,3 +1344,34 @@ class CagetteUser(models.Model):
                 pass
 
         return answer
+
+    @staticmethod
+    def get_groups(request):
+        groups = []
+        if 'authtoken' in request.COOKIES and 'uid' in request.COOKIES:
+            api = OdooAPI()
+            cond = [['id', '=', request.COOKIES['uid']]]
+            fields = ['groups_id']
+            try:
+                res = api.search_read('res.users', cond, fields)
+                if len(res) > 0:
+                    cond = [['id', 'in', res[0]['groups_id']]]
+                    fields = ['full_name']
+                    groups = api.search_read('res.groups', cond, fields)
+            except:
+                pass
+
+        return groups
+
+    @staticmethod
+    def isAllowedToAdmin(request):
+        """Need to create an odoo Group called 'django admin'."""
+        answer = False
+        
+        groups = CagetteUser.get_groups(request)
+        for g in groups:
+            if g['full_name'] == 'django admin':
+                answer = True
+                continue
+        return answer
+

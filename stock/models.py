@@ -35,7 +35,11 @@ class CagetteStock(models.Model):
     @staticmethod
     def do_stock_movement(stock_movement_data):
         """Do a stock movement : """
-
+        if getattr(settings, 'APP_ENV', 'prod') == 'dev':
+            coop_logger.info("do_stock_movement : reçu %s %s %s",
+                              "movement type : " + str(stock_movement_data['movement_type']),
+                              "operator : " + str(stock_movement_data['operator']['name']),
+                              "products : " + str(stock_movement_data['products']))
         TWOPLACES = Decimal(10) ** -2
         api = OdooAPI()
         errors = []
@@ -115,7 +119,8 @@ class CagetteStock(models.Model):
                   "fresh_record": False
                 }
             ])
-
+        if getattr(settings, 'APP_ENV', 'prod') == 'dev':
+            coop_logger.info("fields = %s", str(fields))
         # Exception rises when odoo method returns nothing
         marshal_none_error = 'cannot marshal None unless allow_none is enabled'
         try:

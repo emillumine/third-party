@@ -168,6 +168,17 @@ def update_odoo_stock(request):
         res['msg'] = 'Forbidden'
     return JsonResponse(res)
 
+def general_reset_stock(request, qty):
+    res = {}
+    if CagetteUser.are_credentials_ok(request):
+        try:
+            res['action'] = CagetteInventory.general_reset_stock(qty)
+        except Exception as e:
+            res['msg'] = str(e)
+    else:
+        res['msg'] = 'Forbidden'
+    return JsonResponse(res)
+
 def raz_archived_stock(request):
     res = {}
     if CagetteUser.are_credentials_ok(request):

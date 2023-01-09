@@ -456,6 +456,35 @@ class CagetteInventory(models.Model):
         return {'missed': missed, 'done': done}
 
     @staticmethod
+    def general_reset_stock(qty=0):
+        missed = []
+        done = []
+        api = OdooAPI()
+        # cond = [['active', '=', False], ['qty_available', '!=', 0]]
+        cond = [['active', '=', True]]
+        fields = ['uom_id', 'name', 'qty_available']
+        res = api.search_read('product.product', cond, fields, 100)
+        if len(res) > 0:
+            fields = {'company_id': 1, 'name': 'RAZ archivés',
+                      'location_id': settings.STOCK_LOC_ID}
+            inv = api.create('stock.inventory', fields)
+            if not (inv is None):
+                for p in res:
+                    try:
+                        if p['qty_available'] != qty:
+                            fields = {'product_id': p['id'],
+                                      'inventory_id': inv,
+                                      'product_qty': qty,
+                                      'product_uom_id': p['uom_id'][0],
+                                      'location_id': settings.STOCK_LOC_ID}
+                            li = api.create('stock.inventory.line', fields)
+                            done.append({'product': p, 'id': li})
+                    except Exception as e:
+                        missed.append({'product': p, 'msg': str(e)})
+                api.execute('stock.inventory', 'action_done', [inv])
+        return {'missed': missed, 'done': done}
+
+    @staticmethod
     def raz_negative_stock():
         missed = []
         done = []

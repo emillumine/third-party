@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^get_product_categories$', views.get_product_categories),
     url(r'^create_inventory$', views.create_inventory),
     url(r'^update_odoo_stock$', views.update_odoo_stock),
+    url(r'^general_reset_stock/?([0-9]*)$', views.general_reset_stock),
     url(r'^raz_archived_stock$', views.raz_archived_stock),
     url(r'^raz_negative_stock$', views.raz_negative_stock),
     url(r'^raz_not_saleable$', views.raz_not_saleable),

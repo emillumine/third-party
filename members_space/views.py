@@ -176,60 +176,72 @@ def home(request):
         Consequently, the front-end url should be unknown from the server so the user is redirected to the index,
         then the front-end index will call this endpoint to load the home page
     """
-    template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_HOME_TEMPLATE', 'members_space/home.html'))
-    coop_can_change_shift_template = getattr(settings, 'COOP_CAN_CHANGE_SHIFT_TEMPLATE', False)
-    if coop_can_change_shift_template is True:
-        # make further investigation only if COOP_CAN_CHANGE_SHIFT_TEMPLATE is True
-        if 'id' in request.COOKIES:
-            partner_id = request.COOKIES['id']
-        cs = CagetteShift()
-        partnerData = cs.get_data_partner(partner_id)
-        if partnerData['cooperative_state'] == "unsubscribed":
-            coop_can_change_shift_template = False
-        if getattr(settings, 'ASSOCIATE_PEOPLE_CAN_CHANGE_SHIFT_TEMPLE_REGISTRATION', False) is False:
-            if partnerData['is_associated_people'] is True:
+    if 'id' in request.COOKIES:
+        partner_id = request.COOKIES['id']
+        template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_HOME_TEMPLATE', 'members_space/home.html'))
+        coop_can_change_shift_template = getattr(settings, 'COOP_CAN_CHANGE_SHIFT_TEMPLATE', False)
+        if coop_can_change_shift_template is True:
+            # make further investigation only if COOP_CAN_CHANGE_SHIFT_TEMPLATE is True
+            cs = CagetteShift()
+            partnerData = cs.get_data_partner(partner_id)
+            if partnerData['cooperative_state'] == "unsubscribed":
                 coop_can_change_shift_template = False
-    context = {
-        'title': 'Espace Membres',
-        'coop_can_change_shift_template': coop_can_change_shift_template,
-        'max_begin_hour': settings.MAX_BEGIN_HOUR,
-    }
-    # Get messages to display
-    msettings = MConfig.get_settings('members')
-    if 'msg_accueil' in msettings:
-        context['msg_accueil'] = msettings['msg_accueil']['value']
-    if 'shop_opening_hours' in msettings:
-        context['shop_opening_hours'] = msettings['shop_opening_hours']['value']
-    return HttpResponse(template.render(context, request))
+            if getattr(settings, 'ASSOCIATE_PEOPLE_CAN_CHANGE_SHIFT_TEMPLE_REGISTRATION', False) is False:
+                if partnerData['is_associated_people'] is True:
+                    coop_can_change_shift_template = False
+        context = {
+            'title': 'Espace Membres',
+            'coop_can_change_shift_template': coop_can_change_shift_template,
+            'max_begin_hour': settings.MAX_BEGIN_HOUR,
+        }
+        # Get messages to display
+        msettings = MConfig.get_settings('members')
+        if 'msg_accueil' in msettings:
+            context['msg_accueil'] = msettings['msg_accueil']['value']
+        if 'shop_opening_hours' in msettings:
+            context['shop_opening_hours'] = msettings['shop_opening_hours']['value']
+        return HttpResponse(template.render(context, request))
+    else:
+        # may occur : found in log
+        return redirect("../")
 
 def my_info(request):
     """ Endpoint the front-end will call to load the "My info" page. """
-    template = loader.get_template('members_space/my_info.html')
-    context = {
-        'title': 'Mes Infos',
-        'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True),
-        'understand_my_status_template': getattr(settings, 'MEMBERS_SPACE_UNDERSTAND_MY_STATUS_TEMPLATE', "members_space/understand_my_status.html")
-    }
-    return HttpResponse(template.render(context, request))
+    if 'id' in request.COOKIES:
+        template = loader.get_template('members_space/my_info.html')
+        context = {
+            'title': 'Mes Infos',
+            'understand_my_status': getattr(settings, 'MEMBERS_SPACE_SHOW_UNDERSTAND_MY_STATUS', True),
+            'understand_my_status_template': getattr(settings, 'MEMBERS_SPACE_UNDERSTAND_MY_STATUS_TEMPLATE', "members_space/understand_my_status.html")
+        }
+        return HttpResponse(template.render(context, request))
+    else:
+        return redirect("../")
 
 def my_shifts(request):
     """ Endpoint the front-end will call to load the "My shifts" page. """
-    template = loader.get_template('members_space/my_shifts.html')
-    context = {
-        'title': 'Mes Services',
-    }
-    return HttpResponse(template.render(context, request))
+    if 'id' in request.COOKIES:
+        template = loader.get_template('members_space/my_shifts.html')
+        context = {
+            'title': 'Mes Services',
+        }
+        return HttpResponse(template.render(context, request))
+    else:
+        return redirect("../")
 
 def shifts_exchange(request):
     """ Endpoint the front-end will call to load the "Shifts exchange" page. """
-    template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_SHIFTS_EXCHANGE_TEMPLATE', 'members_space/shifts_exchange.html'))
-    m = CagetteMembersSpace()
-    context = {
-        'title': 'Échange de Services',
-        'canAddShift': getattr(settings, 'CAN_ADD_SHIFT', False),
-        'extension_duration': m.get_extension_duration()
-    }
-    return HttpResponse(template.render(context, request))
+    if 'id' in request.COOKIES:
+        template = loader.get_template(getattr(settings, 'MEMBERS_SPACE_SHIFTS_EXCHANGE_TEMPLATE', 'members_space/shifts_exchange.html'))
+        m = CagetteMembersSpace()
+        context = {
+            'title': 'Échange de Services',
+            'canAddShift': getattr(settings, 'CAN_ADD_SHIFT', False),
+            'extension_duration': m.get_extension_duration()
+        }
+        return HttpResponse(template.render(context, request))
+    else:
+        return redirect("../")
 
 def faqBDM(request):
     template_path = getattr(settings, 'MEMBERS_SPACE_FAQ_TEMPLATE', 'members_space/faq.html')

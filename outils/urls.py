@@ -25,6 +25,7 @@ from .views import ExportOrders
 
 urlpatterns = [
     url('^$', RedirectView.as_view(url='/members/inscriptions/2')),
+    url(r'^administration/', include('administration.urls')),
     url(r'^data/(.*)', views.data),
     url(r'^log_js_error$', views.log_js_error),
     url(r'^test_compta$', views.test_compta),
