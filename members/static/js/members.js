@@ -805,7 +805,7 @@ html_elts.image_medium.on('click', function() {
 
 function ask_for_easy_shift_validation() {
     //alert("operator = " + JSON.stringify(operator))
-    msg = "<p>Je suis bien " + operator.name + "<br/> et <br/>je valide mon service 'Comité' </p>";
+    msg = "<p>Je suis bien " + operator.name + "<br/> et <br/>je valide mon service '" + window.committees_shift_name + "' </p>";
     openModal(msg, function() {
         try {
             post_form(
@@ -813,7 +813,7 @@ function ask_for_easy_shift_validation() {
                 {
                     coop_id: operator.id
                 },
-                function(err) {
+                function(err) { 
                     if (!err) {
                         alert("1 point volant vient d'être ajouté.");
                         clean_search_for_easy_validate_zone();
@@ -867,7 +867,7 @@ function display_possible_members() {
             });
         }
     } else {
-        $('.search_member_results').html('<p><i>Aucun résultat ! Faites-vous partie d\'un comité ? <br/> Si oui, vérifiez la recherche..</i></p>');
+        $('.search_member_results').html('<p><i>Aucun résultat ! Faites-vous partie des ' + window.committees_shift_name + ' ? <br/> Si oui, vérifiez la recherche..</i></p>');
     }
 }
 $(document).ready(function() {

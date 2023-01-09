@@ -2,6 +2,7 @@ from django.db import models
 from outils.common_imports import *
 
 from outils.common import OdooAPI
+from members.models import CagetteMember
 
 from pytz import timezone
 

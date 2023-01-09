@@ -48,6 +48,7 @@ def index(request):
             return HttpResponse("Le créneau des comités n'est pas configuré dans Odoo !")
         else:
             context['committees_shift_id'] = committees_shift_id
+        context['committees_shift_name'] = getattr(settings, 'COMMITTEES_SHIFT_NAME', "Comités")
 
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:

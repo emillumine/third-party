@@ -20,6 +20,7 @@
     window.late_mode = {% if LATE_MODE %}true{% else %}false{% endif %};
     {% if committees_shift_id %}
        window.committees_shift_id = {{committees_shift_id}};
+       window.committees_shift_name = '{{committees_shift_name}}';
     {% endif %} 
   </script>
   <script src="{% static "js/webcam.min.js" %}">
