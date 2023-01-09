@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/admin/bdm_index.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="admin_connexion_button">
+    {% include "common/conn_admin.html" %}
+</div>
+<div class="page_body">
+ 	<div id="content_main" class="page_content">
+	    <div class="header txtcenter">
+	      <h1>Administration</h1>
+	    </div>
+	    <div>
+	    {% if is_connected %}
+	    	{% if is_admin %}
+	    	<div class="management_type_buttons txtcenter">
+            <button type="button" class="btn--primary management_type_button" id="manage_django_logs">
+                Logs Django
+                <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+            </button><br>
+             <button type="button" class="btn--primary management_type_button" id="manage_odoo_logs">
+                Logs Odoo
+                <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+            </button><br>
+        	</div>
+	    	{% else %}
+	    	Vous n'avez pas les droits suffisants pour accéder au contenu.
+	    	{% endif %}
+	    {% else %}
+	    Authentification obligatoire, avec droits admin
+	    {% endif %}
+    	</div>
+	</div>
+</div>
+
+<script src="{% static "js/all_common.js" %}?v=1651853225"></script>
+<script src="{% static "js/master_admin.js" %}?v=1651853225"></script>
+{% endblock %}

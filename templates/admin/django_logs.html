@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/diasg_tabs.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_common.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<div id="admin_connexion_button">
+    {% include "common/conn_admin.html" %}
+</div>
+<div class="page_body">
+    <div id="back_to_admin_index">
+      <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+    </div>
+</div>
+<script src='{% static "js/all_common.js" %}?v=1651853225'></script>
+<script src='{% static "js/admin_common.js" %}?v=1651853225'></script>
+<script src='{% static "js/django_logs.js" %}?v=1651853225'></script>
+{% endblock %}

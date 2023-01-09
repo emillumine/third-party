@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+<link rel="stylesheet" href="{% static 'css/datatables/jquery.dataTables.css' %}">
+<link rel="stylesheet" href="{% static 'css/products.css' %}">
+{% endblock %}
+
+{% block additionnal_scripts %}
+<script type="text/javascript" src="{% static 'js/datatables/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/datatables/dataTables.plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/admin/labels.js' %}?v=1651853225"></script>
+<script type="text/javascript" src="{% static 'js/notify.min.js' %}?v=1651853225"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+  <div class="login_area">
+      {% include "common/conn_admin.html" %}
+  </div>
+  <div class="header txtcenter">
+    <h1>Etiquettes des produits</h1>
+  </div>
+  <div class="page_content">
+    <div class="main">
+      <table id="products_table" class="display" cellspacing="0" ></table>
+    </div>
+  </div>
+</div>
+<script src="{% static "js/all_common.js" %}?v=1651853225"></script>
+<script src="{% static "js/common.js" %}?v=1651853225"></script>
+{% endblock %}

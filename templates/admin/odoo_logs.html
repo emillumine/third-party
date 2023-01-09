@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additionnal_css %}
+
+{% endblock %}
+
+{% block additionnal_scripts %}
+{% endblock %}
+
+{% block content %}
+<div class="page_body">
+    <div id="back_to_admin_index">
+      <button type="button" class="btn--danger"><i class="fas fa-arrow-left"></i>&nbsp; Retour</button>
+    </div>
+    <div class="login_area">
+      {% include "common/conn_admin.html" %}
+    </div>
+</div>
