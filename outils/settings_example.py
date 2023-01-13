@@ -54,6 +54,7 @@ INSTALLED_APPS = (
     'shelfs',
     'sales',
     'members_space',
+    'administration'
     #  'tests'
 
 )
@@ -102,6 +103,7 @@ STATICFILES_DIRS = (
     "shelfs/static",
     "orders/static",
     "members_space/static",
+    "administration/static"
     # "tests/static"
 
 )
