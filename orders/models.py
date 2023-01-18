@@ -66,8 +66,8 @@ class Order(models.Model):
             # Adding barcode and other data for every purchased product
             f = ['barcode', 'product_tmpl_id', 'shelf_id']
             if forExport is False:  # i.e for reception
-                f += ['taxes_id', 'standard_price']
-                coeff = self.get_coop_main_coeff()
+                f += ['taxes_id', 'standard_price', 'coeff9_inter']
+                # coeff = self.get_coop_main_coeff() : non, car ne prend en compte que la marge principale
             c = [['id', 'in', pids]]
             res_bc = self.o_api.search_read('product.product', c, f)
             tmpl_ids = []
@@ -95,6 +95,7 @@ class Order(models.Model):
                 for l in res_bc:
                     for p in res:
                         if p['product_id'][0] == l['id']:
+                            #  coop_logger.info(str(l))
                             p['shelf_sortorder'] = 'X'
                             p['barcode'] = l['barcode']
                             p['product_tmpl_id'] = l['product_tmpl_id'][0]
@@ -102,7 +103,11 @@ class Order(models.Model):
                                 p['p_price'] = l['standard_price']
                                 p_coeff = None
                                 try:
+                                    #  from standard_price to public price (Excluding taxes)
+                                    coeff = round(l['coeff9_inter'] / l['standard_price'], 2) 
+                                    #  coeff9_inter is price at the last coeff. level 
                                     tax_coeff = (1 + (float(taxes[str(l['taxes_id'][0])]))/100)
+                                    #  Set total coeff (margin and taxes)
                                     p_coeff = coeff * tax_coeff
                                 except Exception as e:
                                     coop_logger.warning('order get_lines : %s', str(e))
