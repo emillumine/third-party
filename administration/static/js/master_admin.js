@@ -7,7 +7,9 @@ $(document).ready(function() {
         let location = window.location.href.replace(/\/$/, '');
 
         $('.management_type_button').on('click', function() {
-            if (this.id == 'manage_django_logs') {
+            if (this.id == 'manage_inventory_data') {
+                window.location.assign(location + "/inventory_backups");
+            } else if (this.id == 'manage_django_logs') {
                 window.location.assign(location + "/django_logs");
             } else if (this.id == 'manage_odoo_logs') {
                 window.location.assign(location + "/odoo_logs");

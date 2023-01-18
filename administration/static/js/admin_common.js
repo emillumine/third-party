@@ -90,6 +90,28 @@ var createTabs = async function(params) {
    return result;
 }
 
+var showListInDatatable = function(parent_div, list_data, colums_def, row_click_handler) {
+    // Init table for items to process
+    const d = new Date();
+    let table = $('<table>').attr('id', d.getTime())
+    $(parent_div).append(table);
+    let data_table = table.DataTable({
+        data: list_data,
+        columns: colums_def,
+        paging: false,
+        dom: 'lrtip', // Remove the search input from that table
+        language: {url : '/static/js/datatables/french.json'}
+    });
+   $('#' + d.getTime() + ' tbody').on('click', 'td.as-row-clickable', function () {
+      const clicked = $(this)
+      var row = data_table.row(this);
+      table.find('tr').removeClass('selected');
+      clicked.closest('tr').addClass('selected')
+      row_click_handler(row.data())
+   });
+   return data_table; 
+}
+
 $('#back_to_admin_index').on('click', function() {
 	const to_remove = window.location.href.split('/').pop();
 	const new_url = window.location.href.replace(to_remove, "");

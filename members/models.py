@@ -1366,6 +1366,9 @@ class CagetteUser(models.Model):
     @staticmethod
     def isAllowedToAdmin(request):
         """Need to create an odoo Group called 'django admin'."""
+        """
+        In Odoo, create a group named 'django admin' and add Odoo user(s)
+        """
         answer = False
         
         groups = CagetteUser.get_groups(request)

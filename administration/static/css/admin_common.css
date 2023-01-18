@@ -1,0 +1,18 @@
+.page_body tr:hover {
+    background-color: #ffff99;
+}
+
+.page_body tr.selected {
+    background-color: #ff0099;
+}
+
+#displayed_results {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 3px dotted grey;
+    background-color: beige;
+}
+
+.select_file_cb {
+    z-index: 2000000;
+}

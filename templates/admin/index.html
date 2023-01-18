@@ -18,11 +18,15 @@
 	    {% if is_connected %}
 	    	{% if is_admin %}
 	    	<div class="management_type_buttons txtcenter">
+	    	<button type="button" class="btn--primary management_type_button" id="manage_inventory_data">
+                Sauvegardes saisies d'inventaire
+                <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
+            </button><br>
             <button type="button" class="btn--primary management_type_button" id="manage_django_logs">
                 Logs Django
                 <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
             </button><br>
-             <button type="button" class="btn--primary management_type_button" id="manage_odoo_logs">
+             <button type="button" class="btn--primary management_type_button" id="manage_odoo_logs" disabled>
                 Logs Odoo
                 <span class="management_type_button_icons"><i class="fas fa-arrow-right"></i></span>
             </button><br>
