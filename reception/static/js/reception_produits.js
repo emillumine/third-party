@@ -15,7 +15,8 @@ Sémantiquement, ici :
 * If 1 element: single order
 */
 var orders = {},
-    group_ids = [];
+    group_ids = [],
+    product_coeffs = [];
 
 var reception_status = null,
     list_to_process = [],
@@ -267,6 +268,13 @@ function resetPopUpButtons() {
 
 /* FETCH SERVER DATA */
 
+function store_received_product_coeffs(coeffs) {
+    for (let i=0;i<coeffs.length;i++) {  
+        if(product_coeffs.indexOf(coeffs[i]) == -1)     
+            product_coeffs.push(coeffs[i])
+    }
+}
+
 /**
  * Get order(s) data from server
  * @param {Array} po_ids if set, fetch data for these po only
@@ -285,6 +293,7 @@ function fetch_data(po_ids = null) {
             success: function(data) {
                 // for each order
                 for (order_data of data.orders) {
+                    store_received_product_coeffs(order_data.used_coeffs);
                     // for each product in order
                     for (i in order_data.po) {
                         // If in step 2, find old qty in previous step data
@@ -1345,19 +1354,31 @@ function editProductInfo (productToEdit, value = null, batch = false) {
         if (reception_status == "qty_valid" && productToEdit.price_unit != newValue) {
             if (index == -1) { // First update
                 productToEdit.old_price_unit = productToEdit.price_unit;
-                productToEdit.new_shelf_price = null;
-
-                if (! isNaN(productToEdit.p_coeff)) {
-                    try {
-                        new_shelf_price = parseFloat(newValue * productToEdit.p_coeff);
-                        old_shelf_price = parseFloat(productToEdit.p_price * productToEdit.p_coeff);
-                        if (Math.abs(new_shelf_price - old_shelf_price) > 0.001)
-                            productToEdit.new_shelf_price = new_shelf_price.toFixed(2);
-                    } catch (e) {
-                        err = {msg: e.name + ' : ' + e.message, ctx: 'computing new_shelf_price'};
-                        console.error(err);
-                        report_JS_error(err, 'reception');
+                productToEdit.new_shelf_price = parseFloat(newValue);
+                try {
+                    // Let's compute product final price, using coeffs.
+                    for (let k = 1; k <10; k++) {
+                        if (typeof productToEdit['coeff' + k + '_id'] !== "undefined") {
+                            product_coeffs.forEach(
+                                (coeff) => {
+                                    if (coeff.id == productToEdit['coeff' + k + '_id']) {
+                                        if (coeff.operation_type == "fixed") {
+                                            productToEdit.new_shelf_price += coeff.value;
+                                        } else if (coeff.operation_type == "multiplier") {
+                                            productToEdit.new_shelf_price *= (1 + coeff.value);
+                                        }
+                                    }
+                                }
+                            )
+                        }
                     }
+                    productToEdit.new_shelf_price *= productToEdit.tax_coeff;
+                    productToEdit.new_shelf_price = productToEdit.new_shelf_price.toFixed(2);
+                } catch (e) {
+                    productToEdit.new_shelf_price = null;
+                    err = {msg: e.name + ' : ' + e.message, ctx: 'computing new_shelf_price'};
+                    console.error(err);
+                    report_JS_error(err, 'reception');
                 }
 
                 firstUpdate = true;

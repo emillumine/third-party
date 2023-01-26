@@ -48,7 +48,9 @@ class Order(models.Model):
 
         return result
 
+
     def get_lines(self, forExport=False, withNullQty=False):
+        lines_data = {'lines': None, 'used_coeffs': None}
         f = ['id', 'product_id', 'package_qty', 'product_qty_package', 'product_qty', 'product_uom', 'price_unit', 'partner_id']
         if forExport is True:
             f += ['discount', 'price_subtotal', 'price_tax', 'taxes_id']
@@ -66,13 +68,16 @@ class Order(models.Model):
             # Adding barcode and other data for every purchased product
             f = ['barcode', 'product_tmpl_id', 'shelf_id']
             if forExport is False:  # i.e for reception
-                f += ['taxes_id', 'standard_price', 'coeff9_inter']
-                # coeff = self.get_coop_main_coeff() : non, car ne prend en compte que la marge principale
+                f += ['taxes_id', 'standard_price']
+                # add the 9 product coeffs
+                for i in range(1,10):
+                    f.append('coeff' + str(i) + '_id')
+
             c = [['id', 'in', pids]]
             res_bc = self.o_api.search_read('product.product', c, f)
             tmpl_ids = []
             if res_bc:
-                taxes = {}
+                taxes = {} # Needed to add tax coeff for each product
                 res_tax = self.get_taxes_data_for_lines(res_bc)
                 if res_tax:
                     for tax in res_tax:
@@ -92,26 +97,26 @@ class Order(models.Model):
                 if len(shelf_ids) > 0:
                     shelfs_sortorder = Shelfs.get_shelfs_sortorder(shelf_ids)
 
+                found_coeffs_ids = [] #  Extract from all products, to make a unique query after loop
                 for l in res_bc:
                     for p in res:
                         if p['product_id'][0] == l['id']:
-                            #  coop_logger.info(str(l))
+                            coop_logger.info(str(l))
                             p['shelf_sortorder'] = 'X'
                             p['barcode'] = l['barcode']
                             p['product_tmpl_id'] = l['product_tmpl_id'][0]
                             if ('standard_price' in l):
                                 p['p_price'] = l['standard_price']
-                                p_coeff = None
-                                try:
-                                    #  from standard_price to public price (Excluding taxes)
-                                    coeff = round(l['coeff9_inter'] / l['standard_price'], 2) 
-                                    #  coeff9_inter is price at the last coeff. level 
-                                    tax_coeff = (1 + (float(taxes[str(l['taxes_id'][0])]))/100)
-                                    #  Set total coeff (margin and taxes)
-                                    p_coeff = coeff * tax_coeff
-                                except Exception as e:
-                                    coop_logger.warning('order get_lines : %s', str(e))
-                                p['p_coeff'] = p_coeff
+                                # Let's add product coeff order and id (needed to compute sale price in further operations : new_shelf_price for ex.)
+                                for i in range(1,10):
+                                    if l['coeff' + str(i) + '_id'] is not False:
+                                        coeff_id = l['coeff' + str(i) + '_id'][0]
+                                        p['coeff' + str(i) + '_id'] = coeff_id
+                                        
+                                        if coeff_id not in found_coeffs_ids:
+                                            found_coeffs_ids.append(coeff_id)
+
+                                p['tax_coeff'] = (1 + (float(taxes[str(l['taxes_id'][0])]))/100)
 
                             if l['shelf_id'] is not False:
                                 for s in shelfs_sortorder:
@@ -121,6 +126,7 @@ class Order(models.Model):
                                 p['shelf_sortorder'] = 'X'
 
                     tmpl_ids.append(l['product_tmpl_id'][0])
+                used_coeffs = self.o_api.search_read('product.coefficient', [['id', 'in', found_coeffs_ids]], ['operation_type', 'value'])
 
                 # Adding indicative_package for every product
                 f = ['indicative_package','product_tmpl_id','product_code']
@@ -138,8 +144,9 @@ class Order(models.Model):
                             except Exception as e:
                                 # if product is not active, it is not included in res_bc result
                                 p['active'] = False
-
-        return res
+        lines_data['lines'] = res
+        lines_data['used_coeffs'] = used_coeffs
+        return lines_data
 
     def get_taxes_data_for_lines(self, lines):
         taxes_id = []
@@ -161,7 +168,8 @@ class Order(models.Model):
             c = [['id', '=', self.id]]
             order = self.o_api.search_read('purchase.order', c, f)
             if order:
-                lines = self.get_lines(forExport=True)
+                lines_data = self.get_lines(forExport=True)
+                lines = lines_data['lines']
                 res['taxes'] = self.get_taxes_data_for_lines(lines)
                 res['order'] = order[0]
                 res['lines'] = lines
@@ -219,7 +227,8 @@ class Order(models.Model):
         import re
         fixed_prefix = getattr(settings, 'FIXED_BARCODE_PREFIX', '0490')
         labels_data = {'total': 0, 'details': []}
-        lines = self.get_lines()
+        lines_data = self.get_lines()
+        lines = lines_data['lines']
         bc_pattern = re.compile('^' + fixed_prefix)
         for l in lines:
             if ('barcode' in l) and not (bc_pattern.match(str(l['barcode'])) is None):
@@ -346,7 +355,8 @@ class Orders(models.Model):
         try:
             fixed_prefix = getattr(settings, 'FIXED_BARCODE_PREFIX', '0490')
             bc_pattern = re.compile('^' + fixed_prefix)
-            for l in Orders.get_lines(oids):
+            lines_data = Orders.get_lines(oids)
+            for l in lines_data['lines']:
                 if not (bc_pattern.match(str(l['barcode'])) is None):
                     if not (l['product_tmpl_id'] in labels_data):
                         labels_data[l['product_tmpl_id']] = 0

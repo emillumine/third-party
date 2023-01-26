@@ -74,9 +74,9 @@ class CagetteReception(models.Model):
 
     def implies_scale_file_generation(self):
         answer = False
-        lines = Order(self.id).get_lines()
+        lines_data = Order(self.id).get_lines()
         bc_pattern = re.compile('^0493|0499')
-        for l in lines:
+        for l in lines_data['lines']:
             if not (bc_pattern.match(str(l['barcode'])) is None):
                 answer = True
         # print ('answer=' + str(answer))
@@ -131,7 +131,8 @@ class CagetteReception(models.Model):
         """
         import json
         processed_lines = 0
-        order_lines = CagetteReception.get_order_lines_by_po(self.id, nullQty=True)
+        order_lines_data = CagetteReception.get_order_lines_by_po(self.id, nullQty=True)
+        order_lines = order_lines_data['lines']
         received_products = {}
         for p in order_lines:
             received_products[p['product_id'][0]] = p['product_qty']
@@ -176,7 +177,8 @@ class CagetteReception(models.Model):
     def update_products_price(self):
         processed = 0
         errors = []
-        order_lines = CagetteReception.get_order_lines_by_po(self.id)
+        order_lines_data = CagetteReception.get_order_lines_by_po(self.id)
+        order_lines = order_lines_data['lines']
         if order_lines and len(order_lines) > 0:
             # Exceptions are due to the fact API returns None whereas the action is really done !...
             marshal_none_error = 'cannot marshal None unless allow_none is enabled'

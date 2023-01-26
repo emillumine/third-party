@@ -73,8 +73,9 @@ def get_list_orders(request):
         }
 
         if get_order_lines is True:
-            order_lines = CagetteReception.get_order_lines_by_po(int(order["id"]), nullQty = True)
-            ligne["po"] = order_lines
+            order_lines_data = CagetteReception.get_order_lines_by_po(int(order["id"]), nullQty = True)
+            ligne["po"] = order_lines_data['lines']
+            ligne["used_coeffs"] = order_lines_data['used_coeffs']
 
         orders.append(ligne)
 
@@ -124,17 +125,17 @@ def produits(request, id):
 
 def get_order_lines(request, id_po):
     """Send content of an order"""
-    order_lines = CagetteReception.get_order_lines_by_po(int(id_po))
+    order_lines_data = CagetteReception.get_order_lines_by_po(int(id_po))
 
-    return JsonResponse({'id_po': id_po, 'po': order_lines})
+    return JsonResponse({'id_po': id_po, 'po': order_lines_data['lines'], 'used_coeffs': order_lines_data['used_coeffs']})
 
 def get_orders_lines(request):
     """Send content of multiple orders"""
     data = json.loads(request.body.decode())
     orders = []
     for id_po in data['po_ids']:
-        order_lines = CagetteReception.get_order_lines_by_po(int(id_po), nullQty = True)
-        orders.append({'id_po': id_po, 'po': order_lines})
+        order_lines_data = CagetteReception.get_order_lines_by_po(int(id_po), nullQty = True)
+        orders.append({'id_po': id_po, 'po': order_lines_data['lines'], 'used_coeffs': order_lines_data['used_coeffs']})
 
     return JsonResponse({'orders': orders})
 
