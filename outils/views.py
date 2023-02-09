@@ -195,9 +195,10 @@ class ExportPOS(View):
                                        'CHQ': 0,
                                        'CB_DEJ': 0,
                                        'CHQ_DEJ': 0,
+                                       'MonA': 0,
                                        'TOTAL': 0}
                     sub_total = 0
-                    cb = chq = csh = cbd = chqd = 0
+                    cb = chq = csh = cbd = chqd = mona = 0
                     for p in s['payments']:
                         # p['name'] is a sequence generated string
                         # Test order is important as CHEQDEJ contains CHEQ for ex.
@@ -213,28 +214,32 @@ class ExportPOS(View):
                             cbd = sub_amount
                         elif 'CB' in p['name']:
                             cb = sub_amount
+                        elif 'MonA' in p['name']:
+                            mona = sub_amount
                         sub_total += sub_amount
                     totals[key]['CB'] += cb
                     totals[key]['CSH'] += csh
                     totals[key]['CHQ'] += chq
                     totals[key]['CB_DEJ'] += cbd
                     totals[key]['CHQ_DEJ'] += chqd
+                    totals[key]['MonA'] += mona
                     totals[key]['TOTAL'] += round(sub_total, 2)
                     details_lines.append([mois, s['mm_dates']['min'], s['mm_dates']['max'], s['caisse'], s['name'],
-                                         cb, csh, chq, cbd, chqd, sub_total])
+                                         cb, csh, chq, cbd, chqd, mona, sub_total])
         wb = Workbook()
         ws1 = wb.create_sheet("Totaux " + mois, 0)
         ws2 = wb.create_sheet("Détails " + mois, 1)
-        ws1.append(['date', 'CB', 'CSH', 'CHQ', 'CB_DEJ', 'CHQ_DEJ', 'Total'])
+        ws1.append(['date', 'CB', 'CSH', 'CHQ', 'CB_DEJ', 'CHQ_DEJ', 'MonA', 'Total'])
         for day in sorted(totals):
             cb = totals[day]['CB']
             csh = totals[day]['CSH']
             chq = totals[day]['CHQ']
             cbd = totals[day]['CB_DEJ']
             chqd = totals[day]['CHQ_DEJ']
+            mona = totals[day]['MonA']
             total = totals[day]['TOTAL']
-            ws1.append([day, cb, csh, chq, cbd, chqd, total])
-        ws2.append(['mois', 'min_date', 'max_date', 'Caisse', 'session', 'CB', 'CSH','CHQ', 'CB_DEJ', 'CHQ_DEJ', 'total'])
+            ws1.append([day, cb, csh, chq, cbd, chqd, mona, total])
+        ws2.append(['mois', 'min_date', 'max_date', 'Caisse', 'session', 'CB', 'CSH','CHQ', 'CB_DEJ', 'CHQ_DEJ', 'MonA', 'total'])
         for row in details_lines:
             ws2.append(row)
         wb_name = 'export_sessions__' + mois + '.xlsx'
