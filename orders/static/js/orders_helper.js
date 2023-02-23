@@ -1349,6 +1349,11 @@ function create_orders() {
                 new_order_template.find(".download_order_file_button").attr('id', `download_attachment_${new_order.id_po}`);
 
                 $('#created_orders_area').append(new_order_template.html());
+                if (display_odoo_order_link == 1) {
+                    let odoo_link = $('<a>').addClass('btn--primary').text('Accéder à la commande dans Odoo')
+                                    .attr('href', `${odoo_server}/web#id=${new_order.id_po}&view_type=form&model=purchase.order&menu_id=252&action=353`);
+                    $('#after_order_ending_part').append(odoo_link);
+                }
             }
 
             // Prepare buttons to download order attachment
@@ -1532,6 +1537,7 @@ function _compute_product_data(product) {
         // Store temporarily product package qties
         p_package_qties.push(p_supplierinfo.package_qty);
         p_price.push(p_supplierinfo.price);
+        item.product_code = p_supplierinfo.product_code;
     }
 
     item.purchase_qty = purchase_qty;
@@ -1610,7 +1616,6 @@ function prepare_datatable_data(product_ids = []) {
 
         data.push(full_item);
     }
-
     return data;
 }
 
@@ -1618,24 +1623,10 @@ function prepare_datatable_data(product_ids = []) {
  * @returns Array of formatted data for datatable columns setup
  */
 function prepare_datatable_columns() {
-    let columns = [
-        {
-            data: "id",
-            title: `<div id="table_header_select_all" class="txtcenter">
-                        <!--<span class="select_all_text">Sélectionner</span>-->
-                        <label for="select_all_products_cb">Tout</label>
-                        <input type="checkbox" class="select_product_cb" id="select_all_products_cb" name="select_all_products_cb" value="all">
-                    </div>`,
-            className: "dt-body-center",
-            orderable: false,
-            render: function (data) {
-                return `<input type="checkbox" class="select_product_cb" id="select_product_${data}" value="${data}">`;
-            },
-            width: "4%"
-        },
-        {
+  
+    const internal_ref_column =         {
             data: "default_code",
-            title: "Ref",
+            title: "Réf",
             width: "5%",
             render: function (data, type, full) {
                 if (data === false) {
@@ -1651,7 +1642,24 @@ function prepare_datatable_columns() {
                     return data;
                 }
             }
+    };
+
+    let columns = [
+        {
+            data: "id",
+            title: `<div id="table_header_select_all" class="txtcenter">
+                        <!--<span class="select_all_text">Sélectionner</span>-->
+                        <label for="select_all_products_cb">Tout</label>
+                        <input type="checkbox" class="select_product_cb" id="select_all_products_cb" name="select_all_products_cb" value="all">
+                    </div>`,
+            className: "dt-body-center",
+            orderable: false,
+            render: function (data) {
+                return `<input type="checkbox" class="select_product_cb" id="select_product_${data}" value="${data}">`;
+            },
+            width: "4%"
         },
+
         {
             data: "name",
             title: "Produit"
@@ -1670,6 +1678,33 @@ function prepare_datatable_columns() {
         }
         
     ];
+
+    // add Internal Ref if needed
+    if (product_reference == 'interne') {
+        columns.splice(1, 0, internal_ref_column);
+    }
+    // add Supplier Ref if needed
+    if (product_reference == 'fournisseur') {
+        columns.splice(1, 0, {
+                data: "product_code",
+                title: "Réf. F",
+                width: "5%",
+                render: function (data, type, full) {
+                    if (data === false) {
+                        return "";
+                    } else if (data.includes("[input]")) {
+                        let val = data.replace("[input]", "");
+
+
+                        return `<div class="custom_cell_content">
+                                    <input type="text" class="product_supplier_ref_input" id="${full.id}_ref_input" value="${val}">
+                                </div>`;
+                    } else {
+                        return data;
+                    }
+                }
+            });
+    }
 
     let conso = {
             data: "daily_conso",

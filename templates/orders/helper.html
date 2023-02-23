@@ -148,19 +148,11 @@
         </div>
         <div id="created_orders_area"></div>
         <br/><br/><hr/><br/>
-        <div class="mail_example_container">
-            <p class="mail_type_text">Mail type :</p>
-            <div class="mail_example">
-                Objet : Cde Cagette JJ/MM<br/>
-                <br/>
-                Bonjour XXXXXXX,<br/>
-                <br/>
-                Voici la commande de La Cagette pour le XX/XX/XX.<br/>
-                <br/>
-                Merci d'avance,<br/>
-                Bonne journée
-            </div>
-        </div>
+        {% if company_code == "lacagette" %}
+            {% include "orders/mail_type_cagette.html" %}
+        {% else %}
+            {% include "orders/default_ending_part.html" %}
+        {% endif%}
     </div>
 
     <div id="templates" style="display:none;">
@@ -197,7 +189,7 @@
                 <div class='download_order_file'>
                     <i class="fas fa-spinner fa-spin download_order_file_loading"></i>
                     <a class='btn--success download_order_file_button link_as_button' style="display:none;" href="#">
-                        Télécharger le fichier de commande
+                        Télécharger le fichier Excel de commande
                     </a>
                 </div>
             </div>  
@@ -371,6 +363,8 @@
     var metabase_url = '{{metabase_url}}';
     let consumption_average_unit = '{{consumption_average_unit}}';
     let open_days_per_week = {{open_days_per_week}};
+    const product_reference = '{{product_reference}}';
+    const display_odoo_order_link = {{display_odoo_order_link}};
 </script>
 <script src="{% static "js/all_common.js" %}?v=1671550230"></script>
 <script type="text/javascript" src="{% static 'js/orders_helper.js' %}?v=1671550230"></script>

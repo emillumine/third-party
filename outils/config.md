@@ -439,6 +439,14 @@
 
         'day' is default. All consumption figures are qty/day. This parameter is for display only.
 
+- ORDERS_HELPER_PRODUCT_REF = 'fournisseur'
+
+        By default = 'interne'
+
+- ORDERS_HELPER_DISPLAY_ORDER_LINK = 1
+
+        By default = 0
+
 ### New members space
 
 - USE_NEW_MEMBERS_SPACE = True

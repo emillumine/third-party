@@ -473,7 +473,7 @@
     font-weight: bold;
 }
 
-.mail_example_container {
+.mail_example_container, #after_order_ending_part {
     display: flex;
     flex-direction: column;
     align-items: center;
