@@ -154,6 +154,10 @@
 
 - FIXED_BARCODE_PREFIX = '0491'
 
+- UNIT_BARCODE_PREFIX = '042'
+
+- WEIGHT_BARCODE_PREFIX = ['260'] 
+
 - FLV_CSV_NB = 4
 
         How many distinct file for scale input have to be generated

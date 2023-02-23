@@ -323,10 +323,14 @@ class CagetteProducts(models.Model):
 
     @staticmethod
     def __unique_product_list(plist):
-        # 276
         upl = {}
+        prefixes = getattr(settings, 'WEIGHT_BARCODE_PREFIX', ['0493','0491']) + [getattr(settings, 'UNIT_BARCODE_PREFIX', '0499')]
         for p in plist:
-            if not (p['id'] in upl):
+            keep_it = False  # Need to clean list (for example, some products may have been checked "to weight" whereas it is not or no barcode associated to it)
+            for prefix in prefixes:
+                if p['barcode'] and p['barcode'].find(prefix) == 0:
+                    keep_it = True
+            if keep_it is True and p['id'] not in upl:
                 if ('image_medium' in p):
                     p['image'] = p['image_medium']
                     p['image_medium'] = ''
@@ -356,7 +360,12 @@ class CagetteProducts(models.Model):
                 ['to_weight', '=', True],
                 ['available_in_pos', '=', True]]
         if not withCandidate:
-            cond = [('active', '=', True), ('to_weight', '=', True), ('available_in_pos', '=', True), '|', ('barcode', '=like', '0491%'), ('barcode', '=like', '0493%')]
+            prefixes = getattr(settings, 'WEIGHT_BARCODE_PREFIX', ['0491', '0493'])
+            FIXED_BARCODE_PREFIX = '0490'
+            UNIT_BARCODE_PREFIX = '042'
+            cond = [('active', '=', True), ('to_weight', '=', True), ('available_in_pos', '=', True), '|']
+            for bc_prefix in prefixes:
+                cond.append(('barcode', '=like', bc_prefix + '%'))
 
         return api.search_read('product.product', cond, fields)
 
@@ -367,7 +376,10 @@ class CagetteProducts(models.Model):
                 ['available_in_pos', '=', True],
                 ['name', 'ilike', 'vrac']]
         if not withCandidate:
-            cond = [('active', '=', True), ('name', 'ilike', 'vrac'), ('available_in_pos', '=', True), '|', ('barcode', '=like', '0491%'), ('barcode', '=like', '0493%')]
+            prefixes = getattr(settings, 'WEIGHT_BARCODE_PREFIX', ['0491', '0493'])
+            cond = [('active', '=', True), ('name', 'ilike', 'vrac'), ('available_in_pos', '=', True), '|']
+            for bc_prefix in prefixes:
+                cond.append(('barcode', '=like', bc_prefix + '%'))
         return api.search_read('product.product', cond, fields)
 
     @staticmethod
@@ -386,7 +398,10 @@ class CagetteProducts(models.Model):
                 ['available_in_pos', '=', True],
                 ['categ_id', 'in', flv_cats]]
         if not withCandidate:
-            cond = [('active', '=', True), ('categ_id', 'in', flv_cats), ('available_in_pos', '=', True), '|', ('barcode', '=like', '0493%'), ('barcode', '=like', '0499%')]
+            prefixes = getattr(settings, 'WEIGHT_BARCODE_PREFIX', ['0493']) + [getattr(settings, 'UNIT_BARCODE_PREFIX', '0499')]
+            cond = [('active', '=', True), ('categ_id', 'in', flv_cats), ('available_in_pos', '=', True), '|']
+            for bc_prefix in prefixes:
+                cond.append(('barcode', '=like', bc_prefix + '%'))
         return api.search_read('product.product', cond, fields)
 
     @staticmethod
