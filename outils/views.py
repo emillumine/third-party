@@ -199,6 +199,7 @@ class ExportPOS(View):
                                        'TOTAL': 0}
                     sub_total = 0
                     cb = chq = csh = cbd = chqd = mona = 0
+                    coop_logger.info("payments : %s", s['payments'])
                     for p in s['payments']:
                         # p['name'] is a sequence generated string
                         # Test order is important as CHEQDEJ contains CHEQ for ex.
@@ -214,7 +215,7 @@ class ExportPOS(View):
                             cbd = sub_amount
                         elif 'CB' in p['name']:
                             cb = sub_amount
-                        elif 'MonA' in p['name']:
+                        elif 'MonA' in p['name'] or 'MonA' in p['journal']:
                             mona = sub_amount
                         sub_total += sub_amount
                     totals[key]['CB'] += cb
