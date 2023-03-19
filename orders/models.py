@@ -101,7 +101,7 @@ class Order(models.Model):
                 for l in res_bc:
                     for p in res:
                         if p['product_id'][0] == l['id']:
-                            coop_logger.info(str(l))
+                            # coop_logger.info(str(l))
                             p['shelf_sortorder'] = 'X'
                             p['barcode'] = l['barcode']
                             p['product_tmpl_id'] = l['product_tmpl_id'][0]

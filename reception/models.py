@@ -75,7 +75,7 @@ class CagetteReception(models.Model):
     def implies_scale_file_generation(self):
         answer = False
         lines_data = Order(self.id).get_lines()
-        bc_pattern = re.compile('^0493|0499')
+        bc_pattern = re.compile('^0493|0499')  # TODO : Adjust for other pattern (such as Supercoop)
         for l in lines_data['lines']:
             if not (bc_pattern.match(str(l['barcode'])) is None):
                 answer = True
@@ -196,7 +196,32 @@ class CagetteReception(models.Model):
             success = True
         else:
             success = False
-        return {'errors': errors, 'processed': processed, 'success': success}
+        return {'errors': errors, 'processed': processed, 'success': success, 'lines': order_lines}
+
+    def print_shelf_labels_for_updated_prices(self, lines):
+        import requests
+        # don't print barcode which begin with these codes
+        noprint_list = ["0493", "0492", "0499"]
+
+        pids = []
+        for l in lines:
+            pids.append(l['product_id'][0])
+        products_to_print = self.o_api.search_read('product.product', [['id','in', pids]], ['product_tmpl_id', 'barcode', 'to_print'])
+        if products_to_print:
+            to_reset = []
+            for p_to_print in products_to_print:
+                coop_logger.info('candidate to print %s', str(p_to_print))
+                if p_to_print['to_print'] is True and p_to_print['barcode'][:4] not in noprint_list:
+                    try:
+                        tools_url = settings.TOOLS_SERVER + '/products/label_print/'
+                        tools_url += str(p_to_print['product_tmpl_id'][0])
+                        requests.get(tools_url)
+                        to_reset.append(p_to_print['id'])
+                    except Exception as e:
+                        coop_logger.error("Shelf label printing : %s",str(e))
+            if len(to_reset) > 0:
+                self.o_api.update('product.product', to_reset, {'to_print': 0})
+                    
 
 
     def finalyze_picking(self):
@@ -236,6 +261,8 @@ class CagetteReception(models.Model):
                 new_x_reception_status += '/error_uprice'
             if new_x_reception_status == '':
                 new_x_reception_status = 'done'
+                self.print_shelf_labels_for_updated_prices(price_update['lines'])
+
         if result != 'already done':
             self.o_api.update('purchase.order', [self.id], {'x_reception_status': new_x_reception_status})
 
@@ -277,6 +304,7 @@ class CagetteReception(models.Model):
                     print_label = m.implies_scale_file_generation()
                 if fp == 'processed' or fp == 'already done':
                     os.remove(p['file'])
+
                 processed.append({p['id']: fp})
                 os.remove('data/po_in_process_' + str(p['id']))
         if print_label is True:

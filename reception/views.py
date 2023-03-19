@@ -221,14 +221,15 @@ def update_orders(request):
                                 errors.append('error registering shortage on p'+order_line['id']+':'+str(e))
 
                         # Print etiquette with new price if update if successful and barcode is authorized
-                        if (print_labels is True) and (update is True) and (data['update_type'] == 'br_valid') and order_line['new_shelf_price'] and order_line['barcode'][:4] not in noprint_list:
-                            try:
-                                tools_url = settings.TOOLS_SERVER + '/products/label_print/'
-                                tools_url += str(order_line['product_tmpl_id']) + '/'
-                                tools_url += str(order_line['new_shelf_price'])
-                                requests.get(tools_url)
-                            except Exception as e:
-                                coop_logger.error("Shelf label printing : %s",str(e))
+                        # Printing at that point is inhibited because of random ununderstandable wrong new_shelf_price
+                        # if (print_labels is True) and (update is True) and (data['update_type'] == 'br_valid') and order_line['new_shelf_price'] and order_line['barcode'][:4] not in noprint_list:
+                        #     try:
+                        #         tools_url = settings.TOOLS_SERVER + '/products/label_print/'
+                        #         tools_url += str(order_line['product_tmpl_id']) + '/'
+                        #         tools_url += str(order_line['new_shelf_price'])
+                        #         requests.get(tools_url)
+                        #     except Exception as e:
+                        #         coop_logger.error("Shelf label printing : %s",str(e))
 
                 except KeyError:
                     coop_logger.info("No line to update.")
@@ -303,8 +304,8 @@ def save_error_report(request):
                     }
 
                     data['orders'].append(group_order)  # group "order" has to be last in orders list
-                else:
-                    coop_logger.info("data['orders'] is a single PO (not inside group)")
+                # else:
+                #     coop_logger.info("data['orders'] is a single PO (not inside group)")
             except Exception as e2:
                 coop_logger.error("Save reception report : Error while create group_order %s", str(e2))
 
