@@ -4,6 +4,6 @@ couchdb
 python-dateutil
 requests
 pymysql
-openpyxl
+openpyxl==3.0.9
 reportlab
 argon2-cffi

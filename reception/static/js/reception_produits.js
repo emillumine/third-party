@@ -1357,6 +1357,7 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                 productToEdit.new_shelf_price = parseFloat(newValue);
                 try {
                     // Let's compute product final price, using coeffs.
+                    let computing_shelf_price_details = {base_value: productToEdit.new_shelf_price, intermediate_values: []};
                     for (let k = 1; k <10; k++) {
                         if (typeof productToEdit['coeff' + k + '_id'] !== "undefined") {
                             product_coeffs.forEach(
@@ -1364,8 +1365,10 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                                     if (coeff.id == productToEdit['coeff' + k + '_id']) {
                                         if (coeff.operation_type == "fixed") {
                                             productToEdit.new_shelf_price += coeff.value;
+                                            computing_shelf_price_details.intermediate_values.push({msg: "Found fixed coeff " + coeff.value, new_value: productToEdit.new_shelf_price})
                                         } else if (coeff.operation_type == "multiplier") {
                                             productToEdit.new_shelf_price *= (1 + coeff.value);
+                                            computing_shelf_price_details.intermediate_values.push({msg: "Found multiplier coeff " + coeff.value, new_value: productToEdit.new_shelf_price})
                                         }
                                     }
                                 }
@@ -1373,7 +1376,10 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                         }
                     }
                     productToEdit.new_shelf_price *= productToEdit.tax_coeff;
+                    computing_shelf_price_details.intermediate_values.push({msg: "Applying tax coeff " + productToEdit.tax_coeff, new_value: productToEdit.new_shelf_price})
                     productToEdit.new_shelf_price = productToEdit.new_shelf_price.toFixed(2);
+                    computing_shelf_price_details.final_value = productToEdit.new_shelf_price
+                    productToEdit.computing_shelf_price_details = computing_shelf_price_details
                 } catch (e) {
                     productToEdit.new_shelf_price = null;
                     err = {msg: e.name + ' : ' + e.message, ctx: 'computing new_shelf_price'};
