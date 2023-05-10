@@ -137,6 +137,7 @@ def prepa_odoo(request):
                'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
                'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
+               'committees_shift_id': CagetteServices.get_committees_shift_id(),
                'db': settings.COUCHDB['dbs']['member']}
 
     # with_addr_complement
