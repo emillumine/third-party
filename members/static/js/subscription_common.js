@@ -55,14 +55,14 @@ function display_current_coop_form() {
     // form.find('[name="barcode_base"]').val(current_coop.barcode_base);
     form.find('[name="email"]').val(current_coop._id);
     if (current_coop.shift_template &&
-      current_coop.shift_template.data.type == 2 &&
-      typeof manage_ftop != "undefined" && manage_ftop == true) {
+        current_coop.shift_template.data.type == 2 &&
+        typeof manage_ftop != "undefined" && manage_ftop == true) {
         $('#choosen_shift input').hide();
         ftop_shift.val('Volant');
         ftop_shift.show();
 
     } else {
-    // Bien laisser dans cet ordre
+        // Bien laisser dans cet ordre
         $('#choosen_shift input').show();
         ftop_shift.hide();
 
@@ -100,12 +100,10 @@ function display_current_coop_form() {
             $('#checks').show();
 
             for (var i = 1; i <= current_coop.checks_nb; i++) {
-                $(check_details).append('<p>Chèque #' + i +' : <input type="text" name="check_' + i + '" class="b_green check_item" required/> € </p>');
+                $(check_details).append('<p>Chèque #' + i + ' : <input type="text" name="check_' + i + '" class="b_green check_item" required/> € </p>');
             }
         }
     }
-
-    var show_change_shift = false;
 
     if (current_coop.shift_template) {
         var st = current_coop.shift_template.data;
@@ -121,25 +119,20 @@ function display_current_coop_form() {
             place = 'Bureau';
         }
         form.find('[name="place"]').val(place);
-        if (current_coop.coop_msg) {
-            show_change_shift = true;
-        }
-    } else {
-        show_change_shift = true;
     }
 
+    let show_change_shift = current_coop.validation_state === 'waiting_validation_employee';
     if (show_change_shift == true) {
         chgt_shift_btn.show();
         chgt_shift_btn.on('click', open_shift_choice);
     }
 
-    if (typeof(coop_page) != "undefined") {
+    if (typeof (coop_page) != "undefined") {
         coop_page.show();
     }
-
 }
 
-$('#payment_meaning').change(function() {
+$('#payment_meaning').change(function () {
     if ($(this).val() == 'ch') {
         show_checks_nb();
     } else {
