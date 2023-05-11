@@ -897,7 +897,7 @@ class CagetteServices(models.Model):
                         if ok_for_adding_pt is True:
                             res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
                         else:
-                            res['error'] = "Un point a déjà été ajouté il y a trop récemment."
+                            res['error'] = "Un point a déjà été ajouté trop récemment."
                     else:
                         res['error'] = "Vous n'avez pas le droit d'ajouter un point."
                 else:
