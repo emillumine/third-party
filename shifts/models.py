@@ -870,27 +870,36 @@ class CagetteServices(models.Model):
                     if (len(shift_templ_res) > 0
                         and
                         shift_templ_res[0]['shift_template_id'][0] == committees_shift_id):
-
-                        evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
-                        c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
-                        f = ['create_date']
-                        last_point_mvts = api.search_read('shift.counter.event', c, f,
-                                                          order ="create_date DESC", limit=1)
                         ok_for_adding_pt = False
-                        if len(last_point_mvts):
-                            now = datetime.datetime.now()
-                            past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
-                                                               '%Y-%m-%d %H:%M:%S')
-                            if (now - past).total_seconds() >= 3600 * 24:
+                        mininum_seconds_interval = getattr(settings, 'MINIMUM_SECONDS_BETWEEN_TWO_COMITEE_VALIDATION', 3600 * 24)
+                        evt_name = getattr(settings, 'ENTRANCE_ADD_PT_EVENT_NAME', 'Validation service comité')
+
+                        if mininum_seconds_interval > 0:
+                            #  A constraint has been set to prevent from adding more than 1 point during a time period
+                            #  Let's find out when was the last time a "special point" has been addes
+                            c = [['partner_id', '=', coop_id], ['name', '=', evt_name]]
+                            f = ['create_date']
+                            last_point_mvts = api.search_read('shift.counter.event', c, f,
+                                                              order ="create_date DESC", limit=1)
+                            
+                            if len(last_point_mvts):
+                                now = datetime.datetime.now()
+                                past = datetime.datetime. strptime(last_point_mvts[0]['create_date'],
+                                                                   '%Y-%m-%d %H:%M:%S')
+                                if (now - past).total_seconds() >= mininum_seconds_interval:
+                                    ok_for_adding_pt = True
+                            else:
                                 ok_for_adding_pt = True
                         else:
+                            #  mininum_seconds_interval is 0 : Point can we added without any condition
                             ok_for_adding_pt = True
+
                         if ok_for_adding_pt is True:
                             res['evt_id'] = CagetteMember(coop_id).add_pts('ftop', 1, evt_name)
                         else:
-                            res['error'] = "One point has been added less then 24 hours ago"
+                            res['error'] = "Un point a déjà été ajouté trop récemment."
                     else:
-                        res['error'] = "Unallowed coop"
+                        res['error'] = "Vous n'avez pas le droit d'ajouter un point."
                 else:
                     res['error'] = "Unregistred coop"
             else:
