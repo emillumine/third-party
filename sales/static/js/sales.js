@@ -49,13 +49,11 @@ function display_orders(orders) {
 
             {
                 data:"partner",
-                title:"Membre",
-                // width: "40%"
+                title:"Membre"
             },
             {
                 data:"total_amount",
                 title: "Montant dû",
-                // className:"dt-body-center",
                 render: function (data) {
                     return parseFloat(data).toFixed(2) + ' €';
                 }
