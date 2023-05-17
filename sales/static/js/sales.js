@@ -50,12 +50,12 @@ function display_orders(orders) {
             {
                 data:"partner",
                 title:"Membre",
-                width: "40%"
+                // width: "40%"
             },
             {
                 data:"total_amount",
                 title: "Montant dû",
-                className:"dt-body-center",
+                // className:"dt-body-center",
                 render: function (data) {
                     return parseFloat(data).toFixed(2) + ' €';
                 }
@@ -72,9 +72,16 @@ function display_orders(orders) {
                     }
                     res += "</ul>";
 
-                    return res;
+                    return res; 
                 }
-            }
+            },
+            {
+                data:"payments[0].meal_voucher_issuer",
+                title: "Émetteur CB Déj",
+                render: function (data) {
+                    return data === 'false' || data == false ? '' : data;
+                }
+            },
         ],
         order: [
             [
