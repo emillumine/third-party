@@ -124,6 +124,8 @@ def get_shift_templates_next_shift(request, id):
 def prepa_odoo(request):
     """Generate coop subscription form, to be fill by BDM."""
     template = loader.get_template('members/prepa_odoo.html')
+    committees_shift_id = CagetteServices.get_committees_shift_id()
+
     context = {'title': 'Préparation Odoo Inscriptions',
                'warning_placeholder': 'Par exemple, il manque un chèque',
                'couchdb_server': settings.COUCHDB['url'],
@@ -137,7 +139,9 @@ def prepa_odoo(request):
                'ask_for_street2': getattr(settings, 'SUBSCRIPTION_ADD_STREET2', False),
                'ask_for_second_phone': getattr(settings, 'SUBSCRIPTION_ADD_SECOND_PHONE', False),
                'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
-               'db': settings.COUCHDB['dbs']['member']}
+               'db': settings.COUCHDB['dbs']['member'],
+               'committees_shift_id': committees_shift_id,
+               }
 
     # with_addr_complement
     # with_second_phone
