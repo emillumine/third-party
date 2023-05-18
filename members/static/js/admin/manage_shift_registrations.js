@@ -102,16 +102,21 @@ function display_member_shifts() {
         const shift_reg_id = row_data.id;
         const shift_is_makeup = row_data.is_makeup;
 
-        let msg = `<p>Enlever la présence de <b>${member.name}</b> au service du <b>${row_data.shift_id[1]}</b> ?</p>`;
-
+        let modal_template = $("#modal_delete_shift_registration");
+        modal_template.find(".member_name").text(member.name);
+        modal_template.find(".service_name").text(row_data.shift_id[1]);
         if (shift_is_makeup === true) {
-            msg += `<p><i class="fas fa-exclamation-triangle"></i> Ce service est un rattrapage. Le supprimer ajoutera un point au compteur de ce.tte membre.</p>`;
+            modal_template.find("#makeup_case_explanation").show();
         }
 
         openModal(
-            msg,
+            $("#modal_delete_shift_registration").html(),
             () => {
-                delete_shift_registration(shift_reg_id, shift_is_makeup);
+                delete_shift_registration(
+                    shift_reg_id,
+                    shift_is_makeup,
+                    ($("#cancellation-explanation")[0].value || "pas d'explication") + ' : ' + ($("#cancellation-signature")[0].value || "auteur inconnu"),
+                );
             },
             "Confirmer",
             false
@@ -123,15 +128,17 @@ function display_member_shifts() {
  * Send request to delete shift registration
  * @param {Int} shift_reg_id Id of the shift_registration to delete
  * @param {Boolean} shift_is_makeup Is the shift a makeup?
+ * @param {String} description explanation and signature for the cancellation from bdm
  */
-function delete_shift_registration(shift_reg_id, shift_is_makeup) {
+function delete_shift_registration(shift_reg_id, shift_is_makeup, description) {
     openModal();
 
     data = {
         member_id: selected_member.id,
         member_shift_type: selected_member.shift_type,
         shift_registration_id: shift_reg_id,
-        shift_is_makeup: shift_is_makeup
+        shift_is_makeup: shift_is_makeup,
+        cancellation_description: description
     };
 
     $.ajax({
