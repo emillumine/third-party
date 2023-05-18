@@ -60,6 +60,11 @@
           .replace( /ã/g, 'a' )
           .replace( /õ/g, 'o' )
           .replace( /ç/g, 'c' )
+          .replace( /â/g, 'a' )
+          .replace( /à/g, 'a' )
+          .replace( /ù/g, 'u' )
+          .replace( /ï/g, 'i' )
+          .replace( /œ/g, 'oe' )
           .replace( /ì/g, 'i' );
   }
 
