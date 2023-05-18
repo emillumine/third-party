@@ -269,9 +269,9 @@ function resetPopUpButtons() {
 /* FETCH SERVER DATA */
 
 function store_received_product_coeffs(coeffs) {
-    for (let i=0;i<coeffs.length;i++) {  
-        if(product_coeffs.indexOf(coeffs[i]) == -1)     
-            product_coeffs.push(coeffs[i])
+    for (let i=0; i<coeffs.length; i++) {
+        if (product_coeffs.indexOf(coeffs[i]) == -1)
+            product_coeffs.push(coeffs[i]);
     }
 }
 
@@ -704,6 +704,17 @@ function initLists() {
 
                         $(cell_node).addClass('row_product_no_qty');
                     }
+                } else if (
+                    row_data !== undefined
+                    && row_data.product_qty !== 0
+                    && 'old_qty' in row_data
+                    && row_data.old_qty != row_data.product_qty
+                ) {
+                    for (var j = 0; j < row.cells.length; j++) {
+                        const cell_node = row.cells[j];
+
+                        $(cell_node).addClass('row_product_qty_changed');
+                    }
                 }
             }
         });
@@ -734,6 +745,17 @@ function initLists() {
                         const cell_node = row.cells[i];
 
                         $(cell_node).addClass('row_product_no_qty');
+                    }
+                } else if (
+                    row_data !== undefined
+                    && row_data.product_qty !== 0
+                    && 'old_qty' in row_data
+                    && row_data.old_qty != row_data.product_qty
+                ) {
+                    for (var j = 0; j < row.cells.length; j++) {
+                        const cell_node = row.cells[j];
+
+                        $(cell_node).addClass('row_product_qty_changed');
                     }
                 }
             }
@@ -1358,28 +1380,27 @@ function editProductInfo (productToEdit, value = null, batch = false) {
                 try {
                     // Let's compute product final price, using coeffs.
                     let computing_shelf_price_details = {base_value: productToEdit.new_shelf_price, intermediate_values: []};
+
                     for (let k = 1; k <10; k++) {
                         if (typeof productToEdit['coeff' + k + '_id'] !== "undefined") {
-                            product_coeffs.forEach(
-                                (coeff) => {
-                                    if (coeff.id == productToEdit['coeff' + k + '_id']) {
-                                        if (coeff.operation_type == "fixed") {
-                                            productToEdit.new_shelf_price += coeff.value;
-                                            computing_shelf_price_details.intermediate_values.push({msg: "Found fixed coeff " + coeff.value, new_value: productToEdit.new_shelf_price})
-                                        } else if (coeff.operation_type == "multiplier") {
-                                            productToEdit.new_shelf_price *= (1 + coeff.value);
-                                            computing_shelf_price_details.intermediate_values.push({msg: "Found multiplier coeff " + coeff.value, new_value: productToEdit.new_shelf_price})
-                                        }
+                            product_coeffs.forEach((coeff) => {
+                                if (coeff.id == productToEdit['coeff' + k + '_id']) {
+                                    if (coeff.operation_type == "fixed") {
+                                        productToEdit.new_shelf_price += coeff.value;
+                                        computing_shelf_price_details.intermediate_values.push({msg: "Found fixed coeff " + coeff.value, new_value: productToEdit.new_shelf_price});
+                                    } else if (coeff.operation_type == "multiplier") {
+                                        productToEdit.new_shelf_price *= (1 + coeff.value);
+                                        computing_shelf_price_details.intermediate_values.push({msg: "Found multiplier coeff " + coeff.value, new_value: productToEdit.new_shelf_price});
                                     }
                                 }
-                            )
+                            });
                         }
                     }
                     productToEdit.new_shelf_price *= productToEdit.tax_coeff;
-                    computing_shelf_price_details.intermediate_values.push({msg: "Applying tax coeff " + productToEdit.tax_coeff, new_value: productToEdit.new_shelf_price})
+                    computing_shelf_price_details.intermediate_values.push({msg: "Applying tax coeff " + productToEdit.tax_coeff, new_value: productToEdit.new_shelf_price});
                     productToEdit.new_shelf_price = productToEdit.new_shelf_price.toFixed(2);
-                    computing_shelf_price_details.final_value = productToEdit.new_shelf_price
-                    productToEdit.computing_shelf_price_details = computing_shelf_price_details
+                    computing_shelf_price_details.final_value = productToEdit.new_shelf_price;
+                    productToEdit.computing_shelf_price_details = computing_shelf_price_details;
                 } catch (e) {
                     productToEdit.new_shelf_price = null;
                     err = {msg: e.name + ' : ' + e.message, ctx: 'computing new_shelf_price'};
@@ -1513,6 +1534,7 @@ function print_product_labels() {
             $.ajax("../../orders/print_product_labels?oids=" + group_ids.join(','))
                 .done(function(data) {
                     let success = false;
+
                     if (typeof data.res !== "undefined") {
                         if (typeof data.res.error === "undefined") {
                             success = true;
@@ -1522,7 +1544,7 @@ function print_product_labels() {
                         alert("l' impression des étiquettes à coller sur les articles vient d'être lancée.");
                         $('#barcodesToPrint').hide();
                     } else {
-                        alert("Une erreur est survenue.")
+                        alert("Une erreur est survenue.");
                     }
                 });
         } else {

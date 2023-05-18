@@ -221,11 +221,19 @@ div#container_edition {
 }
 
 tr.even td.row_product_no_qty {
-  background-color: #f0ad4e; /*#ec971f*/
+  background-color: #F2B969 !important;
 }
 
 tr.odd td.row_product_no_qty {
-  background-color: rgb(236, 182, 106); /*#ec971f*/
+  background-color: #f0ad4e !important;
+}
+
+tr.even td.row_product_qty_changed {
+  background-color: #ffc0b7 !important;
+}
+
+tr.odd td.row_product_qty_changed {
+  background-color: #FFB7AD !important;
 }
 
 .add_products_button_container {
