@@ -29,7 +29,7 @@ class CagetteSales(models.Model):
                 statements_orders[s] = o["name"]
         # Get payment lines
         cond = [['id', 'in', statements]]
-        fields = ["amount", "journal_id", "create_date"]
+        fields = ["amount", "journal_id", "create_date", "meal_voucher_issuer"]
         payments = self.o_api.search_read('account.bank.statement.line', cond, fields, order="create_date ASC", limit=50000)
         try:
             for payment in payments:
@@ -41,7 +41,8 @@ class CagetteSales(models.Model):
                             "payments": [
                                 {
                                     "amount": round(float(payment["amount"]), 2),
-                                    "journal_id": payment["journal_id"]
+                                    "journal_id": payment["journal_id"],
+                                    "meal_voucher_issuer": payment["meal_voucher_issuer"]
                                 }
                             ]
                            })
