@@ -556,7 +556,7 @@ function init_calendar_page() {
         contentHeight: "auto",
         eventDisplay: "block",
         hiddenDays: hidden_days,
-        events: '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id,
+        events: event_src,
         eventClick: function(info) {
             if (!$(info.el).hasClass("shift_booked") && !$(info.el).hasClass("shift_booked_makeup")) {
                 const new_shift_id = info.event.id;
@@ -656,7 +656,7 @@ function init_calendar_page() {
     calendar.render();
 }
 
-function init_read_only_calendar_page() {
+async function init_read_only_calendar_page() {
     let template_explanations = $("#calendar_explaination_template");
 
     if (vw <= 992) {
@@ -680,8 +680,8 @@ function init_read_only_calendar_page() {
     if (incoming_shifts !== null) {
         init_shifts_list();
     } else {
-        load_partner_shifts(partner_data.concerned_partner_id)
-            .then(init_shifts_list);
+        await load_partner_shifts(partner_data.concerned_partner_id)
+        init_shifts_list();
     }
 
     if (should_select_makeup()) {
@@ -718,7 +718,16 @@ function init_read_only_calendar_page() {
     const hidden_days = days_to_hide.length > 0 ? $.map(days_to_hide.split(", "), Number) : [];
 
     const calendarEl = document.getElementById('read_only_calendar');
-
+    let event_src = '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id;
+    if (partner_data.comite === "True") {
+        let next_evts = []
+        if (incoming_shifts.length > 0) {
+            incoming_shifts.forEach((s) => {
+                next_evts.push({id: s.id, title: 'Prélèvement 1 point', allDay: true, start: s.date_begin})
+            });
+        }
+        event_src = next_evts
+    }
     calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'fr',
         initialView: default_initial_view,
@@ -734,7 +743,7 @@ function init_read_only_calendar_page() {
         contentHeight: "auto",
         eventDisplay: "block",
         hiddenDays: hidden_days,
-        events: '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id,
+        events: event_src,
         eventDidMount: function() {
             // Calendar is hidden at first on mobile to hide header change when data is loaded
             $(".loading-calendar").hide();

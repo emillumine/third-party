@@ -123,7 +123,6 @@ class CagetteShift(models.Model):
                   'street', 'street2', 'zip', 'city', 'mobile', 'phone', 'email',
                   'is_associated_people', 'parent_id', 'extra_shift_done']
         partnerData = self.o_api.search_read('res.partner', cond, fields, 1)
-        
         if partnerData:
             partnerData = partnerData[0]
             if partnerData['is_associated_people']:

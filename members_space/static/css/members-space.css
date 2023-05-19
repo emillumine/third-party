@@ -87,6 +87,10 @@ body {
     }
 }
 
+#comite_my_shifs_message {
+    min-width: 20em;
+}
+
 #home_incoming_services {
     min-height: 80px;
     display: flex;

@@ -101,6 +101,17 @@
       <h3>Vous êtes inscrit.e dans le service des comités, vous n'avez pas accès au calendrier d'échange des services car vous vous organisez directement avec le responsable du comité. Si vous avez des rattrapages à réaliser, merci de contacter le responsable du comité qui vous aidera à planifier les rattrapages ou trouver une solution.</h3>
       <h3>Le calendrier ci-dessous est en lecture seule</h3>
     </div>
+    <div id="comite_my_shifs_message">
+      <p data-type="nb_of_shifs_state">
+        Vous avez actuellement <span data-type="shifts_nb"></span> <span data-type="service_txt">service</span> d'avance.
+      </p>
+      <p data-type="next_ftop_shift">
+        Le système informatique viendra prélever un service sur votre compteur le <span data-type="next_ftop_shift_date"></span>.
+      </p>
+      <p>
+        Veillez à faire au moins 1 service d'ici là !
+      </p>
+    </div>
   </div>
 </div>
 
@@ -129,6 +140,8 @@
     "partner_id":"{{partnerData.id}}",
     "name":"{{partnerData.display_name|safe}}",
     "shift_type":"{{partnerData.shift_type}}",
+    "final_ftop_point":{{partnerData.final_ftop_point}},
+    "final_standard_point":{{partnerData.final_standard_point}},
     "date_delay_stop":"{{partnerData.date_delay_stop}}",
     "cooperative_state":"{{partnerData.cooperative_state}}",
     "regular_shift_name":"{{partnerData.regular_shift_name}}",

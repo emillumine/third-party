@@ -177,40 +177,56 @@ function init_history() {
 function init_incoming_shifts() {
     $(".loading-incoming-shifts").hide();
     $("#incoming_shifts").show();
-
-    if (incoming_shifts.length === 0) {
-        $("#incoming_shifts").text("Aucun service à venir...");
-    } else {
-        $("#incoming_shifts").empty();
-
-        for (shift of incoming_shifts) {
-            let shift_line_template = prepare_shift_line_template(shift.date_begin);
-
-            if (partner_data.associated_partner_id != "False") {
-                if (shift.associate_registered==="partner") {
-                    shift_line_template.find(".shift_line_associate").text(' - '+partner_data.name+'');
-                } else if (shift.associate_registered==="associate") {
-                    shift_line_template.find(".shift_line_associate").text(' - '+partner_data.associated_partner_name+'');
-                } else if (shift.associate_registered==="both") {
-                    shift_line_template.find(".shift_line_associate").text(' - Les deux');
-                } else {
-                    shift_line_template.find(".shift_line_associate").text('A définir');
-                }
-            } else if (partner_data.parent_id != "False") {
-                if (shift.associate_registered==="partner") {
-                    shift_line_template.find(".shift_line_associate").text(' - '+partner_data.parent_name+'');
-                } else if (shift.associate_registered==="associate") {
-                    shift_line_template.find(".shift_line_associate").text(' - '+partner_data.name+'');
-                } else if (shift.associate_registered==="both") {
-                    shift_line_template.find(".shift_line_associate").text(' - Les deux');
-                } else {
-                    shift_line_template.find(".shift_line_associate").text('A définir');
-                }
+    if (partner_data.comite === "True") {
+            let message = $('#comite_my_shifs_message').clone()
+            message.find('[data-type="nb_of_shifs_state"] [data-type="shifts_nb"]').text(partner_data.final_ftop_point)
+            if (Math.abs(partner_data.final_ftop_point) > 1) {
+                message.find('[data-type="nb_of_shifs_state"] [data-type="service_txt"]').text("services")
             }
+            // let's get next ftop shift (incoming_shifts is ordered)
+            if (incoming_shifts.length > 0) {
+                const next_shift = incoming_shifts[0]
+                let ns_date = new Date(next_shift.date_begin)
+                const date_options = {dateStyle: "short"}
+                message.find('[data-type="next_ftop_shift_date"]').text(ns_date.toLocaleDateString('fr-FR', date_options))
+            }
+            
+            $("#incoming_shifts_area").html(message)
+    } else {
+        if (incoming_shifts.length === 0) {
+            $("#incoming_shifts").text("Aucun service à venir...");
+        } else {
+            $("#incoming_shifts").empty();
 
-            $("#incoming_shifts").append(shift_line_template.html());
+            for (shift of incoming_shifts) {
+                let shift_line_template = prepare_shift_line_template(shift.date_begin);
+
+                if (partner_data.associated_partner_id != "False") {
+                    if (shift.associate_registered==="partner") {
+                        shift_line_template.find(".shift_line_associate").text(' - '+partner_data.name+'');
+                    } else if (shift.associate_registered==="associate") {
+                        shift_line_template.find(".shift_line_associate").text(' - '+partner_data.associated_partner_name+'');
+                    } else if (shift.associate_registered==="both") {
+                        shift_line_template.find(".shift_line_associate").text(' - Les deux');
+                    } else {
+                        shift_line_template.find(".shift_line_associate").text('A définir');
+                    }
+                } else if (partner_data.parent_id != "False") {
+                    if (shift.associate_registered==="partner") {
+                        shift_line_template.find(".shift_line_associate").text(' - '+partner_data.parent_name+'');
+                    } else if (shift.associate_registered==="associate") {
+                        shift_line_template.find(".shift_line_associate").text(' - '+partner_data.name+'');
+                    } else if (shift.associate_registered==="both") {
+                        shift_line_template.find(".shift_line_associate").text(' - Les deux');
+                    } else {
+                        shift_line_template.find(".shift_line_associate").text('A définir');
+                    }
+                }
+
+                $("#incoming_shifts").append(shift_line_template.html());
+            }
         }
-    }
+    }   
 }
 
 function init_my_shifts() {

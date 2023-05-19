@@ -4,19 +4,36 @@ function init_my_shifts_tile() {
     if (incoming_shifts.length === 0) {
         $("#home_tile_my_services #home_incoming_services").text("Aucun service à venir...");
     } else {
-        $("#home_tile_my_services #home_incoming_services").empty();
+        
+        if (partner_data.comite === "True") {
+            let message = $('#comite_my_shifs_message').clone()
+            message.find('[data-type="nb_of_shifs_state"] [data-type="shifts_nb"]').text(partner_data.final_ftop_point)
+            if (Math.abs(partner_data.final_ftop_point) > 1) {
+                message.find('[data-type="nb_of_shifs_state"] [data-type="service_txt"]').text("services")
+            }
+            // let's get next ftop shift (incoming_shifts is ordered)
+            if (incoming_shifts.length > 0) {
+                const next_shift = incoming_shifts[0]
+                let ns_date = new Date(next_shift.date_begin)
+                const date_options = {dateStyle: "short"}
+                message.find('[data-type="next_ftop_shift_date"]').text(ns_date.toLocaleDateString('fr-FR', date_options))
+            }
+            
+            $("#home_tile_my_services .tile_content").html(message)
+        } else {
+            $("#home_tile_my_services #home_incoming_services").empty();
+            let cpt = 0;
 
-        let cpt = 0;
+            for (shift of incoming_shifts) {
+                if (cpt === 3) {
+                    break;
+                } else {
+                    let shift_line_template = prepare_shift_line_template(shift.date_begin);
 
-        for (shift of incoming_shifts) {
-            if (cpt === 3) {
-                break;
-            } else {
-                let shift_line_template = prepare_shift_line_template(shift.date_begin);
+                    $("#home_tile_my_services #home_incoming_services").append(shift_line_template.html());
 
-                $("#home_tile_my_services #home_incoming_services").append(shift_line_template.html());
-
-                cpt++;
+                    cpt++;
+                }
             }
         }
     }
