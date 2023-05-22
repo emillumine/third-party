@@ -64,7 +64,7 @@ function remove_from_shift_template() {
  * Send the request to register a member to a shift template.
  * Ask to unsuscribe first if the member was subscribed.
  *
- * @param {int} shift_type 1 === standard ; 2 === ftop
+ * @param {int} shift_type 1 === standard ; 2 === ftop ; 3 === exempté
  * @param {int} shift_template_id null for ftop shift type
  * @param {String} shift_template_name selected shift template name
  */
@@ -216,6 +216,22 @@ function set_subscription_area() {
             false
         );
     });
+
+    $(document).off("click", "#shifts_calendar_area button[data-select='Exemption']");
+    $(document).on("click", "#shifts_calendar_area button[data-select='Exemption']", function() {
+        // Subscribe to comitee/ftop shift
+        msg = `Inscrire ${selected_member.name} en Éxempté ?`;
+
+        openModal(
+            msg,
+            () => {
+                shift_subscrition(3);
+            },
+            "Confirmer",
+            false
+        );
+    });
+
     $(document).off("click", ".shift");
     $(document).on("click", ".shift", function() {
         // Subscribe to shift template

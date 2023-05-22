@@ -828,6 +828,23 @@ class CagetteServices(models.Model):
         return shift_id
 
     @staticmethod
+    def get_exemptions_shift_id():
+        shift_id = None
+        try:
+            api = OdooAPI()
+            res = api.search_read('ir.config_parameter',
+                                  [['key','=', 'lacagette_exemptions.exemptions_shift_id']],
+                                  ['value'])
+            if len(res) > 0:
+                try:
+                    shift_id = int(res[0]['value'])
+                except:
+                    pass
+        except:
+            pass
+        return shift_id
+
+    @staticmethod
     def get_first_ftop_shift_id():
         shift_id = None
         try:

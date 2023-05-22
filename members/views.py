@@ -49,6 +49,12 @@ def index(request):
         else:
             context['committees_shift_id'] = committees_shift_id
 
+        exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+        if exemptions_shift_id is None:
+            return HttpResponse("Le créneau des exemptions n'est pas configuré dans Odoo !")
+        else:
+            context['exemptions_shift_id'] = exemptions_shift_id
+
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:
             context['no_picture_member_advice'] = msettings['no_picture_member_advice']['value']
@@ -88,6 +94,7 @@ def inscriptions(request, type=1):
     template = loader.get_template('members/inscriptions.html')
 
     committees_shift_id = CagetteServices.get_committees_shift_id()
+    exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
     context = {
         'type': type, 'title': 'Inscriptions',
         'couchdb_server': settings.COUCHDB['url'],
@@ -108,6 +115,7 @@ def inscriptions(request, type=1):
         'can_create_binome': getattr(settings, 'CAN_CREATE_BINOME', True),
         'prepa_odoo_url' : getattr(settings, 'PREPA_ODOO_URL', '/members/prepa-odoo'),
         'committees_shift_id': committees_shift_id,
+        'exemptions_shift_id': exemptions_shift_id,
     }
 
     response = HttpResponse(template.render(context, request))
@@ -125,6 +133,7 @@ def prepa_odoo(request):
     """Generate coop subscription form, to be fill by BDM."""
     template = loader.get_template('members/prepa_odoo.html')
     committees_shift_id = CagetteServices.get_committees_shift_id()
+    exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
 
     context = {'title': 'Préparation Odoo Inscriptions',
                'warning_placeholder': 'Par exemple, il manque un chèque',
@@ -141,6 +150,7 @@ def prepa_odoo(request):
                'show_ftop_button': getattr(settings, 'SHOW_FTOP_BUTTON', True),
                'db': settings.COUCHDB['dbs']['member'],
                'committees_shift_id': committees_shift_id,
+               'exemptions_shift_id': exemptions_shift_id,
                }
 
     # with_addr_complement

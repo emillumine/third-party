@@ -347,6 +347,7 @@ def manage_regular_shifts(request):
     template = loader.get_template('members/admin/manage_regular_shifts.html')
     committees_shift_id = CagetteServices.get_committees_shift_id()
     committees_shift_name = getattr(settings, 'COMMITTEES_SHIFT_NAME', "service des Comités")
+    exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
     context = {
         'title': 'BDM - Créneaux',
         'module': 'Membres',
@@ -359,7 +360,8 @@ def manage_regular_shifts(request):
         'has_committe_shift': committees_shift_id is not None,
         'committees_shift_id': committees_shift_id,
         'committees_shift_name': committees_shift_name,
-        'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', '')
+        'ASSOCIATE_MEMBER_SHIFT' : getattr(settings, 'ASSOCIATE_MEMBER_SHIFT', ''),
+        'exemptions_shift_id': exemptions_shift_id,
     }
     return HttpResponse(template.render(context, request))
 
@@ -579,7 +581,7 @@ def shift_subscription(request):
         if shift_type == 1:
             # 1 = standard
             shift_template_id = int(data["shift_template_id"])
-        else:
+        elif shift_type == 2:
             # 2 = ftop
 
             # First try to get committees shift
@@ -587,6 +589,10 @@ def shift_subscription(request):
             # If None, no committees shift, get the first ftop shift
             if shift_template_id is None:
                 shift_template_id = CagetteServices.get_first_ftop_shift_id()
+        else:
+            # 3 = exempté
+            # Get exemptions shift
+            shift_template_id = CagetteServices.get_exemptions_shift_id()
 
         m = CagetteMember(partner_id)
 

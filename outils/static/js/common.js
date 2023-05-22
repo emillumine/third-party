@@ -447,13 +447,15 @@ function shift_loc_selection() {
 
     st_loc_buttons.removeClass('highlighted');
     clicked.addClass('highlighted');
-    if (clicked.data('select') != 'Volant') {
+    if (clicked.data('select') !== 'Volant' && clicked.data('select') !== 'Exemption') {
         retrieve_and_draw_shift_tempates();
-    } else {
+    } else if (clicked.data('select') === 'Volant') {
         //shift_templates[volant] is not always set (when call from bdm interface)
         if (typeof volant !== "undefined" && typeof shift_templates[volant] !== "undefined") {
             subscribe_shift(volant);
         } 
+    } else if (clicked.data('select') === 'Exemption') {
+        subscribe_shift(exemptions_shift_id);
     }
 
 }
