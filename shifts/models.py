@@ -292,11 +292,12 @@ class CagetteShift(models.Model):
             coop_logger.error("Model affect shift nobody found : %s", str(cond))
         return response
 
-    def cancel_shift(self, idsRegisteur, origin='memberspace'):
+    def cancel_shift(self, idsRegisteur, origin='memberspace', description=None):
         """Annule un shift"""
         fieldsDatas = { "related_shift_state": 'cancel',
                         "origin": origin,
-                        "state": 'cancel'}
+                        "state": 'cancel',
+                        "cancellation_description": description}
 
         return self.o_api.update('shift.registration', idsRegisteur,  fieldsDatas)
 

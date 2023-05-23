@@ -498,15 +498,16 @@ def delete_shift_registration(request):
         member_id = int(data["member_id"])
         shift_registration_id = int(data["shift_registration_id"])
         shift_is_makeup = data["shift_is_makeup"]
+        cancellation_description = data["cancellation_description"]
 
         # Note: 'upcoming_registration_count' in res.partner won't change because the _compute method
         #       in odoo counts canceled shift registrations.
         m = CagetteShift()
-        res["cancel_shift"] = m.cancel_shift([shift_registration_id], origin='bdm')
+        res["cancel_shift"] = m.cancel_shift([shift_registration_id], origin='bdm', description=cancellation_description)
 
         if shift_is_makeup is True:
             fields = {
-                'name': "Admin BDM - Suppression d'un rattrapage",
+                'name': "Admin BDM (annulation de rattrapage par une annulation de présence) - " + cancellation_description,
                 'shift_id': False,
                 'type': data["member_shift_type"],
                 'partner_id': member_id,

@@ -51,7 +51,16 @@
       </div>
     </div>
   
-    <div id="templates" style="display:none;"></div>
+    <div id="templates" style="display:none;">
+        <div id="modal_delete_shift_registration">
+            <p>Enlever la présence de <b><span class="member_name"></span></b> au service du <b><span class="service_name"></span></b> ?</p>
+            <div id="makeup_case_explanation" style="display:none">
+                <p><i class="fas fa-exclamation-triangle"></i> Ce service est un rattrapage. Le supprimer ajoutera un point au compteur de ce.tte membre.</p>
+            </div>
+            <br><label for="cancellation-explanation">Explication : </label><input class="" type="text" id="cancellation-explanation">
+            <br><br><label for="cancellation-signature">Signature : </label><input class="" type="text" id="cancellation-signature">
+        </div>
+    </div>
 </div>
 
 <script src='{% static "js/all_common.js" %}?v=1651853225'></script>
