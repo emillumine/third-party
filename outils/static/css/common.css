@@ -1,9 +1,9 @@
 .green {color:#60B000;}
-.b_green, .b_more_than_50pc {background:#d9ebd2}
+.b_green, .b_more_than_50pc {background:#d9ebd2 !important;}
 .orange {color:#FFA500;}
 .b_orange, .b_less_than_50pc {background:#F0B000 !important;}
 .yellow {color:#F0B000;}
-.b_yellow {background: #fcf3cc;}
+.b_yellow {background: #fcf3cc !important;}
 .red {color:#FF0000;}
 .b_red, .b_less_than_25pc {background:#ff3333 !important;}
 .loading {background-image: url("/static/img/ajax-loader.gif"); background-repeat:no-repeat; background-position: center; background-color: #efefef;}

@@ -29,7 +29,7 @@ video {max-width:none;}
 #webcam_button {min-width:115px; max-width:115px;}
 #multi_results_preview button {margin:2px;}
 #member_slide {grid-gap:0;padding:5px;display:none;}
-#member_slide .coop-info {background: #fbfbd5;}
+#member_slide .coop-info {background: #449d44;}
 #image_medium {width:128px;float:left;}
 #image_medium:hover {cursor: url(/static/img/ip-camera.png), url(/static/img/ip-camera.svg) 5 5, pointer;}
 #barcode {height:128px;}

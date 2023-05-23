@@ -294,7 +294,8 @@ def record_service_presence(request):
         stid = int(request.POST.get("stid", 0))  # shift_ticket_id
         cancel = request.POST.get("cancel") == 'true'
         typeAction = str(request.POST.get("type"))
-
+        coop_logger.info("Enregistrement presence : mid = %s, rid = %s, sid = %s, stid = %s, cancel = %s, typeAction = %s",
+                                                    str(mid), str(rid), str(sid), str(stid), str(cancel), typeAction)
         app_env = getattr(settings, 'APP_ENV', "prod")
         if (rid > -1 and mid > 0):
             overrided_date = ""
@@ -316,6 +317,7 @@ def record_service_presence(request):
                         res['update'] = 'ok'
                     else:
                         res['update'] = 'ko'
+                coop_logger.info("Résultat update record_service_presence : %s", res['update'])
                 if res['update'] == 'ok':
                     members = CagetteMember.search('id', mid)
                     m = members[0]
@@ -331,6 +333,7 @@ def record_service_presence(request):
                 
     except Exception as e:
         res['error'] = str(e)
+        coop_logger.error("Erreur record_service_presence : %s", str(e))
     return JsonResponse({'res': res})
 
 def easy_validate_shift_presence(request):
