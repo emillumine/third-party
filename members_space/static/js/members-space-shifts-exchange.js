@@ -464,7 +464,7 @@ function init_shifts_list() {
  */
 function init_calendar_page() {
     let template_explanations = $("#calendar_explaination_template");
-
+    let event_src = '/shifts/get_list_shift_calendar/' + partner_data.concerned_partner_id;
     if (vw <= 992) {
         $(".loading-calendar").show();
 
