@@ -462,4 +462,6 @@ function shift_loc_selection() {
 
 st_loc_buttons.click(shift_loc_selection);
 
-week_types.find('input').change(filter_weeks);
+week_types.find('input').change(() => {
+    filter_weeks({shift_listener: true});
+});
