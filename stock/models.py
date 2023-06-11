@@ -373,6 +373,8 @@ class CagetteStock(models.Model):
             cond = [['qty_available','>', 0], ['active', '=', True]]
             fields = ["barcode", "display_name", "qty_available", "standard_price"]
             articles = api.search_read('product.product', cond, fields, 1000000)
+            for a in articles:
+                a['total'] = a['qty_available'] * a['standard_price']
         except Exception as e:
             coop_logger.error("Erreur get_valuable_stock : %s", str(e))
         return articles

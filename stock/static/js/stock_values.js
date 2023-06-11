@@ -6,14 +6,29 @@ $(document).ready(function() {
             "data": ""
         },
         "columns":[
-            {data:"barcode", "title":"Code-barre", "width": "50%"},
+            {data:"barcode", "title":"Code-barre", "width": "10em"},
             {data:"display_name", "title":"Article", "width": "50%"},
 
-            {data:"qty_available", "title":"Stock", "width":"15%"
+            {data:"qty_available", "title":"Stock", "width":"5em",
+             render: function(data) {
+               if (data == parseInt(data,10)) {
+		  return data
+               } else {
+                  return data.toFixed(3)
+	       }
+             }
             },
-            {data:"standard_price", "title":"Prix achat", "width":"15%"
-            }
+            {data:"standard_price", "title":"Prix Achat", "width":"4em",
+             render: function(data) {
+               return data.toFixed(2)
+             }
 
+            },
+            {data: "total", "title": "Total",
+             render: function(data, type, full) {
+               return data.toFixed(2)
+             }
+            }
 
         ],
 
@@ -24,7 +39,7 @@ $(document).ready(function() {
                 "desc"
             ]
         ],
-        "iDisplayLength": 50,
+        "paging": true,
         "language": {
             "emptyTable":     "Pas de donnée",
             "info":           "Affiché : lignes _START_ à _END_ sur _TOTAL_",
@@ -55,6 +70,6 @@ $(document).ready(function() {
                 className: 'btn--primary btn_export'
             },
         ],
-        dom: '<lr<t>ip><"clear"><B>',
+        dom: '<lr<t>ip><"clear"><B>'
     });
 });
