@@ -106,14 +106,13 @@ function fill_member_slide(member) {
 
         html_elts.status_explanation.html(explanation);
     }
-    if (member.cooperative_state == 'Désinscrit(e)' || member.cooperative_state == 'Parti(e)') {
+
+    if (member.cooperative_state == 'Désinscrit(e)' || member.cooperative_state == 'Parti(e)' || member.cooperative_state == 'Rattrapage' || member.cooperative_state == 'Suspendu(e)') {
         coop_info.addClass('b_red');
     }
     else if (member.cooperative_state == 'En alerte' || member.cooperative_state == 'Délai accordé') {
         coop_info.addClass('b_yellow')
-    } else if (member.cooperative_state == 'Suspendu(e)') {
-        coop_info.addClass('b_orange');
-    }
+    } 
 
     if (member.shifts.length > 0) {
         html_elts.next_shifts.append('Prochains services : ');

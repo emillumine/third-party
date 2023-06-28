@@ -162,6 +162,14 @@ def index(request, exception=None):
             context['helper_unsubscribe_form_link'] = msettings['helper_unsubscribe_form_link']['value'] if 'helper_unsubscribe_form_link' in msettings else ''
             context['covid_form_link'] = msettings['covid_form_link']['value'] if 'covid_form_link' in msettings else ''
             context['covid_end_form_link'] = msettings['covid_end_form_link']['value'] if 'covid_end_form_link' in msettings else ''
+            if getattr(settings, 'USE_EXEMPTIONS_SHIFT_TEMPLATE', False) is True:
+                exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+                if exemptions_shift_id is None:
+                    return HttpResponse("Le créneau des exemptions n'est pas configuré dans Odoo !")
+                else:
+                    context['exemptions_shift_id'] = exemptions_shift_id
+            else:
+                context['exemptions_shift_id'] = 0
         else:
             # may arrive when switching database without cleaning cookie
             return redirect('/website/deconnect')

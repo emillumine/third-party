@@ -48,12 +48,15 @@ def index(request):
             return HttpResponse("Le créneau des comités n'est pas configuré dans Odoo !")
         else:
             context['committees_shift_id'] = committees_shift_id
-
-        exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
-        if exemptions_shift_id is None:
-            return HttpResponse("Le créneau des exemptions n'est pas configuré dans Odoo !")
+        if getattr(settings, 'USE_EXEMPTIONS_SHIFT_TEMPLATE', False) is True:
+            exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+            if exemptions_shift_id is None:
+                return HttpResponse("Le créneau des exemptions n'est pas configuré dans Odoo !")
+            else:
+                context['exemptions_shift_id'] = exemptions_shift_id
         else:
-            context['exemptions_shift_id'] = exemptions_shift_id
+            context['exemptions_shift_id'] = 0
+
 
     if 'no_picture_member_advice' in msettings:
         if len(msettings['no_picture_member_advice']['value']) > 0:
@@ -94,7 +97,10 @@ def inscriptions(request, type=1):
     template = loader.get_template('members/inscriptions.html')
 
     committees_shift_id = CagetteServices.get_committees_shift_id()
-    exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+    if getattr(settings, 'USE_EXEMPTIONS_SHIFT_TEMPLATE', False) is True:
+        exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+    else:
+        exemptions_shift_id = 0
     context = {
         'type': type, 'title': 'Inscriptions',
         'couchdb_server': settings.COUCHDB['url'],
@@ -133,7 +139,10 @@ def prepa_odoo(request):
     """Generate coop subscription form, to be fill by BDM."""
     template = loader.get_template('members/prepa_odoo.html')
     committees_shift_id = CagetteServices.get_committees_shift_id()
-    exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+    if getattr(settings, 'USE_EXEMPTIONS_SHIFT_TEMPLATE', False) is True:
+        exemptions_shift_id = CagetteServices.get_exemptions_shift_id()
+    else:
+        exemptions_shift_id = 0
 
     context = {'title': 'Préparation Odoo Inscriptions',
                'warning_placeholder': 'Par exemple, il manque un chèque',
